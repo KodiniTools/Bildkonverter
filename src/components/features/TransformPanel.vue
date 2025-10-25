@@ -1,0 +1,549 @@
+<template>
+  <aside class="transform-panel">
+    <!-- Crop Sektion -->
+    <div class="panel-section">
+      <h3>
+        <i class="fas fa-crop"></i>
+        {{ $t('transform.crop.title') }}
+      </h3>
+      
+      <button 
+        class="transform-btn"
+        :class="{ 'active': cropMode }"
+        @click="$emit('toggle-crop')"
+      >
+        <i :class="cropMode ? 'fas fa-check' : 'fas fa-crop'"></i>
+        <span>{{ cropMode ? $t('transform.crop.confirm') : $t('transform.crop.button') }}</span>
+      </button>
+      
+      <button 
+        v-if="hasCropped"
+        class="transform-btn undo-btn"
+        @click="$emit('undo-crop')"
+      >
+        <i class="fas fa-undo"></i>
+        <span>{{ $t('transform.crop.undo') }}</span>
+      </button>
+    </div>
+
+    <!-- Transform Sektion -->
+    <div class="panel-section">
+      <h3>
+        <i class="fas fa-magic"></i>
+        {{ $t('transform.title') }}
+      </h3>
+
+      <!-- Deckkraft -->
+      <div class="control-group">
+        <label>
+          <i class="fas fa-adjust"></i>
+          {{ $t('transform.opacity') }}
+          <span class="value">{{ transforms.opacity }}%</span>
+        </label>
+        <input 
+          type="range" 
+          min="0" 
+          max="100" 
+          :value="transforms.opacity"
+          @input="$emit('update:opacity', Number($event.target.value))"
+          class="slider"
+        >
+      </div>
+
+      <!-- Rotation -->
+      <div class="control-group">
+        <label>
+          <i class="fas fa-redo"></i>
+          {{ $t('transform.rotation') }}
+          <span class="value">{{ transforms.rotation }}°</span>
+        </label>
+        <input 
+          type="range" 
+          min="-180" 
+          max="180" 
+          :value="transforms.rotation"
+          @input="$emit('update:rotation', Number($event.target.value))"
+          class="slider"
+        >
+      </div>
+
+      <!-- Schnell-Rotation Buttons -->
+      <div class="button-group">
+        <button 
+          class="quick-btn"
+          @click="$emit('rotate-90-counter')"
+          :title="$t('transform.rotationTooltip.counterClockwise')"
+        >
+          <i class="fas fa-undo"></i>
+          90°
+        </button>
+        <button 
+          class="quick-btn"
+          @click="$emit('rotate-180')"
+          :title="$t('transform.rotationTooltip.rotate180')"
+        >
+          <i class="fas fa-sync"></i>
+          180°
+        </button>
+        <button 
+          class="quick-btn"
+          @click="$emit('rotate-90')"
+          :title="$t('transform.rotationTooltip.clockwise')"
+        >
+          <i class="fas fa-redo"></i>
+          90°
+        </button>
+      </div>
+
+      <!-- Spiegeln -->
+      <div class="button-group">
+        <button 
+          class="quick-btn"
+          :class="{ 'active': transforms.flipHorizontal }"
+          @click="$emit('flip-horizontal')"
+          :title="$t('transform.flip.horizontalTooltip')"
+        >
+          <i class="fas fa-arrows-alt-h"></i>
+          {{ $t('transform.flip.horizontal') }}
+        </button>
+        <button 
+          class="quick-btn"
+          :class="{ 'active': transforms.flipVertical }"
+          @click="$emit('flip-vertical')"
+          :title="$t('transform.flip.verticalTooltip')"
+        >
+          <i class="fas fa-arrows-alt-v"></i>
+          {{ $t('transform.flip.vertical') }}
+        </button>
+      </div>
+
+      <!-- Zoom/Skalierung -->
+      <div class="control-group">
+        <label>
+          <i class="fas fa-search-plus"></i>
+          {{ $t('transform.zoom') }}
+          <span class="value">{{ transforms.scale }}%</span>
+        </label>
+        <input 
+          type="range" 
+          min="10" 
+          max="200" 
+          :value="transforms.scale"
+          @input="$emit('update:scale', Number($event.target.value))"
+          class="slider"
+        >
+      </div>
+
+      <!-- Ecken abrunden -->
+      <div class="control-group">
+        <label>
+          <i class="fas fa-circle"></i>
+          {{ $t('transform.borderRadius') }}
+          <span class="value">{{ transforms.borderRadius }}px</span>
+        </label>
+        <input 
+          type="range" 
+          min="0" 
+          max="50" 
+          :value="transforms.borderRadius"
+          @input="$emit('update:border-radius', Number($event.target.value))"
+          class="slider"
+        >
+      </div>
+
+      <!-- Rahmen -->
+      <div class="control-group">
+        <label>
+          <i class="fas fa-border-style"></i>
+          {{ $t('transform.border') }}
+          <span class="value">{{ transforms.borderWidth }}px</span>
+        </label>
+        <input 
+          type="range" 
+          min="0" 
+          max="20" 
+          :value="transforms.borderWidth"
+          @input="$emit('update:border-width', Number($event.target.value))"
+          class="slider"
+        >
+        
+        <div v-if="transforms.borderWidth > 0" class="color-picker-group">
+          <input 
+            type="color" 
+            :value="transforms.borderColor"
+            @input="$emit('update:border-color', $event.target.value)"
+            class="color-input"
+          >
+          <span class="color-label">{{ $t('transform.borderColor') }}</span>
+        </div>
+      </div>
+
+      <!-- Anwenden Button -->
+      <button 
+        v-if="hasTransforms"
+        class="transform-btn apply-btn"
+        @click="$emit('apply-transforms')"
+        :title="$t('transform.applyTooltip')"
+      >
+        <i class="fas fa-check-circle"></i>
+        <span>{{ $t('transform.apply') }}</span>
+      </button>
+
+      <!-- Reset Button -->
+      <button 
+        v-if="hasTransforms"
+        class="transform-btn reset-btn"
+        @click="$emit('reset-transforms')"
+      >
+        <i class="fas fa-undo-alt"></i>
+        <span>{{ $t('transform.reset') }}</span>
+      </button>
+    </div>
+  </aside>
+</template>
+
+<script setup>
+defineProps({
+  cropMode: {
+    type: Boolean,
+    required: true
+  },
+  hasCropped: {
+    type: Boolean,
+    required: true
+  },
+  transforms: {
+    type: Object,
+    required: true
+  },
+  hasTransforms: {
+    type: Boolean,
+    default: false
+  }
+})
+
+defineEmits([
+  'toggle-crop',
+  'undo-crop',
+  'update:opacity',
+  'update:rotation',
+  'update:scale',
+  'update:border-radius',
+  'update:border-width',
+  'update:border-color',
+  'rotate-90',
+  'rotate-90-counter',
+  'rotate-180',
+  'flip-horizontal',
+  'flip-vertical',
+  'apply-transforms',
+  'reset-transforms'
+])
+</script>
+
+<style scoped>
+.transform-panel {
+  width: 280px;
+  background: var(--color-bg-secondary, #f9fafb);
+  border-left: 1px solid var(--color-border, #e5e7eb);
+  overflow-y: auto;
+  padding: 1rem;
+  max-height: 100%;
+}
+
+.panel-section {
+  margin-bottom: 1.5rem;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.panel-section h3 {
+  font-size: 0.75rem;
+  margin-bottom: 0.75rem;
+  color: var(--color-text-secondary, #6b7280);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  opacity: 0.8;
+  
+  i {
+    color: var(--color-primary, #3b82f6);
+    font-size: 0.75rem;
+  }
+}
+
+/* Buttons */
+.transform-btn {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  background: var(--color-bg, #ffffff);
+  border: 1.5px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-text-primary, #111827);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  
+  &:hover {
+    border-color: var(--color-primary, #3b82f6);
+    background: rgba(59, 130, 246, 0.05);
+    transform: translateY(-1px);
+  }
+  
+  &.active {
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+    color: white;
+    border-color: #22c55e;
+    box-shadow: 0 2px 8px rgba(74, 222, 128, 0.3);
+    
+    &:hover {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+    }
+  }
+  
+  &.undo-btn {
+    border-color: #f59e0b;
+    color: #f59e0b;
+    
+    &:hover {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: #d97706;
+      color: #d97706;
+    }
+  }
+  
+  &.apply-btn {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border-color: #2563eb;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    
+    &:hover {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    }
+  }
+  
+  &.reset-btn {
+    border-color: #ef4444;
+    color: #ef4444;
+    
+    &:hover {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: #dc2626;
+      color: #dc2626;
+    }
+  }
+  
+  i {
+    font-size: 0.9rem;
+  }
+  
+  span {
+    flex: 1;
+    text-align: left;
+  }
+}
+
+/* Control Groups */
+.control-group {
+  margin-bottom: 1rem;
+  
+  label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--color-text-primary, #111827);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    
+    i {
+      margin-right: 0.5rem;
+      color: var(--color-primary, #3b82f6);
+      font-size: 0.8rem;
+    }
+    
+    .value {
+      font-weight: 600;
+      color: var(--color-text-secondary, #6b7280);
+      font-size: 0.75rem;
+      min-width: 45px;
+      text-align: right;
+    }
+  }
+}
+
+/* Slider */
+.slider {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-border, #d1d5db);
+  outline: none;
+  -webkit-appearance: none;
+  
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--color-primary, #3b82f6);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    
+    &:hover {
+      background: var(--color-primary-dark, #2563eb);
+      transform: scale(1.15);
+      box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
+    }
+  }
+  
+  &::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--color-primary, #3b82f6);
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    
+    &:hover {
+      background: var(--color-primary-dark, #2563eb);
+      transform: scale(1.15);
+      box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
+    }
+  }
+}
+
+/* Button Groups */
+.button-group {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.quick-btn {
+  flex: 1;
+  padding: 0.65rem 0.5rem;
+  background: var(--color-bg, #ffffff);
+  border: 1.5px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.75rem;
+  color: var(--color-text-primary, #111827);
+  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  
+  &:hover {
+    border-color: var(--color-primary, #3b82f6);
+    background: rgba(59, 130, 246, 0.05);
+    transform: translateY(-1px);
+  }
+  
+  &.active {
+    background: var(--color-primary, #3b82f6);
+    color: white;
+    border-color: var(--color-primary, #3b82f6);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  }
+  
+  i {
+    font-size: 1rem;
+    opacity: 0.9;
+  }
+}
+
+/* Color Picker */
+.color-picker-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.color-input {
+  width: 50px;
+  height: 35px;
+  border: 2px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  cursor: pointer;
+  
+  &::-webkit-color-swatch-wrapper {
+    padding: 2px;
+  }
+  
+  &::-webkit-color-swatch {
+    border: none;
+    border-radius: 4px;
+  }
+}
+
+.color-label {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary, #6b7280);
+  font-weight: 500;
+}
+
+/* Dark Mode */
+.dark-mode .transform-panel {
+  background: #1f2937;
+  border-left-color: #374151;
+}
+
+.dark-mode .panel-section h3 {
+  color: #9ca3af;
+}
+
+.dark-mode .transform-btn {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+.dark-mode .transform-btn:hover {
+  background: #4b5563;
+}
+
+.dark-mode .quick-btn {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+.dark-mode .quick-btn:hover {
+  background: #4b5563;
+}
+
+.dark-mode .control-group label {
+  color: #f9fafb;
+}
+
+.dark-mode .control-group label .value {
+  color: #9ca3af;
+}
+
+.dark-mode .slider {
+  background: #4b5563;
+}
+
+.dark-mode .color-input {
+  border-color: #4b5563;
+}
+</style>

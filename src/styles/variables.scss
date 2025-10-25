@@ -1,0 +1,256 @@
+/**
+ * SCSS Variables - Design System
+ * Zentrale Definitionen für Farben, Spacing, Typography, etc.
+ */
+
+// ===== COLORS =====
+
+// Primary Colors
+$color-primary: #4a90e2;
+$color-primary-light: #6ba4e8;
+$color-primary-dark: #3a7bc8;
+
+// Success, Warning, Error
+$color-success: #50e3c2;
+$color-warning: #f8e71c;
+$color-error: #f44336;
+$color-info: #2196f3;
+
+// Neutral Colors
+$color-white: #ffffff;
+$color-black: #000000;
+$color-gray-100: #f8f9fa;
+$color-gray-200: #e9ecef;
+$color-gray-300: #dee2e6;
+$color-gray-400: #ced4da;
+$color-gray-500: #adb5bd;
+$color-gray-600: #6c757d;
+$color-gray-700: #495057;
+$color-gray-800: #343a40;
+$color-gray-900: #212529;
+
+// Background & Text
+$color-bg: $color-white;
+$color-bg-secondary: $color-gray-100;
+$color-text: $color-gray-900;
+$color-text-light: $color-gray-600;
+$color-text-muted: $color-gray-500;
+
+// Border
+$color-border: $color-gray-300;
+$color-border-light: $color-gray-200;
+
+// Accent Colors
+$color-light-blue: rgba(74, 144, 226, 0.1);
+$color-medium-blue: rgba(74, 144, 226, 0.2);
+
+// ===== DARK MODE COLORS =====
+$dark-bg: #1a1a1a;
+$dark-bg-secondary: #2d2d2d;
+$dark-text: #e0e0e0;
+$dark-text-light: #b0b0b0;
+$dark-border: #3d3d3d;
+
+// ===== SPACING =====
+$spacing-xs: 0.25rem;    // 4px
+$spacing-sm: 0.5rem;     // 8px
+$spacing-md: 1rem;       // 16px
+$spacing-lg: 1.5rem;     // 24px
+$spacing-xl: 2rem;       // 32px
+$spacing-2xl: 3rem;      // 48px
+$spacing-3xl: 4rem;      // 64px
+
+// ===== TYPOGRAPHY =====
+
+// Font Families
+$font-family-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
+                   'Helvetica Neue', Arial, sans-serif;
+$font-family-mono: 'Courier New', Courier, monospace;
+
+// Font Sizes
+$font-size-xs: 0.75rem;    // 12px
+$font-size-sm: 0.875rem;   // 14px
+$font-size-base: 1rem;     // 16px
+$font-size-lg: 1.125rem;   // 18px
+$font-size-xl: 1.25rem;    // 20px
+$font-size-2xl: 1.5rem;    // 24px
+$font-size-3xl: 2rem;      // 32px
+
+// Font Weights
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+// Line Heights
+$line-height-tight: 1.2;
+$line-height-normal: 1.5;
+$line-height-relaxed: 1.75;
+
+// ===== BORDERS =====
+$border-width: 1px;
+$border-width-thick: 2px;
+
+$border-radius-sm: 4px;
+$border-radius-md: 8px;
+$border-radius-lg: 12px;
+$border-radius-xl: 16px;
+$border-radius-full: 9999px;
+
+// ===== SHADOWS =====
+$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+$shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+
+// ===== TRANSITIONS =====
+$transition-fast: 0.15s ease;
+$transition-base: 0.2s ease;
+$transition-slow: 0.3s ease;
+
+// ===== Z-INDEX =====
+$z-dropdown: 1000;
+$z-sticky: 1020;
+$z-fixed: 1030;
+$z-modal-backdrop: 1040;
+$z-modal: 1050;
+$z-popover: 1060;
+$z-tooltip: 1070;
+
+// ===== BREAKPOINTS =====
+$breakpoint-xs: 480px;
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+$breakpoint-2xl: 1536px;
+
+// ===== MIXINS =====
+
+// Responsive Breakpoints
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == 'xs' {
+    @media (max-width: $breakpoint-xs) { @content; }
+  } @else if $breakpoint == 'sm' {
+    @media (max-width: $breakpoint-sm) { @content; }
+  } @else if $breakpoint == 'md' {
+    @media (max-width: $breakpoint-md) { @content; }
+  } @else if $breakpoint == 'lg' {
+    @media (max-width: $breakpoint-lg) { @content; }
+  } @else if $breakpoint == 'xl' {
+    @media (max-width: $breakpoint-xl) { @content; }
+  } @else if $breakpoint == '2xl' {
+    @media (max-width: $breakpoint-2xl) { @content; }
+  }
+}
+
+// Flexbox
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// Truncate Text
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Card Style
+@mixin card {
+  background: $color-white;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-md;
+  padding: $spacing-lg;
+}
+
+// Button Reset
+@mixin button-reset {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  
+  &:focus {
+    outline: none;
+  }
+}
+
+// Transitions
+@mixin transition($property: all) {
+  transition: $property $transition-base;
+}
+
+// ===== CSS CUSTOM PROPERTIES (für Runtime-Änderungen) =====
+:root {
+  // Colors
+  --color-primary: #{$color-primary};
+  --color-success: #{$color-success};
+  --color-warning: #{$color-warning};
+  --color-error: #{$color-error};
+  --color-danger: #{$color-error};
+  --color-info: #{$color-info};
+  
+  --color-white: #{$color-white};
+  --color-bg: #{$color-bg};
+  --color-bg-secondary: #{$color-bg-secondary};
+  --color-text: #{$color-text};
+  --color-text-light: #{$color-text-light};
+  --color-border: #{$color-border};
+  
+  --color-light-blue: #{$color-light-blue};
+  --color-medium-blue: #{$color-medium-blue};
+  
+  // Spacing
+  --spacing-xs: #{$spacing-xs};
+  --spacing-sm: #{$spacing-sm};
+  --spacing-md: #{$spacing-md};
+  --spacing-lg: #{$spacing-lg};
+  --spacing-xl: #{$spacing-xl};
+  --spacing-2xl: #{$spacing-2xl};
+  
+  // Typography
+  --font-family-sans: #{$font-family-sans};
+  --font-size-xs: #{$font-size-xs};
+  --font-size-sm: #{$font-size-sm};
+  --font-size-base: #{$font-size-base};
+  --font-size-lg: #{$font-size-lg};
+  --font-size-xl: #{$font-size-xl};
+  --font-size-2xl: #{$font-size-2xl};
+  
+  // Borders
+  --border-radius-sm: #{$border-radius-sm};
+  --border-radius-md: #{$border-radius-md};
+  --border-radius-lg: #{$border-radius-lg};
+  
+  // Shadows
+  --shadow-sm: #{$shadow-sm};
+  --shadow-md: #{$shadow-md};
+  --shadow-lg: #{$shadow-lg};
+  
+  // Transitions
+  --transition-fast: #{$transition-fast};
+  --transition-base: #{$transition-base};
+}
+
+// Dark Mode
+:root[data-theme="dark"] {
+  --color-bg: #{$dark-bg};
+  --color-bg-secondary: #{$dark-bg-secondary};
+  --color-text: #{$dark-text};
+  --color-text-light: #{$dark-text-light};
+  --color-border: #{$dark-border};
+  --color-white: #2d2d2d;
+}
