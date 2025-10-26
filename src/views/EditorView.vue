@@ -18,13 +18,13 @@
         </div>
 
         <div class="toolbar-section">
-          <button 
-            class="btn btn-secondary" 
+          <button
+            class="btn btn-secondary"
             @click="addText"
             :disabled="!currentImage"
           >
             <i class="fas fa-font"></i>
-            Text
+            Text hinzufügen [DEBUG v2]
           </button>
           <button 
             class="btn btn-secondary" 
@@ -1056,8 +1056,20 @@ function roundedRect(ctx, x, y, width, height, radius) {
 // ===== TEXT FUNCTIONS =====
 
 function addText() {
-  if (!currentImage.value) return
+  alert('🔵 addText() wurde aufgerufen! Texte im Store: ' + (imageStore.texts?.length || 0))
+
+  if (!currentImage.value) {
+    alert('❌ Kein Bild geladen!')
+    return
+  }
+
+  alert('✅ Öffne Modal...')
   textModal.openAddTextModal({ x: 50, y: 50 })
+
+  // Warte kurz und prüfe dann
+  setTimeout(() => {
+    alert('📊 Modal-Status: ' + textModal.isModalOpen.value + '\nTexte nach Modal: ' + (imageStore.texts?.length || 0))
+  }, 500)
 }
 
 function getMousePos(e) {
@@ -1124,10 +1136,13 @@ function onCanvasMouseDown(e) {
 
   // Sonst Text-Interaktion
   console.log('🔍 Suche Text an Position...')
+  console.log('📊 Texte im Store:', imageStore.texts?.length || 0)
+
   const text = findTextAtPosition(pos.x, pos.y)
 
   if (text) {
     console.log('✅ Text wird selektiert:', text.id)
+    alert('✅ TEXT GEFUNDEN UND SELEKTIERT: "' + (text.content || text.txt) + '"')
     selectedTextId.value = text.id
     isDraggingText.value = true
     dragOffset.value = {
