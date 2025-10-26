@@ -601,16 +601,21 @@ function renderImage() {
   
   // Draw texts from imageStore
   if (imageStore.texts && imageStore.texts.length > 0) {
-    imageStore.texts.forEach(text => {
+    console.log('📝 Zeichne', imageStore.texts.length, 'Text(e)')
+    imageStore.texts.forEach((text, index) => {
+      const content = text.content || text.txt || ''
+      console.log(`  ${index + 1}. "${content}" bei (${text.x}, ${text.y})`)
+
       ctx.save()
       ctx.font = `${text.fontSize || text.size || 32}px ${text.fontFamily || 'Arial'}`
       ctx.fillStyle = text.color || '#000000'
       ctx.textBaseline = 'top'
-      ctx.fillText(text.content || text.txt || '', text.x || 0, text.y || 0)
+      ctx.fillText(content, text.x || 0, text.y || 0)
 
       // Draw selection
       if (selectedTextId.value === text.id) {
-        const metrics = ctx.measureText(text.content || text.txt || '')
+        console.log('  ✨ Mit Selektion!')
+        const metrics = ctx.measureText(content)
         ctx.strokeStyle = '#0066ff'
         ctx.lineWidth = 2
         ctx.setLineDash([5, 5])
@@ -620,6 +625,8 @@ function renderImage() {
 
       ctx.restore()
     })
+  } else {
+    console.log('📝 KEINE Texte zum Zeichnen (imageStore.texts ist leer)')
   }
   
   // Update nur Dimensionen (schnell), nicht Dateigröße
@@ -1076,6 +1083,7 @@ function findTextAtPosition(x, y) {
 
   const ctx = canvas.value.getContext('2d')
 
+  // Iteriere rückwärts (zuletzt gezeichnete Texte zuerst)
   for (let i = imageStore.texts.length - 1; i >= 0; i--) {
     const text = imageStore.texts[i]
     const fontSize = text.fontSize || text.size || 32
@@ -1084,28 +1092,42 @@ function findTextAtPosition(x, y) {
     ctx.font = `${fontSize}px ${text.fontFamily || 'Arial'}`
     const metrics = ctx.measureText(content)
 
-    // WICHTIG: textBaseline ist 'top' (siehe renderImage Zeile 608)
-    // Daher ist text.y die Top-Position des Textes
-    // Hit-Box: von text.y (Top) bis text.y + fontSize (Bottom)
-    if (x >= text.x && x <= text.x + metrics.width &&
-        y >= text.y && y <= text.y + fontSize) {
+    // SEHR großzügige Hit-Box zum Testen (50px Padding)
+    const hitPadding = 50
+    const textX = text.x || 0
+    const textY = text.y || 0
+
+    if (x >= textX - hitPadding &&
+        x <= textX + metrics.width + hitPadding &&
+        y >= textY - hitPadding &&
+        y <= textY + fontSize + hitPadding) {
+      console.log('✅ HIT! Text gefunden:', content, 'bei', textX, textY)
       return text
     }
   }
+
+  console.log('❌ KEIN HIT bei', x, y, '- Texte im Store:', imageStore.texts.length)
   return null
 }
 
 function onCanvasMouseDown(e) {
+  console.log('🖱️ MOUSEDOWN Event aufgerufen!')
   const pos = getMousePos(e)
+  console.log('📍 Position:', pos)
 
   // Crop-Handler über Composable (hat Priorität)
   const cropHandled = crop.handleMouseDown(pos)
-  if (cropHandled) return
+  if (cropHandled) {
+    console.log('✂️ Crop-Mode hat Event behandelt')
+    return
+  }
 
   // Sonst Text-Interaktion
+  console.log('🔍 Suche Text an Position...')
   const text = findTextAtPosition(pos.x, pos.y)
 
   if (text) {
+    console.log('✅ Text wird selektiert:', text.id)
     selectedTextId.value = text.id
     isDraggingText.value = true
     dragOffset.value = {
@@ -1114,6 +1136,7 @@ function onCanvasMouseDown(e) {
     }
     canvas.value.style.cursor = 'grabbing'
   } else {
+    console.log('❌ Kein Text gefunden, Selektion aufheben')
     selectedTextId.value = null
   }
 
@@ -1161,11 +1184,17 @@ function onCanvasMouseUp() {
 }
 
 function onCanvasDoubleClick(e) {
+  console.log('🖱️🖱️ DOUBLE-CLICK Event aufgerufen!')
   const pos = getMousePos(e)
+  console.log('📍 Position:', pos)
+
   const text = findTextAtPosition(pos.x, pos.y)
 
   if (text) {
+    console.log('✅ Öffne Modal für Text:', text.id)
     textModal.openEditTextModal(text.id)
+  } else {
+    console.log('❌ Kein Text zum Bearbeiten gefunden')
   }
 }
 
