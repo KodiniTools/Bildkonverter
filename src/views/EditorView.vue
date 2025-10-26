@@ -692,15 +692,12 @@ function clearImage() {
   resizeWidth.value = null
   resizeHeight.value = null
   
-  // Text-Elemente zurücksetzen (falls Methode existiert)
-  if (textModal && typeof textModal.clearAllTexts === 'function') {
-    textModal.clearAllTexts()
-  }
+  // Text-Elemente zurücksetzen
   selectedTextId.value = null
-  
-  // ImageStore zurücksetzen (falls Methode existiert)
-  if (imageStore && typeof imageStore.clearImage === 'function') {
-    imageStore.clearImage()
+
+  // ImageStore komplett zurücksetzen
+  if (imageStore && typeof imageStore.resetStore === 'function') {
+    imageStore.resetStore()
   }
   
   // File Input zurücksetzen
