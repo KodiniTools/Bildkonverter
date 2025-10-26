@@ -601,25 +601,31 @@ function renderImage() {
   
   // Draw texts from imageStore
   if (imageStore.texts && imageStore.texts.length > 0) {
+    console.log('🎨 Zeichne', imageStore.texts.length, 'Texte')
     imageStore.texts.forEach(text => {
+      const content = text.content || text.txt || ''
+      console.log(`  📝 Text: "${content}" bei (${text.x}, ${text.y})`)
       ctx.save()
       ctx.font = `${text.fontSize || text.size || 32}px ${text.fontFamily || 'Arial'}`
       ctx.fillStyle = text.color || '#000000'
       ctx.textBaseline = 'top'
-      ctx.fillText(text.content || text.txt || '', text.x || 0, text.y || 0)
-      
+      ctx.fillText(content, text.x || 0, text.y || 0)
+
       // Draw selection
       if (selectedTextId.value === text.id) {
-        const metrics = ctx.measureText(text.content || text.txt || '')
+        console.log('  ✨ Zeichne Selektion für Text:', text.id)
+        const metrics = ctx.measureText(content)
         ctx.strokeStyle = '#0066ff'
         ctx.lineWidth = 2
         ctx.setLineDash([5, 5])
         ctx.strokeRect(text.x - 4, text.y - 4, metrics.width + 8, (text.fontSize || text.size || 32) + 8)
         ctx.setLineDash([])
       }
-      
+
       ctx.restore()
     })
+  } else {
+    console.log('📝 Keine Texte zum Zeichnen')
   }
   
   // Update nur Dimensionen (schnell), nicht Dateigröße
@@ -1049,8 +1055,14 @@ function roundedRect(ctx, x, y, width, height, radius) {
 // ===== TEXT FUNCTIONS =====
 
 function addText() {
-  if (!currentImage.value) return
+  console.log('🔵 addText() aufgerufen')
+  if (!currentImage.value) {
+    console.log('❌ Kein Bild geladen')
+    return
+  }
+  console.log('✅ Öffne Text-Modal')
   textModal.openAddTextModal({ x: 50, y: 50 })
+  console.log('📊 textModal.isModalOpen:', textModal.isModalOpen)
 }
 
 function getMousePos(e) {
@@ -1097,15 +1109,22 @@ function findTextAtPosition(x, y) {
 
 function onCanvasMouseDown(e) {
   const pos = getMousePos(e)
-  
+  console.log('🖱️ MouseDown bei Position:', pos)
+
   // Crop-Handler über Composable (hat Priorität)
   const cropHandled = crop.handleMouseDown(pos)
-  if (cropHandled) return
-  
+  if (cropHandled) {
+    console.log('✂️ Crop-Mode aktiv')
+    return
+  }
+
   // Sonst Text-Interaktion
   const text = findTextAtPosition(pos.x, pos.y)
-  
+  console.log('🔍 Text gefunden?', text ? `Ja: "${text.content || text.txt}"` : 'Nein')
+  console.log('📝 Alle Texte im Store:', imageStore.texts?.length || 0)
+
   if (text) {
+    console.log('✅ Text selektiert:', text.id)
     selectedTextId.value = text.id
     isDraggingText.value = true
     dragOffset.value = {
@@ -1114,9 +1133,10 @@ function onCanvasMouseDown(e) {
     }
     canvas.value.style.cursor = 'grabbing'
   } else {
+    console.log('❌ Kein Text gefunden, Selektion aufheben')
     selectedTextId.value = null
   }
-  
+
   renderImage()
 }
 
@@ -1162,10 +1182,17 @@ function onCanvasMouseUp() {
 
 function onCanvasDoubleClick(e) {
   const pos = getMousePos(e)
+  console.log('🖱️🖱️ DoubleClick bei Position:', pos)
+
   const text = findTextAtPosition(pos.x, pos.y)
-  
+  console.log('🔍 Text gefunden beim Doppelklick?', text ? `Ja: "${text.content || text.txt}"` : 'Nein')
+
   if (text) {
+    console.log('✅ Öffne Edit-Modal für Text:', text.id)
     textModal.openEditTextModal(text.id)
+    console.log('📊 Modal-Status:', textModal.isModalOpen)
+  } else {
+    console.log('❌ Kein Text zum Bearbeiten gefunden')
   }
 }
 
