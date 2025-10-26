@@ -1073,21 +1073,22 @@ function getMousePos(e) {
 
 function findTextAtPosition(x, y) {
   if (!imageStore.texts || imageStore.texts.length === 0) return null
-  
+
   const ctx = canvas.value.getContext('2d')
-  
+
   for (let i = imageStore.texts.length - 1; i >= 0; i--) {
     const text = imageStore.texts[i]
     const fontSize = text.fontSize || text.size || 32
     const content = text.content || text.txt || ''
-    
+
     ctx.font = `${fontSize}px ${text.fontFamily || 'Arial'}`
     const metrics = ctx.measureText(content)
-    
-    // Text.y ist die Baseline, nicht die Top-Koordinate
-    // Hit-Box: von (text.y - fontSize) bis text.y (Höhe des Textes über der Baseline)
+
+    // WICHTIG: textBaseline ist 'top' (siehe renderImage Zeile 608)
+    // Daher ist text.y die Top-Position des Textes
+    // Hit-Box: von text.y (Top) bis text.y + fontSize (Bottom)
     if (x >= text.x && x <= text.x + metrics.width &&
-        y >= text.y - fontSize && y <= text.y + fontSize * 0.2) {
+        y >= text.y && y <= text.y + fontSize) {
       return text
     }
   }
@@ -1121,17 +1122,20 @@ function onCanvasMouseDown(e) {
 
 function onCanvasMouseMove(e) {
   const pos = getMousePos(e)
-  
+
   // Crop-Handler über Composable (hat Priorität)
   const cropHandled = crop.handleMouseMove(pos)
   if (cropHandled) return
-  
+
   // Sonst Text-Interaktion
   if (isDraggingText.value && selectedTextId.value) {
     const text = imageStore.texts.find(t => t.id === selectedTextId.value)
     if (text) {
-      text.x = pos.x - dragOffset.value.x
-      text.y = pos.y - dragOffset.value.y
+      const newX = pos.x - dragOffset.value.x
+      const newY = pos.y - dragOffset.value.y
+
+      // Update über imageStore für korrekte Reaktivität
+      imageStore.updateText(text.id, { x: newX, y: newY })
       renderImage()
     }
   } else {
