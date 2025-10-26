@@ -24,7 +24,7 @@
             :disabled="!currentImage"
           >
             <i class="fas fa-font"></i>
-            Text hinzufügen [DEBUG v2]
+            Text
           </button>
           <button 
             class="btn btn-secondary" 
@@ -601,21 +601,16 @@ function renderImage() {
   
   // Draw texts from imageStore
   if (imageStore.texts && imageStore.texts.length > 0) {
-    console.log('📝 Zeichne', imageStore.texts.length, 'Text(e)')
-    imageStore.texts.forEach((text, index) => {
-      const content = text.content || text.txt || ''
-      console.log(`  ${index + 1}. "${content}" bei (${text.x}, ${text.y})`)
-
+    imageStore.texts.forEach(text => {
       ctx.save()
       ctx.font = `${text.fontSize || text.size || 32}px ${text.fontFamily || 'Arial'}`
       ctx.fillStyle = text.color || '#000000'
       ctx.textBaseline = 'top'
-      ctx.fillText(content, text.x || 0, text.y || 0)
+      ctx.fillText(text.content || text.txt || '', text.x || 0, text.y || 0)
 
       // Draw selection
       if (selectedTextId.value === text.id) {
-        console.log('  ✨ Mit Selektion!')
-        const metrics = ctx.measureText(content)
+        const metrics = ctx.measureText(text.content || text.txt || '')
         ctx.strokeStyle = '#0066ff'
         ctx.lineWidth = 2
         ctx.setLineDash([5, 5])
@@ -625,8 +620,6 @@ function renderImage() {
 
       ctx.restore()
     })
-  } else {
-    console.log('📝 KEINE Texte zum Zeichnen (imageStore.texts ist leer)')
   }
   
   // Update nur Dimensionen (schnell), nicht Dateigröße
@@ -1056,20 +1049,8 @@ function roundedRect(ctx, x, y, width, height, radius) {
 // ===== TEXT FUNCTIONS =====
 
 function addText() {
-  alert('🔵 addText() wurde aufgerufen! Texte im Store: ' + (imageStore.texts?.length || 0))
-
-  if (!currentImage.value) {
-    alert('❌ Kein Bild geladen!')
-    return
-  }
-
-  alert('✅ Öffne Modal...')
+  if (!currentImage.value) return
   textModal.openAddTextModal({ x: 50, y: 50 })
-
-  // Warte kurz und prüfe dann
-  setTimeout(() => {
-    alert('📊 Modal-Status: ' + textModal.isModalOpen.value + '\nTexte nach Modal: ' + (imageStore.texts?.length || 0))
-  }, 500)
 }
 
 function getMousePos(e) {
@@ -1104,8 +1085,8 @@ function findTextAtPosition(x, y) {
     ctx.font = `${fontSize}px ${text.fontFamily || 'Arial'}`
     const metrics = ctx.measureText(content)
 
-    // SEHR großzügige Hit-Box zum Testen (50px Padding)
-    const hitPadding = 50
+    // Hit-Box mit kleinem Padding für bessere Benutzerfreundlichkeit
+    const hitPadding = 5
     const textX = text.x || 0
     const textY = text.y || 0
 
@@ -1113,36 +1094,24 @@ function findTextAtPosition(x, y) {
         x <= textX + metrics.width + hitPadding &&
         y >= textY - hitPadding &&
         y <= textY + fontSize + hitPadding) {
-      console.log('✅ HIT! Text gefunden:', content, 'bei', textX, textY)
       return text
     }
   }
 
-  console.log('❌ KEIN HIT bei', x, y, '- Texte im Store:', imageStore.texts.length)
   return null
 }
 
 function onCanvasMouseDown(e) {
-  console.log('🖱️ MOUSEDOWN Event aufgerufen!')
   const pos = getMousePos(e)
-  console.log('📍 Position:', pos)
 
   // Crop-Handler über Composable (hat Priorität)
   const cropHandled = crop.handleMouseDown(pos)
-  if (cropHandled) {
-    console.log('✂️ Crop-Mode hat Event behandelt')
-    return
-  }
+  if (cropHandled) return
 
   // Sonst Text-Interaktion
-  console.log('🔍 Suche Text an Position...')
-  console.log('📊 Texte im Store:', imageStore.texts?.length || 0)
-
   const text = findTextAtPosition(pos.x, pos.y)
 
   if (text) {
-    console.log('✅ Text wird selektiert:', text.id)
-    alert('✅ TEXT GEFUNDEN UND SELEKTIERT: "' + (text.content || text.txt) + '"')
     selectedTextId.value = text.id
     isDraggingText.value = true
     dragOffset.value = {
@@ -1151,7 +1120,6 @@ function onCanvasMouseDown(e) {
     }
     canvas.value.style.cursor = 'grabbing'
   } else {
-    console.log('❌ Kein Text gefunden, Selektion aufheben')
     selectedTextId.value = null
   }
 
@@ -1199,17 +1167,11 @@ function onCanvasMouseUp() {
 }
 
 function onCanvasDoubleClick(e) {
-  console.log('🖱️🖱️ DOUBLE-CLICK Event aufgerufen!')
   const pos = getMousePos(e)
-  console.log('📍 Position:', pos)
-
   const text = findTextAtPosition(pos.x, pos.y)
 
   if (text) {
-    console.log('✅ Öffne Modal für Text:', text.id)
     textModal.openEditTextModal(text.id)
-  } else {
-    console.log('❌ Kein Text zum Bearbeiten gefunden')
   }
 }
 
