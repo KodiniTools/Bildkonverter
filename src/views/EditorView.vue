@@ -283,18 +283,18 @@
           <button class="preview-close-btn" @click="closePreview">
             <i class="fas fa-times"></i>
           </button>
-          
+
           <h2 class="preview-title">Vorher / Nachher Vergleich</h2>
-          
+
           <div class="preview-comparison">
             <div class="preview-item">
               <h3>Vorher (Original)</h3>
               <img v-if="originalPreviewSrc" :src="originalPreviewSrc" alt="Original" />
               <div v-else class="preview-placeholder">Kein Original verfügbar</div>
             </div>
-            
+
             <div class="preview-divider"></div>
-            
+
             <div class="preview-item">
               <h3>Nachher (Bearbeitet)</h3>
               <img v-if="editedPreviewSrc" :src="editedPreviewSrc" alt="Bearbeitet" />
@@ -303,6 +303,11 @@
           </div>
         </div>
       </div>
+    </Teleport>
+
+    <!-- Text Edit Modal -->
+    <Teleport to="body">
+      <TextEditModal v-if="textModal.isModalOpen" />
     </Teleport>
   </div>
 </template>
@@ -317,6 +322,7 @@ import { useCrop } from '@/composables/useCrop'
 import { useTransform } from '@/composables/useTransform'
 import TransformPanel from '@/components/features/TransformPanel.vue'
 import FilterPresets from '@/components/editor/FilterPresets.vue'
+import TextEditModal from '@/components/modals/TextEditModal.vue'
 
 // ===== NEU: Export Utils Import =====
 import { exportImage, FORMAT_INFO, SUPPORTED_FORMATS, getFormatInfo } from '@/utils/exportUtils'
