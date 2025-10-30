@@ -780,6 +780,7 @@ if (!validation.isValid) {
 
 ---
 ## Author: Dinko Ramić - Kodini Tools - kodinitools.com
+---
 
 ## 💡 Tipps für Einsteiger
 
