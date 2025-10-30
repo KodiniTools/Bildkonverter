@@ -1,4 +1,4 @@
-# 🎨 Vue Bildkonverter Pro - Moderne Zweisprachige Vue 3 Anwendung
+# 🎨Bildkonverter Pro - Moderne Zweisprachige Vue 3 Anwendung
 
 Eine professionelle Bildbearbeitungs-Anwendung, vollständig neu entwickelt mit **Vue 3**, **Pinia**, **Vue i18n** und modernen Web-Technologien.
 
@@ -779,6 +779,7 @@ if (!validation.isValid) {
    - E2E Tests (Playwright/Cypress)
 
 ---
+## Author: Dinko Ramić - Kodini Tools - kodinitools.com
 
 ## 💡 Tipps für Einsteiger
 
