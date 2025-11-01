@@ -1,204 +1,279 @@
-# 🎨Bildkonverter Pro - Moderne Zweisprachige Vue 3 Anwendung
+# 🎨 Bildkonverter Pro - Professionelle Bildbearbeitung im Browser
 
-Eine professionelle Bildbearbeitungs-Anwendung, vollständig neu entwickelt mit **Vue 3**, **Pinia**, **Vue i18n** und modernen Web-Technologien.
+Eine leistungsstarke, moderne Bildbearbeitungs-Anwendung für den Browser. Bearbeiten, optimieren und konvertieren Sie Ihre Bilder direkt im Browser - ohne Installation, ohne Upload zu externen Servern.
 
 ## 📋 Inhaltsverzeichnis
 
-- [Überblick](#überblick)
-- [Vue 3 Konzepte Erklärt](#vue-3-konzepte-erklärt)
-- [Projektstruktur](#projektstruktur)
-- [Installation & Setup](#installation--setup)
-- [Architektur](#architektur)
-- [Stores (State Management)](#stores-state-management)
-- [i18n (Internationalisierung)](#i18n-internationalisierung)
-- [Komponenten-System](#komponenten-system)
-- [Entwicklung](#entwicklung)
-- [Migration von Legacy-Code](#migration-von-legacy-code)
+- [Features](#-features)
+- [Bildbearbeitung](#-bildbearbeitung)
+- [Filter & Effekte](#-filter--effekte)
+- [Presets](#-presets)
+- [Export & Formate](#-export--formate)
+- [Text & Wasserzeichen](#-text--wasserzeichen)
+- [Tastaturkürzel](#-tastaturkürzel)
+- [Installation & Setup](#-installation--setup)
+- [Einstellungen](#-einstellungen)
+- [Technologie](#-technologie)
 
 ---
 
-## 🎯 Überblick
+## ✨ Features
 
-Diese Anwendung wurde von einer klassischen JavaScript-Anwendung in eine moderne Vue 3 Single Page Application (SPA) umgewandelt. Sie nutzt:
+### 🖼️ Bildverarbeitung
+- **Mehrere Formate**: JPEG, PNG, WebP, AVIF
+- **Keine Dateigröße-Limits**: Verarbeitung läuft komplett im Browser
+- **Keine Cloud-Uploads**: Ihre Bilder bleiben auf Ihrem Gerät
+- **Echtzeit-Vorschau**: Sehen Sie Änderungen sofort
+- **Undo/Redo**: Machen Sie Änderungen rückgängig oder wiederholen Sie sie
 
-- ✅ **Vue 3** mit Composition API
-- ✅ **Pinia** für zentrales State Management
-- ✅ **Vue i18n** für Deutsch/Englisch Unterstützung
-- ✅ **Vue Router** für Navigation
-- ✅ **Vite** als Build-Tool (schneller als Webpack)
-- ✅ **SCSS** für strukturiertes Styling
+### 🎨 Umfangreiche Bearbeitungswerkzeuge
+- **8+ Bildfilter**: Helligkeit, Kontrast, Sättigung, Schärfe und mehr
+- **Professionelle Effekte**: Weichzeichner, Vignette, Schatten
+- **Farbmanipulation**: HSL-Anpassungen, Temperatur, Tint
+- **Bild-Transformationen**: Drehen, Spiegeln, Zuschneiden
+- **Text & Wasserzeichen**: Fügen Sie eigene Texte hinzu
 
----
-
-## 📚 Vue 3 Konzepte Erklärt
-
-### 1. **Was ist Vue?**
-
-Vue ist ein **progressives JavaScript-Framework** für den Aufbau von Benutzeroberflächen. "Progressiv" bedeutet, dass man mit einfachen Features starten und nach Bedarf erweitern kann.
-
-**Vorteile von Vue:**
-- 🚀 Reaktive Daten (Änderungen im State aktualisieren automatisch die UI)
-- 🧩 Komponenten-basiert (Wiederverwendbare UI-Bausteine)
-- 📦 Klein und performant (ca. 20KB minimiert)
-- 📖 Exzellente Dokumentation
-- 🎓 Leichte Lernkurve
-
-### 2. **Composition API vs Options API**
-
-Vue bietet zwei Arten, Komponenten zu schreiben:
-
-**Options API (alt):**
-```javascript
-export default {
-  data() {
-    return { count: 0 }
-  },
-  methods: {
-    increment() {
-      this.count++
-    }
-  }
-}
-```
-
-**Composition API (neu - wir verwenden das):**
-```javascript
-import { ref } from 'vue'
-
-export default {
-  setup() {
-    const count = ref(0)
-    
-    function increment() {
-      count.value++
-    }
-    
-    return { count, increment }
-  }
-}
-```
-
-**Warum Composition API?**
-- ✅ Bessere TypeScript-Unterstützung
-- ✅ Logik kann extrahiert und wiederverwendet werden (Composables)
-- ✅ Klarere Organisation bei komplexen Komponenten
-- ✅ Bessere Code-Completion in IDEs
-
-### 3. **Script Setup (Noch moderner)**
-
-Wir verwenden `<script setup>`, eine syntaktische Vereinfachung:
-
-```vue
-<script setup>
-import { ref } from 'vue'
-
-const count = ref(0)
-
-function increment() {
-  count.value++
-}
-</script>
-
-<template>
-  <button @click="increment">Count: {{ count }}</button>
-</template>
-```
-
-**Vorteile von Script Setup:**
-- 🎯 Weniger Boilerplate-Code
-- ⚡ Bessere Performance (zur Compile-Zeit optimiert)
-- 🔧 Automatische Registrierung von Komponenten
-- 💡 Klarere Intention
-
-### 4. **Reaktivität verstehen**
-
-Vue's Reaktivitätssystem ist das Herzstück:
-
-```javascript
-import { ref, reactive, computed, watch } from 'vue'
-
-// ref() für primitive Werte
-const count = ref(0)
-count.value++ // .value ist nötig im Script
-
-// reactive() für Objekte
-const user = reactive({
-  name: 'Max',
-  age: 25
-})
-user.name = 'Maria' // kein .value nötig
-
-// computed() für berechnete Werte
-const doubleCount = computed(() => count.value * 2)
-
-// watch() um auf Änderungen zu reagieren
-watch(count, (newValue, oldValue) => {
-  console.log(`Count changed from ${oldValue} to ${newValue}`)
-})
-```
-
-**Wichtig:**
-- `ref()` erfordert `.value` im Script, aber nicht im Template
-- `reactive()` funktioniert nur mit Objekten/Arrays
-- `computed()` ist gecacht und wird nur neu berechnet wenn Dependencies sich ändern
+### ⚡ Benutzerfreundlichkeit
+- **Responsive Design**: Funktioniert auf Desktop, Tablet und Smartphone
+- **Zweisprachig**: Deutsch und Englisch
+- **Dark/Light Mode**: Passen Sie das Design Ihren Vorlieben an
+- **Tastaturkürzel**: Schneller Workflow für Power-User
+- **Filter-Presets**: Speichern Sie Ihre Lieblings-Einstellungen
 
 ---
 
-## 🏗️ Projektstruktur
+## 🖌️ Bildbearbeitung
 
-```
-vue-bildkonverter/
-├── public/                 # Statische Assets (werden nicht verarbeitet)
-│   ├── favicon.ico
-│   └── robots.txt
-├── src/
-│   ├── assets/            # Assets die verarbeitet werden (Bilder, Fonts)
-│   ├── components/        # Vue-Komponenten
-│   │   ├── layout/       # Layout-Komponenten (Header, Footer)
-│   │   ├── ui/           # Wiederverwendbare UI-Komponenten (Button, Modal)
-│   │   ├── features/     # Feature-spezifische Komponenten
-│   │   └── dev/          # Development-Tools (Performance Monitor)
-│   ├── composables/       # Wiederverwendbare Composition-Logik
-│   ├── i18n/             # Internationalisierung
-│   │   └── index.js      # i18n-Konfiguration mit DE/EN Übersetzungen
-│   ├── router/           # Vue Router Konfiguration
-│   │   └── index.js
-│   ├── stores/           # Pinia Stores (State Management)
-│   │   ├── imageStore.js
-│   │   ├── presetsStore.js
-│   │   └── settingsStore.js
-│   ├── styles/           # Globale Styles
-│   │   ├── variables.scss
-│   │   ├── global.scss
-│   │   └── main.scss
-│   ├── utils/            # Utility-Funktionen
-│   │   └── validationUtils.js
-│   ├── views/            # Route-Views (Seiten)
-│   │   ├── HomeView.vue
-│   │   ├── EditorView.vue
-│   │   └── SettingsView.vue
-│   ├── App.vue           # Root-Komponente
-│   └── main.js           # Einstiegspunkt
-├── index.html            # HTML-Einstiegspunkt
-├── vite.config.js        # Vite-Konfiguration
-├── package.json          # Dependencies und Scripts
-└── README.md             # Diese Datei
-```
+### Unterstützte Eingabeformate
+- **JPEG/JPG** - Das gängigste Bildformat
+- **PNG** - Mit Transparenz-Unterstützung
+- **WebP** - Modernes, effizientes Format
+- **AVIF** - Neuestes Format mit bester Kompression
+- **GIF** - Animationen (als Einzelbild)
+
+### Basis-Bearbeitung
+Die App bietet alle wichtigen Bildbearbeitungsfunktionen:
+
+#### Belichtung & Farbe
+- **Helligkeit**: Machen Sie Ihr Bild heller oder dunkler (-100 bis +100)
+- **Kontrast**: Verstärken oder verringern Sie den Kontrast (0 bis 200)
+- **Sättigung**: Von Schwarz-Weiß bis zu kräftigen Farben (0 bis 200)
+- **Farbtemperatur**: Wärmere oder kühlere Bildstimmung
+- **Tint**: Grün-/Magenta-Verschiebung für perfekte Farben
+
+#### Schärfe & Details
+- **Schärfe**: Erhöhen Sie die Bildschärfe für klarere Details
+- **Weichzeichner**: Sanfte Unschärfe für künstlerische Effekte
+- **Rauschunterdrückung**: Reduzieren Sie Bildrauschen
+
+#### Transformationen
+- **Drehen**: 90° im oder gegen den Uhrzeigersinn
+- **Spiegeln**: Horizontal oder vertikal
+- **Zuschneiden**: Freie Auswahl oder feste Seitenverhältnisse
+- **Skalieren**: Ändern Sie die Bildgröße in Pixel oder Prozent
+
+---
+
+## 🎭 Filter & Effekte
+
+Wenden Sie professionelle Filter mit einem Klick an oder passen Sie einzelne Parameter individuell an.
+
+### Vordefinierte Filter
+Die App bietet verschiedene voreingestellte Filter für schnelle Ergebnisse:
+
+#### 📸 Fotografische Filter
+- **Schwarz-Weiß**: Klassischer monochromer Look
+- **Sepia**: Vintage-Look mit warmem Braunton
+- **Grayscale**: Neutrale Graustufen-Konvertierung
+- **High Contrast**: Dramatische Kontrast-Verstärkung
+- **Soft Focus**: Weicher, traumhafter Effekt
+
+#### 🌈 Kreative Effekte
+- **Vintage**: Retro-Look mit reduzierten Farben
+- **Cool Tone**: Kühle, bläuliche Farbgebung
+- **Warm Tone**: Warme, orange-rötliche Töne
+- **Vibrant**: Verstärkte Farbsättigung
+- **Faded**: Verblasster, pastelliger Look
+
+#### ⭐ Spezialeffekte
+- **Vignette**: Dunkle Ecken für Fokus auf die Mitte
+- **Glow**: Sanftes Leuchten
+- **Sharpen**: Erhöhte Schärfe und Klarheit
+- **Blur**: Künstlerische Unschärfe
+- **Noise**: Film-Körnung hinzufügen
+
+### Erweiterte Farbkorrektur
+Für präzise Anpassungen stehen professionelle Werkzeuge zur Verfügung:
+
+- **HSL-Anpassung**: Farbton (Hue), Sättigung (Saturation), Helligkeit (Lightness)
+- **Farbbalance**: Separate Kontrolle für Highlights, Midtones und Shadows
+- **Farbkurven**: Präzise Tonwert-Anpassungen
+- **Weißabgleich**: Korrektur von Farbstichen
+
+---
+
+## 🎯 Presets
+
+Presets ermöglichen es Ihnen, Ihre Lieblings-Filtereinstellungen zu speichern und mit einem Klick anzuwenden.
+
+### Standard-Presets
+Die App kommt mit professionellen vordefinierten Presets:
+
+- **Portrait**: Optimiert für Hautfarben und weiche Kontraste
+- **Landschaft**: Verstärkte Farben für Natur und Himmel
+- **Food**: Warme, appetitliche Farbtöne
+- **Architektur**: Hohe Schärfe und klare Kontraste
+- **Nacht**: Optimierung für Low-Light-Aufnahmen
+- **Instagram-Styles**: Beliebte Social-Media-Looks
+
+### Eigene Presets erstellen
+1. Stellen Sie alle gewünschten Filter ein
+2. Klicken Sie auf "Preset speichern"
+3. Geben Sie einen Namen ein
+4. Das Preset erscheint in Ihrer Bibliothek
+
+### Preset-Verwaltung
+- **Speichern**: Unbegrenzt viele eigene Presets
+- **Umbenennen**: Presets jederzeit umbenennen
+- **Löschen**: Nicht mehr benötigte Presets entfernen
+- **Export**: Presets als Datei exportieren
+- **Import**: Presets von anderen Geräten importieren
+- **Teilen**: Presets mit anderen Nutzern teilen
+
+---
+
+## 💾 Export & Formate
+
+Exportieren Sie Ihre bearbeiteten Bilder in verschiedenen Formaten und Qualitätsstufen.
+
+### Unterstützte Export-Formate
+
+#### JPEG (.jpg, .jpeg)
+- **Beste Verwendung**: Fotos, Bilder mit vielen Farben
+- **Vorteile**: Kleine Dateigröße, universell unterstützt
+- **Nachteile**: Keine Transparenz, verlustbehaftet
+- **Qualität**: Einstellbar von 0-100%
+
+#### PNG (.png)
+- **Beste Verwendung**: Grafiken, Logos, Bilder mit Transparenz
+- **Vorteile**: Verlustfrei, unterstützt Transparenz
+- **Nachteile**: Größere Dateigröße als JPEG
+- **Qualität**: Verlustfrei
+
+#### WebP (.webp)
+- **Beste Verwendung**: Moderne Websites
+- **Vorteile**: 30% kleinere Dateigröße als JPEG, Transparenz-Unterstützung
+- **Nachteile**: Nicht auf allen älteren Browsern
+- **Qualität**: Einstellbar, verlustfrei oder verlustbehaftet
+
+#### AVIF (.avif)
+- **Beste Verwendung**: Modernste Websites
+- **Vorteile**: 50% kleinere Dateigröße als JPEG bei gleicher Qualität
+- **Nachteile**: Noch eingeschränkte Browser-Unterstützung
+- **Qualität**: Einstellbar
+
+### Export-Einstellungen
+
+#### Qualität
+- **Maximum (100%)**: Beste Qualität, große Dateigröße
+- **Hoch (85-95%)**: Sehr gute Qualität, ausgewogene Größe (empfohlen)
+- **Mittel (70-84%)**: Gute Qualität für Web
+- **Niedrig (50-69%)**: Kleine Dateigröße, sichtbare Qualitätsverluste
+
+#### Größe
+- **Original**: Behält die ursprüngliche Auflösung
+- **Prozentual**: Skaliert um einen Prozentsatz (z.B. 50%, 75%, 150%)
+- **Feste Breite**: Setzt eine feste Breite, Höhe wird proportional angepasst
+- **Feste Höhe**: Setzt eine feste Höhe, Breite wird proportional angepasst
+- **Maximale Abmessungen**: Passt in die angegebenen Abmessungen, behält Seitenverhältnis
+
+#### Metadaten
+- **EXIF-Daten beibehalten**: Original-Kameradaten (Datum, Kameramodell, Einstellungen)
+- **Metadaten entfernen**: Für Datenschutz und kleinere Dateigröße
+
+---
+
+## ✍️ Text & Wasserzeichen
+
+Fügen Sie professionelle Texte und Wasserzeichen zu Ihren Bildern hinzu.
+
+### Text-Features
+- **Mehrere Texte**: Fügen Sie beliebig viele Textelemente hinzu
+- **Positionierung**: Freie Platzierung oder vordefinierte Positionen (Ecken, Mitte)
+- **Schriftarten**: Auswahl aus verschiedenen Schriftarten
+- **Schriftgröße**: Flexibel einstellbar
+- **Farben**: Beliebige Textfarben
+- **Transparenz**: Von vollständig durchsichtig bis opak
+
+### Wasserzeichen
+Schützen Sie Ihre Bilder mit Wasserzeichen:
+
+#### Wasserzeichen-Typen
+- **Text-Wasserzeichen**: Copyright-Text, Ihr Name, URL
+- **Logo-Wasserzeichen**: Laden Sie Ihr Logo hoch
+- **Wiederholende Muster**: Wasserzeichen über das ganze Bild
+
+#### Wasserzeichen-Optionen
+- **Position**: 9 vordefinierte Positionen oder frei platzierbar
+- **Größe**: Anpassbare Größe
+- **Transparenz**: Dezentes oder auffälliges Wasserzeichen
+- **Drehung**: Diagonale oder horizontale Platzierung
+- **Abstand**: Vom Bildrand
+
+### Anwendungsfälle
+- **Copyright-Schutz**: Schützen Sie Ihre Fotos vor unerlaubter Nutzung
+- **Branding**: Fügen Sie Ihr Logo zu Produktfotos hinzu
+- **Social Media**: Signieren Sie Ihre Bilder
+- **Portfolio**: Markieren Sie Ihre professionellen Arbeiten
+
+---
+
+## ⌨️ Tastaturkürzel
+
+Arbeiten Sie schneller mit praktischen Tastaturkürzeln.
+
+### Allgemeine Shortcuts
+- **Strg + O**: Bild öffnen
+- **Strg + S**: Bild speichern
+- **Strg + Z**: Rückgängig (Undo)
+- **Strg + Y** / **Strg + Shift + Z**: Wiederholen (Redo)
+- **Strg + 0**: Zoom zurücksetzen (100%)
+- **Esc**: Dialog schließen
+
+### Bearbeitung
+- **R**: Um 90° nach rechts drehen
+- **L**: Um 90° nach links drehen
+- **H**: Horizontal spiegeln
+- **V**: Vertikal spiegeln
+- **C**: Zuschneiden aktivieren
+- **F**: Filter-Panel öffnen/schließen
+
+### Ansicht
+- **+** / **=**: Hineinzoomen
+- **-**: Herauszoomen
+- **Leertaste + Maus**: Bild verschieben (Hand-Werkzeug)
+- **F11**: Vollbild-Modus
+
+### Presets
+- **1-9**: Preset 1 bis 9 anwenden
+- **Strg + P**: Preset speichern
+- **Alt + P**: Preset-Manager öffnen
 
 ---
 
 ## 🚀 Installation & Setup
 
-### Voraussetzungen
+### Online-Nutzung
+Die App kann direkt im Browser genutzt werden - keine Installation erforderlich!
 
-- **Node.js** >= 18.0.0
-- **npm** >= 9.0.0 oder **yarn** >= 1.22.0
-
-### Installation
+### Lokale Installation (für Entwickler)
 
 ```bash
+# Repository klonen
+git clone [repository-url]
+
 # In das Projektverzeichnis wechseln
-cd vue-bildkonverter
+cd Bildkonverter
 
 # Dependencies installieren
 npm install
@@ -208,644 +283,127 @@ npm run dev
 
 # Für Production bauen
 npm run build
-
-# Production-Build preview
-npm run preview
 ```
 
 Die Anwendung läuft standardmäßig auf http://localhost:5173
 
 ---
 
-## 🏛️ Architektur
+## ⚙️ Einstellungen
 
-### Single Page Application (SPA)
+Passen Sie die App nach Ihren Wünschen an.
 
-Eine SPA lädt nur einmal HTML und aktualisiert dann den Inhalt dynamisch über JavaScript:
+### Design & Darstellung
 
-**Vorteile:**
-- ⚡ Schnellere Navigation (kein Reload)
-- 🎭 Flüssigere UX mit Transitions
-- 📱 App-ähnliches Gefühl
-- 🔌 Offline-Fähigkeit möglich
+#### Theme
+- **Hell**: Klassisches helles Design
+- **Dunkel**: Augenschonender Dark Mode
+- **Automatisch**: Passt sich Ihrem System an
 
-**Nachteile:**
-- 🐢 Längere initiale Ladezeit
-- 🔍 SEO erfordert SSR (Server-Side Rendering)
-- 📦 Größeres Bundle
-
-### Komponenten-Hierarchie
-
-```
-App.vue (Root)
-├── AppHeader.vue
-├── Router View
-│   ├── HomeView.vue
-│   │   └── ImageUpload.vue
-│   └── EditorView.vue
-│       ├── ImageCanvas.vue
-│       ├── FilterControls.vue
-│       ├── FilterPresets.vue
-│       ├── TextControls.vue
-│       └── ExportControls.vue
-├── ToastContainer.vue
-└── KeyboardShortcuts.vue
-```
-
----
-
-## 📦 Stores (State Management)
-
-### Was ist Pinia?
-
-**Pinia** ist der offizielle State Management für Vue 3 (Nachfolger von Vuex).
-
-**State Management löst:**
-- 🔄 Props-Drilling (Daten durch viele Komponenten reichen)
-- 🎯 Zentraler State (Single Source of Truth)
-- 🔍 Besseres Debugging
-- ⏱️ Time-Travel Debugging
-
-### Store-Struktur
-
-**1. imageStore.js - Verwaltet Bildbearbeitung**
-
-```javascript
-export const useImageStore = defineStore('image', () => {
-  // STATE - Reaktive Daten
-  const filters = reactive({
-    brightness: 100,
-    contrast: 100,
-    // ...
-  })
-  
-  // COMPUTED - Berechnete Werte
-  const hasImage = computed(() => workingUrl.value !== null)
-  
-  // ACTIONS - Methoden die State ändern
-  function setFilter(filterName, value) {
-    filters[filterName] = value
-    draw()
-  }
-  
-  return { filters, hasImage, setFilter }
-})
-```
-
-**Verwendung in Komponenten:**
-
-```vue
-<script setup>
-import { useImageStore } from '@/stores/imageStore'
-
-const imageStore = useImageStore()
-
-// State lesen
-console.log(imageStore.filters.brightness)
-
-// Computed verwenden
-if (imageStore.hasImage) {
-  // ...
-}
-
-// Actions aufrufen
-imageStore.setFilter('brightness', 120)
-</script>
-```
-
-**2. presetsStore.js - Verwaltet Filter-Presets**
-
-- Standard-Presets (nicht löschbar)
-- Custom-Presets (benutzerdefiniert)
-- Import/Export-Funktionalität
-- LocalStorage-Persistierung
-
-**3. settingsStore.js - App-Einstellungen**
-
-- Theme (Light/Dark/Auto)
-- Sprache (DE/EN)
-- Performance-Modi
-- Export-Einstellungen
-- UI-Präferenzen
-
-### Store Best Practices
-
-✅ **DO:**
-- Stores für globalen State verwenden
-- Actions für State-Mutationen
-- Computed für abgeleitete Werte
-- Stores modular halten (nach Feature)
-
-❌ **DON'T:**
-- Lokalen Komponenten-State in Stores
-- State direkt mutieren (immer über Actions)
-- Zu viele kleine Stores (Balance finden)
-
----
-
-## 🌍 i18n (Internationalisierung)
-
-### Vue i18n Setup
-
-**Konfiguration (src/i18n/index.js):**
-
-```javascript
-import { createI18n } from 'vue-i18n'
-
-const messages = {
-  de: {
-    app: {
-      title: 'Bildkonverter Pro'
-    },
-    common: {
-      save: 'Speichern'
-    }
-  },
-  en: {
-    app: {
-      title: 'Image Converter Pro'
-    },
-    common: {
-      save: 'Save'
-    }
-  }
-}
-
-export const i18n = createI18n({
-  legacy: false,          // Composition API verwenden
-  locale: 'de',           // Standard-Sprache
-  fallbackLocale: 'de',   // Fallback wenn Übersetzung fehlt
-  messages
-})
-```
-
-### Verwendung in Komponenten
-
-**Im Template:**
-
-```vue
-<template>
-  <h1>{{ $t('app.title') }}</h1>
-  <button>{{ $t('common.save') }}</button>
-  
-  <!-- Mit Variablen -->
-  <p>{{ $t('greeting', { name: 'Max' }) }}</p>
-</template>
-```
-
-**Im Script:**
-
-```vue
-<script setup>
-import { useI18n } from 'vue-i18n'
-
-const { t, locale } = useI18n()
-
-console.log(t('app.title'))
-
-// Sprache ändern
-locale.value = 'en'
-</script>
-```
-
-### i18n Features
-
-**1. Pluralisierung:**
-
-```javascript
-messages: {
-  de: {
-    items: 'kein Element | ein Element | {count} Elemente'
-  }
-}
-
-// Verwendung:
-{{ $t('items', 0) }}  // "kein Element"
-{{ $t('items', 1) }}  // "ein Element"
-{{ $t('items', 5) }}  // "5 Elemente"
-```
-
-**2. Datums-/Zahlenformatierung:**
-
-```javascript
-// Konfiguration
-numberFormats: {
-  de: {
-    currency: {
-      style: 'currency',
-      currency: 'EUR'
-    }
-  }
-}
-
-// Verwendung:
-{{ $n(1234.56, 'currency') }}  // "1.234,56 €"
-```
-
----
-
-## 🧩 Komponenten-System
-
-### Anatomie einer Vue-Komponente
-
-```vue
-<!-- TEMPLATE - HTML mit Vue-Syntax -->
-<template>
-  <div class="my-component">
-    <h1>{{ title }}</h1>
-    <button @click="handleClick">
-      {{ $t('common.save') }}
-    </button>
-  </div>
-</template>
-
-<!-- SCRIPT - Logik -->
-<script setup>
-import { ref, computed, onMounted } from 'vue'
-
-// Props (von Parent empfangen)
-const props = defineProps({
-  title: {
-    type: String,
-    required: true
-  }
-})
-
-// Emits (Events an Parent senden)
-const emit = defineEmits(['save', 'cancel'])
-
-// State
-const count = ref(0)
-
-// Computed
-const doubleCount = computed(() => count.value * 2)
-
-// Methods
-function handleClick() {
-  emit('save', count.value)
-}
-
-// Lifecycle
-onMounted(() => {
-  console.log('Component mounted')
-})
-</script>
-
-<!-- STYLE - CSS/SCSS -->
-<style lang="scss" scoped>
-.my-component {
-  padding: 1rem;
-  
-  h1 {
-    color: var(--color-primary);
-  }
-}
-</style>
-```
-
-### Props und Events
-
-**Parent → Child (Props):**
-
-```vue
-<!-- Parent -->
-<MyComponent title="Hello" :count="10" />
-
-<!-- Child -->
-<script setup>
-const props = defineProps({
-  title: String,
-  count: Number
-})
-</script>
-```
-
-**Child → Parent (Events):**
-
-```vue
-<!-- Child -->
-<script setup>
-const emit = defineEmits(['save'])
-
-function handleSave() {
-  emit('save', { id: 1, name: 'Test' })
-}
-</script>
-
-<!-- Parent -->
-<MyComponent @save="onSave" />
-
-<script setup>
-function onSave(data) {
-  console.log(data)
-}
-</script>
-```
-
-### Composables (Wiederverwendbare Logik)
-
-Composables sind Funktionen die Composition API verwenden und extrahiert werden können:
-
-```javascript
-// composables/useCanvas.js
-import { ref, onMounted } from 'vue'
-
-export function useCanvas() {
-  const canvas = ref(null)
-  const ctx = ref(null)
-  
-  onMounted(() => {
-    if (canvas.value) {
-      ctx.value = canvas.value.getContext('2d')
-    }
-  })
-  
-  function drawRect(x, y, width, height) {
-    ctx.value.fillRect(x, y, width, height)
-  }
-  
-  return {
-    canvas,
-    ctx,
-    drawRect
-  }
-}
-
-// Verwendung in Komponenten:
-import { useCanvas } from '@/composables/useCanvas'
-
-const { canvas, drawRect } = useCanvas()
-```
-
----
-
-## 🔧 Entwicklung
-
-### Development Scripts
-
-```bash
-# Development-Server (Hot Reload)
-npm run dev
-
-# Linting (Code-Qualität prüfen)
-npm run lint
-
-# Formatierung (Prettier)
-npm run format
-
-# Production Build
-npm run build
-
-# Production Preview
-npm run preview
-```
-
-### Environment Variables
-
-Erstelle `.env.local` für lokale Variablen:
-
-```env
-VITE_APP_VERSION=3.0.0
-VITE_API_URL=https://api.example.com
-```
-
-Verwendung:
-
-```javascript
-console.log(import.meta.env.VITE_APP_VERSION)
-```
-
-### Debugging
-
-**Vue DevTools:**
-- Chrome/Firefox Extension installieren
-- Inspect Components, Pinia Stores, Router
-- Time-Travel Debugging
-
-**Console Logging:**
-
-```javascript
-import { watch } from 'vue'
-
-watch(myRef, (newVal, oldVal) => {
-  console.log('Changed:', oldVal, '→', newVal)
-})
-```
-
----
-
-## 🔄 Migration von Legacy-Code
-
-### Schritt-für-Schritt Migration
-
-**1. ImageConverter Klasse → imageStore:**
-
-```javascript
-// ALT (imageConverter.js)
-class ImageConverter {
-  constructor() {
-    this.filters = { brightness: 100 }
-  }
-  
-  setFilter(name, value) {
-    this.filters[name] = value
-  }
-}
-
-// NEU (imageStore.js)
-export const useImageStore = defineStore('image', () => {
-  const filters = reactive({ brightness: 100 })
-  
-  function setFilter(name, value) {
-    filters[name] = value
-  }
-  
-  return { filters, setFilter }
-})
-```
-
-**2. Event Listeners → Composables:**
-
-```javascript
-// ALT
-window.addEventListener('keydown', handleKeydown)
-
-// NEU (composables/useKeyboard.js)
-export function useKeyboard() {
-  onMounted(() => {
-    window.addEventListener('keydown', handleKeydown)
-  })
-  
-  onUnmounted(() => {
-    window.removeEventListener('keydown', handleKeydown)
-  })
-}
-```
-
-**3. DOM Manipulation → Reactive State:**
-
-```javascript
-// ALT
-document.getElementById('brightness').value = 120
-
-// NEU
-const brightness = ref(120)
-
-// Im Template:
-<input v-model="brightness" type="range">
-```
-
-### Integration bestehender Module
-
-**validationUtils.js** kann direkt verwendet werden:
-
-```javascript
-import { ValidationUtils } from '@/utils/validationUtils'
-
-const validation = ValidationUtils.validateImageFile(file)
-if (!validation.isValid) {
-  console.error(validation.errors)
-}
-```
-
----
-
-## 📝 Best Practices
-
-### Komponenten
-
-- ✅ Kleine, fokussierte Komponenten
-- ✅ Props für Daten, Events für Kommunikation
-- ✅ Scoped Styles verwenden
-- ✅ Klare Prop-Types definieren
-
-### State Management
-
-- ✅ Stores für globalen State
-- ✅ ref/reactive für lokalen State
-- ✅ Actions für asynchrone Operationen
-- ✅ Computed für abgeleitete Daten
+#### Sprache
+- **Deutsch**: Vollständige deutsche Übersetzung
+- **English**: Complete English translation
+- Die Spracheinstellung wird gespeichert und beim nächsten Besuch wiederhergestellt
 
 ### Performance
 
-- ✅ `v-show` statt `v-if` für häufige Toggles
-- ✅ Computed caching nutzen
-- ✅ Große Listen virtualisieren
-- ✅ Code-Splitting mit Lazy Loading
+#### Vorschau-Qualität
+- **Hoch**: Beste Qualität, höherer Ressourcenverbrauch
+- **Mittel**: Ausgewogen (empfohlen)
+- **Niedrig**: Schnellere Verarbeitung auf älteren Geräten
+
+#### Auto-Vorschau
+- **Ein**: Änderungen werden sofort angezeigt
+- **Aus**: Vorschau wird nur auf Knopfdruck aktualisiert (spart Ressourcen)
+
+### Export-Standardwerte
+
+Setzen Sie Ihre bevorzugten Export-Einstellungen:
+- **Standard-Format**: JPEG, PNG, WebP oder AVIF
+- **Standard-Qualität**: 0-100%
+- **Dateinamens-Schema**: Original, mit Datum, mit Zeitstempel
+
+### Datenschutz & Sicherheit
+
+- **Offline-First**: Alle Bilder werden lokal verarbeitet
+- **Keine Uploads**: Ihre Bilder verlassen nie Ihr Gerät
+- **Keine Tracking**: Keine Analyse-Tools oder Cookies
+- **EXIF-Daten**: Wählen Sie, ob Metadaten beibehalten werden sollen
 
 ---
 
-## 🎓 Lernressourcen
+## 🔧 Technologie
 
-### Vue 3
+### Frontend-Framework
+Diese Anwendung ist entwickelt mit modernen Web-Technologien:
+- **Vue 3** - Progressives JavaScript-Framework
+- **Vite** - Schneller Build-Tool
+- **SCSS** - Strukturiertes CSS
+- **i18n** - Mehrsprachigkeit (DE/EN)
 
-- [Vue 3 Dokumentation](https://vuejs.org/)
-- [Vue Mastery](https://www.vuemastery.com/)
-- [Vue School](https://vueschool.io/)
+### Browser-APIs
+- **Canvas API** - Bildverarbeitung in Echtzeit
+- **File API** - Lokale Dateiverarbeitung
+- **LocalStorage** - Speicherung von Einstellungen und Presets
+- **Web Workers** - Performance-Optimierung (geplant)
 
-### Pinia
+### Kompatibilität
+Die App funktioniert in allen modernen Browsern:
+- ✅ Chrome/Edge (Version 90+)
+- ✅ Firefox (Version 88+)
+- ✅ Safari (Version 14+)
+- ✅ Opera (Version 76+)
 
-- [Pinia Dokumentation](https://pinia.vuejs.org/)
-
-### Vue i18n
-
-- [Vue i18n Dokumentation](https://vue-i18n.intlify.dev/)
-
----
-
-## 🤝 Nächste Schritte
-
-1. **Komponenten erstellen:**
-   - ImageCanvas.vue
-   - FilterControls.vue
-   - FilterPresets.vue
-   - TextControls.vue
-   - ExportControls.vue
-
-2. **Composables entwickeln:**
-   - useCanvas.js
-   - useKeyboard.js
-   - useToast.js
-   - useHistory.js (Undo/Redo)
-
-3. **Views vervollständigen:**
-   - EditorView.vue
-   - SettingsView.vue
-   - AboutView.vue
-
-4. **Tests schreiben:**
-   - Unit Tests (Vitest)
-   - Component Tests (Vue Test Utils)
-   - E2E Tests (Playwright/Cypress)
+### Systemanforderungen
+- Moderner Browser mit JavaScript aktiviert
+- Mindestens 2 GB RAM empfohlen
+- Keine zusätzliche Software erforderlich
 
 ---
-## Author: Dinko Ramić - Kodini Tools - kodinitools.com
+
+## 💡 Tipps & Tricks
+
+### Workflow-Optimierung
+1. **Nutzen Sie Presets**: Speichern Sie häufig verwendete Filter-Kombinationen
+2. **Tastaturkürzel**: Lernen Sie die wichtigsten Shortcuts für schnelleres Arbeiten
+3. **Batch-Verarbeitung**: Wenden Sie das gleiche Preset auf mehrere Bilder an
+4. **Vorher-Nachher**: Nutzen Sie die Vergleichsfunktion um Änderungen zu bewerten
+
+### Qualität vs. Dateigröße
+- Für Web: JPEG mit 80-85% Qualität ist meist optimal
+- Für Archivierung: PNG oder JPEG mit 95-100% Qualität
+- Für moderne Websites: WebP spart 30% Dateigröße bei gleicher Qualität
+- Für beste Kompression: AVIF (wenn Browser-Support vorhanden)
+
+### Häufige Anwendungsfälle
+
+#### Social Media Optimierung
+1. Bild öffnen
+2. Preset "Instagram" oder "Facebook" wählen
+3. Optional: Wasserzeichen hinzufügen
+4. Als JPEG (85% Qualität) exportieren
+
+#### Produktfotos
+1. Hintergrund aufhellen (Helligkeit +10-20)
+2. Kontrast leicht erhöhen (+10)
+3. Schärfe erhöhen
+4. Logo-Wasserzeichen hinzufügen
+5. Als PNG oder JPEG (95% Qualität) exportieren
+
+#### Schnelle Korrekturen
+- **Zu dunkel**: Helligkeit +20, eventuell Schatten aufhellen
+- **Zu blass**: Sättigung +15, Kontrast +10
+- **Unscharf**: Schärfe-Filter anwenden
+- **Farbstich**: Farbtemperatur oder Tint anpassen
+
+### Performance-Tipps
+- Bei großen Bildern (>10 MP): Auto-Vorschau ausschalten
+- Für schnellere Bearbeitung: Bild zuerst auf Zielgröße skalieren
+- Browser-Tab aktiv lassen für beste Performance
+
 ---
-
-## 💡 Tipps für Einsteiger
-
-### Reactivity verstehen
-
-```javascript
-// ❌ FALSCH
-const user = { name: 'Max' }
-user.name = 'Maria' // Nicht reaktiv!
-
-// ✅ RICHTIG
-const user = reactive({ name: 'Max' })
-user.name = 'Maria' // Reaktiv!
-
-// ✅ AUCH RICHTIG
-const name = ref('Max')
-name.value = 'Maria' // Reaktiv!
-```
-
-### Template Syntax
-
-```vue
-<template>
-  <!-- Textinterpolation -->
-  {{ message }}
-  
-  <!-- Attribute binden -->
-  <img :src="imageUrl">
-  <div :class="{ active: isActive }">
-  
-  <!-- Event Listener -->
-  <button @click="handleClick">
-  <input @input="handleInput">
-  
-  <!-- Two-Way Binding -->
-  <input v-model="text">
-  
-  <!-- Conditions -->
-  <div v-if="isVisible">Visible</div>
-  <div v-else>Hidden</div>
-  
-  <!-- Loops -->
-  <div v-for="item in items" :key="item.id">
-    {{ item.name }}
-  </div>
-</template>
-```
-
-### Lifecycle Hooks
-
-```javascript
-import { onMounted, onUnmounted, onUpdated } from 'vue'
-
-onMounted(() => {
-  console.log('Component mounted')
-})
-
-onUpdated(() => {
-  console.log('Component updated')
-})
-
-onUnmounted(() => {
-  console.log('Component unmounted - cleanup here')
-})
-```
+## 👨‍💻 Author
+**Dinko Ramić** - [Kodini Tools](https://kodinitools.com)
 
 ---
 
@@ -855,11 +413,27 @@ MIT License - Siehe LICENSE-Datei für Details
 
 ---
 
-## 🙋 Support
+## 🙋 Support & Feedback
 
-Bei Fragen oder Problemen:
-- GitHub Issues erstellen
-- Dokumentation konsultieren
-- Community-Forum besuchen
+Bei Fragen, Problemen oder Verbesserungsvorschlägen:
+- **GitHub Issues**: Fehler melden oder Features vorschlagen
+- **Diskussionen**: Erfahrungen austauschen und Tipps teilen
+- **E-Mail**: Direkter Support über die Website
 
-**Viel Erfolg mit Vue 3! 🚀**
+---
+
+## 🚀 Roadmap
+
+Geplante Features für zukünftige Versionen:
+- 📊 Histogramm-Anzeige
+- 🔲 Erweiterte Zuschnitt-Funktionen (Freihand, Formen)
+- 🎨 Farbpaletten-Extraktion aus Bildern
+- 📸 Batch-Verarbeitung mehrerer Bilder
+- 🔄 Erweiterte Undo/Redo mit History-Vorschau
+- 🎯 KI-gestützte Filter und Verbesserungen
+- 📱 Progressive Web App (PWA) für Offline-Nutzung
+- 🖼️ Unterstützung für RAW-Formate
+
+---
+
+**Viel Spaß beim Bearbeiten Ihrer Bilder! 🎨✨**
