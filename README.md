@@ -1,4 +1,4 @@
-# 🎨 Bildkonverter Pro - Professionelle Bildbearbeitung im Browser
+# 🎨 Bildkonverter Pro - Schnelle Bildbearbeitung im Browser
 
 Eine leistungsstarke, moderne Bildbearbeitungs-Anwendung für den Browser. Bearbeiten, optimieren und konvertieren Sie Ihre Bilder direkt im Browser - ohne Installation, ohne Upload zu externen Servern.
 
