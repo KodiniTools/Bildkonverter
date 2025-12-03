@@ -6,14 +6,9 @@
         <p class="hero-subtitle animate-subtitle">{{ $t('home.subtitle') }}</p>
 
         <div class="action-buttons animate-button">
-          <router-link
-            to="/editor"
-            class="btn btn-primary btn-large btn-glow"
-            :title="$t('home.startEditingTooltip')"
-          >
+          <router-link to="/editor" class="btn btn-primary btn-large btn-glow">
             <i class="fas fa-edit"></i>
             {{ $t('home.startEditing') }}
-            <span class="btn-tooltip">{{ $t('home.startEditingTooltip') }}</span>
           </router-link>
         </div>
       </div>
@@ -243,54 +238,23 @@ const toggleFaq = (index) => {
 // Button Glow Effect
 .btn-glow {
   position: relative;
-  overflow: visible;
   box-shadow: 0 0 20px rgba(74, 144, 226, 0.3);
   animation: pulse-glow 2s ease-in-out infinite;
+  color: white;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 
   &:hover {
+    background: #2563eb;
     box-shadow: 0 0 30px rgba(74, 144, 226, 0.5), 0 0 60px rgba(74, 144, 226, 0.3);
     transform: translateY(-3px) scale(1.02);
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   }
 
   &:active {
     transform: translateY(-1px) scale(0.98);
-  }
-
-  // Tooltip
-  .btn-tooltip {
-    position: absolute;
-    bottom: calc(100% + 12px);
-    left: 50%;
-    transform: translateX(-50%) translateY(10px);
-    background: var(--color-text-primary);
-    color: var(--color-bg-primary);
-    padding: 8px 16px;
-    border-radius: var(--border-radius-md);
-    font-size: 0.875rem;
-    font-weight: 500;
-    white-space: nowrap;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    z-index: 100;
-    pointer-events: none;
-
-    // Tooltip Arrow
-    &::after {
-      content: '';
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      border: 8px solid transparent;
-      border-top-color: var(--color-text-primary);
-    }
-  }
-
-  &:hover .btn-tooltip {
-    opacity: 1;
-    visibility: visible;
-    transform: translateX(-50%) translateY(0);
+    background: #1d4ed8;
   }
 }
 
