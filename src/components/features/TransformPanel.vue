@@ -96,6 +96,40 @@
         </div>
       </div>
 
+      <!-- Text-Rotation -->
+      <div class="control-group">
+        <label>
+          <i class="fas fa-redo"></i>
+          {{ $t('textPanel.rotation', 'Rotation') }}
+          <span class="value">{{ selectedText.rotation || 0 }}°</span>
+        </label>
+        <input
+          type="range"
+          min="-180"
+          max="180"
+          :value="selectedText.rotation || 0"
+          @input="$emit('update:text-rotation', Number($event.target.value))"
+          class="slider"
+        >
+      </div>
+
+      <!-- Text-Deckkraft -->
+      <div class="control-group">
+        <label>
+          <i class="fas fa-adjust"></i>
+          {{ $t('textPanel.opacity', 'Deckkraft') }}
+          <span class="value">{{ selectedText.opacity !== undefined ? selectedText.opacity : 100 }}%</span>
+        </label>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          :value="selectedText.opacity !== undefined ? selectedText.opacity : 100"
+          @input="$emit('update:text-opacity', Number($event.target.value))"
+          class="slider"
+        >
+      </div>
+
       <!-- Text löschen -->
       <button
         class="transform-btn delete-btn"
@@ -413,6 +447,8 @@ defineEmits([
   'update:text-font-size',
   'update:text-font-family',
   'update:text-color',
+  'update:text-rotation',
+  'update:text-opacity',
   'delete-text',
   'deselect-text'
 ])
