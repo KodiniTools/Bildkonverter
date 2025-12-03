@@ -829,7 +829,7 @@ function resetFilters() {
   if (!currentImage.value || !originalImage.value) return
 
   // Bestätigung vom Benutzer
-  const confirmReset = confirm('Möchten Sie wirklich alle Änderungen verwerfen?\n\nDas Bild wird in den ursprünglichen Zustand zurückgesetzt. Alle Filter, Texte, Zuschnitte und Transformationen gehen verloren.')
+  const confirmReset = confirm('Do you really want to discard all changes?\n\nThe image will be reset to its original state. All filters, texts, crops and transformations will be lost.')
   if (!confirmReset) return
 
   // Filter zurücksetzen
@@ -891,7 +891,7 @@ function resetFilters() {
 
   // Toast-Benachrichtigung
   if (window.$toast) {
-    window.$toast.success('Bild wurde auf den Originalzustand zurückgesetzt')
+    window.$toast.success('Image has been reset to its original state')
   }
 }
 
