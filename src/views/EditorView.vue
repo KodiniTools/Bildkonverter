@@ -103,10 +103,46 @@
             </div>
           </div>
 
+          <!-- Background -->
+          <div class="sidebar-section">
+            <h3>{{ $t('editor.sidebar.background', 'Hintergrund') }}</h3>
+
+            <div class="filter-control">
+              <label>{{ $t('editor.background.color', 'Farbe') }}</label>
+              <div class="color-picker-row">
+                <input
+                  type="color"
+                  v-model="background.color"
+                  @input="renderImage"
+                  class="color-input"
+                >
+                <input
+                  type="text"
+                  v-model="background.color"
+                  @input="renderImage"
+                  class="color-text-input"
+                  maxlength="7"
+                >
+              </div>
+            </div>
+
+            <div class="filter-control">
+              <label>{{ $t('editor.background.opacity', 'Deckkraft') }}</label>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                v-model.number="background.opacity"
+                @input="renderImage"
+              >
+              <span>{{ background.opacity }}%</span>
+            </div>
+          </div>
+
           <!-- Adjustments -->
           <div class="sidebar-section">
             <h3>{{ $t('editor.sidebar.adjustments') }}</h3>
-            
+
             <div class="filter-control">
               <label>{{ $t('editor.filters.brightness') }}</label>
               <input 
@@ -370,6 +406,12 @@ const filters = ref({
   hue: 0
 })
 
+// Hintergrund-Einstellungen
+const background = ref({
+  color: '#ffffff',
+  opacity: 0
+})
+
 // ===== NEU: Verwende SUPPORTED_FORMATS aus exportUtils =====
 const formats = SUPPORTED_FORMATS
 
@@ -545,6 +587,15 @@ function renderImage() {
 
   const ctx = canvas.value.getContext('2d')
   ctx.clearRect(0, 0, canvas.value.width, canvas.value.height)
+
+  // Hintergrund zeichnen (unterste Ebene)
+  if (background.value.opacity > 0) {
+    ctx.save()
+    ctx.globalAlpha = background.value.opacity / 100
+    ctx.fillStyle = background.value.color
+    ctx.fillRect(0, 0, canvas.value.width, canvas.value.height)
+    ctx.restore()
+  }
 
   // Wende Transformationen an (temporär für Vorschau)
   const restoreTransform = transform.applyToCanvas(canvas.value, ctx)
@@ -1550,6 +1601,49 @@ function handleKeydown(e) {
     color: var(--color-text-secondary);
     min-width: 45px;
     text-align: right;
+  }
+}
+
+// Color Picker für Hintergrund
+.color-picker-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+
+  .color-input {
+    width: 40px;
+    height: 32px;
+    padding: 2px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    cursor: pointer;
+    background: var(--color-bg);
+
+    &::-webkit-color-swatch-wrapper {
+      padding: 2px;
+    }
+
+    &::-webkit-color-swatch {
+      border-radius: 2px;
+      border: none;
+    }
+  }
+
+  .color-text-input {
+    flex: 1;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+    font-family: monospace;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-bg);
+    color: var(--color-text-primary);
+    text-transform: uppercase;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
   }
 }
 
