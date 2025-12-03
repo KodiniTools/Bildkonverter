@@ -325,6 +325,8 @@
           @update:text-font-size="handleTextFontSizeUpdate"
           @update:text-font-family="handleTextFontFamilyUpdate"
           @update:text-color="handleTextColorUpdate"
+          @update:text-rotation="handleTextRotationUpdate"
+          @update:text-opacity="handleTextOpacityUpdate"
           @delete-text="handleDeleteText"
           @deselect-text="handleDeselectText"
         />
@@ -678,9 +680,29 @@ function renderImage() {
   if (imageStore.texts && imageStore.texts.length > 0) {
     imageStore.texts.forEach(text => {
       ctx.save()
+
+      // Deckkraft anwenden
+      const opacity = text.opacity !== undefined ? text.opacity : 100
+      ctx.globalAlpha = opacity / 100
+
       ctx.font = `${text.fontSize || text.size || 32}px ${text.fontFamily || 'Arial'}`
       ctx.fillStyle = text.color || '#000000'
       ctx.textBaseline = 'top'
+
+      // Rotation anwenden (um den Textmittelpunkt)
+      const rotation = text.rotation || 0
+      if (rotation !== 0) {
+        const textMetrics = ctx.measureText(text.content || text.txt || '')
+        const textWidth = textMetrics.width
+        const textHeight = text.fontSize || text.size || 32
+        const centerX = (text.x || 0) + textWidth / 2
+        const centerY = (text.y || 0) + textHeight / 2
+
+        ctx.translate(centerX, centerY)
+        ctx.rotate((rotation * Math.PI) / 180)
+        ctx.translate(-centerX, -centerY)
+      }
+
       ctx.fillText(text.content || text.txt || '', text.x || 0, text.y || 0)
       ctx.restore()
     })
@@ -772,13 +794,33 @@ function renderImageForExport() {
     restoreTransform()
   }
 
-  // Texte OHNE Auswahl-Markierung
+  // Texte OHNE Auswahl-Markierung (mit Rotation und Deckkraft)
   if (imageStore.texts && imageStore.texts.length > 0) {
     imageStore.texts.forEach(text => {
       ctx.save()
+
+      // Deckkraft anwenden
+      const opacity = text.opacity !== undefined ? text.opacity : 100
+      ctx.globalAlpha = opacity / 100
+
       ctx.font = `${text.fontSize || text.size || 32}px ${text.fontFamily || 'Arial'}`
       ctx.fillStyle = text.color || '#000000'
       ctx.textBaseline = 'top'
+
+      // Rotation anwenden (um den Textmittelpunkt)
+      const rotation = text.rotation || 0
+      if (rotation !== 0) {
+        const textMetrics = ctx.measureText(text.content || text.txt || '')
+        const textWidth = textMetrics.width
+        const textHeight = text.fontSize || text.size || 32
+        const centerX = (text.x || 0) + textWidth / 2
+        const centerY = (text.y || 0) + textHeight / 2
+
+        ctx.translate(centerX, centerY)
+        ctx.rotate((rotation * Math.PI) / 180)
+        ctx.translate(-centerX, -centerY)
+      }
+
       ctx.fillText(text.content || text.txt || '', text.x || 0, text.y || 0)
       ctx.restore()
     })
@@ -1236,7 +1278,9 @@ function addText() {
     y: Math.floor(canvas.value.height / 2),
     fontSize: 32,
     fontFamily: 'Satoshi Regular',
-    color: '#000000'
+    color: '#000000',
+    rotation: 0,
+    opacity: 100
   }
 
   imageStore.texts.push(newText)
@@ -1279,6 +1323,24 @@ function handleTextColorUpdate(color) {
   const text = imageStore.texts.find(t => t.id === selectedTextId.value)
   if (text) {
     text.color = color
+    renderImage()
+  }
+}
+
+function handleTextRotationUpdate(rotation) {
+  if (!selectedTextId.value) return
+  const text = imageStore.texts.find(t => t.id === selectedTextId.value)
+  if (text) {
+    text.rotation = rotation
+    renderImage()
+  }
+}
+
+function handleTextOpacityUpdate(opacity) {
+  if (!selectedTextId.value) return
+  const text = imageStore.texts.find(t => t.id === selectedTextId.value)
+  if (text) {
+    text.opacity = opacity
     renderImage()
   }
 }
