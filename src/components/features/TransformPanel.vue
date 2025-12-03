@@ -46,18 +46,30 @@
           {{ $t('textPanel.fontFamily', 'Schriftart') }}
         </label>
         <select
-          :value="selectedText.fontFamily || 'Arial'"
+          :value="selectedText.fontFamily || 'Satoshi Regular'"
           @change="$emit('update:text-font-family', $event.target.value)"
           class="font-select"
         >
-          <option value="Arial">Arial</option>
-          <option value="Helvetica">Helvetica</option>
-          <option value="Times New Roman">Times New Roman</option>
-          <option value="Georgia">Georgia</option>
-          <option value="Verdana">Verdana</option>
-          <option value="Courier New">Courier New</option>
-          <option value="Impact">Impact</option>
-          <option value="Comic Sans MS">Comic Sans MS</option>
+          <optgroup :label="$t('textPanel.customFonts', 'Benutzerdefinierte Schriften')">
+            <option
+              v-for="font in availableFonts"
+              :key="font"
+              :value="font"
+              :style="{ fontFamily: font }"
+            >
+              {{ font }}
+            </option>
+          </optgroup>
+          <optgroup :label="$t('textPanel.systemFonts', 'System-Schriften')">
+            <option
+              v-for="font in systemFonts"
+              :key="font"
+              :value="font"
+              :style="{ fontFamily: font }"
+            >
+              {{ font }}
+            </option>
+          </optgroup>
         </select>
       </div>
 
@@ -314,6 +326,21 @@
 </template>
 
 <script setup>
+import { availableFonts } from '@/assets/fonts/fontList.js'
+
+// System-Schriftarten als Fallback
+const systemFonts = [
+  'Arial',
+  'Helvetica',
+  'Times New Roman',
+  'Georgia',
+  'Verdana',
+  'Courier New'
+]
+
+// Alle Schriften kombinieren (benutzerdefiniert zuerst, dann System)
+const allFonts = [...availableFonts, ...systemFonts]
+
 defineProps({
   cropMode: {
     type: Boolean,
