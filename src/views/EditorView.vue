@@ -828,6 +828,13 @@ function renderImageForExport() {
 }
 
 function resetFilters() {
+  if (!currentImage.value || !originalImage.value) return
+
+  // Bestätigung vom Benutzer
+  const confirmReset = confirm('Möchten Sie wirklich alle Änderungen verwerfen?\n\nDas Bild wird in den ursprünglichen Zustand zurückgesetzt. Alle Filter, Texte, Zuschnitte und Transformationen gehen verloren.')
+  if (!confirmReset) return
+
+  // Filter zurücksetzen
   filters.value = {
     brightness: 100,
     contrast: 100,
@@ -836,17 +843,58 @@ function resetFilters() {
     hue: 0
   }
   currentPreset.value = null
-  
+
+  // Hintergrund zurücksetzen
+  background.value = {
+    color: '#ffffff',
+    opacity: 0
+  }
+
   // Crop-Modus über Composable zurücksetzen
   crop.resetCropState()
-  console.log('Crop-Modus deaktiviert')
-  
+
   // Transform-Zustand über Composable zurücksetzen
   transform.resetTransforms()
-  console.log('Transform-Zustand zurückgesetzt')
-  
+
+  // Alle Texte entfernen
+  imageStore.texts.splice(0, imageStore.texts.length)
+  selectedTextId.value = null
+
+  // Bild auf Original zurücksetzen
+  currentImage.value = originalImage.value
+
+  // Canvas auf Original-Dimensionen zurücksetzen
+  const maxWidth = 1200
+  const maxHeight = 800
+  let width = originalImage.value.width
+  let height = originalImage.value.height
+
+  if (width > maxWidth || height > maxHeight) {
+    const ratio = Math.min(maxWidth / width, maxHeight / height)
+    width *= ratio
+    height *= ratio
+  }
+
+  canvas.value.width = width
+  canvas.value.height = height
+  resizeWidth.value = width
+  resizeHeight.value = height
+
+  // Neu zeichnen
   renderImage()
+  updateImageInfo()
+
+  // History zurücksetzen und neuen Startpunkt setzen
+  history.value = []
+  historyIndex.value = -1
   saveHistory()
+
+  console.log('✅ Bild auf Originalzustand zurückgesetzt')
+
+  // Toast-Benachrichtigung
+  if (window.$toast) {
+    window.$toast.success('Bild wurde auf den Originalzustand zurückgesetzt')
+  }
 }
 
 function clearImage() {
