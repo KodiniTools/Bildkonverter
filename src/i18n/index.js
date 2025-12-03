@@ -111,7 +111,8 @@ const de = {
     },
     background: {
       color: 'Farbe',
-      opacity: 'Deckkraft'
+      opacity: 'Deckkraft',
+      hint: 'Bild laden um Hintergrund anzupassen'
     },
     filters: {
       brightness: 'Helligkeit',
@@ -574,7 +575,8 @@ const en = {
     },
     background: {
       color: 'Color',
-      opacity: 'Opacity'
+      opacity: 'Opacity',
+      hint: 'Load an image to adjust background'
     },
     filters: {
       brightness: 'Brightness',
