@@ -29,7 +29,6 @@ const de = {
     title: 'Willkommen beim Bildkonverter Pro',
     subtitle: 'Schnelle und sichere Bildbearbeitung meist lokal im Browser, Spezialformate sicher auf dem deutschen Server',
     startEditing: 'Bearbeitung starten',
-    startEditingTooltip: 'Öffne den Editor zum Bearbeiten deiner Bilder',
     features: {
       title: 'Funktionen',
       convert: {
@@ -105,9 +104,14 @@ const de = {
     },
     sidebar: {
       format: 'Format',
+      background: 'Hintergrund',
       adjustments: 'Anpassungen',
       presets: 'Presets',
       resize: 'Größe ändern'
+    },
+    background: {
+      color: 'Farbe',
+      opacity: 'Deckkraft'
     },
     filters: {
       brightness: 'Helligkeit',
@@ -477,7 +481,6 @@ const en = {
     title: 'Welcome to Image Converter Pro',
     subtitle: 'Fast and secure image editing mostly local in your browser, specialized formats securely on German server',
     startEditing: 'Start Editing',
-    startEditingTooltip: 'Open the editor to edit your images',
     features: {
       title: 'Features',
       convert: {
@@ -553,9 +556,14 @@ const en = {
     },
     sidebar: {
       format: 'Format',
+      background: 'Background',
       adjustments: 'Adjustments',
       presets: 'Presets',
       resize: 'Resize'
+    },
+    background: {
+      color: 'Color',
+      opacity: 'Opacity'
     },
     filters: {
       brightness: 'Brightness',
