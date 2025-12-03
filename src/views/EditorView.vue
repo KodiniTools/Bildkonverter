@@ -1218,7 +1218,7 @@ function addText() {
     x: Math.floor(canvas.value.width / 2) - 50,
     y: Math.floor(canvas.value.height / 2),
     fontSize: 32,
-    fontFamily: 'Arial',
+    fontFamily: 'Satoshi Regular',
     color: '#000000'
   }
 
