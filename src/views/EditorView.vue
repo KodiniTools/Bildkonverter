@@ -343,17 +343,17 @@
 
           <div class="preview-comparison">
             <div class="preview-item">
-              <h3>Vorher (Original)</h3>
+              <h3>{{ $t('editor.preview.before', 'Before (Original)') }}</h3>
               <img v-if="originalPreviewSrc" :src="originalPreviewSrc" alt="Original" />
-              <div v-else class="preview-placeholder">Kein Original verfügbar</div>
+              <div v-else class="preview-placeholder">{{ $t('editor.preview.noOriginal', 'No original available') }}</div>
             </div>
-            
+
             <div class="preview-divider"></div>
-            
+
             <div class="preview-item">
-              <h3>Nachher (Bearbeitet)</h3>
-              <img v-if="editedPreviewSrc" :src="editedPreviewSrc" alt="Bearbeitet" />
-              <div v-else class="preview-placeholder">Keine Bearbeitung verfügbar</div>
+              <h3>{{ $t('editor.preview.after', 'After (Edited)') }}</h3>
+              <img v-if="editedPreviewSrc" :src="editedPreviewSrc" alt="Edited" />
+              <div v-else class="preview-placeholder">{{ $t('editor.preview.noEdited', 'No edits available') }}</div>
             </div>
           </div>
         </div>
