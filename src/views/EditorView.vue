@@ -666,7 +666,7 @@ function renderImage() {
     restoreTransform()
   }
   
-  // Draw texts from imageStore
+  // Draw texts from imageStore (ohne Auswahl-Markierung für sauberen Export)
   if (imageStore.texts && imageStore.texts.length > 0) {
     imageStore.texts.forEach(text => {
       ctx.save()
@@ -674,23 +674,107 @@ function renderImage() {
       ctx.fillStyle = text.color || '#000000'
       ctx.textBaseline = 'top'
       ctx.fillText(text.content || text.txt || '', text.x || 0, text.y || 0)
-      
-      // Draw selection
-      if (selectedTextId.value === text.id) {
-        const metrics = ctx.measureText(text.content || text.txt || '')
-        ctx.strokeStyle = '#0066ff'
-        ctx.lineWidth = 2
-        ctx.setLineDash([5, 5])
-        ctx.strokeRect(text.x - 4, text.y - 4, metrics.width + 8, (text.fontSize || text.size || 32) + 8)
-        ctx.setLineDash([])
-      }
-      
       ctx.restore()
     })
   }
-  
+
   // Update nur Dimensionen (schnell), nicht Dateigröße
   updateImageDimensions()
+
+  // Text-Auswahl separat zeichnen (nur für Vorschau, nicht auf Canvas für Export)
+  drawTextSelection()
+}
+
+// Zeichnet Text-Auswahl als Overlay (nur visuell, nicht Teil des exportierten Bildes)
+function drawTextSelection() {
+  if (!canvas.value || !selectedTextId.value) return
+
+  const ctx = canvas.value.getContext('2d')
+  const text = imageStore.texts?.find(t => t.id === selectedTextId.value)
+  if (!text) return
+
+  ctx.save()
+  ctx.font = `${text.fontSize || text.size || 32}px ${text.fontFamily || 'Arial'}`
+  const metrics = ctx.measureText(text.content || text.txt || '')
+  ctx.strokeStyle = '#0066ff'
+  ctx.lineWidth = 2
+  ctx.setLineDash([5, 5])
+  ctx.strokeRect(text.x - 4, text.y - 4, metrics.width + 8, (text.fontSize || text.size || 32) + 8)
+  ctx.setLineDash([])
+  ctx.restore()
+}
+
+// Rendert Bild ohne Auswahl-Markierung (für Export)
+function renderImageForExport() {
+  if (!canvas.value || !currentImage.value) return
+
+  const ctx = canvas.value.getContext('2d')
+  ctx.clearRect(0, 0, canvas.value.width, canvas.value.height)
+
+  // Hintergrund zeichnen
+  if (background.value.opacity > 0) {
+    ctx.save()
+    ctx.globalAlpha = background.value.opacity / 100
+    ctx.fillStyle = background.value.color
+    ctx.fillRect(0, 0, canvas.value.width, canvas.value.height)
+    ctx.restore()
+  }
+
+  // Transformationen
+  const restoreTransform = transform.applyToCanvas(canvas.value, ctx)
+
+  // Filter
+  const filterString = `
+    brightness(${filters.value.brightness}%)
+    contrast(${filters.value.contrast}%)
+    saturate(${filters.value.saturation}%)
+    blur(${filters.value.blur}px)
+    hue-rotate(${filters.value.hue}deg)
+  `
+  ctx.filter = filterString
+
+  // Border Radius
+  if (transform.transforms.value.borderRadius > 0) {
+    ctx.save()
+    roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, transform.transforms.value.borderRadius)
+    ctx.clip()
+  }
+
+  ctx.drawImage(currentImage.value, 0, 0, canvas.value.width, canvas.value.height)
+
+  // Border
+  if (transform.transforms.value.borderWidth > 0) {
+    ctx.strokeStyle = transform.transforms.value.borderColor
+    ctx.lineWidth = transform.transforms.value.borderWidth
+    if (transform.transforms.value.borderRadius > 0) {
+      roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, transform.transforms.value.borderRadius)
+      ctx.stroke()
+    } else {
+      ctx.strokeRect(0, 0, canvas.value.width, canvas.value.height)
+    }
+  }
+
+  if (transform.transforms.value.borderRadius > 0) {
+    ctx.restore()
+  }
+
+  ctx.filter = 'none'
+
+  if (restoreTransform) {
+    restoreTransform()
+  }
+
+  // Texte OHNE Auswahl-Markierung
+  if (imageStore.texts && imageStore.texts.length > 0) {
+    imageStore.texts.forEach(text => {
+      ctx.save()
+      ctx.font = `${text.fontSize || text.size || 32}px ${text.fontFamily || 'Arial'}`
+      ctx.fillStyle = text.color || '#000000'
+      ctx.textBaseline = 'top'
+      ctx.fillText(text.content || text.txt || '', text.x || 0, text.y || 0)
+      ctx.restore()
+    })
+  }
 }
 
 function resetFilters() {
@@ -834,12 +918,15 @@ function applyResize() {
 // ===== NEU: Aktualisierte downloadImage Funktion mit neuer Export-Architektur =====
 async function downloadImage() {
   if (!canvas.value) return
-  
+
   isExporting.value = true
-  
+
   try {
     const filename = `image-${Date.now()}`
-    
+
+    // ✨ FIX: Rendere ohne Auswahl-Markierung vor dem Export
+    renderImageForExport()
+
     // Export mit neuer Export-Utils
     const result = await exportImage(
       canvas.value,
@@ -850,9 +937,9 @@ async function downloadImage() {
         texts: imageStore.texts || [] // Texte aus dem Store
       }
     )
-    
+
     console.log('✅ Export erfolgreich:', result)
-    
+
     // Optional: Success-Toast anzeigen
     if (window.$toast) {
       window.$toast.success(
@@ -860,10 +947,10 @@ async function downloadImage() {
         (result.size ? ` (${result.size})` : '')
       )
     }
-    
+
   } catch (error) {
     console.error('❌ Export fehlgeschlagen:', error)
-    
+
     // Error-Toast anzeigen
     if (window.$toast) {
       window.$toast.error(`Export fehlgeschlagen: ${error.message}`)
@@ -872,6 +959,9 @@ async function downloadImage() {
     }
   } finally {
     isExporting.value = false
+
+    // ✨ FIX: Stelle Auswahl-Markierung nach dem Export wieder her
+    renderImage()
   }
 }
 
