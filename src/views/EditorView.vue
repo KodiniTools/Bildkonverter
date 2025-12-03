@@ -286,13 +286,15 @@
           </div>
         </div>
 
-        <!-- Rechte Spalte: TransformPanel (Crop + Transform Features) -->
+        <!-- Rechte Spalte: TransformPanel (Text + Crop + Transform Features) -->
         <TransformPanel
           v-if="currentImage"
           :crop-mode="crop.cropMode.value"
           :has-cropped="crop.hasCropped.value"
           :transforms="transform.transforms.value"
           :has-transforms="transform.hasTransforms.value"
+          :selected-text="selectedTextObject"
+          :has-texts="imageStore.texts && imageStore.texts.length > 0"
           @toggle-crop="handleToggleCrop"
           @undo-crop="handleUndoCrop"
           @update:opacity="handleOpacityUpdate"
@@ -308,6 +310,12 @@
           @flip-vertical="handleFlipVertical"
           @apply-transforms="handleApplyTransforms"
           @reset-transforms="handleResetTransforms"
+          @update:text-content="handleTextContentUpdate"
+          @update:text-font-size="handleTextFontSizeUpdate"
+          @update:text-font-family="handleTextFontFamilyUpdate"
+          @update:text-color="handleTextColorUpdate"
+          @delete-text="handleDeleteText"
+          @deselect-text="handleDeselectText"
         />
       </div>
     </div>
@@ -418,6 +426,12 @@ const formats = SUPPORTED_FORMATS
 // Computed
 const canUndo = computed(() => historyIndex.value > 0)
 const canRedo = computed(() => historyIndex.value < history.value.length - 1)
+
+// Aktuell ausgewählter Text als Objekt
+const selectedTextObject = computed(() => {
+  if (!selectedTextId.value || !imageStore.texts) return null
+  return imageStore.texts.find(t => t.id === selectedTextId.value) || null
+})
 
 // ===== NEU: Format-Info Computed Properties =====
 const currentFormatInfo = computed(() => {
@@ -1098,7 +1112,75 @@ function roundedRect(ctx, x, y, width, height, radius) {
 
 function addText() {
   if (!currentImage.value) return
-  textModal.openAddTextModal({ x: 50, y: 50 })
+
+  // Direkt neuen Text hinzufügen (ohne Modal)
+  const newText = {
+    id: Date.now(),
+    content: 'Neuer Text',
+    x: Math.floor(canvas.value.width / 2) - 50,
+    y: Math.floor(canvas.value.height / 2),
+    fontSize: 32,
+    fontFamily: 'Arial',
+    color: '#000000'
+  }
+
+  imageStore.texts.push(newText)
+  selectedTextId.value = newText.id
+  renderImage()
+}
+
+// ===== Text Event Handler =====
+function handleTextContentUpdate(content) {
+  if (!selectedTextId.value) return
+  const text = imageStore.texts.find(t => t.id === selectedTextId.value)
+  if (text) {
+    text.content = content
+    text.txt = content
+    renderImage()
+  }
+}
+
+function handleTextFontSizeUpdate(fontSize) {
+  if (!selectedTextId.value) return
+  const text = imageStore.texts.find(t => t.id === selectedTextId.value)
+  if (text) {
+    text.fontSize = fontSize
+    text.size = fontSize
+    renderImage()
+  }
+}
+
+function handleTextFontFamilyUpdate(fontFamily) {
+  if (!selectedTextId.value) return
+  const text = imageStore.texts.find(t => t.id === selectedTextId.value)
+  if (text) {
+    text.fontFamily = fontFamily
+    renderImage()
+  }
+}
+
+function handleTextColorUpdate(color) {
+  if (!selectedTextId.value) return
+  const text = imageStore.texts.find(t => t.id === selectedTextId.value)
+  if (text) {
+    text.color = color
+    renderImage()
+  }
+}
+
+function handleDeleteText() {
+  if (!selectedTextId.value) return
+  const index = imageStore.texts.findIndex(t => t.id === selectedTextId.value)
+  if (index !== -1) {
+    imageStore.texts.splice(index, 1)
+    selectedTextId.value = null
+    renderImage()
+  }
+}
+
+function handleDeselectText() {
+  selectedTextId.value = null
+  renderImage()
 }
 
 function getMousePos(e) {

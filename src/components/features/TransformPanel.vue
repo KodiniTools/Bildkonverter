@@ -1,5 +1,116 @@
 <template>
   <aside class="transform-panel">
+    <!-- Text Sektion (nur wenn Text ausgewählt) -->
+    <div v-if="selectedText" class="panel-section text-section">
+      <h3>
+        <i class="fas fa-font"></i>
+        {{ $t('textPanel.title', 'Text bearbeiten') }}
+      </h3>
+
+      <!-- Text Inhalt -->
+      <div class="control-group">
+        <label>
+          <i class="fas fa-i-cursor"></i>
+          {{ $t('textPanel.content', 'Text') }}
+        </label>
+        <input
+          type="text"
+          :value="selectedText.content || selectedText.txt"
+          @input="$emit('update:text-content', $event.target.value)"
+          class="text-input"
+          :placeholder="$t('textPanel.placeholder', 'Text eingeben...')"
+        >
+      </div>
+
+      <!-- Schriftgröße -->
+      <div class="control-group">
+        <label>
+          <i class="fas fa-text-height"></i>
+          {{ $t('textPanel.fontSize', 'Schriftgröße') }}
+          <span class="value">{{ selectedText.fontSize || selectedText.size || 32 }}px</span>
+        </label>
+        <input
+          type="range"
+          min="8"
+          max="200"
+          :value="selectedText.fontSize || selectedText.size || 32"
+          @input="$emit('update:text-font-size', Number($event.target.value))"
+          class="slider"
+        >
+      </div>
+
+      <!-- Schriftart -->
+      <div class="control-group">
+        <label>
+          <i class="fas fa-font"></i>
+          {{ $t('textPanel.fontFamily', 'Schriftart') }}
+        </label>
+        <select
+          :value="selectedText.fontFamily || 'Arial'"
+          @change="$emit('update:text-font-family', $event.target.value)"
+          class="font-select"
+        >
+          <option value="Arial">Arial</option>
+          <option value="Helvetica">Helvetica</option>
+          <option value="Times New Roman">Times New Roman</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Verdana">Verdana</option>
+          <option value="Courier New">Courier New</option>
+          <option value="Impact">Impact</option>
+          <option value="Comic Sans MS">Comic Sans MS</option>
+        </select>
+      </div>
+
+      <!-- Textfarbe -->
+      <div class="control-group">
+        <label>
+          <i class="fas fa-palette"></i>
+          {{ $t('textPanel.color', 'Farbe') }}
+        </label>
+        <div class="color-picker-row">
+          <input
+            type="color"
+            :value="selectedText.color || '#000000'"
+            @input="$emit('update:text-color', $event.target.value)"
+            class="color-input"
+          >
+          <input
+            type="text"
+            :value="selectedText.color || '#000000'"
+            @input="$emit('update:text-color', $event.target.value)"
+            class="color-text"
+            maxlength="7"
+          >
+        </div>
+      </div>
+
+      <!-- Text löschen -->
+      <button
+        class="transform-btn delete-btn"
+        @click="$emit('delete-text')"
+      >
+        <i class="fas fa-trash"></i>
+        <span>{{ $t('textPanel.delete', 'Text löschen') }}</span>
+      </button>
+
+      <!-- Auswahl aufheben -->
+      <button
+        class="transform-btn"
+        @click="$emit('deselect-text')"
+      >
+        <i class="fas fa-times"></i>
+        <span>{{ $t('textPanel.deselect', 'Auswahl aufheben') }}</span>
+      </button>
+    </div>
+
+    <!-- Info wenn kein Text ausgewählt -->
+    <div v-else-if="hasTexts" class="panel-section text-hint">
+      <p class="hint-text">
+        <i class="fas fa-mouse-pointer"></i>
+        {{ $t('textPanel.selectHint', 'Klicken Sie auf einen Text im Bild, um ihn zu bearbeiten') }}
+      </p>
+    </div>
+
     <!-- Crop Sektion -->
     <div class="panel-section">
       <h3>
@@ -219,6 +330,14 @@ defineProps({
   hasTransforms: {
     type: Boolean,
     default: false
+  },
+  selectedText: {
+    type: Object,
+    default: null
+  },
+  hasTexts: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -237,7 +356,13 @@ defineEmits([
   'flip-horizontal',
   'flip-vertical',
   'apply-transforms',
-  'reset-transforms'
+  'reset-transforms',
+  'update:text-content',
+  'update:text-font-size',
+  'update:text-font-family',
+  'update:text-color',
+  'delete-text',
+  'deselect-text'
 ])
 </script>
 
@@ -545,5 +670,127 @@ defineEmits([
 
 .dark-mode .color-input {
   border-color: #4b5563;
+}
+
+/* Text Section */
+.text-section {
+  background: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.text-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: var(--color-bg, #ffffff);
+  color: var(--color-text-primary, #111827);
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary, #3b82f6);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+}
+
+.font-select {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  background: var(--color-bg, #ffffff);
+  color: var(--color-text-primary, #111827);
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary, #3b82f6);
+  }
+}
+
+.color-picker-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+
+  .color-text {
+    flex: 1;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+    font-family: monospace;
+    border: 1px solid var(--color-border, #d1d5db);
+    border-radius: 4px;
+    background: var(--color-bg, #ffffff);
+    color: var(--color-text-primary, #111827);
+    text-transform: uppercase;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary, #3b82f6);
+    }
+  }
+}
+
+.delete-btn {
+  border-color: #ef4444 !important;
+  color: #ef4444 !important;
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.1) !important;
+    border-color: #dc2626 !important;
+    color: #dc2626 !important;
+  }
+}
+
+.text-hint {
+  background: rgba(59, 130, 246, 0.05);
+  border: 1px dashed rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.hint-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary, #6b7280);
+  margin: 0;
+  line-height: 1.4;
+
+  i {
+    color: var(--color-primary, #3b82f6);
+    font-size: 1rem;
+  }
+}
+
+/* Dark Mode Text Section */
+.dark-mode .text-section {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.dark-mode .text-input,
+.dark-mode .font-select {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+.dark-mode .color-picker-row .color-text {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+.dark-mode .text-hint {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
 }
 </style>
