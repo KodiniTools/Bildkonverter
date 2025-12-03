@@ -340,9 +340,7 @@
           <button class="preview-close-btn" @click="closePreview">
             <i class="fas fa-times"></i>
           </button>
-          
-          <h2 class="preview-title">Vorher / Nachher Vergleich</h2>
-          
+
           <div class="preview-comparison">
             <div class="preview-item">
               <h3>Vorher (Original)</h3>
@@ -2274,12 +2272,6 @@ function handleKeyup(e) {
     background: #c82333;
     transform: scale(1.1);
   }
-}
-
-.preview-title {
-  text-align: center;
-  margin-bottom: 2rem;
-  color: var(--color-text-primary);
 }
 
 .preview-comparison {
