@@ -104,7 +104,7 @@
           </div>
 
           <!-- Background -->
-          <div class="sidebar-section">
+          <div class="sidebar-section" :class="{ 'disabled-section': !currentImage }">
             <h3>{{ $t('editor.sidebar.background', 'Hintergrund') }}</h3>
 
             <div class="filter-control">
@@ -115,6 +115,7 @@
                   v-model="background.color"
                   @input="renderImage"
                   class="color-input"
+                  :disabled="!currentImage"
                 >
                 <input
                   type="text"
@@ -122,6 +123,7 @@
                   @input="renderImage"
                   class="color-text-input"
                   maxlength="7"
+                  :disabled="!currentImage"
                 >
               </div>
             </div>
@@ -134,9 +136,15 @@
                 max="100"
                 v-model.number="background.opacity"
                 @input="renderImage"
+                :disabled="!currentImage"
               >
               <span>{{ background.opacity }}%</span>
             </div>
+
+            <p v-if="!currentImage" class="hint-text">
+              <i class="fas fa-info-circle"></i>
+              {{ $t('editor.background.hint', 'Bild laden um Hintergrund anzupassen') }}
+            </p>
           </div>
 
           <!-- Adjustments -->
@@ -1203,21 +1211,23 @@ function getMousePos(e) {
 
 function findTextAtPosition(x, y) {
   if (!imageStore.texts || imageStore.texts.length === 0) return null
-  
+
   const ctx = canvas.value.getContext('2d')
-  
+
+  // Von oben nach unten suchen (oberster Text hat Priorität)
   for (let i = imageStore.texts.length - 1; i >= 0; i--) {
     const text = imageStore.texts[i]
     const fontSize = text.fontSize || text.size || 32
     const content = text.content || text.txt || ''
-    
+
     ctx.font = `${fontSize}px ${text.fontFamily || 'Arial'}`
     const metrics = ctx.measureText(content)
-    
-    // Text.y ist die Baseline, nicht die Top-Koordinate
-    // Hit-Box: von (text.y - fontSize) bis text.y (Höhe des Textes über der Baseline)
-    if (x >= text.x && x <= text.x + metrics.width &&
-        y >= text.y - fontSize && y <= text.y + fontSize * 0.2) {
+
+    // Hit-Box: text.y ist Top-Koordinate (wegen textBaseline = 'top' in renderImage)
+    // Etwas größere Hit-Box für bessere Bedienbarkeit
+    const padding = 8
+    if (x >= text.x - padding && x <= text.x + metrics.width + padding &&
+        y >= text.y - padding && y <= text.y + fontSize + padding) {
       return text
     }
   }
@@ -1726,6 +1736,33 @@ function handleKeydown(e) {
       outline: none;
       border-color: var(--color-primary);
     }
+  }
+}
+
+// Disabled Section Style (nur visuell, nicht interaktiv blockiert)
+.disabled-section {
+  input:disabled,
+  select:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    background: var(--color-bg-secondary);
+  }
+}
+
+// Hint Text in Sidebar
+.sidebar .hint-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(59, 130, 246, 0.05);
+  border-radius: 4px;
+
+  i {
+    color: var(--color-primary);
   }
 }
 
