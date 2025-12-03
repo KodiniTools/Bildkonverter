@@ -117,7 +117,7 @@
       <div class="control-group">
         <label>
           <i class="fas fa-adjust"></i>
-          {{ $t('textPanel.opacity', 'Deckkraft') }}
+          {{ $t('textPanel.opacity', 'Opacity') }}
           <span class="value">{{ selectedText.opacity !== undefined ? selectedText.opacity : 100 }}%</span>
         </label>
         <input
