@@ -2,27 +2,32 @@
   <div class="home-view">
     <section class="hero-section">
       <div class="hero-content">
-        <h1>{{ $t('home.title') }}</h1>
-        <p class="hero-subtitle">{{ $t('home.subtitle') }}</p>
-        
-        <div class="action-buttons">
-          <router-link to="/editor" class="btn btn-primary btn-large">
+        <h1 class="animate-title">{{ $t('home.title') }}</h1>
+        <p class="hero-subtitle animate-subtitle">{{ $t('home.subtitle') }}</p>
+
+        <div class="action-buttons animate-button">
+          <router-link
+            to="/editor"
+            class="btn btn-primary btn-large btn-glow"
+            :title="$t('home.startEditingTooltip')"
+          >
             <i class="fas fa-edit"></i>
             {{ $t('home.startEditing') }}
+            <span class="btn-tooltip">{{ $t('home.startEditingTooltip') }}</span>
           </router-link>
         </div>
       </div>
-      
-      <div class="hero-image">
-        <img :src="heroImage" alt="Hero Image" class="hero-img" />
+
+      <div class="hero-image animate-image">
+        <img :src="heroImage" alt="Hero Image" class="hero-img floating" />
       </div>
     </section>
 
     <section class="features-section">
-      <h2>{{ $t('home.features.title') }}</h2>
-      
+      <h2 class="animate-section-title">{{ $t('home.features.title') }}</h2>
+
       <div class="features-grid">
-        <div class="feature-card">
+        <div class="feature-card" style="--card-index: 0">
           <div class="feature-icon">
             <i class="fas fa-file-image"></i>
           </div>
@@ -30,7 +35,7 @@
           <p>{{ $t('home.features.convert.description') }}</p>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" style="--card-index: 1">
           <div class="feature-icon">
             <i class="fas fa-sliders-h"></i>
           </div>
@@ -38,7 +43,7 @@
           <p>{{ $t('home.features.edit.description') }}</p>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" style="--card-index: 2">
           <div class="feature-icon">
             <i class="fas fa-compress"></i>
           </div>
@@ -46,7 +51,7 @@
           <p>{{ $t('home.features.compress.description') }}</p>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" style="--card-index: 3">
           <div class="feature-icon">
             <i class="fas fa-shield-alt"></i>
           </div>
@@ -54,7 +59,7 @@
           <p>{{ $t('home.features.privacy.description') }}</p>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" style="--card-index: 4">
           <div class="feature-icon">
             <i class="fas fa-bolt"></i>
           </div>
@@ -62,7 +67,7 @@
           <p>{{ $t('home.features.fast.description') }}</p>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" style="--card-index: 5">
           <div class="feature-icon">
             <i class="fas fa-crop"></i>
           </div>
@@ -148,17 +153,71 @@ const toggleFaq = (index) => {
     font-weight: 700;
     margin-bottom: var(--spacing-lg);
     line-height: 1.2;
-    
+
     @media (max-width: 768px) {
       font-size: 2.5rem;
     }
   }
-  
+
   .hero-subtitle {
     font-size: 1.25rem;
     color: var(--color-text-secondary);
     margin-bottom: var(--spacing-2xl);
     line-height: 1.6;
+  }
+}
+
+// Hero Animations
+.animate-title {
+  animation: slideInFromLeft 0.8s ease-out;
+}
+
+.animate-subtitle {
+  animation: slideInFromLeft 0.8s ease-out 0.2s backwards;
+}
+
+.animate-button {
+  animation: slideInFromLeft 0.8s ease-out 0.4s backwards;
+}
+
+.animate-image {
+  animation: slideInFromRight 0.8s ease-out 0.3s backwards;
+}
+
+.animate-section-title {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -175,9 +234,72 @@ const toggleFaq = (index) => {
 .btn-large {
   padding: var(--spacing-md) var(--spacing-xl);
   font-size: 1.1rem;
-  
+
   i {
     margin-right: var(--spacing-sm);
+  }
+}
+
+// Button Glow Effect
+.btn-glow {
+  position: relative;
+  overflow: visible;
+  box-shadow: 0 0 20px rgba(74, 144, 226, 0.3);
+  animation: pulse-glow 2s ease-in-out infinite;
+
+  &:hover {
+    box-shadow: 0 0 30px rgba(74, 144, 226, 0.5), 0 0 60px rgba(74, 144, 226, 0.3);
+    transform: translateY(-3px) scale(1.02);
+  }
+
+  &:active {
+    transform: translateY(-1px) scale(0.98);
+  }
+
+  // Tooltip
+  .btn-tooltip {
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: var(--color-text-primary);
+    color: var(--color-bg-primary);
+    padding: 8px 16px;
+    border-radius: var(--border-radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 100;
+    pointer-events: none;
+
+    // Tooltip Arrow
+    &::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 8px solid transparent;
+      border-top-color: var(--color-text-primary);
+    }
+  }
+
+  &:hover .btn-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(74, 144, 226, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(74, 144, 226, 0.5), 0 0 50px rgba(74, 144, 226, 0.2);
   }
 }
 
@@ -198,6 +320,25 @@ const toggleFaq = (index) => {
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-lg);
   object-fit: cover;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &.floating {
+    animation: floating 3s ease-in-out infinite;
+  }
+
+  &:hover {
+    transform: scale(1.03) translateY(-5px);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  }
+}
+
+@keyframes floating {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
 }
 
 .features-section {
@@ -224,13 +365,26 @@ const toggleFaq = (index) => {
   background: var(--color-bg-secondary);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-md);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+
+  // Gestaffelte Einblendung
+  opacity: 0;
+  animation: cardFadeIn 0.6s ease-out forwards;
+  animation-delay: calc(var(--card-index, 0) * 0.1s);
+
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: var(--shadow-lg), 0 20px 40px rgba(74, 144, 226, 0.1);
+
+    .feature-icon {
+      transform: scale(1.1) rotate(5deg);
+
+      i {
+        animation: iconBounce 0.5s ease;
+      }
+    }
   }
-  
+
   .feature-icon {
     width: 60px;
     height: 60px;
@@ -240,21 +394,43 @@ const toggleFaq = (index) => {
     align-items: center;
     justify-content: center;
     margin-bottom: var(--spacing-md);
-    
+    transition: transform 0.3s ease, background 0.3s ease;
+
     i {
       font-size: 1.8rem;
       color: var(--color-primary);
+      transition: transform 0.3s ease;
     }
   }
-  
+
   h3 {
     font-size: 1.3rem;
     margin-bottom: var(--spacing-sm);
   }
-  
+
   p {
     color: var(--color-text-secondary);
     line-height: 1.6;
+  }
+}
+
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes iconBounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
   }
 }
 
