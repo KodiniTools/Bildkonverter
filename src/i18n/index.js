@@ -165,6 +165,8 @@ const de = {
       verticalTooltip: 'Vertikal spiegeln'
     },
     zoom: 'Zoom',
+    panHint: 'Leertaste + Ziehen oder Mausrad-Klick zum Verschieben',
+    resetPan: 'Ansicht zentrieren',
     borderRadius: 'Ecken abrunden',
     border: 'Rahmen',
     borderColor: 'Farbe',
@@ -631,6 +633,8 @@ const en = {
       verticalTooltip: 'Flip vertically'
     },
     zoom: 'Zoom',
+    panHint: 'Space + Drag or middle mouse button to pan',
+    resetPan: 'Center view',
     borderRadius: 'Round corners',
     border: 'Border',
     borderColor: 'Color',

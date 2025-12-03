@@ -301,6 +301,8 @@
           :has-cropped="crop.hasCropped.value"
           :transforms="transform.transforms.value"
           :has-transforms="transform.hasTransforms.value"
+          :can-pan="transform.canPan.value"
+          :has-pan="transform.hasPan.value"
           :selected-text="selectedTextObject"
           :has-texts="imageStore.texts && imageStore.texts.length > 0"
           @toggle-crop="handleToggleCrop"
@@ -318,6 +320,7 @@
           @flip-vertical="handleFlipVertical"
           @apply-transforms="handleApplyTransforms"
           @reset-transforms="handleResetTransforms"
+          @reset-pan="handleResetPan"
           @update:text-content="handleTextContentUpdate"
           @update:text-font-size="handleTextFontSizeUpdate"
           @update:text-font-family="handleTextFontFamilyUpdate"
@@ -401,6 +404,11 @@ const isExporting = ref(false) // Loading-State beim Export
 const selectedTextId = ref(null)
 const isDraggingText = ref(false)
 const dragOffset = ref({ x: 0, y: 0 })
+
+// Pan interaction state
+const isPanning = ref(false)
+const panStart = ref({ x: 0, y: 0 })
+const isSpacePressed = ref(false)
 
 // Crop Composable (ersetzt alle Crop-State-Variablen)
 const crop = useCrop()
@@ -1182,10 +1190,19 @@ async function handleApplyTransforms() {
   }
 }
 
+function handleResetPan() {
+  transform.resetPan()
+  renderImage()
+
+  if (window.$toast) {
+    window.$toast.info(t('toast.transform.panReset', 'Ansicht zurückgesetzt'))
+  }
+}
+
 function handleResetTransforms() {
   transform.resetTransforms()
   renderImage()
-  
+
   if (window.$toast) {
     window.$toast.info(t('toast.transform.reset'))
   }
@@ -1326,14 +1343,26 @@ function findTextAtPosition(x, y) {
 
 function onCanvasMouseDown(e) {
   const pos = getMousePos(e)
-  
+
+  // Pan mit mittlerer Maustaste oder Leertaste + Linksklick
+  const isMiddleButton = e.button === 1
+  const isPanGesture = isMiddleButton || (isSpacePressed.value && e.button === 0)
+
+  if (isPanGesture && transform.canPan.value) {
+    e.preventDefault()
+    isPanning.value = true
+    panStart.value = { x: e.clientX, y: e.clientY }
+    canvas.value.style.cursor = 'grabbing'
+    return
+  }
+
   // Crop-Handler über Composable (hat Priorität)
   const cropHandled = crop.handleMouseDown(pos)
   if (cropHandled) return
-  
+
   // Sonst Text-Interaktion
   const text = findTextAtPosition(pos.x, pos.y)
-  
+
   if (text) {
     selectedTextId.value = text.id
     isDraggingText.value = true
@@ -1345,17 +1374,27 @@ function onCanvasMouseDown(e) {
   } else {
     selectedTextId.value = null
   }
-  
+
   renderImage()
 }
 
 function onCanvasMouseMove(e) {
   const pos = getMousePos(e)
-  
+
+  // Pan-Handling (hat höchste Priorität wenn aktiv)
+  if (isPanning.value) {
+    const deltaX = e.clientX - panStart.value.x
+    const deltaY = e.clientY - panStart.value.y
+    panStart.value = { x: e.clientX, y: e.clientY }
+    transform.pan(deltaX, deltaY)
+    renderImage()
+    return
+  }
+
   // Crop-Handler über Composable (hat Priorität)
   const cropHandled = crop.handleMouseMove(pos)
   if (cropHandled) return
-  
+
   // Sonst Text-Interaktion
   if (isDraggingText.value && selectedTextId.value) {
     const text = imageStore.texts.find(t => t.id === selectedTextId.value)
@@ -1366,18 +1405,34 @@ function onCanvasMouseMove(e) {
     }
   } else {
     const text = findTextAtPosition(pos.x, pos.y)
-    canvas.value.style.cursor = text ? 'grab' : (crop.cropMode.value ? 'crosshair' : 'default')
+    // Cursor basierend auf Kontext anpassen
+    let cursorStyle = 'default'
+    if (isSpacePressed.value && transform.canPan.value) {
+      cursorStyle = 'grab'
+    } else if (text) {
+      cursorStyle = 'grab'
+    } else if (crop.cropMode.value) {
+      cursorStyle = 'crosshair'
+    }
+    canvas.value.style.cursor = cursorStyle
   }
 }
 
 function onCanvasMouseUp() {
+  // Pan-Handling beenden
+  if (isPanning.value) {
+    isPanning.value = false
+    canvas.value.style.cursor = isSpacePressed.value && transform.canPan.value ? 'grab' : 'default'
+    return
+  }
+
   // Crop-Handler über Composable (hat Priorität)
   const cropHandled = crop.handleMouseUp()
   if (cropHandled) {
     handleFinishCrop()
     return
   }
-  
+
   // Sonst Text-Interaktion
   if (isDraggingText.value) {
     isDraggingText.value = false
@@ -1489,12 +1544,13 @@ async function loadGalleryImage(galleryImageId) {
 onMounted(async () => {
   // Keyboard shortcuts
   window.addEventListener('keydown', handleKeydown)
-  
+  window.addEventListener('keyup', handleKeyup)
+
   await nextTick()
-  
+
   // Prüfe ob Bild aus Galerie geladen werden soll
   const loaded = await loadGalleryImage(route.query.galleryImageId)
-  
+
   // Wenn kein Galerie-Bild geladen wurde und ein Bild im Store ist, lade es
   if (!loaded && imageStore.hasImage && imageStore.originalImage) {
     currentImage.value = imageStore.originalImage
@@ -1516,9 +1572,22 @@ watch(() => route.query.galleryImageId, async (newId, oldId) => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
+  window.removeEventListener('keyup', handleKeyup)
 })
 
 function handleKeydown(e) {
+  // Leertaste für Pan-Modus (nur wenn Zoom > 100%)
+  if (e.code === 'Space' && transform.canPan.value && !e.repeat) {
+    // Nur aktivieren wenn kein Input-Element fokussiert ist
+    if (document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+      e.preventDefault()
+      isSpacePressed.value = true
+      if (canvas.value) {
+        canvas.value.style.cursor = 'grab'
+      }
+    }
+  }
+
   if (e.ctrlKey || e.metaKey) {
     if (e.key === 'z') {
       e.preventDefault()
@@ -1528,12 +1597,26 @@ function handleKeydown(e) {
       redo()
     }
   }
-  
+
   // Delete selected text
   if ((e.key === 'Delete' || e.key === 'Backspace') && selectedTextId.value) {
-    e.preventDefault()
-    imageStore.deleteText(selectedTextId.value)
-    selectedTextId.value = null
+    // Nur wenn kein Input-Element fokussiert ist
+    if (document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+      e.preventDefault()
+      imageStore.deleteText(selectedTextId.value)
+      selectedTextId.value = null
+    }
+  }
+}
+
+function handleKeyup(e) {
+  // Leertaste loslassen beendet Pan-Modus
+  if (e.code === 'Space') {
+    isSpacePressed.value = false
+    isPanning.value = false
+    if (canvas.value) {
+      canvas.value.style.cursor = 'default'
+    }
   }
 }
 </script>

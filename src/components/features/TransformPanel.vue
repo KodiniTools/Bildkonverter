@@ -247,14 +247,30 @@
           {{ $t('transform.zoom') }}
           <span class="value">{{ transforms.scale }}%</span>
         </label>
-        <input 
-          type="range" 
-          min="10" 
-          max="200" 
+        <input
+          type="range"
+          min="10"
+          max="200"
           :value="transforms.scale"
           @input="$emit('update:scale', Number($event.target.value))"
           class="slider"
         >
+      </div>
+
+      <!-- Pan-Hinweis und Reset (nur bei Zoom > 100%) -->
+      <div v-if="canPan" class="pan-info">
+        <p class="pan-hint">
+          <i class="fas fa-hand-paper"></i>
+          {{ $t('transform.panHint', 'Leertaste + Ziehen oder Mausrad-Klick zum Verschieben') }}
+        </p>
+        <button
+          v-if="hasPan"
+          class="transform-btn pan-reset-btn"
+          @click="$emit('reset-pan')"
+        >
+          <i class="fas fa-compress-arrows-alt"></i>
+          <span>{{ $t('transform.resetPan', 'Ansicht zentrieren') }}</span>
+        </button>
       </div>
 
       <!-- Ecken abrunden -->
@@ -358,6 +374,14 @@ defineProps({
     type: Boolean,
     default: false
   },
+  canPan: {
+    type: Boolean,
+    default: false
+  },
+  hasPan: {
+    type: Boolean,
+    default: false
+  },
   selectedText: {
     type: Object,
     default: null
@@ -384,6 +408,7 @@ defineEmits([
   'flip-vertical',
   'apply-transforms',
   'reset-transforms',
+  'reset-pan',
   'update:text-content',
   'update:text-font-size',
   'update:text-font-family',
@@ -819,5 +844,50 @@ defineEmits([
 .dark-mode .text-hint {
   background: rgba(59, 130, 246, 0.1);
   border-color: rgba(59, 130, 246, 0.3);
+}
+
+/* Pan Info Styles */
+.pan-info {
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px dashed rgba(74, 222, 128, 0.4);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.pan-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #6b7280);
+  margin: 0 0 0.5rem 0;
+  line-height: 1.4;
+
+  i {
+    color: #22c55e;
+    font-size: 0.9rem;
+    margin-top: 0.1rem;
+  }
+}
+
+.pan-reset-btn {
+  border-color: #22c55e !important;
+  color: #22c55e !important;
+
+  &:hover {
+    background: rgba(34, 197, 94, 0.1) !important;
+    border-color: #16a34a !important;
+    color: #16a34a !important;
+  }
+}
+
+.dark-mode .pan-info {
+  background: rgba(74, 222, 128, 0.15);
+  border-color: rgba(74, 222, 128, 0.3);
+}
+
+.dark-mode .pan-hint {
+  color: #9ca3af;
 }
 </style>

@@ -1,6 +1,6 @@
 /**
  * useTransform.js - Composable für Transformationen
- * Deckkraft, Rotation, Drehen, Spiegeln, Zoom, etc.
+ * Deckkraft, Rotation, Drehen, Spiegeln, Zoom, Pan, etc.
  */
 
 import { ref, computed } from 'vue'
@@ -15,7 +15,9 @@ export function useTransform() {
     flipVertical: false,   // true/false
     borderRadius: 0,       // 0-50px
     borderWidth: 0,        // 0-20px
-    borderColor: '#000000' // Hex color
+    borderColor: '#000000', // Hex color
+    panX: 0,               // Pan-Offset X (in Pixeln)
+    panY: 0                // Pan-Offset Y (in Pixeln)
   })
 
   // Computed - CSS Transform String
@@ -113,6 +115,49 @@ export function useTransform() {
    */
   function setScale(value) {
     transforms.value.scale = Math.max(10, Math.min(200, value))
+    // Bei Zoom <= 100% Pan zurücksetzen
+    if (transforms.value.scale <= 100) {
+      transforms.value.panX = 0
+      transforms.value.panY = 0
+    }
+  }
+
+  /**
+   * Setze Pan-Offset
+   */
+  function setPan(x, y) {
+    // Pan nur erlauben wenn gezoomt
+    if (transforms.value.scale <= 100) {
+      transforms.value.panX = 0
+      transforms.value.panY = 0
+      return
+    }
+    transforms.value.panX = x
+    transforms.value.panY = y
+  }
+
+  /**
+   * Pan-Offset verschieben (relativ)
+   */
+  function pan(deltaX, deltaY) {
+    if (transforms.value.scale <= 100) return
+
+    // Begrenze Pan basierend auf Zoom-Level
+    const maxPan = (transforms.value.scale - 100) * 3 // Skalierter Max-Wert
+
+    const newX = transforms.value.panX + deltaX
+    const newY = transforms.value.panY + deltaY
+
+    transforms.value.panX = Math.max(-maxPan, Math.min(maxPan, newX))
+    transforms.value.panY = Math.max(-maxPan, Math.min(maxPan, newY))
+  }
+
+  /**
+   * Pan zurücksetzen
+   */
+  function resetPan() {
+    transforms.value.panX = 0
+    transforms.value.panY = 0
   }
 
   /**
@@ -151,28 +196,33 @@ export function useTransform() {
 
     context.save()
     context.translate(centerX, centerY)
-    
+
+    // Pan-Offset anwenden (nur bei Zoom > 100%)
+    if (transforms.value.scale > 100 && (transforms.value.panX !== 0 || transforms.value.panY !== 0)) {
+      context.translate(transforms.value.panX, transforms.value.panY)
+    }
+
     // Rotation
     if (transforms.value.rotation !== 0) {
       const radians = (transforms.value.rotation * Math.PI) / 180
       context.rotate(radians)
     }
-    
+
     // Scale
     const scaleValue = transforms.value.scale / 100
     if (scaleValue !== 1) {
       context.scale(scaleValue, scaleValue)
     }
-    
+
     // Flip
     if (transforms.value.flipHorizontal || transforms.value.flipVertical) {
       const flipX = transforms.value.flipHorizontal ? -1 : 1
       const flipY = transforms.value.flipVertical ? -1 : 1
       context.scale(flipX, flipY)
     }
-    
+
     context.translate(-centerX, -centerY)
-    
+
     return () => {
       context.restore()
       context.globalAlpha = 1
@@ -273,7 +323,9 @@ export function useTransform() {
       flipVertical: false,
       borderRadius: 0,
       borderWidth: 0,
-      borderColor: '#000000'
+      borderColor: '#000000',
+      panX: 0,
+      panY: 0
     }
   }
 
@@ -292,12 +344,28 @@ export function useTransform() {
     )
   })
 
+  /**
+   * Prüfe ob Pan aktiv ist
+   */
+  const hasPan = computed(() => {
+    return transforms.value.panX !== 0 || transforms.value.panY !== 0
+  })
+
+  /**
+   * Prüfe ob Panning erlaubt ist (nur bei Zoom > 100%)
+   */
+  const canPan = computed(() => {
+    return transforms.value.scale > 100
+  })
+
   return {
     // State
     transforms,
     transformStyle,
     hasTransforms,
-    
+    hasPan,
+    canPan,
+
     // Methods
     setOpacity,
     setRotation,
@@ -308,6 +376,9 @@ export function useTransform() {
     flipHorizontal,
     flipVertical,
     setScale,
+    setPan,
+    pan,
+    resetPan,
     setBorderRadius,
     setBorderWidth,
     setBorderColor,
