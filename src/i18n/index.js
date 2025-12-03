@@ -184,6 +184,17 @@ const de = {
     delete: 'Löschen',
     cancel: 'Abbrechen'
   },
+  textPanel: {
+    title: 'Text bearbeiten',
+    content: 'Text',
+    placeholder: 'Text eingeben...',
+    fontSize: 'Schriftgröße',
+    fontFamily: 'Schriftart',
+    color: 'Farbe',
+    delete: 'Text löschen',
+    deselect: 'Auswahl aufheben',
+    selectHint: 'Klicken Sie auf einen Text im Bild, um ihn zu bearbeiten'
+  },
   gallery: {
     title: 'Galerie',
     subtitle: 'Verwalten Sie Ihre Bilder',
@@ -635,6 +646,17 @@ const en = {
     update: 'Update',
     delete: 'Delete',
     cancel: 'Cancel'
+  },
+  textPanel: {
+    title: 'Edit Text',
+    content: 'Text',
+    placeholder: 'Enter text...',
+    fontSize: 'Font Size',
+    fontFamily: 'Font Family',
+    color: 'Color',
+    delete: 'Delete Text',
+    deselect: 'Deselect',
+    selectHint: 'Click on a text in the image to edit it'
   },
   gallery: {
     title: 'Gallery',
