@@ -29,6 +29,7 @@ const de = {
     title: 'Willkommen beim Bildkonverter Pro',
     subtitle: 'Schnelle und sichere Bildbearbeitung meist lokal im Browser, Spezialformate sicher auf dem deutschen Server',
     startEditing: 'Bearbeitung starten',
+    startEditingTooltip: 'Öffne den Editor zum Bearbeiten deiner Bilder',
     features: {
       title: 'Funktionen',
       convert: {
@@ -476,6 +477,7 @@ const en = {
     title: 'Welcome to Image Converter Pro',
     subtitle: 'Fast and secure image editing mostly local in your browser, specialized formats securely on German server',
     startEditing: 'Start Editing',
+    startEditingTooltip: 'Open the editor to edit your images',
     features: {
       title: 'Features',
       convert: {
