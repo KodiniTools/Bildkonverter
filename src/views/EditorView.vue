@@ -18,28 +18,46 @@
         </div>
 
         <div class="toolbar-section">
-          <button 
-            class="btn btn-secondary" 
+          <!-- Undo/Redo Buttons -->
+          <button
+            class="btn btn-secondary"
+            @click="undo"
+            :disabled="!canUndo"
+            :title="$t('editor.toolbar.undo', 'Rückgängig')"
+          >
+            <i class="fas fa-undo"></i>
+          </button>
+          <button
+            class="btn btn-secondary"
+            @click="redo"
+            :disabled="!canRedo"
+            :title="$t('editor.toolbar.redo', 'Wiederholen')"
+          >
+            <i class="fas fa-redo"></i>
+          </button>
+          <span class="toolbar-divider"></span>
+          <button
+            class="btn btn-secondary"
             @click="addText"
             :disabled="!currentImage"
           >
             <i class="fas fa-font"></i>
             Text
           </button>
-          <button 
-            class="btn btn-secondary" 
+          <button
+            class="btn btn-secondary"
             @click="openPreview"
             :disabled="!currentImage"
           >
             <i class="fas fa-eye"></i>
             {{ $t('editor.toolbar.preview', 'Vorschau') }}
           </button>
-          <button 
-            class="btn btn-secondary" 
+          <button
+            class="btn btn-secondary"
             @click="resetFilters"
             :disabled="!currentImage"
           >
-            <i class="fas fa-undo"></i>
+            <i class="fas fa-sync-alt"></i>
             {{ $t('editor.toolbar.reset') }}
           </button>
           <button 
@@ -398,10 +416,28 @@
           <div class="sidebar-section">
             <h3>{{ $t('editor.sidebar.resize') }}</h3>
             <div class="resize-controls">
+              <!-- Social Media Presets -->
+              <div class="resize-presets">
+                <label>{{ $t('editor.resize.presets', 'Presets') }}</label>
+                <select
+                  class="form-select form-select-sm"
+                  @change="applySocialPreset($event.target.value); $event.target.value = ''"
+                  :disabled="!currentImage"
+                >
+                  <option value="">{{ $t('editor.resize.selectPreset', 'Preset wählen...') }}</option>
+                  <option value="instagram">📷 Instagram Post (1080×1080)</option>
+                  <option value="instagramStory">📱 Instagram Story (1080×1920)</option>
+                  <option value="facebook">👤 Facebook Post (1200×630)</option>
+                  <option value="twitter">🐦 Twitter Post (1200×675)</option>
+                  <option value="youtube">▶️ YouTube Thumbnail (1280×720)</option>
+                  <option value="hd">🖥️ Full HD (1920×1080)</option>
+                  <option value="4k">📺 4K UHD (3840×2160)</option>
+                </select>
+              </div>
               <div class="resize-input">
                 <label>{{ $t('editor.resize.width') }}</label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   v-model.number="resizeWidth"
                   :disabled="!currentImage"
                   @change="onResizeChange('width')"
@@ -409,8 +445,8 @@
               </div>
               <div class="resize-input">
                 <label>{{ $t('editor.resize.height') }}</label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   v-model.number="resizeHeight"
                   :disabled="!currentImage"
                   @change="onResizeChange('height')"
@@ -420,8 +456,8 @@
                 <input type="checkbox" v-model="maintainAspectRatio">
                 {{ $t('editor.resize.maintainAspect') }}
               </label>
-              <button 
-                class="btn btn-primary" 
+              <button
+                class="btn btn-primary"
                 @click="applyResize"
                 :disabled="!currentImage"
               >
@@ -795,9 +831,9 @@ async function loadImage(img) {
 
   canvas.value.width = width
   canvas.value.height = height
-  
-  resizeWidth.value = width
-  resizeHeight.value = height
+
+  // Initialisiere ResizeManager mit korrektem Seitenverhältnis
+  resizeManager.initFromDimensions(width, height)
 
   renderImage()
   updateImageInfo()
@@ -1080,8 +1116,9 @@ function resetFilters() {
 
   canvas.value.width = width
   canvas.value.height = height
-  resizeWidth.value = width
-  resizeHeight.value = height
+
+  // Initialisiere ResizeManager mit korrektem Seitenverhältnis
+  resizeManager.initFromDimensions(width, height)
 
   // Neu zeichnen
   renderImage()
@@ -1191,6 +1228,12 @@ function handlePresetApply(preset) {
 function onResizeChange(dimension) {
   // Verwende resizeManager Composable
   resizeManager.onDimensionChange(dimension)
+}
+
+function applySocialPreset(presetName) {
+  if (!presetName || !currentImage.value) return
+  // Verwende resizeManager Composable für Social Media Presets
+  resizeManager.applyPreset(presetName)
 }
 
 function applyResize() {
@@ -1329,8 +1372,7 @@ function handleFinishCrop() {
       currentImage.value = img
       canvas.value.width = width
       canvas.value.height = height
-      resizeWidth.value = width
-      resizeHeight.value = height
+      resizeManager.initFromDimensions(width, height)
       renderImage()
       updateImageSize() // Dateigröße neu berechnen nach Crop
       saveHistory()
@@ -1345,8 +1387,7 @@ function handleUndoCrop() {
       currentImage.value = img
       canvas.value.width = beforeCropData.width
       canvas.value.height = beforeCropData.height
-      resizeWidth.value = beforeCropData.width
-      resizeHeight.value = beforeCropData.height
+      resizeManager.initFromDimensions(beforeCropData.width, beforeCropData.height)
       filters.value = { ...beforeCropData.filters }
       renderImage()
       updateImageSize() // Dateigröße neu berechnen nach Undo
@@ -1446,9 +1487,8 @@ async function handleApplyTransforms() {
       currentImage.value = result.img
       canvas.value.width = result.width
       canvas.value.height = result.height
-      resizeWidth.value = result.width
-      resizeHeight.value = result.height
-      
+      resizeManager.initFromDimensions(result.width, result.height)
+
       renderImage()
       updateImageSize() // Dateigröße neu berechnen nach Transform
       saveHistory()
@@ -1948,6 +1988,14 @@ function handleKeyup(e) {
 .toolbar-section {
   display: flex;
   gap: 0.5rem;
+  align-items: center;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--color-border);
+  margin: 0 0.25rem;
 }
 
 .btn {
@@ -2487,6 +2535,45 @@ function handleKeyup(e) {
   display: flex;
   flex-direction: column;
   gap: 0.75rem; // ✨ Kompakter
+
+  .resize-presets {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--color-text-primary);
+    }
+
+    select {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      background: var(--color-bg);
+      color: var(--color-text-primary);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover:not(:disabled) {
+        border-color: var(--color-primary);
+      }
+
+      &:focus {
+        outline: none;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
 
   .resize-input {
     display: flex;
