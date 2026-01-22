@@ -72,105 +72,119 @@ const emit = defineEmits(['apply-preset', 'filters-changed'])
 const activePreset = ref(null)
 const customPresets = ref([])
 
-// Standard-Presets mit allen Foto-Effekten
+// Standard-Presets mit allen Foto-Effekten (inkl. neue Filter)
 const defaultPresets = [
-  { 
-    id: 'normal', 
-    name: 'Normal', 
-    icon: '📷', 
+  {
+    id: 'normal',
+    name: 'Normal',
+    icon: '📷',
     description: 'Original',
-    filters: { brightness: 100, contrast: 100, saturation: 100, blur: 0, hue: 0 } 
+    filters: { brightness: 100, contrast: 100, saturation: 100, blur: 0, hue: 0, sepia: 0, grayscale: 0, vignette: 0 }
   },
-  { 
-    id: 'vintage', 
-    name: 'Vintage', 
-    icon: '📸', 
+  {
+    id: 'vintage',
+    name: 'Vintage',
+    icon: '📸',
     description: 'Retro-Look',
-    filters: { brightness: 110, contrast: 90, saturation: 70, blur: 0, hue: 20 } 
+    filters: { brightness: 110, contrast: 90, saturation: 70, blur: 0, hue: 0, sepia: 40, vignette: 30 }
   },
-  { 
-    id: 'bw', 
-    name: 'Schwarz/Weiß', 
-    icon: '⚫', 
+  {
+    id: 'bw',
+    name: 'Schwarz/Weiß',
+    icon: '⚫',
     description: 'Klassisch',
-    filters: { brightness: 100, contrast: 120, saturation: 0, blur: 0, hue: 0 } 
+    filters: { brightness: 100, contrast: 120, saturation: 0, blur: 0, hue: 0, grayscale: 100 }
   },
-  { 
-    id: 'vivid', 
-    name: 'Lebendig', 
-    icon: '🌈', 
+  {
+    id: 'vivid',
+    name: 'Lebendig',
+    icon: '🌈',
     description: 'Kräftige Farben',
-    filters: { brightness: 105, contrast: 120, saturation: 150, blur: 0, hue: 0 } 
+    filters: { brightness: 105, contrast: 120, saturation: 150, blur: 0, hue: 0, exposure: 5 }
   },
-  { 
-    id: 'sepia', 
-    name: 'Sepia', 
-    icon: '📜', 
+  {
+    id: 'sepia',
+    name: 'Sepia',
+    icon: '📜',
     description: 'Nostalgischer Braun-Ton',
-    filters: { brightness: 110, contrast: 95, saturation: 60, blur: 0, hue: 30 } 
+    filters: { brightness: 105, contrast: 95, saturation: 80, blur: 0, hue: 0, sepia: 70, vignette: 20 }
   },
-  { 
-    id: 'dramatic', 
-    name: 'Dramatisch', 
-    icon: '🎭', 
+  {
+    id: 'dramatic',
+    name: 'Dramatisch',
+    icon: '🎭',
     description: 'Hoher Kontrast',
-    filters: { brightness: 90, contrast: 160, saturation: 120, blur: 0, hue: 0 } 
+    filters: { brightness: 95, contrast: 150, saturation: 120, blur: 0, hue: 0, shadows: -20, highlights: 20, vignette: 25 }
   },
-  { 
-    id: 'soft', 
-    name: 'Soft', 
-    icon: '🌸', 
+  {
+    id: 'soft',
+    name: 'Soft',
+    icon: '🌸',
     description: 'Weiche Töne',
-    filters: { brightness: 115, contrast: 80, saturation: 90, blur: 0, hue: 0 } 
+    filters: { brightness: 110, contrast: 85, saturation: 90, blur: 0.5, hue: 0, highlights: 15, exposure: 5 }
   },
-  { 
-    id: 'hdr', 
-    name: 'HDR', 
-    icon: '💎', 
-    description: 'Sehr hohe Sättigung',
-    filters: { brightness: 110, contrast: 140, saturation: 180, blur: 0, hue: 0 } 
+  {
+    id: 'hdr',
+    name: 'HDR',
+    icon: '💎',
+    description: 'Sehr hohe Dynamik',
+    filters: { brightness: 105, contrast: 130, saturation: 140, blur: 0, hue: 0, highlights: 30, shadows: 30 }
   },
-  { 
-    id: 'cold', 
-    name: 'Kalt', 
-    icon: '❄️', 
+  {
+    id: 'cold',
+    name: 'Kalt',
+    icon: '❄️',
     description: 'Kühle Töne',
-    filters: { brightness: 100, contrast: 100, saturation: 100, blur: 0, hue: 200 } 
+    filters: { brightness: 100, contrast: 105, saturation: 90, blur: 0, hue: 200, sepia: 0, exposure: -5 }
   },
-  { 
-    id: 'warm', 
-    name: 'Warm', 
-    icon: '🔥', 
+  {
+    id: 'warm',
+    name: 'Warm',
+    icon: '🔥',
     description: 'Warme Töne',
-    filters: { brightness: 110, contrast: 100, saturation: 120, blur: 0, hue: 30 } 
+    filters: { brightness: 105, contrast: 100, saturation: 110, blur: 0, hue: 15, sepia: 25, exposure: 5 }
   },
-  { 
-    id: 'sunset', 
-    name: 'Sunset', 
-    icon: '🌅', 
+  {
+    id: 'sunset',
+    name: 'Sunset',
+    icon: '🌅',
     description: 'Orange/Rosa Sonnenuntergang',
-    filters: { brightness: 115, contrast: 105, saturation: 130, blur: 0, hue: 15 } 
+    filters: { brightness: 110, contrast: 105, saturation: 120, blur: 0, hue: 10, sepia: 30, vignette: 20 }
   },
-  { 
-    id: 'ocean', 
-    name: 'Ocean', 
-    icon: '🌊', 
+  {
+    id: 'ocean',
+    name: 'Ocean',
+    icon: '🌊',
     description: 'Blaue Meer-Stimmung',
-    filters: { brightness: 100, contrast: 110, saturation: 120, blur: 0, hue: 200 } 
+    filters: { brightness: 100, contrast: 110, saturation: 115, blur: 0, hue: 195, exposure: -5 }
   },
-  { 
-    id: 'cinematic', 
-    name: 'Cinematic', 
-    icon: '🎬', 
+  {
+    id: 'cinematic',
+    name: 'Cinematic',
+    icon: '🎬',
     description: 'Film-Look',
-    filters: { brightness: 95, contrast: 125, saturation: 110, blur: 0, hue: 10 } 
+    filters: { brightness: 95, contrast: 120, saturation: 95, blur: 0, hue: 5, vignette: 35, shadows: -15 }
   },
-  { 
-    id: 'faded', 
-    name: 'Faded', 
-    icon: '👻', 
+  {
+    id: 'faded',
+    name: 'Faded',
+    icon: '👻',
     description: 'Verblasst',
-    filters: { brightness: 120, contrast: 70, saturation: 70, blur: 0, hue: 0 } 
+    filters: { brightness: 115, contrast: 75, saturation: 70, blur: 0, hue: 0, exposure: 10 }
+  },
+  {
+    id: 'noir',
+    name: 'Noir',
+    icon: '🖤',
+    description: 'Film Noir Stil',
+    filters: { brightness: 95, contrast: 140, saturation: 0, blur: 0, hue: 0, grayscale: 100, vignette: 45 }
+  },
+  {
+    id: 'dreamy',
+    name: 'Dreamy',
+    icon: '✨',
+    description: 'Verträumt',
+    filters: { brightness: 115, contrast: 80, saturation: 85, blur: 1, hue: 0, highlights: 25, vignette: 15 }
   }
 ]
 
