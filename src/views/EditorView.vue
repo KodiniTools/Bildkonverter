@@ -543,6 +543,10 @@ import { useImageStore } from '@/stores/imageStore'
 import { useTextModal } from '@/composables/useTextModal'
 import { useCrop } from '@/composables/useCrop'
 import { useTransform } from '@/composables/useTransform'
+import { useFilterManagement, DEFAULT_FILTERS, DEFAULT_BACKGROUND } from '@/composables/useFilterManagement'
+import { useImageHistory } from '@/composables/useImageHistory'
+import { useResizeManager } from '@/composables/useResizeManager'
+import { useGalleryIntegration } from '@/composables/useGalleryIntegration'
 import TransformPanel from '@/components/features/TransformPanel.vue'
 import FilterPresets from '@/components/editor/FilterPresets.vue'
 
@@ -554,83 +558,82 @@ const route = useRoute()
 const imageStore = useImageStore()
 const textModal = useTextModal()
 
-// Refs
+// ===== CORE REFS =====
 const fileInput = ref(null)
 const canvas = ref(null)
 const currentImage = ref(null)
 const originalImage = ref(null)
 const originalImageDataUrl = ref('') // Speichert das Original als Data URL
-const history = ref([])
-const historyIndex = ref(-1)
 const outputFormat = ref('png')
 const currentImageFormat = ref('') // Format des hochgeladenen Bildes
-const currentPreset = ref(null)
-const maintainAspectRatio = ref(true)
-const resizeWidth = ref(null)
-const resizeHeight = ref(null)
 
-// ===== NEU: Export-spezifische Refs =====
+// ===== EXPORT STATE =====
 const exportQuality = ref(92) // Quality-Wert (0-100)
 const isExporting = ref(false) // Loading-State beim Export
 
-// Text interaction state
+// ===== TEXT INTERACTION STATE =====
 const selectedTextId = ref(null)
 const isDraggingText = ref(false)
 const dragOffset = ref({ x: 0, y: 0 })
 
-// Pan interaction state
+// ===== PAN INTERACTION STATE =====
 const isPanning = ref(false)
 const panStart = ref({ x: 0, y: 0 })
 const isSpacePressed = ref(false)
 
-// Crop Composable (ersetzt alle Crop-State-Variablen)
+// ===== PREVIEW MODAL STATE =====
+const showPreviewModal = ref(false)
+const originalPreviewSrc = ref('')
+const editedPreviewSrc = ref('')
+const previewUpdateTrigger = ref(0)
+
+// ===== COMPOSABLES =====
+
+// Crop Composable
 const crop = useCrop()
 
-// Transform Composable (für Rotation, Deckkraft, etc.)
+// Transform Composable
 const transform = useTransform()
 
-// Preview Modal state
-const showPreviewModal = ref(false)
-const originalPreviewSrc = ref('') // Als ref statt computed
-const editedPreviewSrc = ref('') // Als ref statt computed
-const previewUpdateTrigger = ref(0) // Trigger für manuelle Updates
-
-const filters = ref({
-  brightness: 100,
-  contrast: 100,
-  saturation: 100,
-  blur: 0,
-  hue: 0,
-  // Neue Filter
-  sepia: 0,
-  grayscale: 0,
-  invert: 0,
-  exposure: 0,
-  highlights: 0,
-  shadows: 0,
-  sharpness: 0,
-  vignette: 0
+// Filter Management Composable
+const filterManagement = useFilterManagement({
+  onFilterChange: () => renderImage()
 })
+const { filters, background, sectionsOpen, currentPreset } = filterManagement
 
-// Hintergrund-Einstellungen
-const background = ref({
-  color: '#ffffff',
-  opacity: 0
+// Image History Composable
+const imageHistory = useImageHistory({
+  maxHistorySize: 50,
+  onRestore: (state) => restoreState(state)
 })
+const { history, historyIndex, canUndo, canRedo } = imageHistory
 
-// Sidebar Sektionen offen/geschlossen
-const sectionsOpen = ref({
-  adjustments: true,
-  lightColor: false,
-  effects: false
+// Resize Manager Composable
+const resizeManager = useResizeManager({
+  getCurrentDimensions: () => ({
+    width: canvas.value?.width || 0,
+    height: canvas.value?.height || 0
+  }),
+  onResize: (dimensions) => {
+    // Resize wird in applyResize() gehandhabt
+  }
+})
+const { resizeWidth, resizeHeight, maintainAspectRatio } = resizeManager
+
+// Gallery Integration Composable
+const galleryIntegration = useGalleryIntegration({
+  onImageLoad: async (imageData) => {
+    await loadImageFromUrl(imageData.url, imageData.name)
+  },
+  onError: (error) => {
+    console.error('Gallery load error:', error)
+  }
 })
 
 // ===== NEU: Verwende SUPPORTED_FORMATS aus exportUtils =====
 const formats = SUPPORTED_FORMATS
 
-// Computed
-const canUndo = computed(() => historyIndex.value > 0)
-const canRedo = computed(() => historyIndex.value < history.value.length - 1)
+// Computed (canUndo, canRedo kommen jetzt vom imageHistory Composable)
 
 // Aktuell ausgewählter Text als Objekt
 const selectedTextObject = computed(() => {
@@ -1047,29 +1050,8 @@ function resetFilters() {
   const confirmReset = confirm('Do you really want to discard all changes?\n\nThe image will be reset to its original state. All filters, texts, crops and transformations will be lost.')
   if (!confirmReset) return
 
-  // Filter zurücksetzen
-  filters.value = {
-    brightness: 100,
-    contrast: 100,
-    saturation: 100,
-    blur: 0,
-    hue: 0,
-    sepia: 0,
-    grayscale: 0,
-    invert: 0,
-    exposure: 0,
-    highlights: 0,
-    shadows: 0,
-    sharpness: 0,
-    vignette: 0
-  }
-  currentPreset.value = null
-
-  // Hintergrund zurücksetzen
-  background.value = {
-    color: '#ffffff',
-    opacity: 0
-  }
+  // Filter und Hintergrund über Composable zurücksetzen
+  filterManagement.resetAll()
 
   // Crop-Modus über Composable zurücksetzen
   crop.resetCropState()
@@ -1199,46 +1181,20 @@ function clearImage() {
 }
 
 function handlePresetApply(preset) {
-  // Standard-Werte für alle Filter
-  const defaultFilters = {
-    brightness: 100,
-    contrast: 100,
-    saturation: 100,
-    blur: 0,
-    hue: 0,
-    sepia: 0,
-    grayscale: 0,
-    invert: 0,
-    exposure: 0,
-    highlights: 0,
-    shadows: 0,
-    sharpness: 0,
-    vignette: 0
-  }
+  // Verwende filterManagement Composable
+  filterManagement.applyPreset(preset)
 
-  // Kombiniere Standard-Werte mit Preset-Werten
-  filters.value = { ...defaultFilters, ...preset.filters }
-
-  // Setze aktuelles Preset
-  currentPreset.value = preset.id
-
-  // Render Image neu
-  renderImage()
+  // Speichere in History
+  saveHistory()
+}
 
   // Speichere in History
   saveHistory()
 }
 
 function onResizeChange(dimension) {
-  if (!maintainAspectRatio.value || !canvas.value) return
-  
-  if (dimension === 'width') {
-    const ratio = resizeWidth.value / canvas.value.width
-    resizeHeight.value = Math.round(canvas.value.height * ratio)
-  } else {
-    const ratio = resizeHeight.value / canvas.value.height
-    resizeWidth.value = Math.round(canvas.value.width * ratio)
-  }
+  // Verwende resizeManager Composable
+  resizeManager.onDimensionChange(dimension)
 }
 
 function applyResize() {
@@ -1311,39 +1267,23 @@ async function downloadImage() {
 
 function saveHistory() {
   if (!canvas.value) return
-  
-  // Remove any states after current index
-  if (historyIndex.value < history.value.length - 1) {
-    history.value = history.value.slice(0, historyIndex.value + 1)
-  }
-  
-  // Save current state
-  history.value.push({
+
+  // Verwende das History Composable
+  imageHistory.saveState({
     imageData: canvas.value.toDataURL(),
     filters: { ...filters.value },
+    background: { ...background.value },
     width: canvas.value.width,
     height: canvas.value.height
   })
-  
-  historyIndex.value = history.value.length - 1
-  
-  // Limit history size
-  if (history.value.length > 30) {
-    history.value.shift()
-    historyIndex.value--
-  }
 }
 
 function undo() {
-  if (!canUndo.value) return
-  historyIndex.value--
-  restoreState(history.value[historyIndex.value])
+  imageHistory.undo()
 }
 
 function redo() {
-  if (!canRedo.value) return
-  historyIndex.value++
-  restoreState(history.value[historyIndex.value])
+  imageHistory.redo()
 }
 
 function restoreState(state) {
@@ -1351,10 +1291,17 @@ function restoreState(state) {
   img.onload = () => {
     canvas.value.width = state.width
     canvas.value.height = state.height
-    filters.value = { ...state.filters }
+    // Verwende filterManagement für konsistenten State
+    if (state.filters) {
+      filterManagement.importState({
+        filters: state.filters,
+        background: state.background
+      })
+    }
     const ctx = canvas.value.getContext('2d')
     ctx.drawImage(img, 0, 0)
-    updateImageInfo() // Image-Info aktualisieren nach Restore
+    updateImageInfo()
+    renderImage()
   }
   img.src = state.imageData
 }
