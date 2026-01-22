@@ -12,6 +12,28 @@
   padding: 0;
 }
 
+// ===== EXTERNAL NAVIGATION =====
+
+.external-nav-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1100; // Über der internen Navigation (z-index: 1000)
+  background: transparent;
+  pointer-events: auto;
+
+  // Alle Links und interaktive Elemente in der externen Nav
+  a, button, [role="button"] {
+    pointer-events: auto;
+  }
+}
+
+// Verschiebe die Vue-App nach unten, um Platz für externe Navigation zu schaffen
+#app {
+  padding-top: var(--external-nav-height, 0px);
+}
+
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
