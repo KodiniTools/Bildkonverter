@@ -1188,10 +1188,6 @@ function handlePresetApply(preset) {
   saveHistory()
 }
 
-  // Speichere in History
-  saveHistory()
-}
-
 function onResizeChange(dimension) {
   // Verwende resizeManager Composable
   resizeManager.onDimensionChange(dimension)
