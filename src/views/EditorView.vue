@@ -147,68 +147,241 @@
             </p>
           </div>
 
-          <!-- Adjustments -->
-          <div class="sidebar-section">
-            <h3>{{ $t('editor.sidebar.adjustments') }}</h3>
+          <!-- Adjustments - Basis -->
+          <div class="sidebar-section collapsible" :class="{ collapsed: !sectionsOpen.adjustments }">
+            <h3 @click="sectionsOpen.adjustments = !sectionsOpen.adjustments" class="section-header">
+              <i class="fas fa-sliders-h section-icon"></i>
+              {{ $t('editor.sidebar.adjustments') }}
+              <i :class="sectionsOpen.adjustments ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" class="toggle-icon"></i>
+            </h3>
 
-            <div class="filter-control">
-              <label>{{ $t('editor.filters.brightness') }}</label>
-              <input 
-                type="range" 
-                min="0" 
-                max="200" 
-                v-model.number="filters.brightness"
-                @input="renderImage"
-              >
-              <span>{{ filters.brightness }}%</span>
+            <div class="section-content" v-show="sectionsOpen.adjustments">
+              <div class="filter-control">
+                <label>
+                  <span class="filter-label">{{ $t('editor.filters.brightness') }}</span>
+                  <span class="filter-value">{{ filters.brightness }}%</span>
+                </label>
+                <div class="slider-track">
+                  <input
+                    type="range"
+                    min="0"
+                    max="200"
+                    v-model.number="filters.brightness"
+                    @input="renderImage"
+                    class="modern-slider"
+                  >
+                </div>
+              </div>
+
+              <div class="filter-control">
+                <label>
+                  <span class="filter-label">{{ $t('editor.filters.contrast') }}</span>
+                  <span class="filter-value">{{ filters.contrast }}%</span>
+                </label>
+                <div class="slider-track">
+                  <input
+                    type="range"
+                    min="0"
+                    max="200"
+                    v-model.number="filters.contrast"
+                    @input="renderImage"
+                    class="modern-slider"
+                  >
+                </div>
+              </div>
+
+              <div class="filter-control">
+                <label>
+                  <span class="filter-label">{{ $t('editor.filters.saturation') }}</span>
+                  <span class="filter-value">{{ filters.saturation }}%</span>
+                </label>
+                <div class="slider-track">
+                  <input
+                    type="range"
+                    min="0"
+                    max="200"
+                    v-model.number="filters.saturation"
+                    @input="renderImage"
+                    class="modern-slider"
+                  >
+                </div>
+              </div>
+
+              <div class="filter-control">
+                <label>
+                  <span class="filter-label">{{ $t('editor.filters.exposure', 'Belichtung') }}</span>
+                  <span class="filter-value">{{ filters.exposure > 0 ? '+' : '' }}{{ filters.exposure }}</span>
+                </label>
+                <div class="slider-track">
+                  <input
+                    type="range"
+                    min="-50"
+                    max="50"
+                    v-model.number="filters.exposure"
+                    @input="renderImage"
+                    class="modern-slider center-zero"
+                  >
+                </div>
+              </div>
             </div>
+          </div>
 
-            <div class="filter-control">
-              <label>{{ $t('editor.filters.contrast') }}</label>
-              <input 
-                type="range" 
-                min="0" 
-                max="200" 
-                v-model.number="filters.contrast"
-                @input="renderImage"
-              >
-              <span>{{ filters.contrast }}%</span>
+          <!-- Light & Color - Erweitert -->
+          <div class="sidebar-section collapsible" :class="{ collapsed: !sectionsOpen.lightColor }">
+            <h3 @click="sectionsOpen.lightColor = !sectionsOpen.lightColor" class="section-header">
+              <i class="fas fa-sun section-icon"></i>
+              {{ $t('editor.sidebar.lightColor', 'Licht & Farbe') }}
+              <i :class="sectionsOpen.lightColor ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" class="toggle-icon"></i>
+            </h3>
+
+            <div class="section-content" v-show="sectionsOpen.lightColor">
+              <div class="filter-control">
+                <label>
+                  <span class="filter-label">{{ $t('editor.filters.highlights', 'Lichter') }}</span>
+                  <span class="filter-value">{{ filters.highlights > 0 ? '+' : '' }}{{ filters.highlights }}</span>
+                </label>
+                <div class="slider-track">
+                  <input
+                    type="range"
+                    min="-100"
+                    max="100"
+                    v-model.number="filters.highlights"
+                    @input="renderImage"
+                    class="modern-slider center-zero"
+                  >
+                </div>
+              </div>
+
+              <div class="filter-control">
+                <label>
+                  <span class="filter-label">{{ $t('editor.filters.shadows', 'Schatten') }}</span>
+                  <span class="filter-value">{{ filters.shadows > 0 ? '+' : '' }}{{ filters.shadows }}</span>
+                </label>
+                <div class="slider-track">
+                  <input
+                    type="range"
+                    min="-100"
+                    max="100"
+                    v-model.number="filters.shadows"
+                    @input="renderImage"
+                    class="modern-slider center-zero"
+                  >
+                </div>
+              </div>
+
+              <div class="filter-control">
+                <label>
+                  <span class="filter-label">{{ $t('editor.filters.hue') }}</span>
+                  <span class="filter-value">{{ filters.hue }}°</span>
+                </label>
+                <div class="slider-track hue-slider">
+                  <input
+                    type="range"
+                    min="0"
+                    max="360"
+                    v-model.number="filters.hue"
+                    @input="renderImage"
+                    class="modern-slider"
+                  >
+                </div>
+              </div>
+
+              <div class="filter-control">
+                <label>
+                  <span class="filter-label">{{ $t('editor.filters.sepia', 'Wärme') }}</span>
+                  <span class="filter-value">{{ filters.sepia }}%</span>
+                </label>
+                <div class="slider-track warm-slider">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    v-model.number="filters.sepia"
+                    @input="renderImage"
+                    class="modern-slider"
+                  >
+                </div>
+              </div>
             </div>
+          </div>
 
-            <div class="filter-control">
-              <label>{{ $t('editor.filters.saturation') }}</label>
-              <input 
-                type="range" 
-                min="0" 
-                max="200" 
-                v-model.number="filters.saturation"
-                @input="renderImage"
-              >
-              <span>{{ filters.saturation }}%</span>
-            </div>
+          <!-- Effects - Effekte -->
+          <div class="sidebar-section collapsible" :class="{ collapsed: !sectionsOpen.effects }">
+            <h3 @click="sectionsOpen.effects = !sectionsOpen.effects" class="section-header">
+              <i class="fas fa-magic section-icon"></i>
+              {{ $t('editor.sidebar.effects', 'Effekte') }}
+              <i :class="sectionsOpen.effects ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" class="toggle-icon"></i>
+            </h3>
 
-            <div class="filter-control">
-              <label>{{ $t('editor.filters.blur') }}</label>
-              <input 
-                type="range" 
-                min="0" 
-                max="20" 
-                v-model.number="filters.blur"
-                @input="renderImage"
-              >
-              <span>{{ filters.blur }}px</span>
-            </div>
+            <div class="section-content" v-show="sectionsOpen.effects">
+              <div class="filter-control">
+                <label>
+                  <span class="filter-label">{{ $t('editor.filters.blur') }}</span>
+                  <span class="filter-value">{{ filters.blur }}px</span>
+                </label>
+                <div class="slider-track">
+                  <input
+                    type="range"
+                    min="0"
+                    max="20"
+                    step="0.5"
+                    v-model.number="filters.blur"
+                    @input="renderImage"
+                    class="modern-slider"
+                  >
+                </div>
+              </div>
 
-            <div class="filter-control">
-              <label>{{ $t('editor.filters.hue') }}</label>
-              <input 
-                type="range" 
-                min="0" 
-                max="360" 
-                v-model.number="filters.hue"
-                @input="renderImage"
-              >
-              <span>{{ filters.hue }}°</span>
+              <div class="filter-control">
+                <label>
+                  <span class="filter-label">{{ $t('editor.filters.vignette', 'Vignette') }}</span>
+                  <span class="filter-value">{{ filters.vignette }}%</span>
+                </label>
+                <div class="slider-track">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    v-model.number="filters.vignette"
+                    @input="renderImage"
+                    class="modern-slider"
+                  >
+                </div>
+              </div>
+
+              <div class="filter-control">
+                <label>
+                  <span class="filter-label">{{ $t('editor.filters.grayscale', 'Graustufen') }}</span>
+                  <span class="filter-value">{{ filters.grayscale }}%</span>
+                </label>
+                <div class="slider-track">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    v-model.number="filters.grayscale"
+                    @input="renderImage"
+                    class="modern-slider"
+                  >
+                </div>
+              </div>
+
+              <div class="filter-control">
+                <label>
+                  <span class="filter-label">{{ $t('editor.filters.invert', 'Invertieren') }}</span>
+                  <span class="filter-value">{{ filters.invert }}%</span>
+                </label>
+                <div class="slider-track">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    v-model.number="filters.invert"
+                    @input="renderImage"
+                    class="modern-slider"
+                  >
+                </div>
+              </div>
             </div>
           </div>
 
@@ -427,13 +600,29 @@ const filters = ref({
   contrast: 100,
   saturation: 100,
   blur: 0,
-  hue: 0
+  hue: 0,
+  // Neue Filter
+  sepia: 0,
+  grayscale: 0,
+  invert: 0,
+  exposure: 0,
+  highlights: 0,
+  shadows: 0,
+  sharpness: 0,
+  vignette: 0
 })
 
 // Hintergrund-Einstellungen
 const background = ref({
   color: '#ffffff',
   opacity: 0
+})
+
+// Sidebar Sektionen offen/geschlossen
+const sectionsOpen = ref({
+  adjustments: true,
+  lightColor: false,
+  effects: false
 })
 
 // ===== NEU: Verwende SUPPORTED_FORMATS aus exportUtils =====
@@ -630,15 +819,23 @@ function renderImage() {
   // Wende Transformationen an (temporär für Vorschau)
   const restoreTransform = transform.applyToCanvas(canvas.value, ctx)
 
-  // Apply filters
+  // Apply filters (inkl. neue Filter)
+  // Berechne erweiterte Werte für Exposure, Highlights, Shadows
+  const exposureAdjust = 100 + filters.value.exposure
+  const highlightsAdjust = 100 + (filters.value.highlights * 0.5)
+  const shadowsAdjust = 100 + (filters.value.shadows * 0.3)
+
   const filterString = `
-    brightness(${filters.value.brightness}%)
-    contrast(${filters.value.contrast}%)
+    brightness(${filters.value.brightness * (exposureAdjust / 100) * (highlightsAdjust / 100)}%)
+    contrast(${filters.value.contrast * (shadowsAdjust / 100)}%)
     saturate(${filters.value.saturation}%)
     blur(${filters.value.blur}px)
     hue-rotate(${filters.value.hue}deg)
+    sepia(${filters.value.sepia}%)
+    grayscale(${filters.value.grayscale}%)
+    invert(${filters.value.invert}%)
   `
-  
+
   ctx.filter = filterString
   
   // Border Radius (abgerundete Ecken)
@@ -665,7 +862,25 @@ function renderImage() {
   if (transform.transforms.value.borderRadius > 0) {
     ctx.restore()
   }
-  
+
+  // Vignette-Effekt anwenden
+  if (filters.value.vignette > 0) {
+    ctx.save()
+    const vignetteStrength = filters.value.vignette / 100
+    const centerX = canvas.value.width / 2
+    const centerY = canvas.value.height / 2
+    const radius = Math.max(centerX, centerY) * (1.5 - vignetteStrength * 0.5)
+
+    const gradient = ctx.createRadialGradient(centerX, centerY, radius * 0.3, centerX, centerY, radius)
+    gradient.addColorStop(0, 'rgba(0, 0, 0, 0)')
+    gradient.addColorStop(0.5, `rgba(0, 0, 0, ${vignetteStrength * 0.3})`)
+    gradient.addColorStop(1, `rgba(0, 0, 0, ${vignetteStrength * 0.8})`)
+
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, canvas.value.width, canvas.value.height)
+    ctx.restore()
+  }
+
   // Reset filter for texts
   ctx.filter = 'none'
   
@@ -838,7 +1053,15 @@ function resetFilters() {
     contrast: 100,
     saturation: 100,
     blur: 0,
-    hue: 0
+    hue: 0,
+    sepia: 0,
+    grayscale: 0,
+    invert: 0,
+    exposure: 0,
+    highlights: 0,
+    shadows: 0,
+    sharpness: 0,
+    vignette: 0
   }
   currentPreset.value = null
 
@@ -927,7 +1150,15 @@ function clearImage() {
     contrast: 100,
     saturation: 100,
     blur: 0,
-    hue: 0
+    hue: 0,
+    sepia: 0,
+    grayscale: 0,
+    invert: 0,
+    exposure: 0,
+    highlights: 0,
+    shadows: 0,
+    sharpness: 0,
+    vignette: 0
   }
   currentPreset.value = null
   
@@ -1829,32 +2060,32 @@ function handleKeyup(e) {
 }
 
 .sidebar {
-  width: 280px; // ✨ Schmaler für mehr Platz
+  width: 280px;
   background: var(--color-bg-secondary);
   border-right: 1px solid var(--color-border);
   overflow-y: auto;
-  padding: 1rem 1rem 1rem 1.25rem; // ✨ Kompaktere Padding
-  
+  padding: 0.75rem;
+
   /* Moderne Scrollbar */
   &::-webkit-scrollbar {
-    width: 6px;
+    width: 4px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   &::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 3px;
-    
+    background: var(--color-border);
+    border-radius: 2px;
+
     &:hover {
-      background: rgba(0, 0, 0, 0.3);
+      background: var(--color-text-light);
     }
   }
 }
 
-/* Crop Overlay (bleibt in EditorView) */
+/* Crop Overlay */
 .crop-overlay {
   position: absolute;
   border: 2px dashed #4ade80;
@@ -1863,17 +2094,81 @@ function handleKeyup(e) {
   z-index: 100;
 }
 
+/* Collapsible Sidebar Sections */
 .sidebar-section {
-  margin-bottom: 1.5rem; // ✨ Kompakter
+  margin-bottom: 0.5rem;
+  background: var(--color-bg);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  transition: all 0.2s ease;
 
-  h3 {
-    font-size: 0.75rem; // ✨ Kleiner und subtiler
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.75rem; // ✨ Weniger Abstand
-    color: var(--color-text-secondary); // ✨ Gedämpfte Farbe
-    opacity: 0.8;
+  &:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  &.collapsible {
+    .section-header {
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      margin: 0;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--color-text);
+      background: transparent;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: var(--color-bg-secondary);
+      }
+
+      .section-icon {
+        font-size: 0.85rem;
+        color: var(--color-primary);
+        opacity: 0.8;
+      }
+
+      .toggle-icon {
+        margin-left: auto;
+        font-size: 0.65rem;
+        opacity: 0.5;
+        transition: transform 0.2s ease;
+      }
+    }
+
+    .section-content {
+      padding: 0 1rem 1rem 1rem;
+    }
+
+    &.collapsed {
+      .section-header {
+        border-bottom: none;
+      }
+    }
+  }
+
+  // Non-collapsible sections (Format, Background, etc.)
+  &:not(.collapsible) {
+    padding: 0.75rem 1rem;
+
+    h3 {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 0.75rem;
+      color: var(--color-text-light);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
   }
 }
 
@@ -1898,73 +2193,206 @@ function handleKeyup(e) {
   }
 }
 
+/* Modern Filter Controls */
 .filter-control {
-  margin-bottom: 1rem; // ✨ Kompakter
+  margin-bottom: 0.875rem;
 
   label {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.8rem; // ✨ Kleiner
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    color: var(--color-text-primary); // ✨ Primäre Farbe für bessere Lesbarkeit
+    margin-bottom: 0.375rem;
+
+    .filter-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--color-text);
+      opacity: 0.85;
+    }
+
+    .filter-value {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--color-primary);
+      font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+      min-width: 40px;
+      text-align: right;
+      background: rgba(59, 130, 246, 0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
   }
 
-  input[type="range"] {
+  .slider-track {
+    position: relative;
+    height: 20px;
+    display: flex;
+    align-items: center;
+
+    // Hue-Slider mit Farbverlauf
+    &.hue-slider {
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 4px;
+        border-radius: 2px;
+        background: linear-gradient(to right,
+          hsl(0, 100%, 50%),
+          hsl(60, 100%, 50%),
+          hsl(120, 100%, 50%),
+          hsl(180, 100%, 50%),
+          hsl(240, 100%, 50%),
+          hsl(300, 100%, 50%),
+          hsl(360, 100%, 50%)
+        );
+        pointer-events: none;
+      }
+
+      .modern-slider {
+        background: transparent !important;
+      }
+    }
+
+    // Warm/Sepia-Slider
+    &.warm-slider {
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 4px;
+        border-radius: 2px;
+        background: linear-gradient(to right,
+          var(--color-border) 0%,
+          #d4a574 50%,
+          #8b5a2b 100%
+        );
+        pointer-events: none;
+      }
+
+      .modern-slider {
+        background: transparent !important;
+      }
+    }
+  }
+
+  .modern-slider {
     width: 100%;
-    height: 4px; // ✨ Dünner Slider
-    margin: 0.25rem 0;
+    height: 4px;
     -webkit-appearance: none;
     appearance: none;
     background: var(--color-border);
     border-radius: 2px;
     outline: none;
-    transition: background 0.2s ease;
-    
-    // ✨ FIX: Track-Hover entfernt für besseren Kontrast mit Thumb
-    
-    // Chrome, Safari, Edge
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    // Chrome, Safari, Edge - Thumb
     &::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 14px;
-      height: 14px;
+      width: 12px;
+      height: 12px;
       background: var(--color-primary);
       border-radius: 50%;
       cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-      border: 2px solid transparent; // ✨ Vorbereitung für Hover-Border
-      
-      &:hover {
-        transform: scale(1.3); // ✨ Etwas größer für bessere Sichtbarkeit
-        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
-        border: 2px solid white; // ✨ Weißer Ring für starken Kontrast
-        background: var(--color-primary);
-      }
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      border: 2px solid var(--color-bg);
     }
-    
-    // Firefox
+
+    &:hover::-webkit-slider-thumb {
+      transform: scale(1.2);
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+    }
+
+    &:active::-webkit-slider-thumb {
+      transform: scale(1.1);
+      background: var(--color-primary);
+    }
+
+    // Firefox - Thumb
     &::-moz-range-thumb {
-      width: 14px;
-      height: 14px;
+      width: 12px;
+      height: 12px;
       background: var(--color-primary);
-      border: 2px solid transparent; // ✨ Vorbereitung für Hover-Border
+      border: 2px solid var(--color-bg);
       border-radius: 50%;
       cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-      
-      &:hover {
-        transform: scale(1.3); // ✨ Etwas größer für bessere Sichtbarkeit
-        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
-        border: 2px solid white; // ✨ Weißer Ring für starken Kontrast
-        background: var(--color-primary);
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    &:hover::-moz-range-thumb {
+      transform: scale(1.2);
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+    }
+
+    // Firefox - Track
+    &::-moz-range-track {
+      background: var(--color-border);
+      border-radius: 2px;
+      height: 4px;
+    }
+
+    // Center-Zero Slider (für Werte von -X bis +X)
+    &.center-zero {
+      background: linear-gradient(to right,
+        var(--color-border) 0%,
+        var(--color-border) 50%,
+        var(--color-border) 100%
+      );
+      position: relative;
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 2px;
+        height: 8px;
+        background: var(--color-text-light);
+        border-radius: 1px;
+        opacity: 0.5;
       }
     }
-    
-    // Firefox Track
+  }
+
+  // Legacy support für alte input[type="range"] ohne .modern-slider Klasse
+  input[type="range"]:not(.modern-slider) {
+    width: 100%;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--color-border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      background: var(--color-primary);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      border: 2px solid var(--color-bg);
+    }
+
+    &::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      background: var(--color-primary);
+      border: 2px solid var(--color-bg);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    }
+
     &::-moz-range-track {
       background: var(--color-border);
       border-radius: 2px;
@@ -1973,10 +2401,10 @@ function handleKeyup(e) {
   }
 
   span {
-    font-size: 0.75rem; // ✨ Kleiner
+    font-size: 0.7rem;
     font-weight: 600;
-    color: var(--color-text-secondary);
-    min-width: 45px;
+    color: var(--color-text-light);
+    min-width: 40px;
     text-align: right;
   }
 }
@@ -2364,14 +2792,121 @@ function handleKeyup(e) {
   color: var(--color-warning, #f57c00);
 }
 
-// Dark Mode
-.dark-mode {
-  .format-info {
-    background: var(--color-bg-tertiary, #2a2a2a);
+// Dark Mode Optimierungen
+:root[data-theme="dark"] {
+  .sidebar {
+    background: var(--color-bg-secondary);
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.25);
+      }
+    }
   }
-  
+
+  .sidebar-section {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.08);
+
+    &:hover {
+      border-color: var(--color-primary);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    &.collapsible .section-header {
+      &:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+    }
+  }
+
+  .filter-control {
+    label .filter-value {
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+    }
+
+    .modern-slider {
+      background: rgba(255, 255, 255, 0.1);
+
+      &::-webkit-slider-thumb {
+        border-color: var(--color-bg-secondary);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+      }
+
+      &::-moz-range-thumb {
+        border-color: var(--color-bg-secondary);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+      }
+
+      &::-moz-range-track {
+        background: rgba(255, 255, 255, 0.1);
+      }
+    }
+
+    .slider-track.hue-slider::before,
+    .slider-track.warm-slider::before {
+      opacity: 0.9;
+    }
+  }
+
+  .form-select {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--color-text);
+
+    &:hover {
+      border-color: var(--color-primary);
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+  }
+
+  .preset-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.1);
+
+    &:hover {
+      background: rgba(59, 130, 246, 0.1);
+      border-color: var(--color-primary);
+    }
+  }
+
+  .resize-controls input {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+
+    &:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+  }
+
+  .color-picker-row .color-text-input {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .format-info {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
   .format-description {
-    color: var(--color-text-secondary, #aaa);
+    color: var(--color-text-light);
+  }
+
+  .format-badge {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+  }
+
+  .backend-badge {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
   }
 }
 </style>

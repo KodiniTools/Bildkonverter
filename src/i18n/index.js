@@ -106,6 +106,8 @@ const de = {
       format: 'Format',
       background: 'Hintergrund',
       adjustments: 'Anpassungen',
+      lightColor: 'Licht & Farbe',
+      effects: 'Effekte',
       presets: 'Presets',
       resize: 'Größe ändern'
     },
@@ -119,7 +121,15 @@ const de = {
       contrast: 'Kontrast',
       saturation: 'Sättigung',
       blur: 'Weichzeichner',
-      hue: 'Farbton'
+      hue: 'Farbton',
+      exposure: 'Belichtung',
+      highlights: 'Lichter',
+      shadows: 'Schatten',
+      sepia: 'Wärme',
+      grayscale: 'Graustufen',
+      invert: 'Invertieren',
+      vignette: 'Vignette',
+      sharpness: 'Schärfe'
     },
     presets: {
       normal: 'Normal',
@@ -574,6 +584,8 @@ const en = {
       format: 'Format',
       background: 'Background',
       adjustments: 'Adjustments',
+      lightColor: 'Light & Color',
+      effects: 'Effects',
       presets: 'Presets',
       resize: 'Resize'
     },
@@ -587,7 +599,15 @@ const en = {
       contrast: 'Contrast',
       saturation: 'Saturation',
       blur: 'Blur',
-      hue: 'Hue'
+      hue: 'Hue',
+      exposure: 'Exposure',
+      highlights: 'Highlights',
+      shadows: 'Shadows',
+      sepia: 'Warmth',
+      grayscale: 'Grayscale',
+      invert: 'Invert',
+      vignette: 'Vignette',
+      sharpness: 'Sharpness'
     },
     presets: {
       normal: 'Normal',
