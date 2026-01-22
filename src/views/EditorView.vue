@@ -1199,15 +1199,32 @@ function clearImage() {
 }
 
 function handlePresetApply(preset) {
-  // Wende Filter an
-  filters.value = { ...preset.filters }
-  
+  // Standard-Werte für alle Filter
+  const defaultFilters = {
+    brightness: 100,
+    contrast: 100,
+    saturation: 100,
+    blur: 0,
+    hue: 0,
+    sepia: 0,
+    grayscale: 0,
+    invert: 0,
+    exposure: 0,
+    highlights: 0,
+    shadows: 0,
+    sharpness: 0,
+    vignette: 0
+  }
+
+  // Kombiniere Standard-Werte mit Preset-Werten
+  filters.value = { ...defaultFilters, ...preset.filters }
+
   // Setze aktuelles Preset
   currentPreset.value = preset.id
-  
+
   // Render Image neu
   renderImage()
-  
+
   // Speichere in History
   saveHistory()
 }
