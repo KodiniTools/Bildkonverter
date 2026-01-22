@@ -1731,11 +1731,11 @@ function handleKeyup(e) {
 
 <style lang="scss" scoped>
 .editor-view {
-  height: calc(100vh - var(--header-height));
+  height: calc(100vh - var(--header-height) - var(--external-nav-height, 0px));
   overflow: hidden;
 
   @media (max-width: 768px) {
-    height: calc(100vh - var(--header-height-mobile));
+    height: calc(100vh - var(--header-height-mobile) - var(--external-nav-height, 0px));
   }
 }
 
