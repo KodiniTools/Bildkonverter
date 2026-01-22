@@ -1731,8 +1731,12 @@ function handleKeyup(e) {
 
 <style lang="scss" scoped>
 .editor-view {
-  height: calc(100vh - 80px);
+  height: calc(100vh - var(--header-height));
   overflow: hidden;
+
+  @media (max-width: 768px) {
+    height: calc(100vh - var(--header-height-mobile));
+  }
 }
 
 .editor-container {

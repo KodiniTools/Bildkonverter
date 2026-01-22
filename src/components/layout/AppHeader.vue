@@ -140,12 +140,14 @@ function closeMobileMenu() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-md) var(--spacing-lg);
+  height: var(--header-height);
+  padding: 0 var(--spacing-lg);
   max-width: 1400px;
   margin: 0 auto;
-  
+
   @media (max-width: 768px) {
-    padding: var(--spacing-sm) var(--spacing-md);
+    height: var(--header-height-mobile);
+    padding: 0 var(--spacing-md);
   }
 }
 
