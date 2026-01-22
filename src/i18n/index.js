@@ -100,7 +100,9 @@ const de = {
       reset: 'Zurücksetzen',
       clearImage: 'Bild löschen',
       preview: 'Vorschau',
-      download: 'Download'
+      download: 'Download',
+      undo: 'Rückgängig',
+      redo: 'Wiederholen'
     },
     sidebar: {
       format: 'Format',
@@ -143,7 +145,9 @@ const de = {
       width: 'Breite',
       height: 'Höhe',
       maintainAspect: 'Seitenverhältnis beibehalten',
-      apply: 'Anwenden'
+      apply: 'Anwenden',
+      presets: 'Presets',
+      selectPreset: 'Preset wählen...'
     },
     canvas: {
       empty: {
@@ -578,7 +582,9 @@ const en = {
       reset: 'Reset',
       clearImage: 'Clear Image',
       preview: 'Preview',
-      download: 'Download'
+      download: 'Download',
+      undo: 'Undo',
+      redo: 'Redo'
     },
     sidebar: {
       format: 'Format',
@@ -621,7 +627,9 @@ const en = {
       width: 'Width',
       height: 'Height',
       maintainAspect: 'Maintain Aspect Ratio',
-      apply: 'Apply'
+      apply: 'Apply',
+      presets: 'Presets',
+      selectPreset: 'Select preset...'
     },
     canvas: {
       empty: {
