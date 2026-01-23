@@ -98,10 +98,6 @@
             class="color-text"
             maxlength="7"
           >
-          <div
-            class="color-preview"
-            :style="{ backgroundColor: selectedText.color || '#000000' }"
-          ></div>
         </div>
       </div>
 
@@ -128,6 +124,7 @@
             @input="$emit('update:text-stroke-color', $event.target.value)"
             @change="$emit('save-text-history')"
             class="color-input"
+            :style="{ backgroundColor: selectedText.strokeColor || '#000000' }"
           >
           <input
             type="text"
@@ -137,10 +134,6 @@
             class="color-text"
             maxlength="7"
           >
-          <div
-            class="color-preview"
-            :style="{ backgroundColor: selectedText.strokeColor || '#000000' }"
-          ></div>
         </div>
       </div>
 
@@ -194,6 +187,7 @@
               @input="$emit('update:text-shadow-color', $event.target.value)"
               @change="$emit('save-text-history')"
               class="color-input"
+              :style="{ backgroundColor: selectedText.shadowColor || '#000000' }"
             >
             <input
               type="text"
@@ -203,10 +197,6 @@
               class="color-text"
               maxlength="7"
             >
-            <div
-              class="color-preview"
-              :style="{ backgroundColor: selectedText.shadowColor || '#000000' }"
-            ></div>
           </div>
         </div>
       </div>
