@@ -17,6 +17,7 @@
           type="text"
           :value="selectedText.content || selectedText.txt"
           @input="$emit('update:text-content', $event.target.value)"
+          @change="$emit('save-text-history')"
           class="text-input"
           :placeholder="$t('textPanel.placeholder', 'Text eingeben...')"
         >
@@ -35,6 +36,7 @@
           max="200"
           :value="selectedText.fontSize || selectedText.size || 32"
           @input="$emit('update:text-font-size', Number($event.target.value))"
+          @change="$emit('save-text-history')"
           class="slider"
         >
       </div>
@@ -84,15 +86,124 @@
             type="color"
             :value="selectedText.color || '#000000'"
             @input="$emit('update:text-color', $event.target.value)"
+            @change="$emit('save-text-history')"
             class="color-input"
+            :style="{ backgroundColor: selectedText.color || '#000000' }"
           >
           <input
             type="text"
             :value="selectedText.color || '#000000'"
             @input="$emit('update:text-color', $event.target.value)"
+            @change="$emit('save-text-history')"
             class="color-text"
             maxlength="7"
           >
+          <div
+            class="color-preview"
+            :style="{ backgroundColor: selectedText.color || '#000000' }"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Text-Umrandung (Stroke) -->
+      <div class="control-group">
+        <label>
+          <i class="fas fa-border-style"></i>
+          {{ $t('textPanel.strokeWidth', 'Umrandung') }}
+          <span class="value">{{ selectedText.strokeWidth || 0 }}px</span>
+        </label>
+        <input
+          type="range"
+          min="0"
+          max="10"
+          :value="selectedText.strokeWidth || 0"
+          @input="$emit('update:text-stroke-width', Number($event.target.value))"
+          @change="$emit('save-text-history')"
+          class="slider"
+        >
+        <div v-if="(selectedText.strokeWidth || 0) > 0" class="color-picker-row mt-2">
+          <input
+            type="color"
+            :value="selectedText.strokeColor || '#000000'"
+            @input="$emit('update:text-stroke-color', $event.target.value)"
+            @change="$emit('save-text-history')"
+            class="color-input"
+          >
+          <input
+            type="text"
+            :value="selectedText.strokeColor || '#000000'"
+            @input="$emit('update:text-stroke-color', $event.target.value)"
+            @change="$emit('save-text-history')"
+            class="color-text"
+            maxlength="7"
+          >
+          <div
+            class="color-preview"
+            :style="{ backgroundColor: selectedText.strokeColor || '#000000' }"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Text-Schatten -->
+      <div class="control-group">
+        <label>
+          <i class="fas fa-clone"></i>
+          {{ $t('textPanel.shadow', 'Schatten') }}
+          <span class="value">{{ selectedText.shadowBlur || 0 }}px</span>
+        </label>
+        <input
+          type="range"
+          min="0"
+          max="20"
+          :value="selectedText.shadowBlur || 0"
+          @input="$emit('update:text-shadow-blur', Number($event.target.value))"
+          @change="$emit('save-text-history')"
+          class="slider"
+        >
+        <div v-if="(selectedText.shadowBlur || 0) > 0" class="shadow-controls">
+          <div class="shadow-offset-row">
+            <div class="mini-control">
+              <label>X</label>
+              <input
+                type="number"
+                :value="selectedText.shadowOffsetX || 2"
+                @input="$emit('update:text-shadow-offset-x', Number($event.target.value))"
+                @change="$emit('save-text-history')"
+                class="mini-input"
+              >
+            </div>
+            <div class="mini-control">
+              <label>Y</label>
+              <input
+                type="number"
+                :value="selectedText.shadowOffsetY || 2"
+                @input="$emit('update:text-shadow-offset-y', Number($event.target.value))"
+                @change="$emit('save-text-history')"
+                class="mini-input"
+              >
+            </div>
+          </div>
+          <div class="color-picker-row mt-2">
+            <input
+              type="color"
+              :value="selectedText.shadowColor || '#000000'"
+              @input="$emit('update:text-shadow-color', $event.target.value)"
+              @change="$emit('save-text-history')"
+              class="color-input"
+            >
+            <input
+              type="text"
+              :value="selectedText.shadowColor || '#000000'"
+              @input="$emit('update:text-shadow-color', $event.target.value)"
+              @change="$emit('save-text-history')"
+              class="color-text"
+              maxlength="7"
+            >
+            <div
+              class="color-preview"
+              :style="{ backgroundColor: selectedText.shadowColor || '#000000' }"
+            ></div>
+          </div>
         </div>
       </div>
 
@@ -109,6 +220,7 @@
           max="180"
           :value="selectedText.rotation || 0"
           @input="$emit('update:text-rotation', Number($event.target.value))"
+          @change="$emit('save-text-history')"
           class="slider"
         >
       </div>
@@ -126,6 +238,7 @@
           max="100"
           :value="selectedText.opacity !== undefined ? selectedText.opacity : 100"
           @input="$emit('update:text-opacity', Number($event.target.value))"
+          @change="$emit('save-text-history')"
           class="slider"
         >
       </div>
@@ -449,6 +562,13 @@ defineEmits([
   'update:text-color',
   'update:text-rotation',
   'update:text-opacity',
+  'update:text-stroke-width',
+  'update:text-stroke-color',
+  'update:text-shadow-blur',
+  'update:text-shadow-offset-x',
+  'update:text-shadow-offset-y',
+  'update:text-shadow-color',
+  'save-text-history',
   'delete-text',
   'deselect-text'
 ])
@@ -807,6 +927,10 @@ defineEmits([
   gap: 0.5rem;
   align-items: center;
 
+  &.mt-2 {
+    margin-top: 0.5rem;
+  }
+
   .color-text {
     flex: 1;
     padding: 0.4rem 0.6rem;
@@ -823,6 +947,64 @@ defineEmits([
       border-color: var(--color-primary, #3b82f6);
     }
   }
+}
+
+/* Color Preview Tile */
+.color-preview {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  border: 2px solid var(--color-border, #d1d5db);
+  flex-shrink: 0;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Shadow Controls */
+.shadow-controls {
+  margin-top: 0.5rem;
+}
+
+.shadow-offset-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.mini-control {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-secondary, #6b7280);
+    min-width: 14px;
+  }
+
+  .mini-input {
+    flex: 1;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.8rem;
+    border: 1px solid var(--color-border, #d1d5db);
+    border-radius: 4px;
+    background: var(--color-bg, #ffffff);
+    color: var(--color-text-primary, #111827);
+    width: 100%;
+    max-width: 60px;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary, #3b82f6);
+    }
+  }
+}
+
+.dark-mode .mini-control .mini-input {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
 }
 
 .delete-btn {
