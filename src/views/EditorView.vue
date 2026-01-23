@@ -548,6 +548,13 @@
           @update:text-color="handleTextColorUpdate"
           @update:text-rotation="handleTextRotationUpdate"
           @update:text-opacity="handleTextOpacityUpdate"
+          @update:text-stroke-width="handleTextStrokeWidthUpdate"
+          @update:text-stroke-color="handleTextStrokeColorUpdate"
+          @update:text-shadow-blur="handleTextShadowBlurUpdate"
+          @update:text-shadow-offset-x="handleTextShadowOffsetXUpdate"
+          @update:text-shadow-offset-y="handleTextShadowOffsetYUpdate"
+          @update:text-shadow-color="handleTextShadowColorUpdate"
+          @save-text-history="saveHistory"
           @delete-text="handleDeleteText"
           @deselect-text="handleDeselectText"
         />
@@ -953,6 +960,14 @@ function renderImage() {
       ctx.fillStyle = text.color || '#000000'
       ctx.textBaseline = 'top'
 
+      // Schatten anwenden
+      if (text.shadowBlur && text.shadowBlur > 0) {
+        ctx.shadowColor = text.shadowColor || '#000000'
+        ctx.shadowBlur = text.shadowBlur
+        ctx.shadowOffsetX = text.shadowOffsetX || 2
+        ctx.shadowOffsetY = text.shadowOffsetY || 2
+      }
+
       // Rotation anwenden (um den Textmittelpunkt)
       const rotation = text.rotation || 0
       if (rotation !== 0) {
@@ -967,6 +982,15 @@ function renderImage() {
         ctx.translate(-centerX, -centerY)
       }
 
+      // Umrandung (Stroke) zeichnen
+      if (text.strokeWidth && text.strokeWidth > 0) {
+        ctx.strokeStyle = text.strokeColor || '#000000'
+        ctx.lineWidth = text.strokeWidth
+        ctx.lineJoin = 'round'
+        ctx.strokeText(text.content || text.txt || '', text.x || 0, text.y || 0)
+      }
+
+      // Text füllen
       ctx.fillText(text.content || text.txt || '', text.x || 0, text.y || 0)
       ctx.restore()
     })
@@ -1058,7 +1082,7 @@ function renderImageForExport() {
     restoreTransform()
   }
 
-  // Texte OHNE Auswahl-Markierung (mit Rotation und Deckkraft)
+  // Texte OHNE Auswahl-Markierung (mit Rotation, Deckkraft, Umrandung und Schatten)
   if (imageStore.texts && imageStore.texts.length > 0) {
     imageStore.texts.forEach(text => {
       ctx.save()
@@ -1070,6 +1094,14 @@ function renderImageForExport() {
       ctx.font = `${text.fontSize || text.size || 32}px ${text.fontFamily || 'Arial'}`
       ctx.fillStyle = text.color || '#000000'
       ctx.textBaseline = 'top'
+
+      // Schatten anwenden
+      if (text.shadowBlur && text.shadowBlur > 0) {
+        ctx.shadowColor = text.shadowColor || '#000000'
+        ctx.shadowBlur = text.shadowBlur
+        ctx.shadowOffsetX = text.shadowOffsetX || 2
+        ctx.shadowOffsetY = text.shadowOffsetY || 2
+      }
 
       // Rotation anwenden (um den Textmittelpunkt)
       const rotation = text.rotation || 0
@@ -1085,6 +1117,15 @@ function renderImageForExport() {
         ctx.translate(-centerX, -centerY)
       }
 
+      // Umrandung (Stroke) zeichnen
+      if (text.strokeWidth && text.strokeWidth > 0) {
+        ctx.strokeStyle = text.strokeColor || '#000000'
+        ctx.lineWidth = text.strokeWidth
+        ctx.lineJoin = 'round'
+        ctx.strokeText(text.content || text.txt || '', text.x || 0, text.y || 0)
+      }
+
+      // Text füllen
       ctx.fillText(text.content || text.txt || '', text.x || 0, text.y || 0)
       ctx.restore()
     })
@@ -1569,12 +1610,19 @@ function addText() {
     fontFamily: 'Satoshi Regular',
     color: '#000000',
     rotation: 0,
-    opacity: 100
+    opacity: 100,
+    strokeWidth: 0,
+    strokeColor: '#000000',
+    shadowBlur: 0,
+    shadowOffsetX: 2,
+    shadowOffsetY: 2,
+    shadowColor: '#000000'
   }
 
   imageStore.texts.push(newText)
   selectedTextId.value = newText.id
   renderImage()
+  saveHistory()
 }
 
 // ===== Text Event Handler =====
@@ -1604,6 +1652,7 @@ function handleTextFontFamilyUpdate(fontFamily) {
   if (text) {
     text.fontFamily = fontFamily
     renderImage()
+    saveHistory()
   }
 }
 
@@ -1634,6 +1683,66 @@ function handleTextOpacityUpdate(opacity) {
   }
 }
 
+function handleTextStrokeWidthUpdate(strokeWidth) {
+  if (!selectedTextId.value) return
+  const text = imageStore.texts.find(t => t.id === selectedTextId.value)
+  if (text) {
+    text.strokeWidth = strokeWidth
+    renderImage()
+  }
+}
+
+function handleTextStrokeColorUpdate(strokeColor) {
+  if (!selectedTextId.value) return
+  const text = imageStore.texts.find(t => t.id === selectedTextId.value)
+  if (text) {
+    text.strokeColor = strokeColor
+    renderImage()
+  }
+}
+
+function handleTextShadowBlurUpdate(shadowBlur) {
+  if (!selectedTextId.value) return
+  const text = imageStore.texts.find(t => t.id === selectedTextId.value)
+  if (text) {
+    text.shadowBlur = shadowBlur
+    // Setze Standard-Offset wenn Schatten aktiviert wird
+    if (shadowBlur > 0 && !text.shadowOffsetX) {
+      text.shadowOffsetX = 2
+      text.shadowOffsetY = 2
+      text.shadowColor = text.shadowColor || '#000000'
+    }
+    renderImage()
+  }
+}
+
+function handleTextShadowOffsetXUpdate(shadowOffsetX) {
+  if (!selectedTextId.value) return
+  const text = imageStore.texts.find(t => t.id === selectedTextId.value)
+  if (text) {
+    text.shadowOffsetX = shadowOffsetX
+    renderImage()
+  }
+}
+
+function handleTextShadowOffsetYUpdate(shadowOffsetY) {
+  if (!selectedTextId.value) return
+  const text = imageStore.texts.find(t => t.id === selectedTextId.value)
+  if (text) {
+    text.shadowOffsetY = shadowOffsetY
+    renderImage()
+  }
+}
+
+function handleTextShadowColorUpdate(shadowColor) {
+  if (!selectedTextId.value) return
+  const text = imageStore.texts.find(t => t.id === selectedTextId.value)
+  if (text) {
+    text.shadowColor = shadowColor
+    renderImage()
+  }
+}
+
 function handleDeleteText() {
   if (!selectedTextId.value) return
   const index = imageStore.texts.findIndex(t => t.id === selectedTextId.value)
@@ -1641,6 +1750,7 @@ function handleDeleteText() {
     imageStore.texts.splice(index, 1)
     selectedTextId.value = null
     renderImage()
+    saveHistory()
   }
 }
 
