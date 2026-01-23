@@ -115,7 +115,7 @@
         <input
           type="range"
           min="0"
-          max="10"
+          max="50"
           :value="selectedText.strokeWidth || 0"
           @input="$emit('update:text-stroke-width', Number($event.target.value))"
           @change="$emit('save-text-history')"
@@ -1002,14 +1002,6 @@ defineEmits([
       outline: none;
       border-color: var(--color-primary, #3b82f6);
     }
-
-    /* Entferne Spinner-Arrows für bessere UX */
-    &::-webkit-outer-spin-button,
-    &::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    -moz-appearance: textfield;
   }
 }
 
