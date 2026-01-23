@@ -216,6 +216,7 @@ const de = {
     strokeColor: 'Umrandungsfarbe',
     shadow: 'Schatten',
     shadowColor: 'Schattenfarbe',
+    undo: 'Rückgängig',
     delete: 'Text löschen',
     deselect: 'Auswahl aufheben',
     selectHint: 'Klicken Sie auf einen Text im Bild, um ihn zu bearbeiten'
@@ -704,6 +705,7 @@ const en = {
     strokeColor: 'Stroke Color',
     shadow: 'Shadow',
     shadowColor: 'Shadow Color',
+    undo: 'Undo',
     delete: 'Delete Text',
     deselect: 'Deselect',
     selectHint: 'Click on a text in the image to edit it'
