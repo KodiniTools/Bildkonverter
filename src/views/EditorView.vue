@@ -186,6 +186,7 @@
                     max="200"
                     v-model.number="filters.brightness"
                     @input="renderImage"
+                    @change="saveHistory"
                     class="modern-slider"
                   >
                 </div>
@@ -203,6 +204,7 @@
                     max="200"
                     v-model.number="filters.contrast"
                     @input="renderImage"
+                    @change="saveHistory"
                     class="modern-slider"
                   >
                 </div>
@@ -220,6 +222,7 @@
                     max="200"
                     v-model.number="filters.saturation"
                     @input="renderImage"
+                    @change="saveHistory"
                     class="modern-slider"
                   >
                 </div>
@@ -237,6 +240,7 @@
                     max="50"
                     v-model.number="filters.exposure"
                     @input="renderImage"
+                    @change="saveHistory"
                     class="modern-slider center-zero"
                   >
                 </div>
@@ -265,6 +269,7 @@
                     max="100"
                     v-model.number="filters.highlights"
                     @input="renderImage"
+                    @change="saveHistory"
                     class="modern-slider center-zero"
                   >
                 </div>
@@ -282,6 +287,7 @@
                     max="100"
                     v-model.number="filters.shadows"
                     @input="renderImage"
+                    @change="saveHistory"
                     class="modern-slider center-zero"
                   >
                 </div>
@@ -299,6 +305,7 @@
                     max="360"
                     v-model.number="filters.hue"
                     @input="renderImage"
+                    @change="saveHistory"
                     class="modern-slider"
                   >
                 </div>
@@ -316,6 +323,7 @@
                     max="100"
                     v-model.number="filters.sepia"
                     @input="renderImage"
+                    @change="saveHistory"
                     class="modern-slider"
                   >
                 </div>
@@ -345,6 +353,7 @@
                     step="0.5"
                     v-model.number="filters.blur"
                     @input="renderImage"
+                    @change="saveHistory"
                     class="modern-slider"
                   >
                 </div>
@@ -362,6 +371,7 @@
                     max="100"
                     v-model.number="filters.vignette"
                     @input="renderImage"
+                    @change="saveHistory"
                     class="modern-slider"
                   >
                 </div>
@@ -379,6 +389,7 @@
                     max="100"
                     v-model.number="filters.grayscale"
                     @input="renderImage"
+                    @change="saveHistory"
                     class="modern-slider"
                   >
                 </div>
@@ -396,6 +407,7 @@
                     max="100"
                     v-model.number="filters.invert"
                     @input="renderImage"
+                    @change="saveHistory"
                     class="modern-slider"
                   >
                 </div>
