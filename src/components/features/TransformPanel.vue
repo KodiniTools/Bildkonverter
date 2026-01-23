@@ -237,6 +237,16 @@
         >
       </div>
 
+      <!-- Undo Button für Text -->
+      <button
+        class="transform-btn undo-btn"
+        @click="$emit('undo-text')"
+        :disabled="!canUndo"
+      >
+        <i class="fas fa-undo"></i>
+        <span>{{ $t('textPanel.undo', 'Rückgängig') }}</span>
+      </button>
+
       <!-- Text löschen -->
       <button
         class="transform-btn delete-btn"
@@ -530,6 +540,10 @@ defineProps({
   hasTexts: {
     type: Boolean,
     default: false
+  },
+  canUndo: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -563,6 +577,7 @@ defineEmits([
   'update:text-shadow-offset-y',
   'update:text-shadow-color',
   'save-text-history',
+  'undo-text',
   'delete-text',
   'deselect-text'
 ])

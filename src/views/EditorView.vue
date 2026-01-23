@@ -526,6 +526,7 @@
           :has-pan="transform.hasPan.value"
           :selected-text="selectedTextObject"
           :has-texts="imageStore.texts && imageStore.texts.length > 0"
+          :can-undo="canUndo"
           @toggle-crop="handleToggleCrop"
           @undo-crop="handleUndoCrop"
           @update:opacity="handleOpacityUpdate"
@@ -555,6 +556,7 @@
           @update:text-shadow-offset-y="handleTextShadowOffsetYUpdate"
           @update:text-shadow-color="handleTextShadowColorUpdate"
           @save-text-history="saveHistory"
+          @undo-text="undo"
           @delete-text="handleDeleteText"
           @deselect-text="handleDeselectText"
         />
