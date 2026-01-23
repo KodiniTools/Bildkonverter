@@ -166,7 +166,9 @@
               <label>X</label>
               <input
                 type="number"
-                :value="selectedText.shadowOffsetX || 2"
+                min="-50"
+                max="50"
+                :value="selectedText.shadowOffsetX ?? 2"
                 @input="$emit('update:text-shadow-offset-x', Number($event.target.value))"
                 @change="$emit('save-text-history')"
                 class="mini-input"
@@ -176,7 +178,9 @@
               <label>Y</label>
               <input
                 type="number"
-                :value="selectedText.shadowOffsetY || 2"
+                min="-50"
+                max="50"
+                :value="selectedText.shadowOffsetY ?? 2"
                 @input="$emit('update:text-shadow-offset-y', Number($event.target.value))"
                 @change="$emit('save-text-history')"
                 class="mini-input"
@@ -992,12 +996,20 @@ defineEmits([
     background: var(--color-bg, #ffffff);
     color: var(--color-text-primary, #111827);
     width: 100%;
-    max-width: 60px;
+    max-width: 70px;
 
     &:focus {
       outline: none;
       border-color: var(--color-primary, #3b82f6);
     }
+
+    /* Entferne Spinner-Arrows für bessere UX */
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    -moz-appearance: textfield;
   }
 }
 
