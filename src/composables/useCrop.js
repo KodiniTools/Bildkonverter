@@ -37,6 +37,7 @@ export function useCrop() {
   // Drag & Resize State
   const isDragging = ref(false)
   const isResizing = ref(false)
+  const isCreating = ref(false) // Neue Auswahl wird erstellt
   const activeHandle = ref(null)
   const dragOffset = ref({ x: 0, y: 0 })
 
@@ -93,6 +94,7 @@ export function useCrop() {
     cropping.value = false
     isDragging.value = false
     isResizing.value = false
+    isCreating.value = false
     activeHandle.value = null
     cropStart.value = { x: 0, y: 0 }
     cropEnd.value = { x: 0, y: 0 }
@@ -100,6 +102,7 @@ export function useCrop() {
 
   function startCrop(x, y) {
     cropping.value = true
+    isCreating.value = true
     cropStart.value = { x, y }
     cropEnd.value = { x, y }
   }
@@ -326,11 +329,13 @@ export function useCrop() {
   }
 
   // Prüfe welches Handle getroffen wurde (returns null wenn keines)
-  function getHandleAtPoint(x, y) {
+  function getHandleAtPoint(x, y, displayScale = 1) {
     if (!cropping.value) return null
 
     const box = normalizedCropBox.value
-    const handleSize = 12 // Größe des Klickbereichs
+    // Größe des Klickbereichs - skaliert basierend auf Display
+    // Bei kleiner Darstellung größerer Klickbereich in Canvas-Koordinaten
+    const handleSize = Math.max(15, 20 / displayScale)
 
     const handles = {
       'nw': { x: box.x, y: box.y },
@@ -642,13 +647,13 @@ export function useCrop() {
   }
 
   // Event Handlers für einfache Integration
-  function handleMouseDown(pos) {
+  function handleMouseDown(pos, displayScale = 1) {
     if (!cropMode.value) return false
 
     const { x, y } = pos
 
     // Prüfe zuerst ob ein Resize-Handle getroffen wurde
-    const handle = getHandleAtPoint(x, y)
+    const handle = getHandleAtPoint(x, y, displayScale)
     if (handle) {
       isResizing.value = true
       activeHandle.value = handle
@@ -683,14 +688,10 @@ export function useCrop() {
       return true
     }
 
-    // Neue Auswahl erstellen
-    if (cropping.value && !isDragging.value && !isResizing.value) {
-      // Nur updaten wenn wir gerade eine neue Auswahl erstellen
-      const box = normalizedCropBox.value
-      if (box.width < 5 && box.height < 5) {
-        updateCrop(x, y)
-        return true
-      }
+    // Neue Auswahl wird erstellt (User zieht gerade eine neue Box auf)
+    if (isCreating.value) {
+      updateCrop(x, y)
+      return true
     }
 
     return false
@@ -699,33 +700,27 @@ export function useCrop() {
   function handleMouseUp() {
     const wasResizing = isResizing.value
     const wasDragging = isDragging.value
+    const wasCreating = isCreating.value
 
     isResizing.value = false
     isDragging.value = false
+    isCreating.value = false
     activeHandle.value = null
 
-    // Wenn wir nur verschoben oder resized haben, nicht finishen
-    if (wasResizing || wasDragging) {
+    // Wenn wir verschoben, resized oder neu erstellt haben, nicht finishen
+    // Der User muss explizit den Bestätigen-Button klicken
+    if (wasResizing || wasDragging || wasCreating) {
       return false
-    }
-
-    // Nur wenn eine neue Auswahl erstellt wurde
-    if (cropping.value) {
-      const box = normalizedCropBox.value
-      // Nur finishen wenn die Box groß genug ist
-      if (box.width >= 10 && box.height >= 10) {
-        return false // Wir behalten die Box, User muss Button klicken zum Bestätigen
-      }
     }
 
     return false
   }
 
   // Cursor-Style basierend auf Position
-  function getCursorForPosition(x, y) {
+  function getCursorForPosition(x, y, displayScale = 1) {
     if (!cropMode.value || !cropping.value) return 'crosshair'
 
-    const handle = getHandleAtPoint(x, y)
+    const handle = getHandleAtPoint(x, y, displayScale)
     if (handle) {
       const cursors = {
         'nw': 'nwse-resize',
@@ -747,6 +742,14 @@ export function useCrop() {
     return 'crosshair'
   }
 
+  // Stoppe alle aktiven Drag/Resize-Operationen (für globales mouseup)
+  function cancelDragResize() {
+    isResizing.value = false
+    isDragging.value = false
+    isCreating.value = false
+    activeHandle.value = null
+  }
+
   return {
     // State
     cropMode,
@@ -756,6 +759,7 @@ export function useCrop() {
     selectedAspectRatio,
     isDragging,
     isResizing,
+    isCreating,
     normalizedCropBox,
 
     // Methods
@@ -768,6 +772,7 @@ export function useCrop() {
     setCanvasSize,
     getCursorForPosition,
     getHandleAtPoint,
+    cancelDragResize,
 
     // Event Handlers
     handleMouseDown,
