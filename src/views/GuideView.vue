@@ -364,7 +364,7 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n()
+const { t } = useI18n({ useScope: 'global' })
 
 const presets = ['original', 'vibrant', 'vintage', 'blackWhite', 'dramatic', 'soft', 'warm', 'cool']
 

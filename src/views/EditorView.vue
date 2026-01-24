@@ -633,7 +633,7 @@ import FilterPresets from '@/components/editor/FilterPresets.vue'
 // ===== NEU: Export Utils Import =====
 import { exportImage, FORMAT_INFO, SUPPORTED_FORMATS, getFormatInfo } from '@/utils/exportUtils'
 
-const { t } = useI18n()
+const { t } = useI18n({ useScope: 'global' })
 const route = useRoute()
 const imageStore = useImageStore()
 const textModal = useTextModal()

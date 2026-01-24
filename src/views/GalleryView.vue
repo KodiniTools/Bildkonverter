@@ -136,7 +136,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useGalleryStore } from '@/stores/galleryStore'
 
-const { t } = useI18n()
+const { t } = useI18n({ useScope: 'global' })
 const router = useRouter()
 const galleryStore = useGalleryStore()
 

@@ -102,7 +102,7 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import heroImage from '@/assets/foto/foto1.jpg'
 
-const { t } = useI18n()
+const { t } = useI18n({ useScope: 'global' })
 
 // FAQ State
 const activeFaq = ref(null)

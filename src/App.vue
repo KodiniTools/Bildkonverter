@@ -49,7 +49,7 @@ import TextEditModal from '@/components/modals/TextEditModal.vue'
 // Stores & Composables
 const settings = useSettingsStore()
 const textModal = useTextModal()
-const { locale } = useI18n()
+const { locale } = useI18n({ useScope: 'global' })
 
 // Watchers - settings.locale ist die einzige Quelle der Wahrheit
 watch(() => settings.locale, (newLocale) => {
