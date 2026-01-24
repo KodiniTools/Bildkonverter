@@ -15,6 +15,9 @@ export const ASPECT_RATIO_PRESETS = [
   { id: '9:16', label: '9:16', ratio: 9 / 16, icon: 'fa-mobile-alt' }
 ]
 
+// Resize-Handle Positionen
+const RESIZE_HANDLES = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']
+
 export function useCrop() {
   // i18n für Übersetzungen
   const { t } = useI18n()
@@ -31,20 +34,36 @@ export function useCrop() {
   const selectedAspectRatio = ref('free')
   const canvasSize = ref({ width: 0, height: 0 })
 
+  // Drag & Resize State
+  const isDragging = ref(false)
+  const isResizing = ref(false)
+  const activeHandle = ref(null)
+  const dragOffset = ref({ x: 0, y: 0 })
+
   // Computed
   const cropOverlayStyle = computed(() => {
     if (!cropping.value) return null
-    
+
     const startX = Math.min(cropStart.value.x, cropEnd.value.x)
     const startY = Math.min(cropStart.value.y, cropEnd.value.y)
     const width = Math.abs(cropEnd.value.x - cropStart.value.x)
     const height = Math.abs(cropEnd.value.y - cropStart.value.y)
-    
+
     return {
       left: `${startX}px`,
       top: `${startY}px`,
       width: `${width}px`,
       height: `${height}px`
+    }
+  })
+
+  // Berechne die normalisierte Crop-Box (immer positive Werte)
+  const normalizedCropBox = computed(() => {
+    return {
+      x: Math.min(cropStart.value.x, cropEnd.value.x),
+      y: Math.min(cropStart.value.y, cropEnd.value.y),
+      width: Math.abs(cropEnd.value.x - cropStart.value.x),
+      height: Math.abs(cropEnd.value.y - cropStart.value.y)
     }
   })
 
@@ -54,23 +73,27 @@ export function useCrop() {
       // Signal zum finishCrop aufrufen
       return 'finish'
     }
-    
+
     cropMode.value = !cropMode.value
-    
+
     if (!cropMode.value) {
       clearCropSelection()
+      selectedAspectRatio.value = 'free'
     } else {
       console.log('Crop-Modus aktiviert: Ziehen Sie einen Bereich auf')
       if (window.$toast) {
         window.$toast.info(t('toast.crop.modeActivated'))
       }
     }
-    
+
     return cropMode.value ? 'activated' : 'deactivated'
   }
 
   function clearCropSelection() {
     cropping.value = false
+    isDragging.value = false
+    isResizing.value = false
+    activeHandle.value = null
     cropStart.value = { x: 0, y: 0 }
     cropEnd.value = { x: 0, y: 0 }
   }
@@ -79,6 +102,43 @@ export function useCrop() {
     cropping.value = true
     cropStart.value = { x, y }
     cropEnd.value = { x, y }
+  }
+
+  // Erstelle eine zentrierte Crop-Box mit dem gewählten Seitenverhältnis
+  function createCenteredCropBox(ratio) {
+    if (canvasSize.value.width <= 0 || canvasSize.value.height <= 0) return
+
+    const canvasW = canvasSize.value.width
+    const canvasH = canvasSize.value.height
+
+    // Berechne maximale Größe die ins Canvas passt (80% des Canvas)
+    const maxWidth = canvasW * 0.8
+    const maxHeight = canvasH * 0.8
+
+    let boxWidth, boxHeight
+
+    if (ratio === null) {
+      // Freie Auswahl - nutze 60% des Canvas
+      boxWidth = canvasW * 0.6
+      boxHeight = canvasH * 0.6
+    } else {
+      // Berechne Größe basierend auf Seitenverhältnis
+      if (maxWidth / ratio <= maxHeight) {
+        boxWidth = maxWidth
+        boxHeight = maxWidth / ratio
+      } else {
+        boxHeight = maxHeight
+        boxWidth = maxHeight * ratio
+      }
+    }
+
+    // Zentriere die Box
+    const startX = (canvasW - boxWidth) / 2
+    const startY = (canvasH - boxHeight) / 2
+
+    cropStart.value = { x: startX, y: startY }
+    cropEnd.value = { x: startX + boxWidth, y: startY + boxHeight }
+    cropping.value = true
   }
 
   function updateCrop(x, y) {
@@ -131,11 +191,215 @@ export function useCrop() {
     cropEnd.value = { x: endX, y: endY }
   }
 
+  // Verschiebe die Crop-Box
+  function moveCropBox(x, y) {
+    const box = normalizedCropBox.value
+
+    // Berechne neue Position basierend auf Drag-Offset
+    let newX = x - dragOffset.value.x
+    let newY = y - dragOffset.value.y
+
+    // Begrenze auf Canvas-Grenzen
+    if (canvasSize.value.width > 0 && canvasSize.value.height > 0) {
+      newX = Math.max(0, Math.min(canvasSize.value.width - box.width, newX))
+      newY = Math.max(0, Math.min(canvasSize.value.height - box.height, newY))
+    }
+
+    // Aktualisiere Start und End
+    cropStart.value = { x: newX, y: newY }
+    cropEnd.value = { x: newX + box.width, y: newY + box.height }
+  }
+
+  // Resize die Crop-Box von einem Handle aus
+  function resizeCropBox(x, y) {
+    if (!activeHandle.value) return
+
+    const preset = ASPECT_RATIO_PRESETS.find(p => p.id === selectedAspectRatio.value)
+    const ratio = preset?.ratio || null
+    const box = normalizedCropBox.value
+
+    // Begrenze auf Canvas
+    x = Math.max(0, Math.min(canvasSize.value.width, x))
+    y = Math.max(0, Math.min(canvasSize.value.height, y))
+
+    let newStart = { ...cropStart.value }
+    let newEnd = { ...cropEnd.value }
+
+    // Normalisiere Start/End für konsistente Berechnung
+    const minX = Math.min(cropStart.value.x, cropEnd.value.x)
+    const minY = Math.min(cropStart.value.y, cropEnd.value.y)
+    const maxX = Math.max(cropStart.value.x, cropEnd.value.x)
+    const maxY = Math.max(cropStart.value.y, cropEnd.value.y)
+
+    // Handle basierte Resize-Logik
+    switch (activeHandle.value) {
+      case 'nw': // Oben-Links
+        newStart = { x: x, y: y }
+        newEnd = { x: maxX, y: maxY }
+        break
+      case 'n': // Oben-Mitte
+        newStart = { x: minX, y: y }
+        newEnd = { x: maxX, y: maxY }
+        break
+      case 'ne': // Oben-Rechts
+        newStart = { x: minX, y: y }
+        newEnd = { x: x, y: maxY }
+        break
+      case 'e': // Rechts-Mitte
+        newStart = { x: minX, y: minY }
+        newEnd = { x: x, y: maxY }
+        break
+      case 'se': // Unten-Rechts
+        newStart = { x: minX, y: minY }
+        newEnd = { x: x, y: y }
+        break
+      case 's': // Unten-Mitte
+        newStart = { x: minX, y: minY }
+        newEnd = { x: maxX, y: y }
+        break
+      case 'sw': // Unten-Links
+        newStart = { x: x, y: minY }
+        newEnd = { x: maxX, y: y }
+        break
+      case 'w': // Links-Mitte
+        newStart = { x: x, y: minY }
+        newEnd = { x: maxX, y: maxY }
+        break
+    }
+
+    // Wenn Seitenverhältnis gesetzt, passe an
+    if (ratio !== null) {
+      const newWidth = Math.abs(newEnd.x - newStart.x)
+      const newHeight = Math.abs(newEnd.y - newStart.y)
+
+      // Entscheide basierend auf Handle, welche Dimension führend ist
+      const isHorizontalHandle = ['e', 'w'].includes(activeHandle.value)
+      const isVerticalHandle = ['n', 's'].includes(activeHandle.value)
+
+      let adjustedWidth, adjustedHeight
+
+      if (isHorizontalHandle) {
+        adjustedWidth = newWidth
+        adjustedHeight = newWidth / ratio
+      } else if (isVerticalHandle) {
+        adjustedHeight = newHeight
+        adjustedWidth = newHeight * ratio
+      } else {
+        // Eck-Handle: nutze größere Dimension
+        if (newWidth / ratio > newHeight) {
+          adjustedWidth = newWidth
+          adjustedHeight = newWidth / ratio
+        } else {
+          adjustedHeight = newHeight
+          adjustedWidth = newHeight * ratio
+        }
+      }
+
+      // Passe die Position basierend auf dem Handle an
+      if (activeHandle.value.includes('w')) {
+        newStart.x = newEnd.x - adjustedWidth
+      } else {
+        newEnd.x = newStart.x + adjustedWidth
+      }
+
+      if (activeHandle.value.includes('n')) {
+        newStart.y = newEnd.y - adjustedHeight
+      } else {
+        newEnd.y = newStart.y + adjustedHeight
+      }
+    }
+
+    // Mindestgröße sicherstellen
+    const minSize = 20
+    if (Math.abs(newEnd.x - newStart.x) >= minSize && Math.abs(newEnd.y - newStart.y) >= minSize) {
+      cropStart.value = newStart
+      cropEnd.value = newEnd
+    }
+  }
+
+  // Prüfe ob ein Punkt innerhalb der Crop-Box liegt
+  function isPointInCropBox(x, y) {
+    if (!cropping.value) return false
+    const box = normalizedCropBox.value
+    return x >= box.x && x <= box.x + box.width &&
+           y >= box.y && y <= box.y + box.height
+  }
+
+  // Prüfe welches Handle getroffen wurde (returns null wenn keines)
+  function getHandleAtPoint(x, y) {
+    if (!cropping.value) return null
+
+    const box = normalizedCropBox.value
+    const handleSize = 12 // Größe des Klickbereichs
+
+    const handles = {
+      'nw': { x: box.x, y: box.y },
+      'n': { x: box.x + box.width / 2, y: box.y },
+      'ne': { x: box.x + box.width, y: box.y },
+      'e': { x: box.x + box.width, y: box.y + box.height / 2 },
+      'se': { x: box.x + box.width, y: box.y + box.height },
+      's': { x: box.x + box.width / 2, y: box.y + box.height },
+      'sw': { x: box.x, y: box.y + box.height },
+      'w': { x: box.x, y: box.y + box.height / 2 }
+    }
+
+    for (const [name, pos] of Object.entries(handles)) {
+      if (Math.abs(x - pos.x) <= handleSize && Math.abs(y - pos.y) <= handleSize) {
+        return name
+      }
+    }
+
+    return null
+  }
+
   function setAspectRatio(ratioId) {
+    const previousRatio = selectedAspectRatio.value
     selectedAspectRatio.value = ratioId
-    // Wenn bereits ein Crop aktiv ist, behalte Start und berechne End neu
-    if (cropping.value) {
-      updateCrop(cropEnd.value.x, cropEnd.value.y)
+
+    const preset = ASPECT_RATIO_PRESETS.find(p => p.id === ratioId)
+
+    // Wenn noch keine Crop-Box existiert, erstelle eine zentrierte
+    if (!cropping.value && preset) {
+      createCenteredCropBox(preset.ratio)
+    } else if (cropping.value && preset && preset.ratio !== null) {
+      // Wenn bereits eine Box existiert, passe sie an das neue Seitenverhältnis an
+      const box = normalizedCropBox.value
+      const centerX = box.x + box.width / 2
+      const centerY = box.y + box.height / 2
+
+      // Berechne neue Größe mit gleichem Seitenverhältnis
+      let newWidth, newHeight
+      const ratio = preset.ratio
+
+      // Behalte die größere Dimension und passe die andere an
+      if (box.width / ratio <= box.height) {
+        newWidth = box.width
+        newHeight = box.width / ratio
+      } else {
+        newHeight = box.height
+        newWidth = box.height * ratio
+      }
+
+      // Begrenze auf Canvas
+      if (newWidth > canvasSize.value.width) {
+        newWidth = canvasSize.value.width * 0.9
+        newHeight = newWidth / ratio
+      }
+      if (newHeight > canvasSize.value.height) {
+        newHeight = canvasSize.value.height * 0.9
+        newWidth = newHeight * ratio
+      }
+
+      // Zentriere um den alten Mittelpunkt
+      let newX = centerX - newWidth / 2
+      let newY = centerY - newHeight / 2
+
+      // Stelle sicher, dass die Box im Canvas bleibt
+      newX = Math.max(0, Math.min(canvasSize.value.width - newWidth, newX))
+      newY = Math.max(0, Math.min(canvasSize.value.height - newHeight, newY))
+
+      cropStart.value = { x: newX, y: newY }
+      cropEnd.value = { x: newX + newWidth, y: newY + newHeight }
     }
   }
 
@@ -379,26 +643,108 @@ export function useCrop() {
 
   // Event Handlers für einfache Integration
   function handleMouseDown(pos) {
-    if (cropMode.value) {
-      startCrop(pos.x, pos.y)
-      return true // Signal dass Event behandelt wurde
+    if (!cropMode.value) return false
+
+    const { x, y } = pos
+
+    // Prüfe zuerst ob ein Resize-Handle getroffen wurde
+    const handle = getHandleAtPoint(x, y)
+    if (handle) {
+      isResizing.value = true
+      activeHandle.value = handle
+      return true
     }
-    return false
+
+    // Prüfe ob innerhalb der bestehenden Crop-Box geklickt wurde
+    if (isPointInCropBox(x, y)) {
+      isDragging.value = true
+      const box = normalizedCropBox.value
+      dragOffset.value = { x: x - box.x, y: y - box.y }
+      return true
+    }
+
+    // Ansonsten starte eine neue Crop-Auswahl
+    startCrop(x, y)
+    return true
   }
 
   function handleMouseMove(pos) {
-    if (cropping.value) {
-      updateCrop(pos.x, pos.y)
+    const { x, y } = pos
+
+    // Resize-Modus
+    if (isResizing.value) {
+      resizeCropBox(x, y)
       return true
     }
+
+    // Drag-Modus (Box verschieben)
+    if (isDragging.value) {
+      moveCropBox(x, y)
+      return true
+    }
+
+    // Neue Auswahl erstellen
+    if (cropping.value && !isDragging.value && !isResizing.value) {
+      // Nur updaten wenn wir gerade eine neue Auswahl erstellen
+      const box = normalizedCropBox.value
+      if (box.width < 5 && box.height < 5) {
+        updateCrop(x, y)
+        return true
+      }
+    }
+
     return false
   }
 
   function handleMouseUp() {
-    if (cropping.value) {
-      return true // Signal zum finishCrop aufrufen
+    const wasResizing = isResizing.value
+    const wasDragging = isDragging.value
+
+    isResizing.value = false
+    isDragging.value = false
+    activeHandle.value = null
+
+    // Wenn wir nur verschoben oder resized haben, nicht finishen
+    if (wasResizing || wasDragging) {
+      return false
     }
+
+    // Nur wenn eine neue Auswahl erstellt wurde
+    if (cropping.value) {
+      const box = normalizedCropBox.value
+      // Nur finishen wenn die Box groß genug ist
+      if (box.width >= 10 && box.height >= 10) {
+        return false // Wir behalten die Box, User muss Button klicken zum Bestätigen
+      }
+    }
+
     return false
+  }
+
+  // Cursor-Style basierend auf Position
+  function getCursorForPosition(x, y) {
+    if (!cropMode.value || !cropping.value) return 'crosshair'
+
+    const handle = getHandleAtPoint(x, y)
+    if (handle) {
+      const cursors = {
+        'nw': 'nwse-resize',
+        'se': 'nwse-resize',
+        'ne': 'nesw-resize',
+        'sw': 'nesw-resize',
+        'n': 'ns-resize',
+        's': 'ns-resize',
+        'e': 'ew-resize',
+        'w': 'ew-resize'
+      }
+      return cursors[handle] || 'move'
+    }
+
+    if (isPointInCropBox(x, y)) {
+      return 'move'
+    }
+
+    return 'crosshair'
   }
 
   return {
@@ -408,6 +754,9 @@ export function useCrop() {
     hasCropped,
     cropOverlayStyle,
     selectedAspectRatio,
+    isDragging,
+    isResizing,
+    normalizedCropBox,
 
     // Methods
     toggleCropMode,
@@ -417,6 +766,8 @@ export function useCrop() {
     clearCropSelection,
     setAspectRatio,
     setCanvasSize,
+    getCursorForPosition,
+    getHandleAtPoint,
 
     // Event Handlers
     handleMouseDown,

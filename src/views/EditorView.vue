@@ -501,12 +501,27 @@
               @mouseup="onCanvasMouseUp"
               @dblclick="onCanvasDoubleClick"
             ></canvas>
-            <!-- Crop Overlay -->
-            <div 
+            <!-- Crop Overlay mit Resize-Handles -->
+            <div
               v-if="crop.cropping.value && scaledCropOverlayStyle"
               class="crop-overlay"
+              :class="{ 'dragging': crop.isDragging.value, 'resizing': crop.isResizing.value }"
               :style="scaledCropOverlayStyle"
-            ></div>
+            >
+              <!-- Resize Handles -->
+              <div class="resize-handle handle-nw"></div>
+              <div class="resize-handle handle-n"></div>
+              <div class="resize-handle handle-ne"></div>
+              <div class="resize-handle handle-e"></div>
+              <div class="resize-handle handle-se"></div>
+              <div class="resize-handle handle-s"></div>
+              <div class="resize-handle handle-sw"></div>
+              <div class="resize-handle handle-w"></div>
+              <!-- Center Move Indicator -->
+              <div class="move-indicator">
+                <i class="fas fa-arrows-alt"></i>
+              </div>
+            </div>
             <div class="canvas-info">
               <span><i class="fas fa-expand-arrows-alt"></i> {{ imageWidth }} × {{ imageHeight }}px</span>
               <span><i class="fas fa-file"></i> {{ formatSize(imageSize) }}</span>
@@ -1892,10 +1907,11 @@ function onCanvasMouseMove(e) {
     let cursorStyle = 'default'
     if (isSpacePressed.value && transform.canPan.value) {
       cursorStyle = 'grab'
+    } else if (crop.cropMode.value) {
+      // Nutze den Cursor vom Crop-Composable
+      cursorStyle = crop.getCursorForPosition(pos.x, pos.y)
     } else if (text) {
       cursorStyle = 'grab'
-    } else if (crop.cropMode.value) {
-      cursorStyle = 'crosshair'
     }
     canvas.value.style.cursor = cursorStyle
   }
@@ -2328,10 +2344,114 @@ function handleKeyup(e) {
 /* Crop Overlay */
 .crop-overlay {
   position: absolute;
-  border: 2px dashed #4ade80;
+  border: 2px solid #4ade80;
   background: rgba(74, 222, 128, 0.1);
   pointer-events: none;
   z-index: 100;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+
+  &.dragging {
+    cursor: move;
+    border-style: solid;
+  }
+
+  &.resizing {
+    border-style: solid;
+  }
+}
+
+/* Resize Handles */
+.resize-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #4ade80;
+  border: 2px solid white;
+  border-radius: 2px;
+  pointer-events: auto;
+  z-index: 101;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+
+  &.handle-nw {
+    top: -6px;
+    left: -6px;
+    cursor: nwse-resize;
+  }
+
+  &.handle-n {
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    cursor: ns-resize;
+  }
+
+  &.handle-ne {
+    top: -6px;
+    right: -6px;
+    cursor: nesw-resize;
+  }
+
+  &.handle-e {
+    top: 50%;
+    right: -6px;
+    transform: translateY(-50%);
+    cursor: ew-resize;
+  }
+
+  &.handle-se {
+    bottom: -6px;
+    right: -6px;
+    cursor: nwse-resize;
+  }
+
+  &.handle-s {
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    cursor: ns-resize;
+  }
+
+  &.handle-sw {
+    bottom: -6px;
+    left: -6px;
+    cursor: nesw-resize;
+  }
+
+  &.handle-w {
+    top: 50%;
+    left: -6px;
+    transform: translateY(-50%);
+    cursor: ew-resize;
+  }
+
+  &:hover {
+    background: #22c55e;
+    transform-origin: center;
+  }
+}
+
+/* Move Indicator in der Mitte */
+.move-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  background: rgba(74, 222, 128, 0.8);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 16px;
+  pointer-events: none;
+  opacity: 0.8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+  i {
+    pointer-events: none;
+  }
 }
 
 /* Collapsible Sidebar Sections */
