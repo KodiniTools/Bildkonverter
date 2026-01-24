@@ -290,8 +290,8 @@
         <i class="fas fa-crop"></i>
         {{ $t('transform.crop.title') }}
       </h3>
-      
-      <button 
+
+      <button
         class="transform-btn"
         :class="{ 'active': cropMode }"
         @click="$emit('toggle-crop')"
@@ -299,8 +299,29 @@
         <i :class="cropMode ? 'fas fa-check' : 'fas fa-crop'"></i>
         <span>{{ cropMode ? $t('transform.crop.confirm') : $t('transform.crop.button') }}</span>
       </button>
-      
-      <button 
+
+      <!-- Seitenverhältnis Presets -->
+      <div v-if="cropMode" class="aspect-ratio-section">
+        <label class="aspect-label">
+          <i class="fas fa-expand-arrows-alt"></i>
+          {{ $t('transform.crop.aspectRatio', 'Seitenverhältnis') }}
+        </label>
+        <div class="aspect-ratio-grid">
+          <button
+            v-for="preset in aspectRatioPresets"
+            :key="preset.id"
+            class="aspect-btn"
+            :class="{ 'active': selectedAspectRatio === preset.id }"
+            @click="$emit('set-aspect-ratio', preset.id)"
+            :title="preset.label"
+          >
+            <i :class="'fas ' + preset.icon"></i>
+            <span>{{ preset.label }}</span>
+          </button>
+        </div>
+      </div>
+
+      <button
         v-if="hasCropped"
         class="transform-btn undo-btn"
         @click="$emit('undo-crop')"
@@ -607,6 +628,14 @@ defineProps({
     type: Boolean,
     required: true
   },
+  selectedAspectRatio: {
+    type: String,
+    default: 'free'
+  },
+  aspectRatioPresets: {
+    type: Array,
+    default: () => []
+  },
   transforms: {
     type: Object,
     required: true
@@ -648,6 +677,7 @@ defineProps({
 defineEmits([
   'toggle-crop',
   'undo-crop',
+  'set-aspect-ratio',
   'update:opacity',
   'update:rotation',
   'update:scale',
@@ -1037,6 +1067,106 @@ defineEmits([
   display: flex;
   gap: 0.5rem;
   margin-bottom: 0.875rem;
+}
+
+/* Aspect Ratio Section */
+.aspect-ratio-section {
+  margin: 0.75rem 0;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--color-border, #e5e7eb);
+}
+
+.aspect-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-text-light, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.5rem;
+
+  i {
+    color: var(--color-primary, #3b82f6);
+    font-size: 0.75rem;
+  }
+}
+
+.aspect-ratio-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.35rem;
+}
+
+.aspect-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.5rem 0.25rem;
+  background: var(--color-bg, #ffffff);
+  border: 1.5px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.65rem;
+  color: var(--color-text-primary, #111827);
+  font-weight: 500;
+
+  i {
+    font-size: 0.85rem;
+    opacity: 0.8;
+  }
+
+  span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  &:hover {
+    border-color: var(--color-primary, #3b82f6);
+    background: rgba(59, 130, 246, 0.05);
+    transform: translateY(-1px);
+  }
+
+  &.active {
+    background: var(--color-primary, #3b82f6);
+    color: white;
+    border-color: var(--color-primary, #3b82f6);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+
+    i {
+      opacity: 1;
+    }
+  }
+}
+
+.dark-mode .aspect-ratio-section {
+  border-top-color: #4b5563;
+}
+
+.dark-mode .aspect-label {
+  color: #9ca3af;
+}
+
+.dark-mode .aspect-btn {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+
+  &:hover {
+    background: #4b5563;
+    border-color: var(--color-primary, #3b82f6);
+  }
+
+  &.active {
+    background: var(--color-primary, #3b82f6);
+    border-color: var(--color-primary, #3b82f6);
+  }
 }
 
 /* Color Picker - angeglichen an linke Sidebar */

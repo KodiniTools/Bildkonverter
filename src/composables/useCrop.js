@@ -6,10 +6,19 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+// Seitenverhältnis-Presets
+export const ASPECT_RATIO_PRESETS = [
+  { id: 'free', label: 'Frei', ratio: null, icon: 'fa-expand' },
+  { id: '1:1', label: '1:1', ratio: 1, icon: 'fa-square' },
+  { id: '4:3', label: '4:3', ratio: 4 / 3, icon: 'fa-image' },
+  { id: '16:9', label: '16:9', ratio: 16 / 9, icon: 'fa-tv' },
+  { id: '9:16', label: '9:16', ratio: 9 / 16, icon: 'fa-mobile-alt' }
+]
+
 export function useCrop() {
   // i18n für Übersetzungen
   const { t } = useI18n()
-  
+
   // State
   const cropMode = ref(false)
   const cropping = ref(false)
@@ -17,6 +26,10 @@ export function useCrop() {
   const cropEnd = ref({ x: 0, y: 0 })
   const hasCropped = ref(false)
   const beforeCropImage = ref(null)
+
+  // Seitenverhältnis State
+  const selectedAspectRatio = ref('free')
+  const canvasSize = ref({ width: 0, height: 0 })
 
   // Computed
   const cropOverlayStyle = computed(() => {
@@ -69,7 +82,65 @@ export function useCrop() {
   }
 
   function updateCrop(x, y) {
-    cropEnd.value = { x, y }
+    const preset = ASPECT_RATIO_PRESETS.find(p => p.id === selectedAspectRatio.value)
+
+    // Wenn kein festes Seitenverhältnis, einfach die Position setzen
+    if (!preset || preset.ratio === null) {
+      cropEnd.value = { x, y }
+      return
+    }
+
+    // Berechne Breite und Höhe basierend auf dem Seitenverhältnis
+    const ratio = preset.ratio
+    const startX = cropStart.value.x
+    const startY = cropStart.value.y
+
+    let width = x - startX
+    let height = y - startY
+
+    // Berechne die neue Höhe basierend auf der Breite und dem Seitenverhältnis
+    const absWidth = Math.abs(width)
+    const absHeight = Math.abs(height)
+
+    // Entscheide, ob wir nach Breite oder Höhe skalieren
+    let newWidth, newHeight
+
+    if (absWidth / ratio > absHeight) {
+      // Breite ist dominant, passe Höhe an
+      newWidth = absWidth
+      newHeight = absWidth / ratio
+    } else {
+      // Höhe ist dominant, passe Breite an
+      newHeight = absHeight
+      newWidth = absHeight * ratio
+    }
+
+    // Wende Vorzeichen an (für verschiedene Ziehrichtungen)
+    if (width < 0) newWidth = -newWidth
+    if (height < 0) newHeight = -newHeight
+
+    // Begrenze auf Canvas-Größe
+    let endX = startX + newWidth
+    let endY = startY + newHeight
+
+    if (canvasSize.value.width > 0 && canvasSize.value.height > 0) {
+      endX = Math.max(0, Math.min(canvasSize.value.width, endX))
+      endY = Math.max(0, Math.min(canvasSize.value.height, endY))
+    }
+
+    cropEnd.value = { x: endX, y: endY }
+  }
+
+  function setAspectRatio(ratioId) {
+    selectedAspectRatio.value = ratioId
+    // Wenn bereits ein Crop aktiv ist, behalte Start und berechne End neu
+    if (cropping.value) {
+      updateCrop(cropEnd.value.x, cropEnd.value.y)
+    }
+  }
+
+  function setCanvasSize(width, height) {
+    canvasSize.value = { width, height }
   }
 
   async function finishCrop(context) {
@@ -336,14 +407,17 @@ export function useCrop() {
     cropping,
     hasCropped,
     cropOverlayStyle,
-    
+    selectedAspectRatio,
+
     // Methods
     toggleCropMode,
     finishCrop,
     undoCrop,
     resetCropState,
     clearCropSelection,
-    
+    setAspectRatio,
+    setCanvasSize,
+
     // Event Handlers
     handleMouseDown,
     handleMouseMove,
