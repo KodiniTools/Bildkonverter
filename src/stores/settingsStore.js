@@ -1,9 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { i18n } from '@/i18n'
 
 /**
  * Settings Store - Verwaltet App-Einstellungen
- * 
+ *
  * Dieser Store verwaltet:
  * - Theme (Light/Dark)
  * - Sprache (DE/EN)
@@ -109,13 +110,17 @@ export const useSettingsStore = defineStore('settings', () => {
       console.warn(`Ungültige Sprache: ${newLocale}`)
       return
     }
-    
+
     locale.value = newLocale
-    
+
+    // i18n direkt synchronisieren - das ist der wichtigste Schritt!
+    i18n.global.locale.value = newLocale
+    document.documentElement.setAttribute('lang', newLocale)
+
     // Persistieren
     localStorage.setItem('bildkonverter-locale', newLocale)
-    
-    console.log(`🌍 Sprache geändert: ${newLocale}`)
+
+    console.log(`🌍 Sprache geändert: ${newLocale}, i18n.global.locale: ${i18n.global.locale.value}`)
   }
   
   /**
@@ -365,7 +370,13 @@ export const useSettingsStore = defineStore('settings', () => {
       }
     })
   }
-  
+
+  // Initiale i18n-Synchronisierung beim Store-Start
+  // Das stellt sicher, dass i18n und Store von Anfang an synchron sind
+  i18n.global.locale.value = locale.value
+  document.documentElement.setAttribute('lang', locale.value)
+  console.log(`🌍 Store initialisiert mit Sprache: ${locale.value}`)
+
   // ===== RETURN =====
   return {
     // State
