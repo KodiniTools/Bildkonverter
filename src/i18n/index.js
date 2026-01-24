@@ -166,7 +166,8 @@ const de = {
       undo: 'Rückgängig',
       aspectRatio: 'Seitenverhältnis',
       presets: {
-        free: 'Frei'
+        free: 'Frei',
+        circle: 'Kreis'
       }
     },
     title: 'Transformationen',
@@ -830,7 +831,8 @@ const en = {
       undo: 'Undo',
       aspectRatio: 'Aspect Ratio',
       presets: {
-        free: 'Free'
+        free: 'Free',
+        circle: 'Circle'
       }
     },
     title: 'Transformations',
