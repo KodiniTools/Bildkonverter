@@ -220,6 +220,7 @@ const de = {
     shadow: 'Schatten',
     shadowColor: 'Schattenfarbe',
     undo: 'Rückgängig',
+    redo: 'Wiederherstellen',
     delete: 'Text löschen',
     deselect: 'Auswahl aufheben',
     selectHint: 'Klicken Sie auf einen Text im Bild, um ihn zu bearbeiten'
@@ -878,6 +879,7 @@ const en = {
     shadow: 'Shadow',
     shadowColor: 'Shadow Color',
     undo: 'Undo',
+    redo: 'Redo',
     delete: 'Delete Text',
     deselect: 'Deselect',
     selectHint: 'Click on a text in the image to edit it'

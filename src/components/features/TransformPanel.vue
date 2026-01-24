@@ -2,10 +2,30 @@
   <aside class="transform-panel">
     <!-- Text Sektion (nur wenn Text ausgewählt) -->
     <div v-if="selectedText" class="panel-section text-section">
-      <h3>
-        <i class="fas fa-font"></i>
-        {{ $t('textPanel.title', 'Text bearbeiten') }}
-      </h3>
+      <div class="section-header">
+        <h3>
+          <i class="fas fa-font"></i>
+          {{ $t('textPanel.title', 'Text bearbeiten') }}
+        </h3>
+        <div class="text-history-controls">
+          <button
+            class="btn-icon-small"
+            @click="$emit('undo-text')"
+            :disabled="!canUndoText"
+            :title="$t('textPanel.undo', 'Rückgängig')"
+          >
+            <i class="fas fa-undo"></i>
+          </button>
+          <button
+            class="btn-icon-small"
+            @click="$emit('redo-text')"
+            :disabled="!canRedoText"
+            :title="$t('textPanel.redo', 'Wiederherstellen')"
+          >
+            <i class="fas fa-redo"></i>
+          </button>
+        </div>
+      </div>
 
       <!-- Text Inhalt -->
       <div class="control-group">
@@ -236,16 +256,6 @@
           class="slider"
         >
       </div>
-
-      <!-- Undo Button für Text -->
-      <button
-        class="transform-btn undo-btn"
-        @click="$emit('undo-text')"
-        :disabled="!canUndo"
-      >
-        <i class="fas fa-undo"></i>
-        <span>{{ $t('textPanel.undo', 'Rückgängig') }}</span>
-      </button>
 
       <!-- Text löschen -->
       <button
@@ -541,7 +551,11 @@ defineProps({
     type: Boolean,
     default: false
   },
-  canUndo: {
+  canUndoText: {
+    type: Boolean,
+    default: false
+  },
+  canRedoText: {
     type: Boolean,
     default: false
   }
@@ -578,6 +592,7 @@ defineEmits([
   'update:text-shadow-color',
   'save-text-history',
   'undo-text',
+  'redo-text',
   'delete-text',
   'deselect-text'
 ])
@@ -896,6 +911,62 @@ defineEmits([
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+
+  h3 {
+    margin-bottom: 0;
+  }
+}
+
+.text-history-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-icon-small {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg, #ffffff);
+  border: 1.5px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--color-text-primary, #333);
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--color-primary, #3b82f6);
+    color: white;
+    border-color: var(--color-primary, #3b82f6);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  i {
+    font-size: 12px;
+  }
+}
+
+.dark-mode .btn-icon-small {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+
+  &:hover:not(:disabled) {
+    background: var(--color-primary, #3b82f6);
+    border-color: var(--color-primary, #3b82f6);
+  }
 }
 
 .text-input {

@@ -526,7 +526,8 @@
           :has-pan="transform.hasPan.value"
           :selected-text="selectedTextObject"
           :has-texts="imageStore.texts && imageStore.texts.length > 0"
-          :can-undo="canUndo"
+          :can-undo-text="canUndoText"
+          :can-redo-text="canRedoText"
           @toggle-crop="handleToggleCrop"
           @undo-crop="handleUndoCrop"
           @update:opacity="handleOpacityUpdate"
@@ -555,8 +556,9 @@
           @update:text-shadow-offset-x="handleTextShadowOffsetXUpdate"
           @update:text-shadow-offset-y="handleTextShadowOffsetYUpdate"
           @update:text-shadow-color="handleTextShadowColorUpdate"
-          @save-text-history="saveHistory"
-          @undo-text="undo"
+          @save-text-history="handleSaveTextHistory"
+          @undo-text="handleUndoText"
+          @redo-text="handleRedoText"
           @delete-text="handleDeleteText"
           @deselect-text="handleDeselectText"
         />
@@ -602,6 +604,7 @@ import { useCrop } from '@/composables/useCrop'
 import { useTransform } from '@/composables/useTransform'
 import { useFilterManagement, DEFAULT_FILTERS, DEFAULT_BACKGROUND } from '@/composables/useFilterManagement'
 import { useImageHistory } from '@/composables/useImageHistory'
+import { useTextHistory } from '@/composables/useTextHistory'
 import { useResizeManager } from '@/composables/useResizeManager'
 import { useGalleryIntegration } from '@/composables/useGalleryIntegration'
 import TransformPanel from '@/components/features/TransformPanel.vue'
@@ -664,6 +667,15 @@ const imageHistory = useImageHistory({
   onRestore: (state) => restoreState(state)
 })
 const { history, historyIndex, canUndo, canRedo } = imageHistory
+
+// Text History Composable (separate History für Text mit 50 Schritten)
+const textHistory = useTextHistory({
+  getTexts: () => imageStore.texts,
+  setTexts: (texts) => { imageStore.texts = texts },
+  getSelectedTextId: () => selectedTextId.value,
+  setSelectedTextId: (id) => { selectedTextId.value = id }
+})
+const { canUndoText, canRedoText, saveTextHistory, initTextHistory, undoText, redoText } = textHistory
 
 // Resize Manager Composable
 const resizeManager = useResizeManager({
@@ -859,6 +871,7 @@ async function loadImage(img) {
   renderImage()
   updateImageInfo()
   saveHistory()
+  initTextHistory() // Initialisiere Text-History für neues Bild
 }
 
 function renderImage() {
@@ -1758,6 +1771,21 @@ function handleDeleteText() {
 
 function handleDeselectText() {
   selectedTextId.value = null
+  renderImage()
+}
+
+// ===== TEXT HISTORY HANDLERS =====
+function handleSaveTextHistory() {
+  saveTextHistory()
+}
+
+function handleUndoText() {
+  undoText()
+  renderImage()
+}
+
+function handleRedoText() {
+  redoText()
   renderImage()
 }
 
