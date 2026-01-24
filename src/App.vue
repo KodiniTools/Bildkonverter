@@ -39,7 +39,7 @@
 import { onMounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useTextModal } from '@/composables/useTextModal'
-import { useI18n } from 'vue-i18n'
+import { i18n } from '@/i18n'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import ToastContainer from '@/components/ui/ToastContainer.vue'
 import KeyboardShortcuts from '@/components/features/KeyboardShortcuts.vue'
@@ -49,12 +49,13 @@ import TextEditModal from '@/components/modals/TextEditModal.vue'
 // Stores & Composables
 const settings = useSettingsStore()
 const textModal = useTextModal()
-const { locale } = useI18n({ useScope: 'global' })
 
 // Watchers - settings.locale ist die einzige Quelle der Wahrheit
+// Direkter Zugriff auf die globale i18n-Instanz für zuverlässige Synchronisierung
 watch(() => settings.locale, (newLocale) => {
-  locale.value = newLocale
+  i18n.global.locale.value = newLocale
   document.documentElement.setAttribute('lang', newLocale)
+  console.log('🌍 i18n locale geändert:', newLocale)
 }, { immediate: true })
 
 watch(() => settings.theme, (newTheme) => {
@@ -90,9 +91,9 @@ function handleTextDelete() {
 // Lifecycle
 onMounted(() => {
   console.log('🚀 Vue Bildkonverter Pro gestartet')
-  
-  // Initiale Sprache setzen
-  locale.value = settings.locale
+
+  // Initiale Sprache setzen (redundant durch immediate: true im Watcher, aber sicherheitshalber)
+  i18n.global.locale.value = settings.locale
   document.documentElement.setAttribute('lang', settings.locale)
   
   // Online/Offline Events
