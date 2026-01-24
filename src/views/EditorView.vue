@@ -934,7 +934,7 @@ function renderImage() {
   // Border Radius (abgerundete Ecken)
   if (transform.transforms.value.borderRadius > 0) {
     ctx.save()
-    roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, transform.transforms.value.borderRadius)
+    roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, getBorderRadiusPixels())
     ctx.clip()
   }
   
@@ -945,7 +945,7 @@ function renderImage() {
     ctx.strokeStyle = transform.transforms.value.borderColor
     ctx.lineWidth = transform.transforms.value.borderWidth
     if (transform.transforms.value.borderRadius > 0) {
-      roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, transform.transforms.value.borderRadius)
+      roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, getBorderRadiusPixels())
       ctx.stroke()
     } else {
       ctx.strokeRect(0, 0, canvas.value.width, canvas.value.height)
@@ -1089,7 +1089,7 @@ function renderImageForExport() {
   // Border Radius
   if (transform.transforms.value.borderRadius > 0) {
     ctx.save()
-    roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, transform.transforms.value.borderRadius)
+    roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, getBorderRadiusPixels())
     ctx.clip()
   }
 
@@ -1100,7 +1100,7 @@ function renderImageForExport() {
     ctx.strokeStyle = transform.transforms.value.borderColor
     ctx.lineWidth = transform.transforms.value.borderWidth
     if (transform.transforms.value.borderRadius > 0) {
-      roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, transform.transforms.value.borderRadius)
+      roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, getBorderRadiusPixels())
       ctx.stroke()
     } else {
       ctx.strokeRect(0, 0, canvas.value.width, canvas.value.height)
@@ -1615,6 +1615,13 @@ function roundedRect(ctx, x, y, width, height, radius) {
   ctx.lineTo(x, y + radius)
   ctx.quadraticCurveTo(x, y, x + radius, y)
   ctx.closePath()
+}
+
+// Berechnet den Border-Radius in Pixeln aus dem Prozentwert (50% = perfekter Kreis)
+function getBorderRadiusPixels() {
+  if (!canvas.value) return 0
+  const percentage = transform.transforms.value.borderRadius
+  return (percentage / 100) * Math.min(canvas.value.width, canvas.value.height)
 }
 
 // ===== TEXT FUNCTIONS =====

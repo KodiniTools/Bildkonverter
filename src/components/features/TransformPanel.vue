@@ -551,9 +551,10 @@
               @change="$emit('commit-transform')"
               class="number-input"
             >
-            <span class="unit">px</span>
+            <span class="unit">%</span>
           </div>
         </div>
+        <p class="control-hint">{{ $t('transform.borderRadiusHint', '50% = vollständiger Kreis') }}</p>
       </div>
 
       <!-- Rahmen -->
@@ -1205,6 +1206,14 @@ defineEmits([
   font-size: 0.75rem;
   color: var(--color-text-secondary, #6b7280);
   font-weight: 500;
+}
+
+.control-hint {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary, #6b7280);
+  margin-top: 0.35rem;
+  font-style: italic;
+  opacity: 0.8;
 }
 
 /* Dark Mode - angeglichen an linke Sidebar */

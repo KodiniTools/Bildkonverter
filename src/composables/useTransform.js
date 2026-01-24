@@ -13,7 +13,7 @@ const DEFAULT_TRANSFORMS = {
   scale: 100,            // 10-200%
   flipHorizontal: false, // true/false
   flipVertical: false,   // true/false
-  borderRadius: 0,       // 0-50px
+  borderRadius: 0,       // 0-50% (50% = vollständiger Kreis)
   borderWidth: 0,        // 0-20px
   borderColor: '#000000', // Hex color
   panX: 0,               // Pan-Offset X (in Pixeln)
