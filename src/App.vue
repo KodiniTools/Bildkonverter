@@ -51,11 +51,11 @@ const settings = useSettingsStore()
 const textModal = useTextModal()
 const { locale } = useI18n()
 
-// Watchers
+// Watchers - settings.locale ist die einzige Quelle der Wahrheit
 watch(() => settings.locale, (newLocale) => {
   locale.value = newLocale
   document.documentElement.setAttribute('lang', newLocale)
-})
+}, { immediate: true })
 
 watch(() => settings.theme, (newTheme) => {
   const theme = newTheme === 'auto' 
