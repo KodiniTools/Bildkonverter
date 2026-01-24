@@ -9,6 +9,7 @@ import { useI18n } from 'vue-i18n'
 // Seitenverhältnis-Presets
 export const ASPECT_RATIO_PRESETS = [
   { id: 'free', label: 'Frei', ratio: null, icon: 'fa-expand' },
+  { id: 'circle', label: 'Kreis', ratio: 1, icon: 'fa-circle', isCircle: true },
   { id: '1:1', label: '1:1', ratio: 1, icon: 'fa-square' },
   { id: '4:3', label: '4:3', ratio: 4 / 3, icon: 'fa-image' },
   { id: '16:9', label: '16:9', ratio: 16 / 9, icon: 'fa-tv' },
@@ -515,19 +516,49 @@ export function useCrop() {
       cropCtx.imageSmoothingEnabled = true
       cropCtx.imageSmoothingQuality = 'high'
       
-      // Kopiere den zugeschnittenen Bereich vom SAUBEREN Canvas (ohne Texte)
-      cropCtx.drawImage(
-        tempCanvas,
-        Math.max(0, cropX),
-        Math.max(0, cropY),
-        Math.min(cropWidth, tempCanvas.width - cropX),
-        Math.min(cropHeight, tempCanvas.height - cropY),
-        0,
-        0,
-        cropCanvas.width,
-        cropCanvas.height
-      )
-      
+      // Prüfe ob Kreis-Preset aktiv ist
+      const currentPreset = ASPECT_RATIO_PRESETS.find(p => p.id === selectedAspectRatio.value)
+      const isCircleCrop = currentPreset?.isCircle === true
+
+      if (isCircleCrop) {
+        // Kreisförmiger Zuschnitt: Verwende Clipping-Maske
+        const centerX = cropCanvas.width / 2
+        const centerY = cropCanvas.height / 2
+        const radius = Math.min(cropCanvas.width, cropCanvas.height) / 2
+
+        // Erstelle kreisförmigen Clip-Pfad
+        cropCtx.beginPath()
+        cropCtx.arc(centerX, centerY, radius, 0, Math.PI * 2)
+        cropCtx.closePath()
+        cropCtx.clip()
+
+        // Zeichne das Bild innerhalb des Kreises
+        cropCtx.drawImage(
+          tempCanvas,
+          Math.max(0, cropX),
+          Math.max(0, cropY),
+          Math.min(cropWidth, tempCanvas.width - cropX),
+          Math.min(cropHeight, tempCanvas.height - cropY),
+          0,
+          0,
+          cropCanvas.width,
+          cropCanvas.height
+        )
+      } else {
+        // Normaler rechteckiger Zuschnitt
+        cropCtx.drawImage(
+          tempCanvas,
+          Math.max(0, cropX),
+          Math.max(0, cropY),
+          Math.min(cropWidth, tempCanvas.width - cropX),
+          Math.min(cropHeight, tempCanvas.height - cropY),
+          0,
+          0,
+          cropCanvas.width,
+          cropCanvas.height
+        )
+      }
+
       // Passe Text-Positionen an
       if (imageStore && imageStore.texts) {
         const textsToRemove = []
