@@ -520,6 +520,8 @@
           v-if="currentImage"
           :crop-mode="crop.cropMode.value"
           :has-cropped="crop.hasCropped.value"
+          :selected-aspect-ratio="crop.selectedAspectRatio.value"
+          :aspect-ratio-presets="ASPECT_RATIO_PRESETS"
           :transforms="transform.transforms.value"
           :can-pan="transform.canPan.value"
           :has-pan="transform.hasPan.value"
@@ -531,6 +533,7 @@
           :can-redo-transform="transform.canRedoTransform.value"
           @toggle-crop="handleToggleCrop"
           @undo-crop="handleUndoCrop"
+          @set-aspect-ratio="handleSetAspectRatio"
           @update:opacity="handleOpacityUpdate"
           @update:rotation="handleRotationUpdate"
           @update:scale="handleScaleUpdate"
@@ -602,7 +605,7 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useImageStore } from '@/stores/imageStore'
 import { useTextModal } from '@/composables/useTextModal'
-import { useCrop } from '@/composables/useCrop'
+import { useCrop, ASPECT_RATIO_PRESETS } from '@/composables/useCrop'
 import { useTransform } from '@/composables/useTransform'
 import { useFilterManagement, DEFAULT_FILTERS, DEFAULT_BACKGROUND } from '@/composables/useFilterManagement'
 import { useImageHistory } from '@/composables/useImageHistory'
@@ -1429,6 +1432,9 @@ function handleToggleCrop() {
   const result = crop.toggleCropMode()
   if (result === 'finish') {
     handleFinishCrop()
+  } else if (result === 'activated' && canvas.value) {
+    // Setze Canvas-Größe für Seitenverhältnis-Berechnung
+    crop.setCanvasSize(canvas.value.width, canvas.value.height)
   }
 }
 
@@ -1464,6 +1470,10 @@ function handleUndoCrop() {
       saveHistory()
     }
   })
+}
+
+function handleSetAspectRatio(ratioId) {
+  crop.setAspectRatio(ratioId)
 }
 
 // ===== TRANSFORM FUNCTIONS =====
