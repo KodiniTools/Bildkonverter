@@ -2049,10 +2049,14 @@ onUnmounted(() => {
 })
 
 function handleKeydown(e) {
+  // Ignoriere Shortcuts wenn Input/Textarea fokussiert ist
+  const isInputFocused = document.activeElement?.tagName === 'INPUT' ||
+                         document.activeElement?.tagName === 'TEXTAREA' ||
+                         document.activeElement?.tagName === 'SELECT'
+
   // Leertaste für Pan-Modus (nur wenn Zoom > 100%)
   if (e.code === 'Space' && transform.canPan.value && !e.repeat) {
-    // Nur aktivieren wenn kein Input-Element fokussiert ist
-    if (document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+    if (!isInputFocused) {
       e.preventDefault()
       isSpacePressed.value = true
       if (canvas.value) {
@@ -2061,24 +2065,108 @@ function handleKeydown(e) {
     }
   }
 
+  // Ctrl/Cmd Shortcuts
   if (e.ctrlKey || e.metaKey) {
-    if (e.key === 'z') {
+    if (e.key === 'z' && !e.shiftKey) {
       e.preventDefault()
-      undo()
-    } else if (e.key === 'y') {
+      // Erst Transform-Undo versuchen, dann allgemeines Undo
+      if (transform.canUndoTransform.value) {
+        handleUndoTransform()
+      } else {
+        undo()
+      }
+    } else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
       e.preventDefault()
-      redo()
+      // Erst Transform-Redo versuchen, dann allgemeines Redo
+      if (transform.canRedoTransform.value) {
+        handleRedoTransform()
+      } else {
+        redo()
+      }
     }
+    return
   }
 
-  // Delete selected text
-  if ((e.key === 'Delete' || e.key === 'Backspace') && selectedTextId.value) {
-    // Nur wenn kein Input-Element fokussiert ist
-    if (document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+  // Nur wenn kein Bild geladen ist, keine weiteren Shortcuts
+  if (!currentImage.value) return
+
+  // Nur wenn kein Input fokussiert ist
+  if (isInputFocused) return
+
+  // Transform Shortcuts (nur wenn Bild geladen)
+  switch (e.key) {
+    // Spiegeln
+    case 'h':
+    case 'H':
       e.preventDefault()
-      imageStore.deleteText(selectedTextId.value)
-      selectedTextId.value = null
-    }
+      handleFlipHorizontal()
+      break
+    case 'v':
+    case 'V':
+      e.preventDefault()
+      handleFlipVertical()
+      break
+
+    // Rotation mit Pfeiltasten
+    case 'ArrowLeft':
+      e.preventDefault()
+      if (e.shiftKey) {
+        // Grobe Rotation: -15°
+        transform.setRotation(transform.transforms.value.rotation - 15, true)
+      } else {
+        // Feine Rotation: -1°
+        transform.setRotation(transform.transforms.value.rotation - 1, true)
+      }
+      renderImage()
+      break
+    case 'ArrowRight':
+      e.preventDefault()
+      if (e.shiftKey) {
+        // Grobe Rotation: +15°
+        transform.setRotation(transform.transforms.value.rotation + 15, true)
+      } else {
+        // Feine Rotation: +1°
+        transform.setRotation(transform.transforms.value.rotation + 1, true)
+      }
+      renderImage()
+      break
+
+    // Rotation zurücksetzen
+    case 'r':
+    case 'R':
+      e.preventDefault()
+      if (transform.transforms.value.rotation !== 0) {
+        transform.setRotation(0, true)
+        renderImage()
+        if (window.$toast) {
+          window.$toast.info(t('toast.transform.rotationReset', 'Rotation zurückgesetzt'))
+        }
+      }
+      break
+
+    // Schnell-Rotationen mit Ziffern
+    case '1':
+      e.preventDefault()
+      handleRotate90Counter()
+      break
+    case '2':
+      e.preventDefault()
+      handleRotate180()
+      break
+    case '3':
+      e.preventDefault()
+      handleRotate90()
+      break
+
+    // Delete selected text
+    case 'Delete':
+    case 'Backspace':
+      if (selectedTextId.value) {
+        e.preventDefault()
+        imageStore.deleteText(selectedTextId.value)
+        selectedTextId.value = null
+      }
+      break
   }
 }
 
