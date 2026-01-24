@@ -163,7 +163,15 @@ const de = {
       title: 'Zuschneiden',
       button: 'Zuschneiden',
       confirm: 'Bestätigen',
-      undo: 'Rückgängig'
+      undo: 'Rückgängig',
+      aspectRatio: 'Seitenverhältnis',
+      presets: {
+        free: 'Frei',
+        square: '1:1',
+        landscape43: '4:3',
+        landscape169: '16:9',
+        portrait916: '9:16'
+      }
     },
     title: 'Transformationen',
     opacity: 'Deckkraft',
@@ -822,7 +830,15 @@ const en = {
       title: 'Crop',
       button: 'Crop',
       confirm: 'Confirm',
-      undo: 'Undo'
+      undo: 'Undo',
+      aspectRatio: 'Aspect Ratio',
+      presets: {
+        free: 'Free',
+        square: '1:1',
+        landscape43: '4:3',
+        landscape169: '16:9',
+        portrait916: '9:16'
+      }
     },
     title: 'Transformations',
     opacity: 'Opacity',

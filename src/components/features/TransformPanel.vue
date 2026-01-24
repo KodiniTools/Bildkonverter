@@ -304,7 +304,7 @@
       <div v-if="cropMode" class="aspect-ratio-section">
         <label class="aspect-label">
           <i class="fas fa-expand-arrows-alt"></i>
-          {{ $t('transform.crop.aspectRatio', 'Seitenverhältnis') }}
+          {{ $t('transform.crop.aspectRatio') }}
         </label>
         <div class="aspect-ratio-grid">
           <button
@@ -313,10 +313,10 @@
             class="aspect-btn"
             :class="{ 'active': selectedAspectRatio === preset.id }"
             @click="$emit('set-aspect-ratio', preset.id)"
-            :title="preset.label"
+            :title="getPresetLabel(preset)"
           >
             <i :class="'fas ' + preset.icon"></i>
-            <span>{{ preset.label }}</span>
+            <span>{{ getPresetLabel(preset) }}</span>
           </button>
         </div>
       </div>
@@ -604,7 +604,10 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { availableFonts } from '@/assets/fonts/fontList.js'
+
+const { t } = useI18n()
 
 // System-Schriftarten als Fallback
 const systemFonts = [
@@ -618,6 +621,15 @@ const systemFonts = [
 
 // Alle Schriften kombinieren (benutzerdefiniert zuerst, dann System)
 const allFonts = [...availableFonts, ...systemFonts]
+
+// Übersetzung für Aspect Ratio Presets
+function getPresetLabel(preset) {
+  if (preset.id === 'free') {
+    return t('transform.crop.presets.free')
+  }
+  // Numerische Verhältnisse bleiben unverändert
+  return preset.label
+}
 
 defineProps({
   cropMode: {
