@@ -89,7 +89,7 @@ import { useI18n } from 'vue-i18n'
 const emit = defineEmits(['image-loaded'])
 
 const imageStore = useImageStore()
-const { t } = useI18n()
+const { t } = useI18n({ useScope: 'global' })
 
 const fileInput = ref(null)
 const isDragging = ref(false)
