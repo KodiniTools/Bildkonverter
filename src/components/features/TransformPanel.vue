@@ -340,37 +340,67 @@
       <!-- Deckkraft -->
       <div class="control-group">
         <label>
-          <i class="fas fa-adjust"></i>
-          {{ $t('transform.opacity') }}
-          <span class="value">{{ transforms.opacity }}%</span>
+          <span class="label-text">
+            <i class="fas fa-adjust"></i>
+            {{ $t('transform.opacity') }}
+          </span>
         </label>
-        <input
-          type="range"
-          min="0"
-          max="100"
-          :value="transforms.opacity"
-          @input="$emit('update:opacity', Number($event.target.value))"
-          @change="$emit('commit-transform')"
-          class="slider"
-        >
+        <div class="slider-with-input">
+          <input
+            type="range"
+            min="0"
+            max="100"
+            :value="transforms.opacity"
+            @input="$emit('update:opacity', Number($event.target.value))"
+            @change="$emit('commit-transform')"
+            class="slider"
+          >
+          <div class="number-input-wrapper">
+            <input
+              type="number"
+              min="0"
+              max="100"
+              :value="transforms.opacity"
+              @input="$emit('update:opacity', Math.min(100, Math.max(0, Number($event.target.value))))"
+              @change="$emit('commit-transform')"
+              class="number-input"
+            >
+            <span class="unit">%</span>
+          </div>
+        </div>
       </div>
 
       <!-- Rotation -->
       <div class="control-group">
         <label>
-          <i class="fas fa-redo"></i>
-          {{ $t('transform.rotation') }}
-          <span class="value">{{ transforms.rotation }}°</span>
+          <span class="label-text">
+            <i class="fas fa-redo"></i>
+            {{ $t('transform.rotation') }}
+          </span>
         </label>
-        <input
-          type="range"
-          min="-180"
-          max="180"
-          :value="transforms.rotation"
-          @input="$emit('update:rotation', Number($event.target.value))"
-          @change="$emit('commit-transform')"
-          class="slider"
-        >
+        <div class="slider-with-input">
+          <input
+            type="range"
+            min="-180"
+            max="180"
+            :value="transforms.rotation"
+            @input="$emit('update:rotation', Number($event.target.value))"
+            @change="$emit('commit-transform')"
+            class="slider"
+          >
+          <div class="number-input-wrapper">
+            <input
+              type="number"
+              min="-180"
+              max="180"
+              :value="transforms.rotation"
+              @input="$emit('update:rotation', Math.min(180, Math.max(-180, Number($event.target.value))))"
+              @change="$emit('commit-transform')"
+              class="number-input"
+            >
+            <span class="unit">°</span>
+          </div>
+        </div>
       </div>
 
       <!-- Schnell-Rotation Buttons -->
@@ -426,19 +456,34 @@
       <!-- Zoom/Skalierung -->
       <div class="control-group">
         <label>
-          <i class="fas fa-search-plus"></i>
-          {{ $t('transform.zoom') }}
-          <span class="value">{{ transforms.scale }}%</span>
+          <span class="label-text">
+            <i class="fas fa-search-plus"></i>
+            {{ $t('transform.zoom') }}
+          </span>
         </label>
-        <input
-          type="range"
-          min="10"
-          max="200"
-          :value="transforms.scale"
-          @input="$emit('update:scale', Number($event.target.value))"
-          @change="$emit('commit-transform')"
-          class="slider"
-        >
+        <div class="slider-with-input">
+          <input
+            type="range"
+            min="10"
+            max="200"
+            :value="transforms.scale"
+            @input="$emit('update:scale', Number($event.target.value))"
+            @change="$emit('commit-transform')"
+            class="slider"
+          >
+          <div class="number-input-wrapper">
+            <input
+              type="number"
+              min="10"
+              max="200"
+              :value="transforms.scale"
+              @input="$emit('update:scale', Math.min(200, Math.max(10, Number($event.target.value))))"
+              @change="$emit('commit-transform')"
+              class="number-input"
+            >
+            <span class="unit">%</span>
+          </div>
+        </div>
       </div>
 
       <!-- Pan-Hinweis und Reset (nur bei Zoom > 100%) -->
@@ -460,37 +505,67 @@
       <!-- Ecken abrunden -->
       <div class="control-group">
         <label>
-          <i class="fas fa-circle"></i>
-          {{ $t('transform.borderRadius') }}
-          <span class="value">{{ transforms.borderRadius }}px</span>
+          <span class="label-text">
+            <i class="fas fa-circle"></i>
+            {{ $t('transform.borderRadius') }}
+          </span>
         </label>
-        <input
-          type="range"
-          min="0"
-          max="50"
-          :value="transforms.borderRadius"
-          @input="$emit('update:border-radius', Number($event.target.value))"
-          @change="$emit('commit-transform')"
-          class="slider"
-        >
+        <div class="slider-with-input">
+          <input
+            type="range"
+            min="0"
+            max="50"
+            :value="transforms.borderRadius"
+            @input="$emit('update:border-radius', Number($event.target.value))"
+            @change="$emit('commit-transform')"
+            class="slider"
+          >
+          <div class="number-input-wrapper">
+            <input
+              type="number"
+              min="0"
+              max="50"
+              :value="transforms.borderRadius"
+              @input="$emit('update:border-radius', Math.min(50, Math.max(0, Number($event.target.value))))"
+              @change="$emit('commit-transform')"
+              class="number-input"
+            >
+            <span class="unit">px</span>
+          </div>
+        </div>
       </div>
 
       <!-- Rahmen -->
       <div class="control-group">
         <label>
-          <i class="fas fa-border-style"></i>
-          {{ $t('transform.border') }}
-          <span class="value">{{ transforms.borderWidth }}px</span>
+          <span class="label-text">
+            <i class="fas fa-border-style"></i>
+            {{ $t('transform.border') }}
+          </span>
         </label>
-        <input
-          type="range"
-          min="0"
-          max="20"
-          :value="transforms.borderWidth"
-          @input="$emit('update:border-width', Number($event.target.value))"
-          @change="$emit('commit-transform')"
-          class="slider"
-        >
+        <div class="slider-with-input">
+          <input
+            type="range"
+            min="0"
+            max="20"
+            :value="transforms.borderWidth"
+            @input="$emit('update:border-width', Number($event.target.value))"
+            @change="$emit('commit-transform')"
+            class="slider"
+          >
+          <div class="number-input-wrapper">
+            <input
+              type="number"
+              min="0"
+              max="20"
+              :value="transforms.borderWidth"
+              @input="$emit('update:border-width', Math.min(20, Math.max(0, Number($event.target.value))))"
+              @change="$emit('commit-transform')"
+              class="number-input"
+            >
+            <span class="unit">px</span>
+          </div>
+        </div>
 
         <div v-if="transforms.borderWidth > 0" class="color-picker-group">
           <input
@@ -754,6 +829,11 @@ defineEmits([
     font-weight: 500;
     opacity: 0.85;
 
+    .label-text {
+      display: flex;
+      align-items: center;
+    }
+
     i {
       margin-right: 0.5rem;
       color: var(--color-primary, #3b82f6);
@@ -771,6 +851,84 @@ defineEmits([
       padding: 2px 6px;
       border-radius: 4px;
     }
+  }
+}
+
+/* Slider mit numerischem Eingabefeld */
+.slider-with-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  .slider {
+    flex: 1;
+  }
+}
+
+.number-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: var(--color-bg, #ffffff);
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 4px;
+  padding: 0 4px 0 0;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--color-primary, #3b82f6);
+  }
+
+  &:focus-within {
+    border-color: var(--color-primary, #3b82f6);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  }
+
+  .number-input {
+    width: 42px;
+    padding: 4px 2px 4px 6px;
+    border: none;
+    background: transparent;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    color: var(--color-primary, #3b82f6);
+    text-align: right;
+    -moz-appearance: textfield;
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  .unit {
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: var(--color-text-secondary, #6b7280);
+    margin-left: 1px;
+  }
+}
+
+/* Dark Mode für number-input */
+.dark-mode .number-input-wrapper {
+  background: #374151;
+  border-color: #4b5563;
+
+  &:hover {
+    border-color: var(--color-primary, #3b82f6);
+  }
+
+  .number-input {
+    color: var(--color-primary, #3b82f6);
+  }
+
+  .unit {
+    color: #9ca3af;
   }
 }
 
