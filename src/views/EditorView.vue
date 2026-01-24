@@ -2446,73 +2446,60 @@ function handleKeyup(e) {
   }
 }
 
-/* Resize Handles */
+/* Resize Handles - rein visuell, Canvas handled alle Events */
 .resize-handle {
   position: absolute;
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   background: #4ade80;
   border: 2px solid white;
-  border-radius: 2px;
-  pointer-events: auto;
+  border-radius: 3px;
+  pointer-events: none;
   z-index: 101;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 
   &.handle-nw {
-    top: -6px;
-    left: -6px;
-    cursor: nwse-resize;
+    top: -7px;
+    left: -7px;
   }
 
   &.handle-n {
-    top: -6px;
+    top: -7px;
     left: 50%;
     transform: translateX(-50%);
-    cursor: ns-resize;
   }
 
   &.handle-ne {
-    top: -6px;
-    right: -6px;
-    cursor: nesw-resize;
+    top: -7px;
+    right: -7px;
   }
 
   &.handle-e {
     top: 50%;
-    right: -6px;
+    right: -7px;
     transform: translateY(-50%);
-    cursor: ew-resize;
   }
 
   &.handle-se {
-    bottom: -6px;
-    right: -6px;
-    cursor: nwse-resize;
+    bottom: -7px;
+    right: -7px;
   }
 
   &.handle-s {
-    bottom: -6px;
+    bottom: -7px;
     left: 50%;
     transform: translateX(-50%);
-    cursor: ns-resize;
   }
 
   &.handle-sw {
-    bottom: -6px;
-    left: -6px;
-    cursor: nesw-resize;
+    bottom: -7px;
+    left: -7px;
   }
 
   &.handle-w {
     top: 50%;
-    left: -6px;
+    left: -7px;
     transform: translateY(-50%);
-    cursor: ew-resize;
-  }
-
-  &:hover {
-    background: #22c55e;
-    transform-origin: center;
   }
 }
 
