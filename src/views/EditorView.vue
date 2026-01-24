@@ -934,24 +934,42 @@ function renderImage() {
   // Border Radius (abgerundete Ecken)
   if (transform.transforms.value.borderRadius > 0) {
     ctx.save()
-    roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, getBorderRadiusPixels())
-    ctx.clip()
+    if (transform.transforms.value.borderRadius >= 50) {
+      // Vollständiger Kreis-Clip (50% = perfekter Kreis)
+      const centerX = canvas.value.width / 2
+      const centerY = canvas.value.height / 2
+      const radius = Math.min(canvas.value.width, canvas.value.height) / 2
+      ctx.beginPath()
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
+      ctx.clip()
+    } else {
+      roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, getBorderRadiusPixels())
+      ctx.clip()
+    }
   }
-  
+
   ctx.drawImage(currentImage.value, 0, 0, canvas.value.width, canvas.value.height)
   
   // Border zeichnen
   if (transform.transforms.value.borderWidth > 0) {
     ctx.strokeStyle = transform.transforms.value.borderColor
     ctx.lineWidth = transform.transforms.value.borderWidth
-    if (transform.transforms.value.borderRadius > 0) {
+    if (transform.transforms.value.borderRadius >= 50) {
+      // Vollständiger Kreis (50% = perfekter Kreis)
+      const centerX = canvas.value.width / 2
+      const centerY = canvas.value.height / 2
+      const radius = Math.min(canvas.value.width, canvas.value.height) / 2 - transform.transforms.value.borderWidth / 2
+      ctx.beginPath()
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
+      ctx.stroke()
+    } else if (transform.transforms.value.borderRadius > 0) {
       roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, getBorderRadiusPixels())
       ctx.stroke()
     } else {
       ctx.strokeRect(0, 0, canvas.value.width, canvas.value.height)
     }
   }
-  
+
   if (transform.transforms.value.borderRadius > 0) {
     ctx.restore()
   }
@@ -1089,8 +1107,18 @@ function renderImageForExport() {
   // Border Radius
   if (transform.transforms.value.borderRadius > 0) {
     ctx.save()
-    roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, getBorderRadiusPixels())
-    ctx.clip()
+    if (transform.transforms.value.borderRadius >= 50) {
+      // Vollständiger Kreis-Clip (50% = perfekter Kreis)
+      const centerX = canvas.value.width / 2
+      const centerY = canvas.value.height / 2
+      const radius = Math.min(canvas.value.width, canvas.value.height) / 2
+      ctx.beginPath()
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
+      ctx.clip()
+    } else {
+      roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, getBorderRadiusPixels())
+      ctx.clip()
+    }
   }
 
   ctx.drawImage(currentImage.value, 0, 0, canvas.value.width, canvas.value.height)
@@ -1099,7 +1127,15 @@ function renderImageForExport() {
   if (transform.transforms.value.borderWidth > 0) {
     ctx.strokeStyle = transform.transforms.value.borderColor
     ctx.lineWidth = transform.transforms.value.borderWidth
-    if (transform.transforms.value.borderRadius > 0) {
+    if (transform.transforms.value.borderRadius >= 50) {
+      // Vollständiger Kreis (50% = perfekter Kreis)
+      const centerX = canvas.value.width / 2
+      const centerY = canvas.value.height / 2
+      const radius = Math.min(canvas.value.width, canvas.value.height) / 2 - transform.transforms.value.borderWidth / 2
+      ctx.beginPath()
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
+      ctx.stroke()
+    } else if (transform.transforms.value.borderRadius > 0) {
       roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, getBorderRadiusPixels())
       ctx.stroke()
     } else {
