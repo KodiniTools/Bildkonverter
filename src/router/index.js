@@ -29,6 +29,14 @@ const router = createRouter({
       }
     },
     {
+      path: '/guide',
+      name: 'guide',
+      component: () => import('@/views/GuideView.vue'),
+      meta: {
+        title: 'Guide'
+      }
+    },
+    {
       path: '/about',
       name: 'about',
       component: () => import('@/views/AboutView.vue'),

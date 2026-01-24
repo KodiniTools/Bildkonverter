@@ -15,6 +15,7 @@ const de = {
     home: 'Startseite',
     editor: 'Editor',
     gallery: 'Galerie',
+    guide: 'Anleitung',
     about: 'Über uns',
     upload: 'Bild hochladen',
     edit: 'Bearbeiten',
@@ -348,6 +349,172 @@ const de = {
       description: 'Hast du Fragen oder Feedback?'
     }
   },
+  guide: {
+    title: 'Benutzeranleitung',
+    subtitle: 'Lernen Sie alle Funktionen des Bildkonverters kennen',
+    quickStart: {
+      title: 'Schnellstart',
+      step1: {
+        title: 'Bild hochladen',
+        description: 'Ziehen Sie ein Bild in den Editor oder klicken Sie auf "Bild hochladen", um eine Datei auszuwählen.'
+      },
+      step2: {
+        title: 'Bild bearbeiten',
+        description: 'Nutzen Sie Filter, Anpassungen und Transformationen, um Ihr Bild nach Ihren Wünschen zu gestalten.'
+      },
+      step3: {
+        title: 'Speichern & Herunterladen',
+        description: 'Wählen Sie Ihr gewünschtes Format und laden Sie das fertige Bild herunter.'
+      }
+    },
+    upload: {
+      title: 'Bilder hochladen',
+      description: 'Es gibt mehrere Wege, ein Bild in den Editor zu laden:',
+      methods: {
+        dragDrop: 'Ziehen Sie ein Bild direkt in den Editor (Drag & Drop)',
+        fileSelect: 'Klicken Sie auf "Bild hochladen" und wählen Sie eine Datei aus',
+        url: 'Laden Sie ein Bild über eine URL',
+        demo: 'Verwenden Sie das Demo-Bild zum Ausprobieren'
+      },
+      formatsTitle: 'Unterstützte Formate'
+    },
+    filters: {
+      title: 'Filter & Anpassungen',
+      description: 'Mit den Filtern können Sie das Aussehen Ihres Bildes verändern. Alle Änderungen werden in Echtzeit angezeigt.',
+      brightness: {
+        title: 'Helligkeit',
+        description: 'Macht das Bild heller oder dunkler'
+      },
+      contrast: {
+        title: 'Kontrast',
+        description: 'Verstärkt oder verringert den Unterschied zwischen hellen und dunklen Bereichen'
+      },
+      saturation: {
+        title: 'Sättigung',
+        description: 'Passt die Farbintensität an - von grau bis leuchtend'
+      },
+      grayscale: {
+        title: 'Graustufen',
+        description: 'Wandelt das Bild in Schwarz-Weiß um'
+      },
+      sepia: {
+        title: 'Sepia/Wärme',
+        description: 'Verleiht dem Bild einen warmen, nostalgischen Braunton'
+      },
+      sharpness: {
+        title: 'Schärfe',
+        description: 'Macht Kanten und Details deutlicher sichtbar'
+      }
+    },
+    presets: {
+      title: 'Voreinstellungen (Presets)',
+      description: 'Wählen Sie eine fertige Voreinstellung für schnelle Bildeffekte. Sie können auch eigene Presets erstellen und speichern.',
+      list: {
+        original: 'Original',
+        vibrant: 'Lebhaft',
+        vintage: 'Vintage',
+        blackWhite: 'Schwarz-Weiß',
+        dramatic: 'Dramatisch',
+        soft: 'Weich',
+        warm: 'Warm',
+        cool: 'Kühl'
+      },
+      tip: 'Tipp: Erstellen Sie eigene Presets, um Ihre Lieblingseinstellungen zu speichern und schnell anzuwenden.'
+    },
+    crop: {
+      title: 'Zuschneiden',
+      description: 'Mit der Zuschneiden-Funktion können Sie einen bestimmten Bereich Ihres Bildes auswählen und den Rest entfernen.',
+      steps: {
+        step1: 'Klicken Sie auf den "Zuschneiden"-Button in der Werkzeugleiste',
+        step2: 'Ziehen Sie mit der Maus einen Rahmen um den gewünschten Bereich',
+        step3: 'Passen Sie den Rahmen bei Bedarf an',
+        step4: 'Klicken Sie auf "Bestätigen", um das Bild zuzuschneiden'
+      }
+    },
+    transform: {
+      title: 'Transformationen',
+      description: 'Drehen, spiegeln und zoomen Sie Ihr Bild nach Belieben.',
+      rotate: {
+        title: 'Drehen',
+        description: 'Drehen Sie das Bild um 90° oder 180° in jede Richtung'
+      },
+      flip: {
+        title: 'Spiegeln',
+        description: 'Spiegeln Sie das Bild horizontal oder vertikal'
+      },
+      zoom: {
+        title: 'Zoom',
+        description: 'Vergrößern oder verkleinern Sie die Ansicht des Bildes'
+      },
+      border: {
+        title: 'Rahmen & Ecken',
+        description: 'Fügen Sie einen Rahmen hinzu oder runden Sie die Ecken ab'
+      }
+    },
+    text: {
+      title: 'Text hinzufügen',
+      description: 'Fügen Sie Text zu Ihrem Bild hinzu und gestalten Sie ihn individuell.',
+      features: {
+        fontSize: 'Schriftgröße anpassen',
+        color: 'Textfarbe wählen',
+        fontFamily: 'Aus verschiedenen Schriftarten wählen',
+        rotation: 'Text drehen',
+        opacity: 'Transparenz einstellen',
+        stroke: 'Umrandung hinzufügen',
+        shadow: 'Schatten hinzufügen'
+      },
+      tip: 'Tipp: Klicken Sie auf einen Text im Bild, um ihn auszuwählen und zu bearbeiten. Ziehen Sie den Text an die gewünschte Position.'
+    },
+    resize: {
+      title: 'Größe ändern',
+      description: 'Ändern Sie die Abmessungen Ihres Bildes.',
+      features: {
+        custom: 'Geben Sie Breite und Höhe manuell ein',
+        aspectRatio: 'Seitenverhältnis beibehalten für proportionale Größenänderung',
+        presets: 'Wählen Sie aus vordefinierten Größen für Social Media und Web'
+      }
+    },
+    export: {
+      title: 'Exportieren & Herunterladen',
+      description: 'Speichern Sie Ihr bearbeitetes Bild in verschiedenen Formaten.',
+      steps: {
+        step1: 'Klicken Sie auf den "Download"-Button',
+        step2: 'Wählen Sie das gewünschte Dateiformat',
+        step3: 'Das Bild wird automatisch heruntergeladen'
+      },
+      formatsTitle: 'Verfügbare Exportformate'
+    },
+    gallery: {
+      title: 'Galerie',
+      description: 'In der Galerie können Sie mehrere Bilder speichern und verwalten.',
+      features: {
+        upload: 'Laden Sie mehrere Bilder auf einmal hoch',
+        preview: 'Zeigen Sie Bilder in einer Vorschau an',
+        openEditor: 'Öffnen Sie ein Bild direkt im Editor zur Bearbeitung',
+        download: 'Laden Sie Bilder einzeln herunter',
+        delete: 'Löschen Sie nicht mehr benötigte Bilder'
+      }
+    },
+    history: {
+      title: 'Verlauf (Rückgängig/Wiederholen)',
+      description: 'Alle Ihre Bearbeitungsschritte werden gespeichert. Sie können jederzeit Änderungen rückgängig machen oder wiederherstellen.',
+      undo: 'Rückgängig',
+      redo: 'Wiederholen'
+    },
+    settings: {
+      title: 'Einstellungen',
+      description: 'Passen Sie die Anwendung an Ihre Bedürfnisse an.',
+      features: {
+        language: 'Sprache wechseln (Deutsch/Englisch)',
+        theme: 'Zwischen hellem und dunklem Design wechseln'
+      }
+    },
+    cta: {
+      title: 'Bereit zum Loslegen?',
+      description: 'Öffnen Sie jetzt den Editor und beginnen Sie mit der Bearbeitung Ihrer Bilder!',
+      button: 'Zum Editor'
+    }
+  },
   upload: {
     title: 'Bild hochladen',
     dropzone: 'Bild hier ablegen oder klicken zum Auswählen',
@@ -504,6 +671,7 @@ const en = {
     home: 'Home',
     editor: 'Editor',
     gallery: 'Gallery',
+    guide: 'Guide',
     about: 'About',
     upload: 'Upload Image',
     edit: 'Edit',
@@ -835,6 +1003,172 @@ const en = {
     contact: {
       title: 'Contact',
       description: 'Have questions or feedback?'
+    }
+  },
+  guide: {
+    title: 'User Guide',
+    subtitle: 'Learn all the features of the Image Converter',
+    quickStart: {
+      title: 'Quick Start',
+      step1: {
+        title: 'Upload Image',
+        description: 'Drag an image into the editor or click "Upload Image" to select a file.'
+      },
+      step2: {
+        title: 'Edit Image',
+        description: 'Use filters, adjustments, and transformations to customize your image.'
+      },
+      step3: {
+        title: 'Save & Download',
+        description: 'Choose your desired format and download the finished image.'
+      }
+    },
+    upload: {
+      title: 'Upload Images',
+      description: 'There are several ways to load an image into the editor:',
+      methods: {
+        dragDrop: 'Drag an image directly into the editor (Drag & Drop)',
+        fileSelect: 'Click "Upload Image" and select a file',
+        url: 'Load an image via URL',
+        demo: 'Use the demo image to try out'
+      },
+      formatsTitle: 'Supported Formats'
+    },
+    filters: {
+      title: 'Filters & Adjustments',
+      description: 'Use filters to change the appearance of your image. All changes are displayed in real-time.',
+      brightness: {
+        title: 'Brightness',
+        description: 'Makes the image brighter or darker'
+      },
+      contrast: {
+        title: 'Contrast',
+        description: 'Increases or decreases the difference between light and dark areas'
+      },
+      saturation: {
+        title: 'Saturation',
+        description: 'Adjusts color intensity - from gray to vibrant'
+      },
+      grayscale: {
+        title: 'Grayscale',
+        description: 'Converts the image to black and white'
+      },
+      sepia: {
+        title: 'Sepia/Warmth',
+        description: 'Gives the image a warm, nostalgic brown tone'
+      },
+      sharpness: {
+        title: 'Sharpness',
+        description: 'Makes edges and details more visible'
+      }
+    },
+    presets: {
+      title: 'Presets',
+      description: 'Choose a ready-made preset for quick image effects. You can also create and save your own presets.',
+      list: {
+        original: 'Original',
+        vibrant: 'Vibrant',
+        vintage: 'Vintage',
+        blackWhite: 'Black & White',
+        dramatic: 'Dramatic',
+        soft: 'Soft',
+        warm: 'Warm',
+        cool: 'Cool'
+      },
+      tip: 'Tip: Create your own presets to save your favorite settings and apply them quickly.'
+    },
+    crop: {
+      title: 'Crop',
+      description: 'Use the crop function to select a specific area of your image and remove the rest.',
+      steps: {
+        step1: 'Click the "Crop" button in the toolbar',
+        step2: 'Draw a frame around the desired area with your mouse',
+        step3: 'Adjust the frame if needed',
+        step4: 'Click "Confirm" to crop the image'
+      }
+    },
+    transform: {
+      title: 'Transformations',
+      description: 'Rotate, flip, and zoom your image as you like.',
+      rotate: {
+        title: 'Rotate',
+        description: 'Rotate the image by 90° or 180° in any direction'
+      },
+      flip: {
+        title: 'Flip',
+        description: 'Flip the image horizontally or vertically'
+      },
+      zoom: {
+        title: 'Zoom',
+        description: 'Enlarge or reduce the view of the image'
+      },
+      border: {
+        title: 'Border & Corners',
+        description: 'Add a border or round the corners'
+      }
+    },
+    text: {
+      title: 'Add Text',
+      description: 'Add text to your image and customize it individually.',
+      features: {
+        fontSize: 'Adjust font size',
+        color: 'Choose text color',
+        fontFamily: 'Select from various fonts',
+        rotation: 'Rotate text',
+        opacity: 'Set transparency',
+        stroke: 'Add outline',
+        shadow: 'Add shadow'
+      },
+      tip: 'Tip: Click on text in the image to select and edit it. Drag the text to the desired position.'
+    },
+    resize: {
+      title: 'Resize',
+      description: 'Change the dimensions of your image.',
+      features: {
+        custom: 'Enter width and height manually',
+        aspectRatio: 'Maintain aspect ratio for proportional resizing',
+        presets: 'Choose from predefined sizes for social media and web'
+      }
+    },
+    export: {
+      title: 'Export & Download',
+      description: 'Save your edited image in various formats.',
+      steps: {
+        step1: 'Click the "Download" button',
+        step2: 'Choose the desired file format',
+        step3: 'The image will be downloaded automatically'
+      },
+      formatsTitle: 'Available Export Formats'
+    },
+    gallery: {
+      title: 'Gallery',
+      description: 'In the gallery you can store and manage multiple images.',
+      features: {
+        upload: 'Upload multiple images at once',
+        preview: 'View images in a preview',
+        openEditor: 'Open an image directly in the editor for editing',
+        download: 'Download images individually',
+        delete: 'Delete images you no longer need'
+      }
+    },
+    history: {
+      title: 'History (Undo/Redo)',
+      description: 'All your editing steps are saved. You can undo or redo changes at any time.',
+      undo: 'Undo',
+      redo: 'Redo'
+    },
+    settings: {
+      title: 'Settings',
+      description: 'Customize the application to your needs.',
+      features: {
+        language: 'Switch language (German/English)',
+        theme: 'Switch between light and dark design'
+      }
+    },
+    cta: {
+      title: 'Ready to Get Started?',
+      description: 'Open the editor now and start editing your images!',
+      button: 'Go to Editor'
     }
   },
   upload: {
