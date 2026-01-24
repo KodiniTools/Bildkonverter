@@ -200,7 +200,9 @@ const de = {
     add: 'Hinzufügen',
     update: 'Aktualisieren',
     delete: 'Löschen',
-    cancel: 'Abbrechen'
+    cancel: 'Abbrechen',
+    undo: 'Rückgängig',
+    redo: 'Wiederherstellen'
   },
   textPanel: {
     title: 'Text bearbeiten',
@@ -856,7 +858,9 @@ const en = {
     add: 'Add',
     update: 'Update',
     delete: 'Delete',
-    cancel: 'Cancel'
+    cancel: 'Cancel',
+    undo: 'Undo',
+    redo: 'Redo'
   },
   textPanel: {
     title: 'Edit Text',
