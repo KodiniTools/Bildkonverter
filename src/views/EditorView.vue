@@ -2051,8 +2051,9 @@ async function loadGalleryImage(galleryImageId) {
 
 // Globaler MouseMove Handler für Crop Drag/Resize außerhalb des Canvas
 function handleGlobalMouseMove(e) {
-  // Nur wenn wir gerade draggen oder resizen
-  if (!crop.isDragging.value && !crop.isResizing.value && !isPanning.value && !isDraggingText.value) {
+  // Nur wenn wir gerade draggen, resizen, erstellen oder andere Aktionen ausführen
+  const isCropActive = crop.isDragging.value || crop.isResizing.value || crop.isCreating.value
+  if (!isCropActive && !isPanning.value && !isDraggingText.value) {
     return
   }
 
@@ -2071,8 +2072,8 @@ function handleGlobalMouseMove(e) {
     y: displayY * scaleY
   }
 
-  // Crop-Handling
-  if (crop.isDragging.value || crop.isResizing.value) {
+  // Crop-Handling (Dragging, Resizing oder Creating)
+  if (isCropActive) {
     crop.handleMouseMove(pos)
     return
   }
@@ -2101,7 +2102,7 @@ function handleGlobalMouseMove(e) {
 // Globaler MouseUp Handler für Crop Drag/Resize außerhalb des Canvas
 function handleGlobalMouseUp() {
   // Stoppe alle aktiven Crop-Operationen
-  if (crop.isDragging.value || crop.isResizing.value) {
+  if (crop.isDragging.value || crop.isResizing.value || crop.isCreating.value) {
     crop.cancelDragResize()
   }
   // Stoppe auch Text-Dragging
