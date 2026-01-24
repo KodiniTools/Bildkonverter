@@ -1495,11 +1495,17 @@ function handleFinishCrop() {
     currentImage,
     filters,
     imageStore,
-    onCropComplete: (img, width, height) => {
+    onCropComplete: (img, width, height, isCircleCrop) => {
       currentImage.value = img
       canvas.value.width = width
       canvas.value.height = height
       resizeManager.initFromDimensions(width, height)
+
+      // Bei Kreis-Zuschnitt automatisch borderRadius auf 50% setzen
+      if (isCircleCrop) {
+        transform.setBorderRadius(50, false)
+      }
+
       renderImage()
       updateImageSize() // Dateigröße neu berechnen nach Crop
       saveHistory()

@@ -585,11 +585,11 @@ export function useCrop() {
       // Lade das zugeschnittene Bild
       const croppedDataUrl = cropCanvas.toDataURL('image/png')
       const img = new Image()
-      
+
       img.onload = () => {
-        // Callback für externe Updates
+        // Callback für externe Updates (mit isCircle Flag für automatischen Kreis-Rahmen)
         if (context.onCropComplete) {
-          context.onCropComplete(img, cropCanvas.width, cropCanvas.height)
+          context.onCropComplete(img, cropCanvas.width, cropCanvas.height, isCircleCrop)
         }
         
         // Markiere dass zugeschnitten wurde
