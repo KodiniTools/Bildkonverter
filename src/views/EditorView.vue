@@ -528,6 +528,8 @@
           :has-texts="imageStore.texts && imageStore.texts.length > 0"
           :can-undo-text="canUndoText"
           :can-redo-text="canRedoText"
+          :can-undo-transform="transform.canUndoTransform.value"
+          :can-redo-transform="transform.canRedoTransform.value"
           @toggle-crop="handleToggleCrop"
           @undo-crop="handleUndoCrop"
           @update:opacity="handleOpacityUpdate"
@@ -541,9 +543,11 @@
           @rotate-180="handleRotate180"
           @flip-horizontal="handleFlipHorizontal"
           @flip-vertical="handleFlipVertical"
-          @apply-transforms="handleApplyTransforms"
           @reset-transforms="handleResetTransforms"
           @reset-pan="handleResetPan"
+          @undo-transform="handleUndoTransform"
+          @redo-transform="handleRedoTransform"
+          @commit-transform="handleCommitTransform"
           @update:text-content="handleTextContentUpdate"
           @update:text-font-size="handleTextFontSizeUpdate"
           @update:text-font-family="handleTextFontFamilyUpdate"
@@ -833,12 +837,12 @@ function handleFileSelect(event) {
 
 async function loadImage(img) {
   currentImage.value = img
-  
+
   // Reset Crop-Zustand über Composable
   crop.resetCropState()
-  
-  // Reset Transform-Zustand über Composable
-  transform.resetTransforms()
+
+  // Initialisiere Transform-History für neues Bild
+  transform.initTransformHistory()
   
   // Warte bis Vue das Canvas gerendert hat
   await nextTick()
@@ -1543,38 +1547,27 @@ function handleFlipVertical() {
   }
 }
 
-async function handleApplyTransforms() {
-  if (!currentImage.value || !canvas.value) return
-  
-  try {
-    console.log('Wende Transformationen permanent an...')
-    
-    const result = await transform.applyPermanently(currentImage.value, canvas.value)
-    
-    if (result) {
-      currentImage.value = result.img
-      canvas.value.width = result.width
-      canvas.value.height = result.height
-      resizeManager.initFromDimensions(result.width, result.height)
-
-      renderImage()
-      updateImageSize() // Dateigröße neu berechnen nach Transform
-      saveHistory()
-      
-      // Reset transforms nach Anwendung
-      transform.resetTransforms()
-      
-      console.log('✅ Transformationen erfolgreich angewendet')
-      if (window.$toast) {
-        window.$toast.success(t('toast.editor.transformApplied'))
-      }
-    }
-  } catch (error) {
-    console.error('Fehler beim Anwenden der Transformationen:', error)
+// Transform Undo/Redo Handler
+function handleUndoTransform() {
+  if (transform.undoTransform()) {
+    renderImage()
     if (window.$toast) {
-      window.$toast.error(t('toast.editor.transformError'), error.message)
+      window.$toast.info(t('toast.transform.undo', 'Transformation rückgängig'))
     }
   }
+}
+
+function handleRedoTransform() {
+  if (transform.redoTransform()) {
+    renderImage()
+    if (window.$toast) {
+      window.$toast.info(t('toast.transform.redo', 'Transformation wiederhergestellt'))
+    }
+  }
+}
+
+function handleCommitTransform() {
+  transform.commitTransform()
 }
 
 function handleResetPan() {

@@ -312,10 +312,30 @@
 
     <!-- Transform Sektion -->
     <div class="panel-section">
-      <h3>
-        <i class="fas fa-magic"></i>
-        {{ $t('transform.title') }}
-      </h3>
+      <div class="section-header">
+        <h3>
+          <i class="fas fa-magic"></i>
+          {{ $t('transform.title') }}
+        </h3>
+        <div class="transform-history-controls">
+          <button
+            class="btn-icon-small"
+            @click="$emit('undo-transform')"
+            :disabled="!canUndoTransform"
+            :title="$t('transform.undo', 'Rückgängig')"
+          >
+            <i class="fas fa-undo"></i>
+          </button>
+          <button
+            class="btn-icon-small"
+            @click="$emit('redo-transform')"
+            :disabled="!canRedoTransform"
+            :title="$t('transform.redo', 'Wiederherstellen')"
+          >
+            <i class="fas fa-redo"></i>
+          </button>
+        </div>
+      </div>
 
       <!-- Deckkraft -->
       <div class="control-group">
@@ -324,12 +344,13 @@
           {{ $t('transform.opacity') }}
           <span class="value">{{ transforms.opacity }}%</span>
         </label>
-        <input 
-          type="range" 
-          min="0" 
-          max="100" 
+        <input
+          type="range"
+          min="0"
+          max="100"
           :value="transforms.opacity"
           @input="$emit('update:opacity', Number($event.target.value))"
+          @change="$emit('commit-transform')"
           class="slider"
         >
       </div>
@@ -341,12 +362,13 @@
           {{ $t('transform.rotation') }}
           <span class="value">{{ transforms.rotation }}°</span>
         </label>
-        <input 
-          type="range" 
-          min="-180" 
-          max="180" 
+        <input
+          type="range"
+          min="-180"
+          max="180"
           :value="transforms.rotation"
           @input="$emit('update:rotation', Number($event.target.value))"
+          @change="$emit('commit-transform')"
           class="slider"
         >
       </div>
@@ -414,6 +436,7 @@
           max="200"
           :value="transforms.scale"
           @input="$emit('update:scale', Number($event.target.value))"
+          @change="$emit('commit-transform')"
           class="slider"
         >
       </div>
@@ -441,12 +464,13 @@
           {{ $t('transform.borderRadius') }}
           <span class="value">{{ transforms.borderRadius }}px</span>
         </label>
-        <input 
-          type="range" 
-          min="0" 
-          max="50" 
+        <input
+          type="range"
+          min="0"
+          max="50"
           :value="transforms.borderRadius"
           @input="$emit('update:border-radius', Number($event.target.value))"
+          @change="$emit('commit-transform')"
           class="slider"
         >
       </div>
@@ -458,39 +482,30 @@
           {{ $t('transform.border') }}
           <span class="value">{{ transforms.borderWidth }}px</span>
         </label>
-        <input 
-          type="range" 
-          min="0" 
-          max="20" 
+        <input
+          type="range"
+          min="0"
+          max="20"
           :value="transforms.borderWidth"
           @input="$emit('update:border-width', Number($event.target.value))"
+          @change="$emit('commit-transform')"
           class="slider"
         >
-        
+
         <div v-if="transforms.borderWidth > 0" class="color-picker-group">
-          <input 
-            type="color" 
+          <input
+            type="color"
             :value="transforms.borderColor"
             @input="$emit('update:border-color', $event.target.value)"
+            @change="$emit('commit-transform')"
             class="color-input"
           >
           <span class="color-label">{{ $t('transform.borderColor') }}</span>
         </div>
       </div>
 
-      <!-- Anwenden Button -->
-      <button 
-        v-if="hasTransforms"
-        class="transform-btn apply-btn"
-        @click="$emit('apply-transforms')"
-        :title="$t('transform.applyTooltip')"
-      >
-        <i class="fas fa-check-circle"></i>
-        <span>{{ $t('transform.apply') }}</span>
-      </button>
-
       <!-- Reset Button -->
-      <button 
+      <button
         v-if="hasTransforms"
         class="transform-btn reset-btn"
         @click="$emit('reset-transforms')"
@@ -558,6 +573,14 @@ defineProps({
   canRedoText: {
     type: Boolean,
     default: false
+  },
+  canUndoTransform: {
+    type: Boolean,
+    default: false
+  },
+  canRedoTransform: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -575,9 +598,11 @@ defineEmits([
   'rotate-180',
   'flip-horizontal',
   'flip-vertical',
-  'apply-transforms',
   'reset-transforms',
   'reset-pan',
+  'undo-transform',
+  'redo-transform',
+  'commit-transform',
   'update:text-content',
   'update:text-font-size',
   'update:text-font-family',
@@ -1011,7 +1036,8 @@ defineEmits([
   }
 }
 
-.text-history-controls {
+.text-history-controls,
+.transform-history-controls {
   display: flex;
   gap: 4px;
 }

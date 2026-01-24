@@ -1,23 +1,115 @@
 /**
  * useTransform.js - Composable für Transformationen
  * Deckkraft, Rotation, Drehen, Spiegeln, Zoom, Pan, etc.
+ * Mit Undo/Redo History
  */
 
 import { ref, computed } from 'vue'
 
+// Standardwerte für Transformationen
+const DEFAULT_TRANSFORMS = {
+  opacity: 100,          // 0-100%
+  rotation: 0,           // -180 bis +180 Grad
+  scale: 100,            // 10-200%
+  flipHorizontal: false, // true/false
+  flipVertical: false,   // true/false
+  borderRadius: 0,       // 0-50px
+  borderWidth: 0,        // 0-20px
+  borderColor: '#000000', // Hex color
+  panX: 0,               // Pan-Offset X (in Pixeln)
+  panY: 0                // Pan-Offset Y (in Pixeln)
+}
+
 export function useTransform() {
   // State
-  const transforms = ref({
-    opacity: 100,          // 0-100%
-    rotation: 0,           // -180 bis +180 Grad
-    scale: 100,            // 10-200%
-    flipHorizontal: false, // true/false
-    flipVertical: false,   // true/false
-    borderRadius: 0,       // 0-50px
-    borderWidth: 0,        // 0-20px
-    borderColor: '#000000', // Hex color
-    panX: 0,               // Pan-Offset X (in Pixeln)
-    panY: 0                // Pan-Offset Y (in Pixeln)
+  const transforms = ref({ ...DEFAULT_TRANSFORMS })
+
+  // History für Undo/Redo
+  const transformHistory = ref([])
+  const historyIndex = ref(-1)
+  const MAX_HISTORY = 50
+
+  // History-Funktionen
+
+  /**
+   * Speichert aktuellen Zustand in History
+   */
+  function saveToHistory() {
+    // Entferne alle Einträge nach dem aktuellen Index (bei Redo-Überschreibung)
+    if (historyIndex.value < transformHistory.value.length - 1) {
+      transformHistory.value = transformHistory.value.slice(0, historyIndex.value + 1)
+    }
+
+    // Kopiere aktuellen Zustand
+    const snapshot = JSON.parse(JSON.stringify(transforms.value))
+
+    // Prüfe ob sich etwas geändert hat
+    const lastEntry = transformHistory.value[transformHistory.value.length - 1]
+    if (lastEntry && JSON.stringify(lastEntry) === JSON.stringify(snapshot)) {
+      return // Keine Änderung, nicht speichern
+    }
+
+    transformHistory.value.push(snapshot)
+
+    // Begrenze History-Größe
+    if (transformHistory.value.length > MAX_HISTORY) {
+      transformHistory.value.shift()
+    } else {
+      historyIndex.value++
+    }
+  }
+
+  /**
+   * Undo - Gehe einen Schritt zurück
+   */
+  function undoTransform() {
+    if (!canUndoTransform.value) return false
+
+    historyIndex.value--
+    const previousState = transformHistory.value[historyIndex.value]
+    if (previousState) {
+      transforms.value = JSON.parse(JSON.stringify(previousState))
+      return true
+    }
+    return false
+  }
+
+  /**
+   * Redo - Gehe einen Schritt vorwärts
+   */
+  function redoTransform() {
+    if (!canRedoTransform.value) return false
+
+    historyIndex.value++
+    const nextState = transformHistory.value[historyIndex.value]
+    if (nextState) {
+      transforms.value = JSON.parse(JSON.stringify(nextState))
+      return true
+    }
+    return false
+  }
+
+  /**
+   * Initialisiere History (beim Laden eines neuen Bildes)
+   */
+  function initTransformHistory() {
+    transformHistory.value = [JSON.parse(JSON.stringify(DEFAULT_TRANSFORMS))]
+    historyIndex.value = 0
+    transforms.value = { ...DEFAULT_TRANSFORMS }
+  }
+
+  /**
+   * Prüfe ob Undo möglich ist
+   */
+  const canUndoTransform = computed(() => {
+    return historyIndex.value > 0
+  })
+
+  /**
+   * Prüfe ob Redo möglich ist
+   */
+  const canRedoTransform = computed(() => {
+    return historyIndex.value < transformHistory.value.length - 1
   })
 
   // Computed - CSS Transform String
@@ -47,17 +139,20 @@ export function useTransform() {
 
   // Methods
   
+  // Methods (mit automatischer History-Speicherung bei wichtigen Änderungen)
+
   /**
    * Setze Deckkraft
    */
-  function setOpacity(value) {
+  function setOpacity(value, saveHistory = false) {
     transforms.value.opacity = Math.max(0, Math.min(100, value))
+    if (saveHistory) saveToHistory()
   }
 
   /**
    * Setze Rotation
    */
-  function setRotation(degrees) {
+  function setRotation(degrees, saveHistory = false) {
     transforms.value.rotation = degrees
     // Normalisiere auf -180 bis +180
     while (transforms.value.rotation > 180) {
@@ -66,13 +161,14 @@ export function useTransform() {
     while (transforms.value.rotation < -180) {
       transforms.value.rotation += 360
     }
+    if (saveHistory) saveToHistory()
   }
 
   /**
    * Drehe um fixe Grad
    */
   function rotate(degrees) {
-    setRotation(transforms.value.rotation + degrees)
+    setRotation(transforms.value.rotation + degrees, true)
   }
 
   /**
@@ -101,6 +197,7 @@ export function useTransform() {
    */
   function flipHorizontal() {
     transforms.value.flipHorizontal = !transforms.value.flipHorizontal
+    saveToHistory()
   }
 
   /**
@@ -108,18 +205,20 @@ export function useTransform() {
    */
   function flipVertical() {
     transforms.value.flipVertical = !transforms.value.flipVertical
+    saveToHistory()
   }
 
   /**
    * Setze Zoom/Skalierung
    */
-  function setScale(value) {
+  function setScale(value, saveHistory = false) {
     transforms.value.scale = Math.max(10, Math.min(200, value))
     // Bei Zoom <= 100% Pan zurücksetzen
     if (transforms.value.scale <= 100) {
       transforms.value.panX = 0
       transforms.value.panY = 0
     }
+    if (saveHistory) saveToHistory()
   }
 
   /**
@@ -163,22 +262,32 @@ export function useTransform() {
   /**
    * Setze Ecken-Rundung
    */
-  function setBorderRadius(value) {
+  function setBorderRadius(value, saveHistory = false) {
     transforms.value.borderRadius = Math.max(0, Math.min(50, value))
+    if (saveHistory) saveToHistory()
   }
 
   /**
    * Setze Rahmen-Dicke
    */
-  function setBorderWidth(value) {
+  function setBorderWidth(value, saveHistory = false) {
     transforms.value.borderWidth = Math.max(0, Math.min(20, value))
+    if (saveHistory) saveToHistory()
   }
 
   /**
    * Setze Rahmen-Farbe
    */
-  function setBorderColor(color) {
+  function setBorderColor(color, saveHistory = false) {
     transforms.value.borderColor = color
+    if (saveHistory) saveToHistory()
+  }
+
+  /**
+   * Speichere aktuellen Zustand manuell (für Slider-Ende-Events)
+   */
+  function commitTransform() {
+    saveToHistory()
   }
 
   /**
@@ -314,18 +423,10 @@ export function useTransform() {
   /**
    * Alle Transformationen zurücksetzen
    */
-  function resetTransforms() {
-    transforms.value = {
-      opacity: 100,
-      rotation: 0,
-      scale: 100,
-      flipHorizontal: false,
-      flipVertical: false,
-      borderRadius: 0,
-      borderWidth: 0,
-      borderColor: '#000000',
-      panX: 0,
-      panY: 0
+  function resetTransforms(addToHistory = true) {
+    transforms.value = { ...DEFAULT_TRANSFORMS }
+    if (addToHistory) {
+      saveToHistory()
     }
   }
 
@@ -366,6 +467,10 @@ export function useTransform() {
     hasPan,
     canPan,
 
+    // History State
+    canUndoTransform,
+    canRedoTransform,
+
     // Methods
     setOpacity,
     setRotation,
@@ -384,6 +489,13 @@ export function useTransform() {
     setBorderColor,
     applyToCanvas,
     applyPermanently,
-    resetTransforms
+    resetTransforms,
+
+    // History Methods
+    saveToHistory,
+    undoTransform,
+    redoTransform,
+    initTransformHistory,
+    commitTransform
   }
 }
