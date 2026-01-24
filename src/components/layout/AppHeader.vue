@@ -94,6 +94,7 @@ const routes = [
   { path: '/', icon: 'fas fa-home', label: 'nav.home' },
   { path: '/editor', icon: 'fas fa-edit', label: 'nav.editor' },
   { path: '/gallery', icon: 'fas fa-images', label: 'nav.gallery' },
+  { path: '/guide', icon: 'fas fa-book-open', label: 'nav.guide' },
   { path: '/about', icon: 'fas fa-info-circle', label: 'nav.about' }
 ]
 
