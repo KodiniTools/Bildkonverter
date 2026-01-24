@@ -503,16 +503,6 @@
           <span class="color-label">{{ $t('transform.borderColor') }}</span>
         </div>
       </div>
-
-      <!-- Reset Button -->
-      <button
-        v-if="hasTransforms"
-        class="transform-btn reset-btn"
-        @click="$emit('reset-transforms')"
-      >
-        <i class="fas fa-undo-alt"></i>
-        <span>{{ $t('transform.reset') }}</span>
-      </button>
     </div>
   </aside>
 </template>
@@ -545,10 +535,6 @@ defineProps({
   transforms: {
     type: Object,
     required: true
-  },
-  hasTransforms: {
-    type: Boolean,
-    default: false
   },
   canPan: {
     type: Boolean,
@@ -598,7 +584,6 @@ defineEmits([
   'rotate-180',
   'flip-horizontal',
   'flip-vertical',
-  'reset-transforms',
   'reset-pan',
   'undo-transform',
   'redo-transform',
@@ -741,17 +726,6 @@ defineEmits([
     &:hover {
       background: linear-gradient(135deg, #2563eb, #1d4ed8);
       transform: translateY(-1px);
-    }
-  }
-
-  &.reset-btn {
-    border-color: #ef4444;
-    color: #ef4444;
-
-    &:hover {
-      background: rgba(239, 68, 68, 0.1);
-      border-color: #dc2626;
-      color: #dc2626;
     }
   }
 

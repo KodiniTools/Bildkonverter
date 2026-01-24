@@ -521,7 +521,6 @@
           :crop-mode="crop.cropMode.value"
           :has-cropped="crop.hasCropped.value"
           :transforms="transform.transforms.value"
-          :has-transforms="transform.hasTransforms.value"
           :can-pan="transform.canPan.value"
           :has-pan="transform.hasPan.value"
           :selected-text="selectedTextObject"
@@ -543,7 +542,6 @@
           @rotate-180="handleRotate180"
           @flip-horizontal="handleFlipHorizontal"
           @flip-vertical="handleFlipVertical"
-          @reset-transforms="handleResetTransforms"
           @reset-pan="handleResetPan"
           @undo-transform="handleUndoTransform"
           @redo-transform="handleRedoTransform"
@@ -1576,15 +1574,6 @@ function handleResetPan() {
 
   if (window.$toast) {
     window.$toast.info(t('toast.transform.panReset', 'Ansicht zurückgesetzt'))
-  }
-}
-
-function handleResetTransforms() {
-  transform.resetTransforms()
-  renderImage()
-
-  if (window.$toast) {
-    window.$toast.info(t('toast.transform.reset'))
   }
 }
 
