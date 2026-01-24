@@ -166,11 +166,7 @@ const de = {
       undo: 'Rückgängig',
       aspectRatio: 'Seitenverhältnis',
       presets: {
-        free: 'Frei',
-        square: '1:1',
-        landscape43: '4:3',
-        landscape169: '16:9',
-        portrait916: '9:16'
+        free: 'Frei'
       }
     },
     title: 'Transformationen',
@@ -833,11 +829,7 @@ const en = {
       undo: 'Undo',
       aspectRatio: 'Aspect Ratio',
       presets: {
-        free: 'Free',
-        square: '1:1',
-        landscape43: '4:3',
-        landscape169: '16:9',
-        portrait916: '9:16'
+        free: 'Free'
       }
     },
     title: 'Transformations',
