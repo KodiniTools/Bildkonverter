@@ -79,11 +79,9 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import { useSettingsStore } from '@/stores/settingsStore'
 
 const route = useRoute()
-const { locale } = useI18n()
 const settingsStore = useSettingsStore()
 
 // State
@@ -98,8 +96,8 @@ const routes = [
   { path: '/about', icon: 'fas fa-info-circle', label: 'nav.about' }
 ]
 
-// Computed
-const currentLocale = computed(() => locale.value)
+// Computed - Store als einzige Quelle der Wahrheit
+const currentLocale = computed(() => settingsStore.locale)
 const isDarkTheme = computed(() => settingsStore.theme === 'dark')
 
 // Methods
@@ -108,8 +106,8 @@ function isActiveRoute(path) {
 }
 
 function toggleLanguage() {
-  const newLocale = locale.value === 'de' ? 'en' : 'de'
-  locale.value = newLocale
+  // NUR den Store ändern - App.vue's Watcher setzt die i18n locale
+  const newLocale = settingsStore.locale === 'de' ? 'en' : 'de'
   settingsStore.setLocale(newLocale)
 }
 
