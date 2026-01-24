@@ -326,11 +326,13 @@ export function useCrop() {
   }
 
   // Prüfe welches Handle getroffen wurde (returns null wenn keines)
-  function getHandleAtPoint(x, y) {
+  function getHandleAtPoint(x, y, displayScale = 1) {
     if (!cropping.value) return null
 
     const box = normalizedCropBox.value
-    const handleSize = 12 // Größe des Klickbereichs
+    // Größe des Klickbereichs - skaliert basierend auf Display
+    // Bei kleiner Darstellung größerer Klickbereich in Canvas-Koordinaten
+    const handleSize = Math.max(15, 20 / displayScale)
 
     const handles = {
       'nw': { x: box.x, y: box.y },
@@ -642,13 +644,13 @@ export function useCrop() {
   }
 
   // Event Handlers für einfache Integration
-  function handleMouseDown(pos) {
+  function handleMouseDown(pos, displayScale = 1) {
     if (!cropMode.value) return false
 
     const { x, y } = pos
 
     // Prüfe zuerst ob ein Resize-Handle getroffen wurde
-    const handle = getHandleAtPoint(x, y)
+    const handle = getHandleAtPoint(x, y, displayScale)
     if (handle) {
       isResizing.value = true
       activeHandle.value = handle
@@ -722,10 +724,10 @@ export function useCrop() {
   }
 
   // Cursor-Style basierend auf Position
-  function getCursorForPosition(x, y) {
+  function getCursorForPosition(x, y, displayScale = 1) {
     if (!cropMode.value || !cropping.value) return 'crosshair'
 
-    const handle = getHandleAtPoint(x, y)
+    const handle = getHandleAtPoint(x, y, displayScale)
     if (handle) {
       const cursors = {
         'nw': 'nwse-resize',
@@ -745,6 +747,13 @@ export function useCrop() {
     }
 
     return 'crosshair'
+  }
+
+  // Stoppe alle aktiven Drag/Resize-Operationen (für globales mouseup)
+  function cancelDragResize() {
+    isResizing.value = false
+    isDragging.value = false
+    activeHandle.value = null
   }
 
   return {
@@ -768,6 +777,7 @@ export function useCrop() {
     setCanvasSize,
     getCursorForPosition,
     getHandleAtPoint,
+    cancelDragResize,
 
     // Event Handlers
     handleMouseDown,

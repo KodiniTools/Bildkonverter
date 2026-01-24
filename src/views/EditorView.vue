@@ -1798,20 +1798,27 @@ function handleRedoText() {
 
 function getMousePos(e) {
   const rect = canvas.value.getBoundingClientRect()
-  
+
   // Maus-Position relativ zum Canvas-Element (in Display-Pixeln)
   const displayX = e.clientX - rect.left
   const displayY = e.clientY - rect.top
-  
+
   // Skalierungsfaktor zwischen Display-Größe und Canvas-Größe
   const scaleX = canvas.value.width / rect.width
   const scaleY = canvas.value.height / rect.height
-  
+
   // Konvertiere zu Canvas-Koordinaten
   return {
     x: displayX * scaleX,
     y: displayY * scaleY
   }
+}
+
+// Gibt den Display-Skalierungsfaktor zurück (wie viel kleiner ist die Anzeige als das Canvas)
+function getDisplayScale() {
+  if (!canvas.value) return 1
+  const rect = canvas.value.getBoundingClientRect()
+  return rect.width / canvas.value.width
 }
 
 function findTextAtPosition(x, y) {
@@ -1841,6 +1848,7 @@ function findTextAtPosition(x, y) {
 
 function onCanvasMouseDown(e) {
   const pos = getMousePos(e)
+  const displayScale = getDisplayScale()
 
   // Pan mit mittlerer Maustaste oder Leertaste + Linksklick
   const isMiddleButton = e.button === 1
@@ -1855,7 +1863,7 @@ function onCanvasMouseDown(e) {
   }
 
   // Crop-Handler über Composable (hat Priorität)
-  const cropHandled = crop.handleMouseDown(pos)
+  const cropHandled = crop.handleMouseDown(pos, displayScale)
   if (cropHandled) return
 
   // Sonst Text-Interaktion
@@ -1908,8 +1916,9 @@ function onCanvasMouseMove(e) {
     if (isSpacePressed.value && transform.canPan.value) {
       cursorStyle = 'grab'
     } else if (crop.cropMode.value) {
-      // Nutze den Cursor vom Crop-Composable
-      cursorStyle = crop.getCursorForPosition(pos.x, pos.y)
+      // Nutze den Cursor vom Crop-Composable mit Display-Skalierung
+      const displayScale = getDisplayScale()
+      cursorStyle = crop.getCursorForPosition(pos.x, pos.y, displayScale)
     } else if (text) {
       cursorStyle = 'grab'
     }
@@ -2040,10 +2049,84 @@ async function loadGalleryImage(galleryImageId) {
 
 // ===== LIFECYCLE HOOKS =====
 
+// Globaler MouseMove Handler für Crop Drag/Resize außerhalb des Canvas
+function handleGlobalMouseMove(e) {
+  // Nur wenn wir gerade draggen oder resizen
+  if (!crop.isDragging.value && !crop.isResizing.value && !isPanning.value && !isDraggingText.value) {
+    return
+  }
+
+  // Berechne Position relativ zum Canvas
+  if (!canvas.value) return
+  const rect = canvas.value.getBoundingClientRect()
+
+  // Konvertiere globale Mausposition zu Canvas-Koordinaten
+  const displayX = e.clientX - rect.left
+  const displayY = e.clientY - rect.top
+  const scaleX = canvas.value.width / rect.width
+  const scaleY = canvas.value.height / rect.height
+
+  const pos = {
+    x: displayX * scaleX,
+    y: displayY * scaleY
+  }
+
+  // Crop-Handling
+  if (crop.isDragging.value || crop.isResizing.value) {
+    crop.handleMouseMove(pos)
+    return
+  }
+
+  // Pan-Handling
+  if (isPanning.value) {
+    const deltaX = e.clientX - panStart.value.x
+    const deltaY = e.clientY - panStart.value.y
+    panStart.value = { x: e.clientX, y: e.clientY }
+    transform.pan(deltaX, deltaY)
+    renderImage()
+    return
+  }
+
+  // Text-Dragging
+  if (isDraggingText.value && selectedTextId.value) {
+    const text = imageStore.texts.find(t => t.id === selectedTextId.value)
+    if (text) {
+      text.x = pos.x - dragOffset.value.x
+      text.y = pos.y - dragOffset.value.y
+      renderImage()
+    }
+  }
+}
+
+// Globaler MouseUp Handler für Crop Drag/Resize außerhalb des Canvas
+function handleGlobalMouseUp() {
+  // Stoppe alle aktiven Crop-Operationen
+  if (crop.isDragging.value || crop.isResizing.value) {
+    crop.cancelDragResize()
+  }
+  // Stoppe auch Text-Dragging
+  if (isDraggingText.value) {
+    isDraggingText.value = false
+    if (canvas.value) {
+      canvas.value.style.cursor = 'default'
+    }
+  }
+  // Stoppe Panning
+  if (isPanning.value) {
+    isPanning.value = false
+    if (canvas.value) {
+      canvas.value.style.cursor = isSpacePressed.value && transform.canPan.value ? 'grab' : 'default'
+    }
+  }
+}
+
 onMounted(async () => {
   // Keyboard shortcuts
   window.addEventListener('keydown', handleKeydown)
   window.addEventListener('keyup', handleKeyup)
+  // Global mouse events für Drag/Resize außerhalb des Canvas
+  window.addEventListener('mousemove', handleGlobalMouseMove)
+  window.addEventListener('mouseup', handleGlobalMouseUp)
 
   await nextTick()
 
@@ -2072,6 +2155,8 @@ watch(() => route.query.galleryImageId, async (newId, oldId) => {
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
   window.removeEventListener('keyup', handleKeyup)
+  window.removeEventListener('mousemove', handleGlobalMouseMove)
+  window.removeEventListener('mouseup', handleGlobalMouseUp)
 })
 
 function handleKeydown(e) {
