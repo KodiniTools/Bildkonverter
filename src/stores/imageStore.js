@@ -599,6 +599,21 @@ export const useImageStore = defineStore('image', () => {
             sepia: 0,
             blur: 0,
             hue: 0
+          },
+          // Umrandung
+          border: {
+            width: 0,
+            color: '#000000',
+            radius: 0
+          },
+          // Schlagschatten
+          shadow: {
+            enabled: false,
+            offsetX: 5,
+            offsetY: 5,
+            blur: 10,
+            color: '#000000',
+            opacity: 50
           }
         }
 
