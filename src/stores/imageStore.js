@@ -554,6 +554,9 @@ export const useImageStore = defineStore('image', () => {
 
   // ===== BILD-LAYER FUNKTIONEN (COLLAGE) =====
 
+  // Counter für eindeutige Layer-IDs
+  let layerIdCounter = 0
+
   /**
    * Fügt einen neuen Bild-Layer hinzu
    */
@@ -563,18 +566,22 @@ export const useImageStore = defineStore('image', () => {
       img.crossOrigin = 'anonymous'
 
       img.onload = () => {
-        // Berechne initiale Größe (max 50% der Canvas-Größe)
-        const maxWidth = canvas.value ? canvas.value.width * 0.5 : 400
-        const maxHeight = canvas.value ? canvas.value.height * 0.5 : 300
+        // Berechne initiale Größe (max 40% der Canvas-Größe für bessere Übersicht)
+        const maxWidth = canvas.value ? canvas.value.width * 0.4 : 400
+        const maxHeight = canvas.value ? canvas.value.height * 0.4 : 300
         const scale = Math.min(maxWidth / img.width, maxHeight / img.height, 1)
 
+        // Eindeutige ID generieren
+        layerIdCounter++
+        const layerId = `layer_${Date.now()}_${layerIdCounter}`
+
         const layer = {
-          id: Date.now() + Math.random(),
+          id: layerId,
           image: img,
           url: imageData.url,
-          name: imageData.name || 'Layer',
-          x: 50 + (imageLayers.value.length * 30), // Versetzt positionieren
-          y: 50 + (imageLayers.value.length * 30),
+          name: imageData.name || `Layer ${imageLayers.value.length + 1}`,
+          x: 50 + (imageLayers.value.length * 40), // Versetzt positionieren
+          y: 50 + (imageLayers.value.length * 40),
           width: img.width * scale,
           height: img.height * scale,
           originalWidth: img.width,
@@ -589,27 +596,21 @@ export const useImageStore = defineStore('image', () => {
             contrast: 100,
             saturation: 100,
             grayscale: 0,
-            sepia: 0
+            sepia: 0,
+            blur: 0,
+            hue: 0
           }
         }
 
         imageLayers.value.push(layer)
         selectedLayerId.value = layer.id
 
-        // Canvas-Größe anpassen wenn nötig
-        if (!canvas.value || (canvas.value.width < 800 && imageLayers.value.length === 1)) {
-          resizeCanvas(800, 600)
-        }
-
-        draw()
-        saveState('Bild-Layer hinzugefügt', 'layer')
-
-        console.log(`✅ Bild-Layer hinzugefügt: ${layer.name}`)
         resolve(layer)
       }
 
-      img.onerror = () => {
-        reject(new Error('Fehler beim Laden des Bildes'))
+      img.onerror = (err) => {
+        console.error('Bild konnte nicht geladen werden:', imageData.url, err)
+        reject(new Error(`Fehler beim Laden des Bildes: ${imageData.name}`))
       }
 
       img.src = imageData.url
@@ -620,17 +621,27 @@ export const useImageStore = defineStore('image', () => {
    * Fügt mehrere Bild-Layer hinzu (für Collage aus Galerie)
    */
   async function addImageLayersFromGallery(galleryImages) {
+    // Erst alle bestehenden Layer löschen
+    imageLayers.value = []
+    selectedLayerId.value = null
+
+    console.log(`🖼️ Starte Hinzufügen von ${galleryImages.length} Bildern...`)
+
     const addedLayers = []
 
-    for (const imageData of galleryImages) {
+    for (let i = 0; i < galleryImages.length; i++) {
+      const imageData = galleryImages[i]
       try {
+        console.log(`  [${i + 1}/${galleryImages.length}] Lade: ${imageData.name}`)
         const layer = await addImageLayer(imageData)
         addedLayers.push(layer)
+        console.log(`  ✓ ${imageData.name} hinzugefügt`)
       } catch (error) {
-        console.error(`Fehler beim Hinzufügen von ${imageData.name}:`, error)
+        console.error(`  ✗ Fehler beim Hinzufügen von ${imageData.name}:`, error)
       }
     }
 
+    console.log(`✅ ${addedLayers.length}/${galleryImages.length} Bilder hinzugefügt`)
     return addedLayers
   }
 
