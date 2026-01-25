@@ -56,7 +56,7 @@ export const useImageStore = defineStore('image', () => {
   // History für Undo/Redo
   const history = ref([])
   const historyIndex = ref(-1)
-  const maxHistoryStates = ref(30)
+  const maxHistoryStates = ref(50)
   
   // UI State
   const isProcessing = ref(false)

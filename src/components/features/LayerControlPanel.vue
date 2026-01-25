@@ -20,6 +20,32 @@
       </button>
     </div>
 
+    <!-- Undo/Redo Toolbar -->
+    <div class="history-toolbar">
+      <button
+        class="history-btn"
+        :class="{ disabled: !imageStore.canUndo }"
+        :disabled="!imageStore.canUndo"
+        @click="handleUndo"
+        title="Rückgängig (Strg+Z)"
+      >
+        <i class="fas fa-undo"></i>
+      </button>
+      <button
+        class="history-btn"
+        :class="{ disabled: !imageStore.canRedo }"
+        :disabled="!imageStore.canRedo"
+        @click="handleRedo"
+        title="Wiederholen (Strg+Y)"
+      >
+        <i class="fas fa-redo"></i>
+      </button>
+      <span class="history-info" v-if="historyInfo">
+        <i class="fas fa-history"></i>
+        {{ historyInfo }}
+      </span>
+    </div>
+
     <!-- LAYERS TAB -->
     <div v-show="activeTab === 'layers'" class="tab-content">
       <!-- Layer Liste -->
@@ -615,7 +641,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, watch } from 'vue'
+import { ref, computed, reactive, watch, onMounted, onUnmounted } from 'vue'
 import { useImageStore } from '@/stores/imageStore'
 
 const props = defineProps({
@@ -631,6 +657,29 @@ const imageStore = useImageStore()
 const maintainAspectRatio = ref(true)
 const activeTab = ref('layers')
 const selectedTextId = ref(null)
+
+// Debounce Timer für History-Speicherung
+let saveStateTimer = null
+
+// Debounced saveState - speichert erst nach 500ms Inaktivität
+function debouncedSaveState(description, type = 'layer') {
+  if (saveStateTimer) {
+    clearTimeout(saveStateTimer)
+  }
+  saveStateTimer = setTimeout(() => {
+    imageStore.saveState(description, type)
+    saveStateTimer = null
+  }, 500)
+}
+
+// Sofortige State-Speicherung ohne Debounce
+function saveStateNow(description, type = 'layer') {
+  if (saveStateTimer) {
+    clearTimeout(saveStateTimer)
+    saveStateTimer = null
+  }
+  imageStore.saveState(description, type)
+}
 
 // Wenn Text auf Canvas ausgewählt wird, zu Text-Tab wechseln und Text auswählen
 watch(() => props.canvasSelectedTextId, (newTextId) => {
@@ -674,6 +723,14 @@ const selectedText = computed(() => {
   return imageStore.texts.find(t => t.id === selectedTextId.value)
 })
 
+// History Info Computed
+const historyInfo = computed(() => {
+  const current = imageStore.historyIndex + 1
+  const total = imageStore.history.length
+  if (total === 0) return ''
+  return `${current}/${total}`
+})
+
 // Default Werte für Layer Border
 const layerBorder = computed(() => ({
   width: selectedLayer.value?.border?.width || 0,
@@ -703,6 +760,7 @@ function selectLayer(layerId) {
 function toggleVisibility(layer) {
   imageStore.updateImageLayer(layer.id, { visible: !layer.visible })
   emit('render')
+  saveStateNow(layer.visible ? 'Layer ausgeblendet' : 'Layer eingeblendet', 'layer')
 }
 
 function deleteLayer(layerId) {
@@ -730,6 +788,7 @@ function updateLayerProperty(property, value) {
   if (selectedLayer.value) {
     imageStore.updateImageLayer(selectedLayer.value.id, { [property]: value })
     emit('render')
+    debouncedSaveState(`Layer ${property} geändert`, 'layer')
   }
 }
 
@@ -755,6 +814,7 @@ function updateSize(property, value) {
     imageStore.updateImageLayer(layer.id, { [property]: value })
   }
   emit('render')
+  debouncedSaveState('Layer-Größe geändert', 'layer')
 }
 
 function rotateBy(degrees) {
@@ -769,6 +829,7 @@ function updateFilter(filterName, value) {
     const newFilters = { ...selectedLayer.value.filters, [filterName]: value }
     imageStore.updateImageLayer(selectedLayer.value.id, { filters: newFilters })
     emit('render')
+    debouncedSaveState(`Layer-Filter ${filterName} geändert`, 'layer')
   }
 }
 
@@ -778,6 +839,7 @@ function updateBorder(property, value) {
     const newBorder = { ...currentBorder, [property]: value }
     imageStore.updateImageLayer(selectedLayer.value.id, { border: newBorder })
     emit('render')
+    debouncedSaveState('Layer-Umrandung geändert', 'layer')
   }
 }
 
@@ -794,6 +856,7 @@ function updateShadow(property, value) {
     const newShadow = { ...currentShadow, [property]: value }
     imageStore.updateImageLayer(selectedLayer.value.id, { shadow: newShadow })
     emit('render')
+    debouncedSaveState('Layer-Schatten geändert', 'layer')
   }
 }
 
@@ -815,6 +878,7 @@ function resetLayerFilters() {
       shadow: { enabled: false, offsetX: 5, offsetY: 5, blur: 10, color: '#000000', opacity: 50 }
     })
     emit('render')
+    saveStateNow('Layer-Filter zurückgesetzt', 'layer')
   }
 }
 
@@ -880,6 +944,41 @@ function updateTextProperty(property, value) {
     }
   }
 }
+
+// Undo/Redo Funktionen
+function handleUndo() {
+  if (imageStore.canUndo) {
+    imageStore.undo()
+    emit('render')
+  }
+}
+
+function handleRedo() {
+  if (imageStore.canRedo) {
+    imageStore.redo()
+    emit('render')
+  }
+}
+
+// Keyboard Shortcuts für Undo/Redo
+function handleKeyDown(event) {
+  if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === 'z') {
+    event.preventDefault()
+    handleUndo()
+  } else if ((event.ctrlKey || event.metaKey) && (event.shiftKey && event.key === 'z' || event.key === 'y')) {
+    event.preventDefault()
+    handleRedo()
+  }
+}
+
+// Event Listener für Keyboard Shortcuts
+onMounted(() => {
+  document.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyDown)
+})
 </script>
 
 <style lang="scss" scoped>
@@ -888,6 +987,54 @@ function updateTextProperty(property, value) {
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+}
+
+.history-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.history-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+
+  &:hover:not(.disabled) {
+    background: var(--color-primary);
+    color: white;
+  }
+
+  &.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.history-info {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+
+  i {
+    font-size: 0.8rem;
+    opacity: 0.7;
+  }
 }
 
 .tab-nav {
