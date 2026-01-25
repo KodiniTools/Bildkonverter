@@ -534,6 +534,7 @@
         <LayerControlPanel
           v-if="isCollageMode"
           @render="renderImage"
+          @select-text="onSelectTextFromPanel"
         />
 
         <!-- Rechte Spalte: TransformPanel (Text + Crop + Transform Features) - Normaler Modus -->
@@ -1110,10 +1111,22 @@ function renderImage() {
         ctx.save()
         const opacity = text.opacity !== undefined ? text.opacity : 100
         ctx.globalAlpha = opacity / 100
-        ctx.font = `${text.fontSize || text.size || 32}px ${text.fontFamily || 'Arial'}`
+        const fontSize = text.fontSize || text.size || 32
+        ctx.font = `${fontSize}px ${text.fontFamily || 'Arial'}`
         ctx.fillStyle = text.color || '#000000'
         ctx.textBaseline = 'top'
 
+        // Rotation um Textmittelpunkt
+        if (text.rotation && text.rotation !== 0) {
+          const metrics = ctx.measureText(text.content || text.txt || '')
+          const centerX = (text.x || 0) + metrics.width / 2
+          const centerY = (text.y || 0) + fontSize / 2
+          ctx.translate(centerX, centerY)
+          ctx.rotate((text.rotation * Math.PI) / 180)
+          ctx.translate(-centerX, -centerY)
+        }
+
+        // Schatten
         if (text.shadowBlur && text.shadowBlur > 0) {
           ctx.shadowColor = text.shadowColor || '#000000'
           ctx.shadowBlur = text.shadowBlur
@@ -1121,7 +1134,34 @@ function renderImage() {
           ctx.shadowOffsetY = text.shadowOffsetY || 2
         }
 
+        // Text mit Kontur (Stroke) zeichnen
+        if (text.strokeWidth && text.strokeWidth > 0) {
+          ctx.strokeStyle = text.strokeColor || '#000000'
+          ctx.lineWidth = text.strokeWidth
+          ctx.lineJoin = 'round'
+          ctx.strokeText(text.content || text.txt || '', text.x || 0, text.y || 0)
+        }
+
+        // Text füllen
         ctx.fillText(text.content || text.txt || '', text.x || 0, text.y || 0)
+
+        // Auswahl-Rahmen für selektierten Text
+        if (text.id === selectedTextId.value) {
+          ctx.shadowColor = 'transparent'
+          ctx.shadowBlur = 0
+          const metrics = ctx.measureText(text.content || text.txt || '')
+          ctx.strokeStyle = '#007bff'
+          ctx.lineWidth = 2
+          ctx.setLineDash([5, 5])
+          ctx.strokeRect(
+            (text.x || 0) - 4,
+            (text.y || 0) - 4,
+            metrics.width + 8,
+            fontSize + 8
+          )
+          ctx.setLineDash([])
+        }
+
         ctx.restore()
       })
     }
@@ -1510,10 +1550,22 @@ function renderImageForExport() {
         ctx.save()
         const opacity = text.opacity !== undefined ? text.opacity : 100
         ctx.globalAlpha = opacity / 100
-        ctx.font = `${text.fontSize || text.size || 32}px ${text.fontFamily || 'Arial'}`
+        const fontSize = text.fontSize || text.size || 32
+        ctx.font = `${fontSize}px ${text.fontFamily || 'Arial'}`
         ctx.fillStyle = text.color || '#000000'
         ctx.textBaseline = 'top'
 
+        // Rotation um Textmittelpunkt
+        if (text.rotation && text.rotation !== 0) {
+          const metrics = ctx.measureText(text.content || text.txt || '')
+          const centerX = (text.x || 0) + metrics.width / 2
+          const centerY = (text.y || 0) + fontSize / 2
+          ctx.translate(centerX, centerY)
+          ctx.rotate((text.rotation * Math.PI) / 180)
+          ctx.translate(-centerX, -centerY)
+        }
+
+        // Schatten
         if (text.shadowBlur && text.shadowBlur > 0) {
           ctx.shadowColor = text.shadowColor || '#000000'
           ctx.shadowBlur = text.shadowBlur
@@ -1521,6 +1573,15 @@ function renderImageForExport() {
           ctx.shadowOffsetY = text.shadowOffsetY || 2
         }
 
+        // Text mit Kontur (Stroke) zeichnen
+        if (text.strokeWidth && text.strokeWidth > 0) {
+          ctx.strokeStyle = text.strokeColor || '#000000'
+          ctx.lineWidth = text.strokeWidth
+          ctx.lineJoin = 'round'
+          ctx.strokeText(text.content || text.txt || '', text.x || 0, text.y || 0)
+        }
+
+        // Text füllen
         ctx.fillText(text.content || text.txt || '', text.x || 0, text.y || 0)
         ctx.restore()
       })
@@ -2430,6 +2491,11 @@ function getDisplayScale() {
   return rect.width / canvas.value.width
 }
 
+function onSelectTextFromPanel(textId) {
+  selectedTextId.value = textId
+  renderImage()
+}
+
 function findTextAtPosition(x, y) {
   if (!imageStore.texts || imageStore.texts.length === 0) return null
 
@@ -2475,14 +2541,32 @@ function onCanvasMouseDown(e) {
   const cropHandled = crop.handleMouseDown(pos, displayScale)
   if (cropHandled) return
 
-  // Im Collage-Modus: Layer-Interaktion (hat Priorität vor Text)
+  // Im Collage-Modus: Erst Text prüfen, dann Layer
   if (isCollageMode.value) {
+    // Text hat Priorität (liegt visuell über Layern)
+    const text = findTextAtPosition(pos.x, pos.y)
+    if (text) {
+      selectedTextId.value = text.id
+      isDraggingText.value = true
+      dragOffset.value = {
+        x: pos.x - text.x,
+        y: pos.y - text.y
+      }
+      canvas.value.style.cursor = 'grabbing'
+      // Layer-Auswahl aufheben
+      imageStore.selectImageLayer(null)
+      renderImage()
+      return
+    }
+
+    // Kein Text getroffen, Layer-Interaktion
+    selectedTextId.value = null
     layerInteraction.handleMouseDown(e)
     renderImage()
     return
   }
 
-  // Sonst Text-Interaktion
+  // Sonst Text-Interaktion (nicht Collage-Modus)
   const text = findTextAtPosition(pos.x, pos.y)
 
   if (text) {
@@ -2517,16 +2601,36 @@ function onCanvasMouseMove(e) {
   const cropHandled = crop.handleMouseMove(pos)
   if (cropHandled) return
 
-  // Im Collage-Modus: Layer-Interaktion
+  // Im Collage-Modus: Text-Dragging oder Layer-Interaktion
   if (isCollageMode.value) {
+    // Text-Dragging hat Priorität
+    if (isDraggingText.value && selectedTextId.value) {
+      const text = imageStore.texts.find(t => t.id === selectedTextId.value)
+      if (text) {
+        text.x = pos.x - dragOffset.value.x
+        text.y = pos.y - dragOffset.value.y
+        renderImage()
+      }
+      return
+    }
+
+    // Layer-Interaktion
     layerInteraction.handleMouseMove(e)
     if (layerInteraction.isDragging.value || layerInteraction.isResizing.value) {
       renderImage()
     }
+
+    // Cursor für Text-Hover im Collage-Modus
+    if (!layerInteraction.isDragging.value && !layerInteraction.isResizing.value) {
+      const text = findTextAtPosition(pos.x, pos.y)
+      if (text) {
+        canvas.value.style.cursor = 'grab'
+      }
+    }
     return
   }
 
-  // Sonst Text-Interaktion
+  // Sonst Text-Interaktion (nicht Collage-Modus)
   if (isDraggingText.value && selectedTextId.value) {
     const text = imageStore.texts.find(t => t.id === selectedTextId.value)
     if (text) {
@@ -2566,14 +2670,23 @@ function onCanvasMouseUp() {
     return
   }
 
-  // Im Collage-Modus: Layer-Interaktion
+  // Im Collage-Modus: Text-Dragging oder Layer-Interaktion
   if (isCollageMode.value) {
+    // Text-Dragging beenden
+    if (isDraggingText.value) {
+      isDraggingText.value = false
+      canvas.value.style.cursor = 'default'
+      renderImage()
+      return
+    }
+
+    // Layer-Interaktion beenden
     layerInteraction.handleMouseUp()
     renderImage()
     return
   }
 
-  // Sonst Text-Interaktion
+  // Sonst Text-Interaktion (nicht Collage-Modus)
   if (isDraggingText.value) {
     isDraggingText.value = false
     canvas.value.style.cursor = 'default'

@@ -618,7 +618,7 @@
 import { ref, computed, reactive } from 'vue'
 import { useImageStore } from '@/stores/imageStore'
 
-const emit = defineEmits(['render', 'add-text'])
+const emit = defineEmits(['render', 'add-text', 'select-text'])
 
 const imageStore = useImageStore()
 const maintainAspectRatio = ref(true)
@@ -819,6 +819,7 @@ function selectText(textId) {
   selectedTextId.value = textId
   // Layer-Auswahl aufheben
   imageStore.selectImageLayer(null)
+  emit('select-text', textId)
   emit('render')
 }
 
