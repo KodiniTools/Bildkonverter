@@ -8,7 +8,7 @@
         @click="activeTab = 'layers'"
       >
         <i class="fas fa-layer-group"></i>
-        Ebenen
+        {{ $t('layerPanel.tabs.layers') }}
       </button>
       <button
         class="tab-btn"
@@ -16,7 +16,7 @@
         @click="activeTab = 'text'"
       >
         <i class="fas fa-font"></i>
-        Text
+        {{ $t('layerPanel.tabs.text') }}
       </button>
     </div>
 
@@ -27,7 +27,7 @@
         :class="{ disabled: !imageStore.canUndo }"
         :disabled="!imageStore.canUndo"
         @click="handleUndo"
-        title="Rückgängig (Strg+Z)"
+        :title="$t('layerPanel.history.undo')"
       >
         <i class="fas fa-undo"></i>
       </button>
@@ -36,14 +36,14 @@
         :class="{ disabled: !imageStore.canRedo }"
         :disabled="!imageStore.canRedo"
         @click="handleRedo"
-        title="Wiederholen (Strg+Y)"
+        :title="$t('layerPanel.history.redo')"
       >
         <i class="fas fa-redo"></i>
       </button>
       <button
         class="history-btn preview-btn"
         @click="handlePreview"
-        title="Vorschau"
+        :title="$t('layerPanel.history.preview')"
       >
         <i class="fas fa-eye"></i>
       </button>
@@ -59,7 +59,7 @@
       <div class="panel-section">
         <h3 class="section-title">
           <i class="fas fa-layer-group"></i>
-          Ebenen ({{ imageStore.imageLayerCount }})
+          {{ $t('layerPanel.layers.title') }} ({{ imageStore.imageLayerCount }})
         </h3>
 
         <div class="layer-list">
@@ -81,14 +81,14 @@
               <button
                 class="icon-btn"
                 @click.stop="toggleVisibility(layer)"
-                :title="layer.visible ? 'Ausblenden' : 'Einblenden'"
+                :title="layer.visible ? $t('layerPanel.layers.hide') : $t('layerPanel.layers.show')"
               >
                 <i class="fas" :class="layer.visible ? 'fa-eye' : 'fa-eye-slash'"></i>
               </button>
               <button
                 class="icon-btn"
                 @click.stop="deleteLayer(layer.id)"
-                title="Löschen"
+                :title="$t('layerPanel.layers.delete')"
               >
                 <i class="fas fa-trash"></i>
               </button>
@@ -98,13 +98,13 @@
 
         <!-- Layer Reihenfolge -->
         <div class="layer-order-buttons" v-if="selectedLayer">
-          <button class="btn btn-sm" @click="moveLayer('up')" title="Nach oben">
+          <button class="btn btn-sm" @click="moveLayer('up')" :title="$t('layerPanel.layers.moveUp')">
             <i class="fas fa-arrow-up"></i>
           </button>
-          <button class="btn btn-sm" @click="moveLayer('down')" title="Nach unten">
+          <button class="btn btn-sm" @click="moveLayer('down')" :title="$t('layerPanel.layers.moveDown')">
             <i class="fas fa-arrow-down"></i>
           </button>
-          <button class="btn btn-sm" @click="duplicateLayer" title="Duplizieren">
+          <button class="btn btn-sm" @click="duplicateLayer" :title="$t('layerPanel.layers.duplicate')">
             <i class="fas fa-copy"></i>
           </button>
         </div>
@@ -114,13 +114,13 @@
       <div class="panel-section">
         <h3 class="section-title collapsible" @click="toggleSection('canvas')">
           <i class="fas fa-fill-drip"></i>
-          Hintergrund
+          {{ $t('layerPanel.background.title') }}
           <i class="fas toggle-icon" :class="openSections.canvas ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
         </h3>
 
         <div v-show="openSections.canvas" class="section-content">
           <div class="control-group">
-            <label>Hintergrundfarbe</label>
+            <label>{{ $t('layerPanel.background.color') }}</label>
             <div class="color-picker-row">
               <input
                 type="color"
@@ -139,7 +139,7 @@
                 class="icon-btn"
                 :class="{ active: imageStore.canvasBackgroundColor === 'transparent' }"
                 @click="updateBackgroundColor('transparent')"
-                title="Transparent"
+                :title="$t('layerPanel.background.transparent')"
               >
                 <i class="fas fa-chess-board"></i>
               </button>
@@ -165,14 +165,14 @@
       <div class="panel-section" v-if="selectedLayer">
         <h3 class="section-title collapsible" @click="toggleSection('transform')">
           <i class="fas fa-arrows-alt"></i>
-          Transformieren
+          {{ $t('layerPanel.transform.title') }}
           <i class="fas toggle-icon" :class="openSections.transform ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
         </h3>
 
         <div v-show="openSections.transform" class="section-content">
           <!-- Position -->
           <div class="control-group">
-            <label>Position</label>
+            <label>{{ $t('layerPanel.transform.position') }}</label>
             <div class="input-row">
               <div class="input-field">
                 <span>X</span>
@@ -195,10 +195,10 @@
 
           <!-- Größe -->
           <div class="control-group">
-            <label>Größe</label>
+            <label>{{ $t('layerPanel.transform.size') }}</label>
             <div class="input-row">
               <div class="input-field">
-                <span>B</span>
+                <span>W</span>
                 <input
                   type="number"
                   :value="Math.round(selectedLayer.width)"
@@ -217,7 +217,7 @@
                 class="icon-btn"
                 :class="{ active: maintainAspectRatio }"
                 @click="maintainAspectRatio = !maintainAspectRatio"
-                title="Seitenverhältnis beibehalten"
+                :title="$t('layerPanel.transform.maintainAspect')"
               >
                 <i class="fas fa-link"></i>
               </button>
@@ -226,7 +226,7 @@
 
           <!-- Rotation -->
           <div class="control-group">
-            <label>Rotation: {{ selectedLayer.rotation }}°</label>
+            <label>{{ $t('layerPanel.transform.rotation') }}: {{ selectedLayer.rotation }}°</label>
             <input
               type="range"
               min="-180"
@@ -243,32 +243,32 @@
 
           <!-- Spiegelung -->
           <div class="control-group">
-            <label>Spiegeln</label>
+            <label>{{ $t('layerPanel.transform.flip') }}</label>
             <div class="flip-buttons">
               <button
                 class="btn btn-sm"
                 :class="{ active: selectedLayer.flipX }"
                 @click="toggleFlip('flipX')"
-                title="Horizontal spiegeln"
+                :title="$t('layerPanel.transform.flipHorizontal')"
               >
                 <i class="fas fa-arrows-alt-h"></i>
-                Horizontal
+                {{ $t('layerPanel.transform.horizontal') }}
               </button>
               <button
                 class="btn btn-sm"
                 :class="{ active: selectedLayer.flipY }"
                 @click="toggleFlip('flipY')"
-                title="Vertikal spiegeln"
+                :title="$t('layerPanel.transform.flipVertical')"
               >
                 <i class="fas fa-arrows-alt-v"></i>
-                Vertikal
+                {{ $t('layerPanel.transform.vertical') }}
               </button>
             </div>
           </div>
 
           <!-- Deckkraft -->
           <div class="control-group">
-            <label>Deckkraft: {{ selectedLayer.opacity }}%</label>
+            <label>{{ $t('layerPanel.transform.opacity') }}: {{ selectedLayer.opacity }}%</label>
             <input
               type="range"
               min="0"
@@ -284,13 +284,13 @@
       <div class="panel-section" v-if="selectedLayer">
         <h3 class="section-title collapsible" @click="toggleSection('filters')">
           <i class="fas fa-sliders-h"></i>
-          Filter
+          {{ $t('layerPanel.filters.title') }}
           <i class="fas toggle-icon" :class="openSections.filters ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
         </h3>
 
         <div v-show="openSections.filters" class="section-content">
           <div class="control-group">
-            <label>Helligkeit: {{ selectedLayer.filters.brightness }}%</label>
+            <label>{{ $t('layerPanel.filters.brightness') }}: {{ selectedLayer.filters.brightness }}%</label>
             <input
               type="range"
               min="0"
@@ -301,7 +301,7 @@
           </div>
 
           <div class="control-group">
-            <label>Kontrast: {{ selectedLayer.filters.contrast }}%</label>
+            <label>{{ $t('layerPanel.filters.contrast') }}: {{ selectedLayer.filters.contrast }}%</label>
             <input
               type="range"
               min="0"
@@ -312,7 +312,7 @@
           </div>
 
           <div class="control-group">
-            <label>Sättigung: {{ selectedLayer.filters.saturation }}%</label>
+            <label>{{ $t('layerPanel.filters.saturation') }}: {{ selectedLayer.filters.saturation }}%</label>
             <input
               type="range"
               min="0"
@@ -323,7 +323,7 @@
           </div>
 
           <div class="control-group">
-            <label>Graustufen: {{ selectedLayer.filters.grayscale }}%</label>
+            <label>{{ $t('layerPanel.filters.grayscale') }}: {{ selectedLayer.filters.grayscale }}%</label>
             <input
               type="range"
               min="0"
@@ -335,7 +335,7 @@
 
           <button class="btn btn-secondary btn-full" @click="resetLayerFilters">
             <i class="fas fa-undo"></i>
-            Filter zurücksetzen
+            {{ $t('layerPanel.filters.reset') }}
           </button>
         </div>
       </div>
@@ -344,13 +344,13 @@
       <div class="panel-section" v-if="selectedLayer">
         <h3 class="section-title collapsible" @click="toggleSection('border')">
           <i class="fas fa-border-style"></i>
-          Umrandung
+          {{ $t('layerPanel.border.title') }}
           <i class="fas toggle-icon" :class="openSections.border ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
         </h3>
 
         <div v-show="openSections.border" class="section-content">
           <div class="control-group">
-            <label>Randstärke: {{ layerBorder.width }}px</label>
+            <label>{{ $t('layerPanel.border.width') }}: {{ layerBorder.width }}px</label>
             <input
               type="range"
               min="0"
@@ -361,7 +361,7 @@
           </div>
 
           <div class="control-group">
-            <label>Randfarbe</label>
+            <label>{{ $t('layerPanel.border.color') }}</label>
             <div class="color-picker-row">
               <input
                 type="color"
@@ -380,7 +380,7 @@
           </div>
 
           <div class="control-group">
-            <label>Eckenradius: {{ layerBorder.radius }}%</label>
+            <label>{{ $t('layerPanel.border.radius') }}: {{ layerBorder.radius }}%</label>
             <input
               type="range"
               min="0"
@@ -396,7 +396,7 @@
       <div class="panel-section" v-if="selectedLayer">
         <h3 class="section-title collapsible" @click="toggleSection('shadow')">
           <i class="fas fa-clone"></i>
-          Schlagschatten
+          {{ $t('layerPanel.shadow.title') }}
           <i class="fas toggle-icon" :class="openSections.shadow ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
         </h3>
 
@@ -408,13 +408,13 @@
                 :checked="layerShadow.enabled"
                 @change="updateShadow('enabled', $event.target.checked)"
               />
-              Schatten aktivieren
+              {{ $t('layerPanel.shadow.enable') }}
             </label>
           </div>
 
           <template v-if="layerShadow.enabled">
             <div class="control-group">
-              <label>Versatz X: {{ layerShadow.offsetX }}px</label>
+              <label>{{ $t('layerPanel.shadow.offsetX') }}: {{ layerShadow.offsetX }}px</label>
               <input
                 type="range"
                 min="-50"
@@ -425,7 +425,7 @@
             </div>
 
             <div class="control-group">
-              <label>Versatz Y: {{ layerShadow.offsetY }}px</label>
+              <label>{{ $t('layerPanel.shadow.offsetY') }}: {{ layerShadow.offsetY }}px</label>
               <input
                 type="range"
                 min="-50"
@@ -436,7 +436,7 @@
             </div>
 
             <div class="control-group">
-              <label>Unschärfe: {{ layerShadow.blur }}px</label>
+              <label>{{ $t('layerPanel.shadow.blur') }}: {{ layerShadow.blur }}px</label>
               <input
                 type="range"
                 min="0"
@@ -447,7 +447,7 @@
             </div>
 
             <div class="control-group">
-              <label>Schattenfarbe</label>
+              <label>{{ $t('layerPanel.shadow.color') }}</label>
               <div class="color-picker-row">
                 <input
                   type="color"
@@ -466,7 +466,7 @@
             </div>
 
             <div class="control-group">
-              <label>Deckkraft: {{ layerShadow.opacity }}%</label>
+              <label>{{ $t('layerPanel.shadow.opacity') }}: {{ layerShadow.opacity }}%</label>
               <input
                 type="range"
                 min="0"
@@ -483,7 +483,7 @@
       <div class="panel-section" v-if="!selectedLayer">
         <p class="hint-text">
           <i class="fas fa-mouse-pointer"></i>
-          Klicken Sie auf ein Bild im Canvas um es zu bearbeiten
+          {{ $t('layerPanel.hints.selectLayer') }}
         </p>
       </div>
     </div>
@@ -494,7 +494,7 @@
       <div class="panel-section">
         <button class="btn btn-primary btn-full" @click="addText">
           <i class="fas fa-plus"></i>
-          Text hinzufügen
+          {{ $t('layerPanel.text.addButton') }}
         </button>
       </div>
 
@@ -502,7 +502,7 @@
       <div class="panel-section" v-if="imageStore.texts && imageStore.texts.length > 0">
         <h3 class="section-title">
           <i class="fas fa-list"></i>
-          Texte ({{ imageStore.texts.length }})
+          {{ $t('layerPanel.text.listTitle') }} ({{ imageStore.texts.length }})
         </h3>
 
         <div class="text-list">
@@ -523,7 +523,7 @@
             <button
               class="icon-btn"
               @click.stop="deleteText(text.id)"
-              title="Löschen"
+              :title="$t('layerPanel.layers.delete')"
             >
               <i class="fas fa-trash"></i>
             </button>
@@ -535,11 +535,11 @@
       <div class="panel-section" v-if="selectedText">
         <h3 class="section-title">
           <i class="fas fa-edit"></i>
-          Text bearbeiten
+          {{ $t('layerPanel.text.editTitle') }}
         </h3>
 
         <div class="control-group">
-          <label>Inhalt</label>
+          <label>{{ $t('layerPanel.text.content') }}</label>
           <input
             type="text"
             :value="selectedText.content || selectedText.txt"
@@ -549,7 +549,7 @@
         </div>
 
         <div class="control-group">
-          <label>Schriftgröße: {{ selectedText.fontSize || 32 }}px</label>
+          <label>{{ $t('layerPanel.text.fontSize') }}: {{ selectedText.fontSize || 32 }}px</label>
           <input
             type="range"
             min="8"
@@ -560,13 +560,13 @@
         </div>
 
         <div class="control-group">
-          <label>Schriftart</label>
+          <label>{{ $t('layerPanel.text.fontFamily') }}</label>
           <select
             :value="selectedText.fontFamily || 'Arial'"
             @change="updateTextProperty('fontFamily', $event.target.value)"
             class="form-select font-select"
           >
-            <optgroup label="Benutzerdefinierte Schriften">
+            <optgroup :label="$t('layerPanel.text.customFonts')">
               <option
                 v-for="font in availableFonts"
                 :key="font"
@@ -576,7 +576,7 @@
                 {{ font }}
               </option>
             </optgroup>
-            <optgroup label="System-Schriften">
+            <optgroup :label="$t('layerPanel.text.systemFonts')">
               <option
                 v-for="font in systemFonts"
                 :key="font"
@@ -590,7 +590,7 @@
         </div>
 
         <div class="control-group">
-          <label>Textfarbe</label>
+          <label>{{ $t('layerPanel.text.color') }}</label>
           <div class="color-picker-row">
             <input
               type="color"
@@ -609,7 +609,7 @@
         </div>
 
         <div class="control-group">
-          <label>Deckkraft: {{ selectedText.opacity || 100 }}%</label>
+          <label>{{ $t('layerPanel.text.opacity') }}: {{ selectedText.opacity || 100 }}%</label>
           <input
             type="range"
             min="0"
@@ -620,7 +620,7 @@
         </div>
 
         <div class="control-group">
-          <label>Rotation: {{ selectedText.rotation || 0 }}°</label>
+          <label>{{ $t('layerPanel.text.rotation') }}: {{ selectedText.rotation || 0 }}°</label>
           <input
             type="range"
             min="-180"
@@ -631,9 +631,9 @@
         </div>
 
         <!-- Text Kontur -->
-        <h4 class="subsection-title">Kontur</h4>
+        <h4 class="subsection-title">{{ $t('layerPanel.text.stroke') }}</h4>
         <div class="control-group">
-          <label>Konturstärke: {{ selectedText.strokeWidth || 0 }}px</label>
+          <label>{{ $t('layerPanel.text.strokeWidth') }}: {{ selectedText.strokeWidth || 0 }}px</label>
           <input
             type="range"
             min="0"
@@ -644,7 +644,7 @@
         </div>
 
         <div class="control-group" v-if="(selectedText.strokeWidth || 0) > 0">
-          <label>Konturfarbe</label>
+          <label>{{ $t('layerPanel.text.strokeColor') }}</label>
           <div class="color-picker-row">
             <input
               type="color"
@@ -663,9 +663,9 @@
         </div>
 
         <!-- Text Schatten -->
-        <h4 class="subsection-title">Textschatten</h4>
+        <h4 class="subsection-title">{{ $t('layerPanel.text.textShadow') }}</h4>
         <div class="control-group">
-          <label>Schattenunschärfe: {{ selectedText.shadowBlur || 0 }}px</label>
+          <label>{{ $t('layerPanel.text.shadowBlur') }}: {{ selectedText.shadowBlur || 0 }}px</label>
           <input
             type="range"
             min="0"
@@ -677,7 +677,7 @@
 
         <template v-if="(selectedText.shadowBlur || 0) > 0">
           <div class="control-group">
-            <label>Schatten X: {{ selectedText.shadowOffsetX || 2 }}px</label>
+            <label>{{ $t('layerPanel.text.shadowX') }}: {{ selectedText.shadowOffsetX || 2 }}px</label>
             <input
               type="range"
               min="-20"
@@ -688,7 +688,7 @@
           </div>
 
           <div class="control-group">
-            <label>Schatten Y: {{ selectedText.shadowOffsetY || 2 }}px</label>
+            <label>{{ $t('layerPanel.text.shadowY') }}: {{ selectedText.shadowOffsetY || 2 }}px</label>
             <input
               type="range"
               min="-20"
@@ -699,7 +699,7 @@
           </div>
 
           <div class="control-group">
-            <label>Schattenfarbe</label>
+            <label>{{ $t('layerPanel.text.shadowColor') }}</label>
             <div class="color-picker-row">
               <input
                 type="color"
@@ -720,7 +720,7 @@
 
         <button class="btn btn-danger btn-full" @click="deleteText(selectedText.id)">
           <i class="fas fa-trash"></i>
-          Text löschen
+          {{ $t('layerPanel.text.delete') }}
         </button>
       </div>
 
@@ -728,7 +728,7 @@
       <div class="panel-section" v-if="!imageStore.texts || imageStore.texts.length === 0">
         <p class="hint-text">
           <i class="fas fa-font"></i>
-          Klicken Sie auf "Text hinzufügen" um einen neuen Text zu erstellen
+          {{ $t('layerPanel.hints.addText') }}
         </p>
       </div>
     </div>
@@ -737,8 +737,11 @@
 
 <script setup>
 import { ref, computed, reactive, watch, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useImageStore } from '@/stores/imageStore'
 import { availableFonts } from '@/assets/fonts/fontList.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   canvasSelectedTextId: {
@@ -810,16 +813,16 @@ const openSections = reactive({
 })
 
 // Schnellfarben für Hintergrund
-const quickColors = [
-  { value: 'transparent', label: 'Transparent' },
-  { value: '#ffffff', label: 'Weiß' },
-  { value: '#000000', label: 'Schwarz' },
-  { value: '#f0f0f0', label: 'Hellgrau' },
-  { value: '#808080', label: 'Grau' },
-  { value: '#ff0000', label: 'Rot' },
-  { value: '#00ff00', label: 'Grün' },
-  { value: '#0000ff', label: 'Blau' }
-]
+const quickColors = computed(() => [
+  { value: 'transparent', label: t('layerPanel.background.transparent') },
+  { value: '#ffffff', label: t('layerPanel.background.white') },
+  { value: '#000000', label: t('layerPanel.background.black') },
+  { value: '#f0f0f0', label: t('layerPanel.background.lightGray') },
+  { value: '#808080', label: t('layerPanel.background.gray') },
+  { value: '#ff0000', label: t('layerPanel.background.red') },
+  { value: '#00ff00', label: t('layerPanel.background.green') },
+  { value: '#0000ff', label: t('layerPanel.background.blue') }
+])
 
 // System-Fonts als Fallback
 const systemFonts = [
@@ -892,7 +895,7 @@ function toggleVisibility(layer) {
 }
 
 function deleteLayer(layerId) {
-  if (confirm('Möchten Sie diesen Layer wirklich löschen?')) {
+  if (confirm(t('layerPanel.layers.confirmDelete'))) {
     imageStore.deleteImageLayer(layerId)
     emit('render')
   }
@@ -1023,7 +1026,7 @@ function resetLayerFilters() {
 function addText() {
   const newText = {
     id: `text_${Date.now()}`,
-    content: 'Neuer Text',
+    content: t('layerPanel.text.newText'),
     x: 100,
     y: 100,
     fontSize: 48,
@@ -1056,8 +1059,8 @@ function selectText(textId) {
 }
 
 function deleteText(textId) {
-  if (confirm('Möchten Sie diesen Text wirklich löschen?')) {
-    const index = imageStore.texts.findIndex(t => t.id === textId)
+  if (confirm(t('layerPanel.text.confirmDelete'))) {
+    const index = imageStore.texts.findIndex(txt => txt.id === textId)
     if (index !== -1) {
       imageStore.texts.splice(index, 1)
       if (selectedTextId.value === textId) {
