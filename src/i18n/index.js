@@ -156,6 +156,10 @@ const de = {
         description: 'Lade ein Bild hoch um zu beginnen',
         button: 'Bild hochladen'
       }
+    },
+    export: {
+      quality: 'Qualität',
+      transparentBackground: 'Transparenter Hintergrund'
     }
   },
   transform: {
@@ -940,6 +944,10 @@ const en = {
         description: 'Upload an image to get started',
         button: 'Upload Image'
       }
+    },
+    export: {
+      quality: 'Quality',
+      transparentBackground: 'Transparent background'
     }
   },
   transform: {

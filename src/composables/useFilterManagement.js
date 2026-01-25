@@ -24,7 +24,7 @@ export const DEFAULT_FILTERS = {
 // Standard-Hintergrund
 export const DEFAULT_BACKGROUND = {
   color: '#ffffff',
-  opacity: 0
+  opacity: 100
 }
 
 /**
