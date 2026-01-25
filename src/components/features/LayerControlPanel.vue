@@ -639,6 +639,20 @@ watch(() => props.canvasSelectedTextId, (newTextId) => {
     activeTab.value = 'text'
     // Layer-Auswahl aufheben
     imageStore.selectImageLayer(null)
+  } else {
+    // Text wurde abgewählt - wenn ein Layer ausgewählt ist, zu Layers-Tab wechseln
+    if (imageStore.selectedLayerId) {
+      activeTab.value = 'layers'
+      selectedTextId.value = null
+    }
+  }
+})
+
+// Wenn ein Layer ausgewählt wird, zu Layers-Tab wechseln
+watch(() => imageStore.selectedLayerId, (newLayerId) => {
+  if (newLayerId) {
+    activeTab.value = 'layers'
+    selectedTextId.value = null
   }
 })
 
