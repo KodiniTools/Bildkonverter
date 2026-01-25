@@ -533,6 +533,7 @@
         <!-- Rechte Spalte: LayerControlPanel im Collage-Modus -->
         <LayerControlPanel
           v-if="isCollageMode"
+          :canvas-selected-text-id="selectedTextId"
           @render="renderImage"
           @select-text="onSelectTextFromPanel"
         />
@@ -1034,7 +1035,9 @@ function renderImage() {
         const minDimension = Math.min(rw, rh)
         const rad = (borderRadiusPercent / 100) * (minDimension / 2)
 
-        ctx.fillStyle = 'rgba(0,0,0,0)' // Transparent füllen, nur Schatten sichtbar
+        // WICHTIG: Muss mit deckender Farbe gefüllt werden, damit Schatten sichtbar ist
+        // Die Form wird später vom geclippten Bild überdeckt
+        ctx.fillStyle = '#ffffff'
         ctx.beginPath()
         ctx.moveTo(rx + rad, ry)
         ctx.lineTo(rx + rw - rad, ry)
@@ -1530,7 +1533,8 @@ function renderImageForExport() {
         const minDimension = Math.min(rw, rh)
         const rad = (borderRadiusPercent / 100) * (minDimension / 2)
 
-        ctx.fillStyle = 'rgba(0,0,0,0)'
+        // WICHTIG: Muss mit deckender Farbe gefüllt werden, damit Schatten sichtbar ist
+        ctx.fillStyle = '#ffffff'
         ctx.beginPath()
         ctx.moveTo(rx + rad, ry)
         ctx.lineTo(rx + rw - rad, ry)

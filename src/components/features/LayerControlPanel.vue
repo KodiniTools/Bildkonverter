@@ -615,8 +615,15 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, watch } from 'vue'
 import { useImageStore } from '@/stores/imageStore'
+
+const props = defineProps({
+  canvasSelectedTextId: {
+    type: String,
+    default: null
+  }
+})
 
 const emit = defineEmits(['render', 'add-text', 'select-text'])
 
@@ -624,6 +631,16 @@ const imageStore = useImageStore()
 const maintainAspectRatio = ref(true)
 const activeTab = ref('layers')
 const selectedTextId = ref(null)
+
+// Wenn Text auf Canvas ausgewählt wird, zu Text-Tab wechseln und Text auswählen
+watch(() => props.canvasSelectedTextId, (newTextId) => {
+  if (newTextId) {
+    selectedTextId.value = newTextId
+    activeTab.value = 'text'
+    // Layer-Auswahl aufheben
+    imageStore.selectImageLayer(null)
+  }
+})
 
 const openSections = reactive({
   transform: true,
