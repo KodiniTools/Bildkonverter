@@ -530,9 +530,15 @@
           </div>
         </div>
 
-        <!-- Rechte Spalte: TransformPanel (Text + Crop + Transform Features) -->
+        <!-- Rechte Spalte: LayerControlPanel im Collage-Modus -->
+        <LayerControlPanel
+          v-if="isCollageMode"
+          @render="renderImage"
+        />
+
+        <!-- Rechte Spalte: TransformPanel (Text + Crop + Transform Features) - Normaler Modus -->
         <TransformPanel
-          v-if="currentImage || isCollageMode"
+          v-else-if="currentImage"
           :crop-mode="crop.cropMode.value"
           :has-cropped="crop.hasCropped.value"
           :selected-aspect-ratio="crop.selectedAspectRatio.value"
@@ -637,6 +643,7 @@ import { useResizeManager } from '@/composables/useResizeManager'
 import { useGalleryIntegration } from '@/composables/useGalleryIntegration'
 import { useImageLayerInteraction } from '@/composables/useImageLayerInteraction'
 import TransformPanel from '@/components/features/TransformPanel.vue'
+import LayerControlPanel from '@/components/features/LayerControlPanel.vue'
 import FilterPresets from '@/components/editor/FilterPresets.vue'
 
 // ===== NEU: Export Utils Import =====
