@@ -561,6 +561,8 @@
           @update:shadow-blur="handleShadowBlurUpdate"
           @update:shadow-color="handleShadowColorUpdate"
           @update:shadow-opacity="handleShadowOpacityUpdate"
+          @update:skew-x="handleSkewXUpdate"
+          @update:skew-y="handleSkewYUpdate"
           @rotate-90="handleRotate90"
           @rotate-90-counter="handleRotate90Counter"
           @rotate-180="handleRotate180"
@@ -1677,6 +1679,17 @@ function handleShadowColorUpdate(color) {
 
 function handleShadowOpacityUpdate(value) {
   transform.setShadowOpacity(value)
+  renderImage()
+}
+
+// Skew-Handler
+function handleSkewXUpdate(value) {
+  transform.setSkewX(value)
+  renderImage()
+}
+
+function handleSkewYUpdate(value) {
+  transform.setSkewY(value)
   renderImage()
 }
 

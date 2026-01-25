@@ -199,6 +199,11 @@ const de = {
       opacity: 'Deckkraft',
       color: 'Farbe'
     },
+    skew: {
+      title: 'Neigung',
+      horizontal: 'Horizontal',
+      vertical: 'Vertikal'
+    },
     apply: 'Anwenden',
     applyTooltip: 'Transformationen permanent anwenden',
     reset: 'Zurücksetzen'
@@ -871,6 +876,11 @@ const en = {
       blur: 'Blur',
       opacity: 'Opacity',
       color: 'Color'
+    },
+    skew: {
+      title: 'Skew',
+      horizontal: 'Horizontal',
+      vertical: 'Vertical'
     },
     apply: 'Apply',
     applyTooltip: 'Apply transformations permanently',
