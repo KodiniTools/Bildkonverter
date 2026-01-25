@@ -600,6 +600,176 @@
           <span class="color-label">{{ $t('transform.borderColor') }}</span>
         </div>
       </div>
+
+      <!-- Schlagschatten (Drop Shadow) -->
+      <div class="control-group shadow-section">
+        <label class="shadow-toggle-label">
+          <span class="label-text">
+            <i class="fas fa-clone"></i>
+            {{ $t('transform.shadow.title', 'Schlagschatten') }}
+          </span>
+          <button
+            class="toggle-btn"
+            :class="{ 'active': transforms.shadowEnabled }"
+            @click="$emit('update:shadow-enabled', !transforms.shadowEnabled)"
+          >
+            <span class="toggle-slider"></span>
+          </button>
+        </label>
+
+        <!-- Shadow Controls (nur sichtbar wenn aktiviert) -->
+        <div v-if="transforms.shadowEnabled" class="shadow-controls-panel">
+          <!-- Offset X -->
+          <div class="shadow-control-row">
+            <label class="mini-label">
+              <i class="fas fa-arrows-alt-h"></i>
+              {{ $t('transform.shadow.offsetX', 'X-Versatz') }}
+            </label>
+            <div class="slider-with-input compact">
+              <input
+                type="range"
+                min="-50"
+                max="50"
+                :value="transforms.shadowOffsetX"
+                @input="$emit('update:shadow-offset-x', Number($event.target.value))"
+                @change="$emit('commit-transform')"
+                class="slider"
+              >
+              <div class="number-input-wrapper">
+                <input
+                  type="number"
+                  min="-50"
+                  max="50"
+                  :value="transforms.shadowOffsetX"
+                  @input="$emit('update:shadow-offset-x', Math.min(50, Math.max(-50, Number($event.target.value))))"
+                  @change="$emit('commit-transform')"
+                  class="number-input"
+                >
+                <span class="unit">px</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Offset Y -->
+          <div class="shadow-control-row">
+            <label class="mini-label">
+              <i class="fas fa-arrows-alt-v"></i>
+              {{ $t('transform.shadow.offsetY', 'Y-Versatz') }}
+            </label>
+            <div class="slider-with-input compact">
+              <input
+                type="range"
+                min="-50"
+                max="50"
+                :value="transforms.shadowOffsetY"
+                @input="$emit('update:shadow-offset-y', Number($event.target.value))"
+                @change="$emit('commit-transform')"
+                class="slider"
+              >
+              <div class="number-input-wrapper">
+                <input
+                  type="number"
+                  min="-50"
+                  max="50"
+                  :value="transforms.shadowOffsetY"
+                  @input="$emit('update:shadow-offset-y', Math.min(50, Math.max(-50, Number($event.target.value))))"
+                  @change="$emit('commit-transform')"
+                  class="number-input"
+                >
+                <span class="unit">px</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Blur -->
+          <div class="shadow-control-row">
+            <label class="mini-label">
+              <i class="fas fa-adjust"></i>
+              {{ $t('transform.shadow.blur', 'Weichzeichner') }}
+            </label>
+            <div class="slider-with-input compact">
+              <input
+                type="range"
+                min="0"
+                max="100"
+                :value="transforms.shadowBlur"
+                @input="$emit('update:shadow-blur', Number($event.target.value))"
+                @change="$emit('commit-transform')"
+                class="slider"
+              >
+              <div class="number-input-wrapper">
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  :value="transforms.shadowBlur"
+                  @input="$emit('update:shadow-blur', Math.min(100, Math.max(0, Number($event.target.value))))"
+                  @change="$emit('commit-transform')"
+                  class="number-input"
+                >
+                <span class="unit">px</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Opacity -->
+          <div class="shadow-control-row">
+            <label class="mini-label">
+              <i class="fas fa-eye"></i>
+              {{ $t('transform.shadow.opacity', 'Deckkraft') }}
+            </label>
+            <div class="slider-with-input compact">
+              <input
+                type="range"
+                min="0"
+                max="100"
+                :value="transforms.shadowOpacity"
+                @input="$emit('update:shadow-opacity', Number($event.target.value))"
+                @change="$emit('commit-transform')"
+                class="slider"
+              >
+              <div class="number-input-wrapper">
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  :value="transforms.shadowOpacity"
+                  @input="$emit('update:shadow-opacity', Math.min(100, Math.max(0, Number($event.target.value))))"
+                  @change="$emit('commit-transform')"
+                  class="number-input"
+                >
+                <span class="unit">%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Color -->
+          <div class="shadow-control-row">
+            <label class="mini-label">
+              <i class="fas fa-palette"></i>
+              {{ $t('transform.shadow.color', 'Farbe') }}
+            </label>
+            <div class="color-picker-row">
+              <input
+                type="color"
+                :value="transforms.shadowColor"
+                @input="$emit('update:shadow-color', $event.target.value)"
+                @change="$emit('commit-transform')"
+                class="color-input"
+                :style="{ backgroundColor: transforms.shadowColor }"
+              >
+              <input
+                type="text"
+                :value="transforms.shadowColor"
+                @input="$emit('update:shadow-color', $event.target.value)"
+                @change="$emit('commit-transform')"
+                class="color-text"
+                maxlength="7"
+              >
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </aside>
 </template>
@@ -697,6 +867,13 @@ defineEmits([
   'update:border-radius',
   'update:border-width',
   'update:border-color',
+  // Shadow events
+  'update:shadow-enabled',
+  'update:shadow-offset-x',
+  'update:shadow-offset-y',
+  'update:shadow-blur',
+  'update:shadow-color',
+  'update:shadow-opacity',
   'rotate-90',
   'rotate-90-counter',
   'rotate-180',
@@ -1598,6 +1775,127 @@ defineEmits([
 }
 
 .dark-mode .pan-hint {
+  color: #9ca3af;
+}
+
+/* Shadow Section Styles */
+.shadow-section {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--color-border, #e5e7eb);
+}
+
+.shadow-toggle-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.toggle-btn {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: var(--color-border, #d1d5db);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 2px;
+
+  &.active {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+  }
+
+  .toggle-slider {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+
+  &.active .toggle-slider {
+    transform: translateX(20px);
+  }
+}
+
+.shadow-controls-panel {
+  background: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.shadow-control-row {
+  margin-bottom: 0.75rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.mini-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  color: var(--color-text-secondary, #6b7280);
+  margin-bottom: 0.35rem;
+  font-weight: 500;
+
+  i {
+    color: var(--color-primary, #3b82f6);
+    font-size: 0.7rem;
+    opacity: 0.8;
+  }
+}
+
+.slider-with-input.compact {
+  gap: 0.4rem;
+
+  .slider {
+    flex: 1;
+  }
+
+  .number-input-wrapper {
+    .number-input {
+      width: 38px;
+      padding: 3px 2px 3px 5px;
+      font-size: 0.7rem;
+    }
+
+    .unit {
+      font-size: 0.6rem;
+    }
+  }
+}
+
+/* Dark Mode Shadow Styles */
+.dark-mode .shadow-section {
+  border-top-color: #4b5563;
+}
+
+.dark-mode .toggle-btn {
+  background: #4b5563;
+
+  &.active {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+  }
+}
+
+.dark-mode .shadow-controls-panel {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.25);
+}
+
+.dark-mode .mini-label {
   color: #9ca3af;
 }
 </style>

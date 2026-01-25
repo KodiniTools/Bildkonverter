@@ -555,6 +555,12 @@
           @update:border-radius="handleBorderRadiusUpdate"
           @update:border-width="handleBorderWidthUpdate"
           @update:border-color="handleBorderColorUpdate"
+          @update:shadow-enabled="handleShadowEnabledUpdate"
+          @update:shadow-offset-x="handleShadowOffsetXUpdate"
+          @update:shadow-offset-y="handleShadowOffsetYUpdate"
+          @update:shadow-blur="handleShadowBlurUpdate"
+          @update:shadow-color="handleShadowColorUpdate"
+          @update:shadow-opacity="handleShadowOpacityUpdate"
           @rotate-90="handleRotate90"
           @rotate-90-counter="handleRotate90Counter"
           @rotate-180="handleRotate180"
@@ -930,7 +936,50 @@ function renderImage() {
   `
 
   ctx.filter = filterString
-  
+
+  // Schlagschatten (Drop Shadow) - muss VOR dem Clipping gezeichnet werden
+  if (transform.transforms.value.shadowEnabled) {
+    ctx.save()
+    // Reset filter für Schatten
+    ctx.filter = 'none'
+
+    // Berechne Schatten-Farbe mit Deckkraft
+    const shadowOpacity = transform.transforms.value.shadowOpacity / 100
+    const shadowColor = transform.transforms.value.shadowColor
+    // Konvertiere Hex zu RGBA
+    const r = parseInt(shadowColor.slice(1, 3), 16)
+    const g = parseInt(shadowColor.slice(3, 5), 16)
+    const b = parseInt(shadowColor.slice(5, 7), 16)
+
+    ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${shadowOpacity})`
+    ctx.shadowBlur = transform.transforms.value.shadowBlur
+    ctx.shadowOffsetX = transform.transforms.value.shadowOffsetX
+    ctx.shadowOffsetY = transform.transforms.value.shadowOffsetY
+
+    // Zeichne die Schatten-Form (abhängig von borderRadius)
+    ctx.fillStyle = 'rgba(0, 0, 0, 1)' // Nur für die Schatten-Silhouette
+    if (transform.transforms.value.borderRadius >= 50) {
+      // Kreis-Schatten
+      const centerX = canvas.value.width / 2
+      const centerY = canvas.value.height / 2
+      const radius = Math.min(canvas.value.width, canvas.value.height) / 2
+      ctx.beginPath()
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
+      ctx.fill()
+    } else if (transform.transforms.value.borderRadius > 0) {
+      // Abgerundetes Rechteck-Schatten
+      roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, getBorderRadiusPixels())
+      ctx.fill()
+    } else {
+      // Normales Rechteck-Schatten
+      ctx.fillRect(0, 0, canvas.value.width, canvas.value.height)
+    }
+    ctx.restore()
+
+    // Filter wieder anwenden
+    ctx.filter = filterString
+  }
+
   // Border Radius (abgerundete Ecken)
   if (transform.transforms.value.borderRadius > 0) {
     ctx.save()
@@ -1103,6 +1152,40 @@ function renderImageForExport() {
     hue-rotate(${filters.value.hue}deg)
   `
   ctx.filter = filterString
+
+  // Schlagschatten (Drop Shadow) für Export
+  if (transform.transforms.value.shadowEnabled) {
+    ctx.save()
+    ctx.filter = 'none'
+
+    const shadowOpacity = transform.transforms.value.shadowOpacity / 100
+    const shadowColor = transform.transforms.value.shadowColor
+    const r = parseInt(shadowColor.slice(1, 3), 16)
+    const g = parseInt(shadowColor.slice(3, 5), 16)
+    const b = parseInt(shadowColor.slice(5, 7), 16)
+
+    ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${shadowOpacity})`
+    ctx.shadowBlur = transform.transforms.value.shadowBlur
+    ctx.shadowOffsetX = transform.transforms.value.shadowOffsetX
+    ctx.shadowOffsetY = transform.transforms.value.shadowOffsetY
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 1)'
+    if (transform.transforms.value.borderRadius >= 50) {
+      const centerX = canvas.value.width / 2
+      const centerY = canvas.value.height / 2
+      const radius = Math.min(canvas.value.width, canvas.value.height) / 2
+      ctx.beginPath()
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
+      ctx.fill()
+    } else if (transform.transforms.value.borderRadius > 0) {
+      roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, getBorderRadiusPixels())
+      ctx.fill()
+    } else {
+      ctx.fillRect(0, 0, canvas.value.width, canvas.value.height)
+    }
+    ctx.restore()
+    ctx.filter = filterString
+  }
 
   // Border Radius
   if (transform.transforms.value.borderRadius > 0) {
@@ -1563,6 +1646,37 @@ function handleBorderWidthUpdate(value) {
 
 function handleBorderColorUpdate(color) {
   transform.setBorderColor(color)
+  renderImage()
+}
+
+// Shadow-Handler
+function handleShadowEnabledUpdate(enabled) {
+  transform.setShadowEnabled(enabled)
+  renderImage()
+}
+
+function handleShadowOffsetXUpdate(value) {
+  transform.setShadowOffsetX(value)
+  renderImage()
+}
+
+function handleShadowOffsetYUpdate(value) {
+  transform.setShadowOffsetY(value)
+  renderImage()
+}
+
+function handleShadowBlurUpdate(value) {
+  transform.setShadowBlur(value)
+  renderImage()
+}
+
+function handleShadowColorUpdate(color) {
+  transform.setShadowColor(color)
+  renderImage()
+}
+
+function handleShadowOpacityUpdate(value) {
+  transform.setShadowOpacity(value)
   renderImage()
 }
 

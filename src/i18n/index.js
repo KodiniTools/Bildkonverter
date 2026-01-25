@@ -191,6 +191,14 @@ const de = {
     borderRadiusHint: '50% = vollständiger Kreis',
     border: 'Rahmen',
     borderColor: 'Farbe',
+    shadow: {
+      title: 'Schlagschatten',
+      offsetX: 'X-Versatz',
+      offsetY: 'Y-Versatz',
+      blur: 'Weichzeichner',
+      opacity: 'Deckkraft',
+      color: 'Farbe'
+    },
     apply: 'Anwenden',
     applyTooltip: 'Transformationen permanent anwenden',
     reset: 'Zurücksetzen'
@@ -856,6 +864,14 @@ const en = {
     borderRadiusHint: '50% = full circle',
     border: 'Border',
     borderColor: 'Color',
+    shadow: {
+      title: 'Drop Shadow',
+      offsetX: 'X-Offset',
+      offsetY: 'Y-Offset',
+      blur: 'Blur',
+      opacity: 'Opacity',
+      color: 'Color'
+    },
     apply: 'Apply',
     applyTooltip: 'Apply transformations permanently',
     reset: 'Reset'

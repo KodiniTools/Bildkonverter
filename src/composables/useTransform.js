@@ -17,7 +17,14 @@ const DEFAULT_TRANSFORMS = {
   borderWidth: 0,        // 0-20px
   borderColor: '#000000', // Hex color
   panX: 0,               // Pan-Offset X (in Pixeln)
-  panY: 0                // Pan-Offset Y (in Pixeln)
+  panY: 0,               // Pan-Offset Y (in Pixeln)
+  // Schlagschatten (Drop Shadow)
+  shadowEnabled: false,  // true/false
+  shadowOffsetX: 10,     // -50 bis +50 px
+  shadowOffsetY: 10,     // -50 bis +50 px
+  shadowBlur: 20,        // 0-100 px
+  shadowColor: '#000000', // Hex color
+  shadowOpacity: 50      // 0-100%
 }
 
 export function useTransform() {
@@ -284,6 +291,54 @@ export function useTransform() {
   }
 
   /**
+   * Setze Schlagschatten aktiviert/deaktiviert
+   */
+  function setShadowEnabled(enabled, saveHistory = false) {
+    transforms.value.shadowEnabled = enabled
+    if (saveHistory) saveToHistory()
+  }
+
+  /**
+   * Setze Schlagschatten X-Offset
+   */
+  function setShadowOffsetX(value, saveHistory = false) {
+    transforms.value.shadowOffsetX = Math.max(-50, Math.min(50, value))
+    if (saveHistory) saveToHistory()
+  }
+
+  /**
+   * Setze Schlagschatten Y-Offset
+   */
+  function setShadowOffsetY(value, saveHistory = false) {
+    transforms.value.shadowOffsetY = Math.max(-50, Math.min(50, value))
+    if (saveHistory) saveToHistory()
+  }
+
+  /**
+   * Setze Schlagschatten Blur
+   */
+  function setShadowBlur(value, saveHistory = false) {
+    transforms.value.shadowBlur = Math.max(0, Math.min(100, value))
+    if (saveHistory) saveToHistory()
+  }
+
+  /**
+   * Setze Schlagschatten Farbe
+   */
+  function setShadowColor(color, saveHistory = false) {
+    transforms.value.shadowColor = color
+    if (saveHistory) saveToHistory()
+  }
+
+  /**
+   * Setze Schlagschatten Deckkraft
+   */
+  function setShadowOpacity(value, saveHistory = false) {
+    transforms.value.shadowOpacity = Math.max(0, Math.min(100, value))
+    if (saveHistory) saveToHistory()
+  }
+
+  /**
    * Speichere aktuellen Zustand manuell (für Slider-Ende-Events)
    */
   function commitTransform() {
@@ -441,8 +496,16 @@ export function useTransform() {
       transforms.value.flipHorizontal ||
       transforms.value.flipVertical ||
       transforms.value.borderRadius !== 0 ||
-      transforms.value.borderWidth !== 0
+      transforms.value.borderWidth !== 0 ||
+      transforms.value.shadowEnabled
     )
+  })
+
+  /**
+   * Prüfe ob Schlagschatten aktiv ist
+   */
+  const hasShadow = computed(() => {
+    return transforms.value.shadowEnabled
   })
 
   /**
@@ -466,6 +529,7 @@ export function useTransform() {
     hasTransforms,
     hasPan,
     canPan,
+    hasShadow,
 
     // History State
     canUndoTransform,
@@ -487,6 +551,13 @@ export function useTransform() {
     setBorderRadius,
     setBorderWidth,
     setBorderColor,
+    // Shadow methods
+    setShadowEnabled,
+    setShadowOffsetX,
+    setShadowOffsetY,
+    setShadowBlur,
+    setShadowColor,
+    setShadowOpacity,
     applyToCanvas,
     applyPermanently,
     resetTransforms,
