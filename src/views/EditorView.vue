@@ -909,9 +909,54 @@ async function loadImage(img) {
   initTextHistory() // Initialisiere Text-History für neues Bild
 }
 
+/**
+ * Zeichnet den Auswahl-Rahmen für einen Bild-Layer (Collage-Modus)
+ */
+function drawLayerSelection(context, layer) {
+  context.save()
+
+  // Rotation für Auswahl-Rahmen
+  if (layer.rotation !== 0) {
+    const centerX = layer.x + layer.width / 2
+    const centerY = layer.y + layer.height / 2
+    context.translate(centerX, centerY)
+    context.rotate((layer.rotation * Math.PI) / 180)
+    context.translate(-centerX, -centerY)
+  }
+
+  // Gestrichelter Rahmen
+  context.strokeStyle = '#3b82f6'
+  context.lineWidth = 2
+  context.setLineDash([5, 5])
+  context.strokeRect(layer.x - 2, layer.y - 2, layer.width + 4, layer.height + 4)
+
+  // Resize-Handles
+  context.setLineDash([])
+  context.fillStyle = '#3b82f6'
+  const handleSize = 8
+  const handles = [
+    { x: layer.x - handleSize / 2, y: layer.y - handleSize / 2 },
+    { x: layer.x + layer.width / 2 - handleSize / 2, y: layer.y - handleSize / 2 },
+    { x: layer.x + layer.width - handleSize / 2, y: layer.y - handleSize / 2 },
+    { x: layer.x + layer.width - handleSize / 2, y: layer.y + layer.height / 2 - handleSize / 2 },
+    { x: layer.x + layer.width - handleSize / 2, y: layer.y + layer.height - handleSize / 2 },
+    { x: layer.x + layer.width / 2 - handleSize / 2, y: layer.y + layer.height - handleSize / 2 },
+    { x: layer.x - handleSize / 2, y: layer.y + layer.height - handleSize / 2 },
+    { x: layer.x - handleSize / 2, y: layer.y + layer.height / 2 - handleSize / 2 }
+  ]
+
+  handles.forEach(pos => {
+    context.fillRect(pos.x, pos.y, handleSize, handleSize)
+  })
+
+  context.restore()
+}
+
 function renderImage() {
   // Im Collage-Modus benutze den imageStore zum Zeichnen
   if (isCollageMode.value && imageStore.hasImageLayers) {
+    if (!canvas.value) return
+
     const ctx = canvas.value.getContext('2d')
     ctx.clearRect(0, 0, canvas.value.width, canvas.value.height)
 
@@ -924,8 +969,71 @@ function renderImage() {
       ctx.restore()
     }
 
-    // Layer zeichnen über imageStore
-    imageStore.draw()
+    // Layer direkt zeichnen (ohne Canvas zu löschen)
+    imageStore.imageLayers.forEach(layer => {
+      if (!layer.visible) return
+      if (!layer.image || !layer.image.complete) {
+        console.warn(`Layer "${layer.name}" hat kein gültiges Bild`)
+        return
+      }
+
+      ctx.save()
+
+      // Deckkraft
+      ctx.globalAlpha = layer.opacity / 100
+
+      // Filter für diesen Layer
+      const filterParts = []
+      if (layer.filters.brightness !== 100) filterParts.push(`brightness(${layer.filters.brightness}%)`)
+      if (layer.filters.contrast !== 100) filterParts.push(`contrast(${layer.filters.contrast}%)`)
+      if (layer.filters.saturation !== 100) filterParts.push(`saturate(${layer.filters.saturation}%)`)
+      if (layer.filters.grayscale > 0) filterParts.push(`grayscale(${layer.filters.grayscale}%)`)
+      if (layer.filters.sepia > 0) filterParts.push(`sepia(${layer.filters.sepia}%)`)
+      ctx.filter = filterParts.length > 0 ? filterParts.join(' ') : 'none'
+
+      // Rotation um Mittelpunkt
+      if (layer.rotation !== 0) {
+        const centerX = layer.x + layer.width / 2
+        const centerY = layer.y + layer.height / 2
+        ctx.translate(centerX, centerY)
+        ctx.rotate((layer.rotation * Math.PI) / 180)
+        ctx.translate(-centerX, -centerY)
+      }
+
+      // Bild zeichnen
+      ctx.drawImage(layer.image, layer.x, layer.y, layer.width, layer.height)
+
+      ctx.restore()
+
+      // Auswahl-Rahmen zeichnen
+      if (layer.id === imageStore.selectedLayerId) {
+        drawLayerSelection(ctx, layer)
+      }
+    })
+
+    // Texte zeichnen
+    ctx.filter = 'none'
+    if (imageStore.texts && imageStore.texts.length > 0) {
+      imageStore.texts.forEach(text => {
+        ctx.save()
+        const opacity = text.opacity !== undefined ? text.opacity : 100
+        ctx.globalAlpha = opacity / 100
+        ctx.font = `${text.fontSize || text.size || 32}px ${text.fontFamily || 'Arial'}`
+        ctx.fillStyle = text.color || '#000000'
+        ctx.textBaseline = 'top'
+
+        if (text.shadowBlur && text.shadowBlur > 0) {
+          ctx.shadowColor = text.shadowColor || '#000000'
+          ctx.shadowBlur = text.shadowBlur
+          ctx.shadowOffsetX = text.shadowOffsetX || 2
+          ctx.shadowOffsetY = text.shadowOffsetY || 2
+        }
+
+        ctx.fillText(text.content || text.txt || '', text.x || 0, text.y || 0)
+        ctx.restore()
+      })
+    }
+
     updateImageDimensions()
     return
   }
@@ -2306,6 +2414,51 @@ function closePreview() {
 
 // Lifecycle
 // Keyboard shortcuts und Initial Load
+
+// ===== COLLAGE IMAGE LAYER RELOAD =====
+
+/**
+ * Lädt alle Bilder in den Layern neu
+ * Wird benötigt da Image-Objekte beim Navigieren verloren gehen können
+ */
+async function reloadImageLayers() {
+  const layers = imageStore.imageLayers
+  if (!layers || layers.length === 0) return
+
+  console.log(`🔄 Lade ${layers.length} Layer-Bilder neu...`)
+
+  const loadPromises = layers.map(layer => {
+    return new Promise((resolve) => {
+      // Prüfe ob das Bild bereits geladen ist
+      if (layer.image && layer.image.complete && layer.image.naturalWidth > 0) {
+        console.log(`✓ Layer "${layer.name}" bereits geladen`)
+        resolve()
+        return
+      }
+
+      // Bild neu laden
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+
+      img.onload = () => {
+        layer.image = img
+        console.log(`✓ Layer "${layer.name}" neu geladen`)
+        resolve()
+      }
+
+      img.onerror = () => {
+        console.error(`✗ Fehler beim Laden von Layer "${layer.name}"`)
+        resolve() // Trotzdem resolve um andere Bilder nicht zu blockieren
+      }
+
+      img.src = layer.url
+    })
+  })
+
+  await Promise.all(loadPromises)
+  console.log('✅ Alle Layer-Bilder geladen')
+}
+
 // ===== GALLERY IMAGE LOADING =====
 
 async function loadGalleryImage(galleryImageId) {
@@ -2437,18 +2590,31 @@ onMounted(async () => {
   // Prüfe ob Collage-Modus aktiv ist (von Galerie aus)
   if (route.query.collageMode === 'true' && imageStore.hasImageLayers) {
     isCollageMode.value = true
+
+    // Warte auf nächsten Tick damit das Canvas gerendert wird
+    await nextTick()
+
     // Canvas initialisieren
     if (canvas.value) {
-      imageStore.initCanvas(canvas.value)
       // Canvas Größe setzen (Standard 1200x800 für Collage)
       canvas.value.width = 1200
       canvas.value.height = 800
+
+      // ImageStore Canvas initialisieren
+      imageStore.initCanvas(canvas.value)
+
       // Layer-Interaktion initialisieren
       layerInteraction.initListeners()
+
+      // Bilder in Layern neu laden falls nötig
+      await reloadImageLayers()
+
       // Erstes Rendern
       imageStore.draw()
       updateImageInfo()
       console.log(`✅ Collage-Modus aktiviert mit ${imageStore.imageLayerCount} Layern`)
+    } else {
+      console.error('❌ Canvas nicht gefunden im Collage-Modus')
     }
     return
   }
