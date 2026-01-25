@@ -53,6 +53,9 @@ export const useImageStore = defineStore('image', () => {
   const imageLayers = ref([])
   const selectedLayerId = ref(null)
 
+  // Canvas Hintergrundfarbe (für Collage-Modus)
+  const canvasBackgroundColor = ref('#ffffff')
+
   // History für Undo/Redo
   const history = ref([])
   const historyIndex = ref(-1)
@@ -956,6 +959,7 @@ export const useImageStore = defineStore('image', () => {
     selectedTextId,
     imageLayers,
     selectedLayerId,
+    canvasBackgroundColor,
     history,
     historyIndex,
     isProcessing,
