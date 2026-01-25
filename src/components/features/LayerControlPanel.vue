@@ -40,6 +40,13 @@
       >
         <i class="fas fa-redo"></i>
       </button>
+      <button
+        class="history-btn preview-btn"
+        @click="handlePreview"
+        title="Vorschau"
+      >
+        <i class="fas fa-eye"></i>
+      </button>
       <span class="history-info" v-if="historyInfo">
         <i class="fas fa-history"></i>
         {{ historyInfo }}
@@ -651,7 +658,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['render', 'add-text', 'select-text'])
+const emit = defineEmits(['render', 'add-text', 'select-text', 'preview'])
 
 const imageStore = useImageStore()
 const maintainAspectRatio = ref(true)
@@ -960,6 +967,12 @@ function handleRedo() {
   }
 }
 
+// Preview Funktion
+function handlePreview() {
+  emit('render')
+  emit('preview')
+}
+
 // Keyboard Shortcuts für Undo/Redo
 function handleKeyDown(event) {
   if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === 'z') {
@@ -1026,8 +1039,17 @@ onUnmounted(() => {
   }
 }
 
-.history-info {
+.history-btn.preview-btn {
   margin-left: auto;
+  background: var(--color-primary);
+  color: white;
+
+  &:hover {
+    background: var(--color-primary-dark, #2563eb);
+  }
+}
+
+.history-info {
   font-size: 0.75rem;
   color: var(--color-text-secondary);
   display: flex;
