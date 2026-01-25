@@ -263,7 +263,16 @@ const de = {
       delete: 'Löschen',
       preview: 'Vorschau',
       download: 'Herunterladen',
-      openInEditor: 'Im Editor öffnen'
+      openInEditor: 'Im Editor öffnen',
+      selectMultiple: 'Mehrfachauswahl',
+      cancelSelection: 'Abbrechen',
+      selectAll: 'Alle auswählen',
+      deselectAll: 'Alle abwählen',
+      createCollage: 'Collage erstellen'
+    },
+    errors: {
+      minTwoImages: 'Bitte wählen Sie mindestens 2 Bilder aus',
+      collageError: 'Fehler beim Erstellen der Collage'
     },
     empty: {
       title: 'Keine Bilder in der Galerie',
@@ -941,7 +950,16 @@ const en = {
       delete: 'Delete',
       preview: 'Preview',
       download: 'Download',
-      openInEditor: 'Open in Editor'
+      openInEditor: 'Open in Editor',
+      selectMultiple: 'Multi-Select',
+      cancelSelection: 'Cancel',
+      selectAll: 'Select All',
+      deselectAll: 'Deselect All',
+      createCollage: 'Create Collage'
+    },
+    errors: {
+      minTwoImages: 'Please select at least 2 images',
+      collageError: 'Error creating collage'
     },
     empty: {
       title: 'No Images in Gallery',

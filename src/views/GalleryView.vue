@@ -12,17 +12,17 @@
           <i class="fas fa-upload"></i>
           {{ $t('gallery.buttons.upload') }}
         </button>
-        <input 
-          ref="fileInput" 
-          type="file" 
-          accept="image/*" 
+        <input
+          ref="fileInput"
+          type="file"
+          accept="image/*"
           multiple
           @change="handleFileSelect"
           style="display: none"
         >
-        <button 
-          v-if="galleryStore.images.length > 0" 
-          class="btn btn-danger-outline" 
+        <button
+          v-if="galleryStore.images.length > 0"
+          class="btn btn-danger-outline"
           @click="deleteAllImages"
           :title="$t('gallery.tooltips.deleteAll')"
         >
@@ -34,7 +34,35 @@
         </span>
       </div>
 
-      <div class="right-actions" v-if="galleryStore.selectedImage()">
+      <!-- Multi-Select Collage Actions -->
+      <div class="center-actions" v-if="galleryStore.images.length > 1">
+        <button
+          class="btn btn-secondary-outline"
+          @click="toggleMultiSelectMode"
+        >
+          <i class="fas" :class="isMultiSelectMode ? 'fa-times' : 'fa-object-group'"></i>
+          {{ isMultiSelectMode ? $t('gallery.buttons.cancelSelection', 'Abbrechen') : $t('gallery.buttons.selectMultiple', 'Mehrfachauswahl') }}
+        </button>
+        <template v-if="isMultiSelectMode">
+          <button
+            class="btn btn-secondary-outline"
+            @click="galleryStore.selectedImageIds.length === galleryStore.images.length ? galleryStore.deselectAllImages() : galleryStore.selectAllImages()"
+          >
+            <i class="fas" :class="galleryStore.selectedImageIds.length === galleryStore.images.length ? 'fa-square' : 'fa-check-square'"></i>
+            {{ galleryStore.selectedImageIds.length === galleryStore.images.length ? $t('gallery.buttons.deselectAll', 'Alle abwählen') : $t('gallery.buttons.selectAll', 'Alle auswählen') }}
+          </button>
+          <button
+            v-if="galleryStore.hasMultipleSelected"
+            class="btn btn-success"
+            @click="createCollage"
+          >
+            <i class="fas fa-layer-group"></i>
+            {{ $t('gallery.buttons.createCollage', 'Collage erstellen') }} ({{ galleryStore.selectedImageIds.length }})
+          </button>
+        </template>
+      </div>
+
+      <div class="right-actions" v-if="galleryStore.selectedImage() && !isMultiSelectMode">
         <button class="btn btn-success" @click="openInEditor">
           <i class="fas fa-edit"></i>
           {{ $t('gallery.buttons.addToEditor') }}
@@ -55,25 +83,37 @@
 
     <!-- Gallery Grid -->
     <div v-else class="gallery-grid">
-      <div 
-        v-for="image in galleryStore.images" 
+      <div
+        v-for="image in galleryStore.images"
         :key="image.id"
         class="gallery-item"
-        :class="{ selected: galleryStore.selectedImageId === image.id }"
-        @click="galleryStore.selectImage(image.id)"
+        :class="{
+          selected: !isMultiSelectMode && galleryStore.selectedImageId === image.id,
+          'multi-selected': isMultiSelectMode && galleryStore.isImageSelected(image.id)
+        }"
+        @click="handleImageClick(image.id)"
       >
         <!-- Thumbnail -->
         <div class="thumbnail-wrapper">
           <img :src="image.thumbnail" :alt="image.name" class="thumbnail" />
-          
-          <!-- Selection Checkbox -->
-          <div class="selection-indicator">
+
+          <!-- Multi-Select Checkbox -->
+          <div
+            v-if="isMultiSelectMode"
+            class="multi-select-checkbox"
+            @click.stop="galleryStore.toggleImageSelection(image.id)"
+          >
+            <i class="fas" :class="galleryStore.isImageSelected(image.id) ? 'fa-check-square' : 'fa-square'"></i>
+          </div>
+
+          <!-- Single Selection Indicator (nur wenn nicht im Multi-Select Modus) -->
+          <div v-else class="selection-indicator">
             <i class="fas" :class="galleryStore.selectedImageId === image.id ? 'fa-check-circle' : 'fa-circle'"></i>
           </div>
 
           <!-- Preview Button -->
-          <button 
-            class="preview-btn" 
+          <button
+            class="preview-btn"
             @click.stop="openPreview(image)"
             :title="$t('gallery.buttons.preview')"
           >
@@ -135,14 +175,17 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useGalleryStore } from '@/stores/galleryStore'
+import { useImageStore } from '@/stores/imageStore'
 
 const { t } = useI18n({ useScope: 'global' })
 const router = useRouter()
 const galleryStore = useGalleryStore()
+const imageStore = useImageStore()
 
 // Refs
 const fileInput = ref(null)
 const previewImage = ref(null)
+const isMultiSelectMode = ref(false)
 
 // Methods
 function triggerFileInput() {
@@ -348,6 +391,50 @@ function formatDate(date) {
     minute: '2-digit'
   }).format(date)
 }
+
+// Multi-Select Funktionen
+function toggleMultiSelectMode() {
+  isMultiSelectMode.value = !isMultiSelectMode.value
+  if (!isMultiSelectMode.value) {
+    galleryStore.deselectAllImages()
+  }
+}
+
+function handleImageClick(imageId) {
+  if (isMultiSelectMode.value) {
+    galleryStore.toggleImageSelection(imageId)
+  } else {
+    galleryStore.selectImage(imageId)
+  }
+}
+
+async function createCollage() {
+  const selectedImages = galleryStore.selectedImages
+  if (selectedImages.length < 2) {
+    alert(t('gallery.errors.minTwoImages', 'Bitte wählen Sie mindestens 2 Bilder aus'))
+    return
+  }
+
+  try {
+    // Füge alle ausgewählten Bilder als Layer zum ImageStore hinzu
+    await imageStore.addImageLayersFromGallery(selectedImages)
+
+    // Multi-Select-Modus beenden und Auswahl löschen
+    isMultiSelectMode.value = false
+    galleryStore.deselectAllImages()
+
+    // Navigiere zum Editor
+    await router.push({
+      path: '/editor',
+      query: { collageMode: 'true' }
+    })
+
+    console.log(`✅ Collage mit ${selectedImages.length} Bildern erstellt`)
+  } catch (error) {
+    console.error('Fehler beim Erstellen der Collage:', error)
+    alert(t('gallery.errors.collageError', 'Fehler beim Erstellen der Collage') + ': ' + error.message)
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -380,17 +467,54 @@ function formatDate(date) {
   background: var(--color-bg-secondary);
   border-radius: 8px;
   gap: 1rem;
+  flex-wrap: wrap;
 
   .left-actions,
+  .center-actions,
   .right-actions {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
+  }
+
+  .center-actions {
+    flex: 1;
+    justify-content: center;
   }
 
   .image-count {
     color: var(--color-text-secondary);
     font-size: 0.9rem;
+  }
+}
+
+// Secondary Outline Button
+.btn-secondary-outline {
+  background: transparent;
+  color: var(--color-text);
+  border: 2px solid var(--color-border);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  i {
+    font-size: 1rem;
+  }
+
+  &:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 }
 
@@ -471,6 +595,15 @@ function formatDate(date) {
       color: var(--color-success);
     }
   }
+
+  &.multi-selected {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+
+    .multi-select-checkbox i {
+      color: var(--color-primary);
+    }
+  }
 }
 
 .thumbnail-wrapper {
@@ -502,6 +635,31 @@ function formatDate(date) {
     i {
       color: white;
       font-size: 1.2rem;
+    }
+  }
+
+  .multi-select-checkbox {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    width: 32px;
+    height: 32px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+
+    i {
+      color: white;
+      font-size: 1.3rem;
+    }
+
+    &:hover {
+      background: var(--color-primary);
+      transform: scale(1.1);
     }
   }
 
@@ -699,8 +857,14 @@ function formatDate(date) {
     align-items: stretch;
 
     .left-actions,
+    .center-actions,
     .right-actions {
       justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .center-actions {
+      order: 3;
     }
   }
 

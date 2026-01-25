@@ -39,7 +39,7 @@
           <button
             class="btn btn-secondary"
             @click="addText"
-            :disabled="!currentImage"
+            :disabled="!currentImage && !isCollageMode"
           >
             <i class="fas fa-font"></i>
             Text
@@ -47,7 +47,7 @@
           <button
             class="btn btn-secondary"
             @click="openPreview"
-            :disabled="!currentImage"
+            :disabled="!currentImage && !isCollageMode"
           >
             <i class="fas fa-eye"></i>
             {{ $t('editor.toolbar.preview', 'Vorschau') }}
@@ -55,24 +55,24 @@
           <button
             class="btn btn-secondary"
             @click="resetFilters"
-            :disabled="!currentImage"
+            :disabled="!currentImage && !isCollageMode"
           >
             <i class="fas fa-sync-alt"></i>
             {{ $t('editor.toolbar.reset') }}
           </button>
-          <button 
-            class="btn btn-danger" 
+          <button
+            class="btn btn-danger"
             @click="clearImage"
-            :disabled="!currentImage"
+            :disabled="!currentImage && !isCollageMode"
             :title="$t('editor.toolbar.clearImage', 'Bild entfernen')"
           >
             <i class="fas fa-trash"></i>
             {{ $t('editor.toolbar.clearImage', 'Löschen') }}
           </button>
-          <button 
-            class="btn btn-success" 
+          <button
+            class="btn btn-success"
             @click="downloadImage"
-            :disabled="!currentImage || isExporting"
+            :disabled="(!currentImage && !isCollageMode) || isExporting"
           >
             <i :class="isExporting ? 'fas fa-spinner fa-spin' : 'fas fa-download'"></i>
             {{ isExporting ? 'Exportiere...' : $t('editor.toolbar.download') }}
@@ -481,7 +481,7 @@
 
         <!-- Canvas Area -->
         <div class="canvas-area">
-          <div v-if="!currentImage" class="empty-canvas">
+          <div v-if="!currentImage && !isCollageMode" class="empty-canvas">
             <i class="fas fa-image"></i>
             <h2>{{ $t('editor.canvas.empty.title') }}</h2>
             <p>{{ $t('editor.canvas.empty.description') }}</p>
@@ -532,7 +532,7 @@
 
         <!-- Rechte Spalte: TransformPanel (Text + Crop + Transform Features) -->
         <TransformPanel
-          v-if="currentImage"
+          v-if="currentImage || isCollageMode"
           :crop-mode="crop.cropMode.value"
           :has-cropped="crop.hasCropped.value"
           :selected-aspect-ratio="crop.selectedAspectRatio.value"
@@ -635,6 +635,7 @@ import { useImageHistory } from '@/composables/useImageHistory'
 import { useTextHistory } from '@/composables/useTextHistory'
 import { useResizeManager } from '@/composables/useResizeManager'
 import { useGalleryIntegration } from '@/composables/useGalleryIntegration'
+import { useImageLayerInteraction } from '@/composables/useImageLayerInteraction'
 import TransformPanel from '@/components/features/TransformPanel.vue'
 import FilterPresets from '@/components/editor/FilterPresets.vue'
 
@@ -674,6 +675,9 @@ const showPreviewModal = ref(false)
 const originalPreviewSrc = ref('')
 const editedPreviewSrc = ref('')
 const previewUpdateTrigger = ref(0)
+
+// ===== COLLAGE MODE STATE =====
+const isCollageMode = ref(false)
 
 // ===== COMPOSABLES =====
 
@@ -726,6 +730,9 @@ const galleryIntegration = useGalleryIntegration({
     console.error('Gallery load error:', error)
   }
 })
+
+// Image Layer Interaction Composable (für Collage-Modus)
+const layerInteraction = useImageLayerInteraction(canvas)
 
 // ===== NEU: Verwende SUPPORTED_FORMATS aus exportUtils =====
 const formats = SUPPORTED_FORMATS
@@ -903,6 +910,26 @@ async function loadImage(img) {
 }
 
 function renderImage() {
+  // Im Collage-Modus benutze den imageStore zum Zeichnen
+  if (isCollageMode.value && imageStore.hasImageLayers) {
+    const ctx = canvas.value.getContext('2d')
+    ctx.clearRect(0, 0, canvas.value.width, canvas.value.height)
+
+    // Hintergrund zeichnen
+    if (background.value.opacity > 0) {
+      ctx.save()
+      ctx.globalAlpha = background.value.opacity / 100
+      ctx.fillStyle = background.value.color
+      ctx.fillRect(0, 0, canvas.value.width, canvas.value.height)
+      ctx.restore()
+    }
+
+    // Layer zeichnen über imageStore
+    imageStore.draw()
+    updateImageDimensions()
+    return
+  }
+
   if (!canvas.value || !currentImage.value) return
 
   const ctx = canvas.value.getContext('2d')
@@ -1151,6 +1178,28 @@ function drawTextSelection() {
 
 // Rendert Bild ohne Auswahl-Markierung (für Export)
 function renderImageForExport() {
+  // Im Collage-Modus: Verwende imageStore zum Zeichnen ohne Auswahl-Markierung
+  if (isCollageMode.value && imageStore.hasImageLayers) {
+    const ctx = canvas.value.getContext('2d')
+    ctx.clearRect(0, 0, canvas.value.width, canvas.value.height)
+
+    // Hintergrund zeichnen
+    if (background.value.opacity > 0) {
+      ctx.save()
+      ctx.globalAlpha = background.value.opacity / 100
+      ctx.fillStyle = background.value.color
+      ctx.fillRect(0, 0, canvas.value.width, canvas.value.height)
+      ctx.restore()
+    }
+
+    // Zeichne Layer ohne Auswahl
+    const originalSelectedId = imageStore.selectedLayerId
+    imageStore.selectImageLayer(null) // Temporär Auswahl entfernen
+    imageStore.draw()
+    imageStore.selectImageLayer(originalSelectedId) // Auswahl wiederherstellen
+    return
+  }
+
   if (!canvas.value || !currentImage.value) return
 
   const ctx = canvas.value.getContext('2d')
@@ -1392,23 +1441,33 @@ function resetFilters() {
 }
 
 function clearImage() {
-  if (!currentImage.value) return
-  
+  if (!currentImage.value && !isCollageMode.value) return
+
   // Bestätigung vom Benutzer
-  const confirmDelete = confirm('Möchten Sie das Bild wirklich entfernen? Alle Änderungen gehen verloren.')
+  const confirmMessage = isCollageMode.value
+    ? 'Möchten Sie die Collage wirklich entfernen? Alle Layer und Änderungen gehen verloren.'
+    : 'Möchten Sie das Bild wirklich entfernen? Alle Änderungen gehen verloren.'
+  const confirmDelete = confirm(confirmMessage)
   if (!confirmDelete) return
-  
+
+  // Im Collage-Modus: Layer löschen
+  if (isCollageMode.value) {
+    imageStore.clearImageLayers()
+    isCollageMode.value = false
+    layerInteraction.removeListeners()
+  }
+
   // Bild und Daten zurücksetzen
   currentImage.value = null
   originalImage.value = null
   originalImageDataUrl.value = '' // Original-Bild Data URL zurücksetzen
   currentImageFormat.value = '' // Format zurücksetzen
-  
+
   // Image-Info zurücksetzen
   imageWidth.value = 0
   imageHeight.value = 0
   imageSize.value = 0
-  
+
   // Canvas leeren
   if (canvas.value) {
     const ctx = canvas.value.getContext('2d')
@@ -2087,6 +2146,13 @@ function onCanvasMouseDown(e) {
   const cropHandled = crop.handleMouseDown(pos, displayScale)
   if (cropHandled) return
 
+  // Im Collage-Modus: Layer-Interaktion (hat Priorität vor Text)
+  if (isCollageMode.value) {
+    layerInteraction.handleMouseDown(e)
+    renderImage()
+    return
+  }
+
   // Sonst Text-Interaktion
   const text = findTextAtPosition(pos.x, pos.y)
 
@@ -2121,6 +2187,15 @@ function onCanvasMouseMove(e) {
   // Crop-Handler über Composable (hat Priorität)
   const cropHandled = crop.handleMouseMove(pos)
   if (cropHandled) return
+
+  // Im Collage-Modus: Layer-Interaktion
+  if (isCollageMode.value) {
+    layerInteraction.handleMouseMove(e)
+    if (layerInteraction.isDragging.value || layerInteraction.isResizing.value) {
+      renderImage()
+    }
+    return
+  }
 
   // Sonst Text-Interaktion
   if (isDraggingText.value && selectedTextId.value) {
@@ -2159,6 +2234,13 @@ function onCanvasMouseUp() {
   const cropHandled = crop.handleMouseUp()
   if (cropHandled) {
     handleFinishCrop()
+    return
+  }
+
+  // Im Collage-Modus: Layer-Interaktion
+  if (isCollageMode.value) {
+    layerInteraction.handleMouseUp()
+    renderImage()
     return
   }
 
@@ -2352,6 +2434,25 @@ onMounted(async () => {
 
   await nextTick()
 
+  // Prüfe ob Collage-Modus aktiv ist (von Galerie aus)
+  if (route.query.collageMode === 'true' && imageStore.hasImageLayers) {
+    isCollageMode.value = true
+    // Canvas initialisieren
+    if (canvas.value) {
+      imageStore.initCanvas(canvas.value)
+      // Canvas Größe setzen (Standard 1200x800 für Collage)
+      canvas.value.width = 1200
+      canvas.value.height = 800
+      // Layer-Interaktion initialisieren
+      layerInteraction.initListeners()
+      // Erstes Rendern
+      imageStore.draw()
+      updateImageInfo()
+      console.log(`✅ Collage-Modus aktiviert mit ${imageStore.imageLayerCount} Layern`)
+    }
+    return
+  }
+
   // Prüfe ob Bild aus Galerie geladen werden soll
   const loaded = await loadGalleryImage(route.query.galleryImageId)
 
@@ -2379,6 +2480,10 @@ onUnmounted(() => {
   window.removeEventListener('keyup', handleKeyup)
   window.removeEventListener('mousemove', handleGlobalMouseMove)
   window.removeEventListener('mouseup', handleGlobalMouseUp)
+  // Layer-Interaktion Listener entfernen
+  if (isCollageMode.value) {
+    layerInteraction.removeListeners()
+  }
 })
 
 function handleKeydown(e) {
