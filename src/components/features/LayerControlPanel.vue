@@ -1292,8 +1292,8 @@ onUnmounted(() => {
 .layer-list, .text-list {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  max-height: 150px;
+  gap: 0.5rem;
+  max-height: 220px;
   overflow-y: auto;
   overflow-x: hidden;
   width: 100%;
@@ -1302,8 +1302,8 @@ onUnmounted(() => {
 .layer-item, .text-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.4rem;
+  gap: 0.6rem;
+  padding: 0.5rem;
   background: var(--color-bg);
   border-radius: 6px;
   cursor: pointer;
@@ -1323,10 +1323,10 @@ onUnmounted(() => {
 }
 
 .layer-preview, .text-preview {
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
-  min-height: 36px;
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  min-height: 52px;
   border-radius: 4px;
   overflow: hidden;
   flex-shrink: 0;
@@ -1338,35 +1338,37 @@ onUnmounted(() => {
   img {
     width: 100%;
     height: 100%;
-    min-width: 36px;
-    min-height: 36px;
+    min-width: 52px;
+    min-height: 52px;
     object-fit: cover;
   }
 
   i {
     color: var(--color-text-secondary);
+    font-size: 1.2rem;
   }
 }
 
 .layer-info, .text-info {
   flex: 1;
   min-width: 0;
-  max-width: calc(100% - 100px);
+  max-width: calc(100% - 120px);
   overflow: hidden;
 
   .layer-name, .text-content {
     display: block;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
+    margin-bottom: 2px;
   }
 
   .layer-size, .text-meta {
     display: block;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: var(--color-text-secondary);
   }
 }
