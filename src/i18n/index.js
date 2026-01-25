@@ -684,6 +684,103 @@ const de = {
       flippedVertical: 'Bild vertikal gespiegelt',
       reset: 'Transformationen zurückgesetzt'
     }
+  },
+  layerPanel: {
+    tabs: {
+      layers: 'Ebenen',
+      text: 'Text'
+    },
+    history: {
+      undo: 'Rückgängig (Strg+Z)',
+      redo: 'Wiederholen (Strg+Y)',
+      preview: 'Vorschau'
+    },
+    layers: {
+      title: 'Ebenen',
+      hide: 'Ausblenden',
+      show: 'Einblenden',
+      delete: 'Löschen',
+      moveUp: 'Nach oben',
+      moveDown: 'Nach unten',
+      duplicate: 'Duplizieren',
+      confirmDelete: 'Möchten Sie diesen Layer wirklich löschen?'
+    },
+    background: {
+      title: 'Hintergrund',
+      color: 'Hintergrundfarbe',
+      transparent: 'Transparent',
+      white: 'Weiß',
+      black: 'Schwarz',
+      lightGray: 'Hellgrau',
+      gray: 'Grau',
+      red: 'Rot',
+      green: 'Grün',
+      blue: 'Blau'
+    },
+    transform: {
+      title: 'Transformieren',
+      position: 'Position',
+      size: 'Größe',
+      maintainAspect: 'Seitenverhältnis beibehalten',
+      rotation: 'Rotation',
+      flip: 'Spiegeln',
+      flipHorizontal: 'Horizontal spiegeln',
+      flipVertical: 'Vertikal spiegeln',
+      horizontal: 'Horizontal',
+      vertical: 'Vertikal',
+      opacity: 'Deckkraft'
+    },
+    filters: {
+      title: 'Filter',
+      brightness: 'Helligkeit',
+      contrast: 'Kontrast',
+      saturation: 'Sättigung',
+      grayscale: 'Graustufen',
+      reset: 'Filter zurücksetzen'
+    },
+    border: {
+      title: 'Umrandung',
+      width: 'Randstärke',
+      color: 'Randfarbe',
+      radius: 'Eckenradius'
+    },
+    shadow: {
+      title: 'Schlagschatten',
+      enable: 'Schatten aktivieren',
+      offsetX: 'Versatz X',
+      offsetY: 'Versatz Y',
+      blur: 'Unschärfe',
+      color: 'Schattenfarbe',
+      opacity: 'Deckkraft'
+    },
+    hints: {
+      selectLayer: 'Klicken Sie auf ein Bild im Canvas um es zu bearbeiten',
+      addText: 'Klicken Sie auf "Text hinzufügen" um einen neuen Text zu erstellen'
+    },
+    text: {
+      addButton: 'Text hinzufügen',
+      listTitle: 'Texte',
+      editTitle: 'Text bearbeiten',
+      content: 'Inhalt',
+      fontSize: 'Schriftgröße',
+      fontFamily: 'Schriftart',
+      customFonts: 'Benutzerdefinierte Schriften',
+      systemFonts: 'System-Schriften',
+      color: 'Textfarbe',
+      opacity: 'Deckkraft',
+      rotation: 'Rotation',
+      stroke: 'Kontur',
+      strokeWidth: 'Konturstärke',
+      strokeColor: 'Konturfarbe',
+      textShadow: 'Textschatten',
+      shadowBlur: 'Schattenunschärfe',
+      shadowX: 'Schatten X',
+      shadowY: 'Schatten Y',
+      shadowColor: 'Schattenfarbe',
+      delete: 'Text löschen',
+      confirmDelete: 'Möchten Sie diesen Text wirklich löschen?',
+      newText: 'Neuer Text'
+    }
   }
 }
 
@@ -1370,6 +1467,103 @@ const en = {
       flippedHorizontal: 'Image flipped horizontally',
       flippedVertical: 'Image flipped vertically',
       reset: 'Transformations reset'
+    }
+  },
+  layerPanel: {
+    tabs: {
+      layers: 'Layers',
+      text: 'Text'
+    },
+    history: {
+      undo: 'Undo (Ctrl+Z)',
+      redo: 'Redo (Ctrl+Y)',
+      preview: 'Preview'
+    },
+    layers: {
+      title: 'Layers',
+      hide: 'Hide',
+      show: 'Show',
+      delete: 'Delete',
+      moveUp: 'Move up',
+      moveDown: 'Move down',
+      duplicate: 'Duplicate',
+      confirmDelete: 'Do you really want to delete this layer?'
+    },
+    background: {
+      title: 'Background',
+      color: 'Background color',
+      transparent: 'Transparent',
+      white: 'White',
+      black: 'Black',
+      lightGray: 'Light gray',
+      gray: 'Gray',
+      red: 'Red',
+      green: 'Green',
+      blue: 'Blue'
+    },
+    transform: {
+      title: 'Transform',
+      position: 'Position',
+      size: 'Size',
+      maintainAspect: 'Maintain aspect ratio',
+      rotation: 'Rotation',
+      flip: 'Flip',
+      flipHorizontal: 'Flip horizontally',
+      flipVertical: 'Flip vertically',
+      horizontal: 'Horizontal',
+      vertical: 'Vertical',
+      opacity: 'Opacity'
+    },
+    filters: {
+      title: 'Filters',
+      brightness: 'Brightness',
+      contrast: 'Contrast',
+      saturation: 'Saturation',
+      grayscale: 'Grayscale',
+      reset: 'Reset filters'
+    },
+    border: {
+      title: 'Border',
+      width: 'Border width',
+      color: 'Border color',
+      radius: 'Corner radius'
+    },
+    shadow: {
+      title: 'Drop Shadow',
+      enable: 'Enable shadow',
+      offsetX: 'Offset X',
+      offsetY: 'Offset Y',
+      blur: 'Blur',
+      color: 'Shadow color',
+      opacity: 'Opacity'
+    },
+    hints: {
+      selectLayer: 'Click on an image in the canvas to edit it',
+      addText: 'Click on "Add text" to create a new text'
+    },
+    text: {
+      addButton: 'Add text',
+      listTitle: 'Texts',
+      editTitle: 'Edit text',
+      content: 'Content',
+      fontSize: 'Font size',
+      fontFamily: 'Font family',
+      customFonts: 'Custom Fonts',
+      systemFonts: 'System Fonts',
+      color: 'Text color',
+      opacity: 'Opacity',
+      rotation: 'Rotation',
+      stroke: 'Stroke',
+      strokeWidth: 'Stroke width',
+      strokeColor: 'Stroke color',
+      textShadow: 'Text shadow',
+      shadowBlur: 'Shadow blur',
+      shadowX: 'Shadow X',
+      shadowY: 'Shadow Y',
+      shadowColor: 'Shadow color',
+      delete: 'Delete text',
+      confirmDelete: 'Do you really want to delete this text?',
+      newText: 'New Text'
     }
   }
 }
