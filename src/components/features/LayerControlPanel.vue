@@ -110,6 +110,57 @@
         </div>
       </div>
 
+      <!-- Canvas Hintergrund -->
+      <div class="panel-section">
+        <h3 class="section-title collapsible" @click="toggleSection('canvas')">
+          <i class="fas fa-fill-drip"></i>
+          Hintergrund
+          <i class="fas toggle-icon" :class="openSections.canvas ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+        </h3>
+
+        <div v-show="openSections.canvas" class="section-content">
+          <div class="control-group">
+            <label>Hintergrundfarbe</label>
+            <div class="color-picker-row">
+              <input
+                type="color"
+                :value="imageStore.canvasBackgroundColor"
+                @input="updateBackgroundColor($event.target.value)"
+                class="color-input"
+              />
+              <input
+                type="text"
+                :value="imageStore.canvasBackgroundColor"
+                @input="updateBackgroundColor($event.target.value)"
+                class="color-text-input"
+                maxlength="7"
+              />
+              <button
+                class="icon-btn"
+                :class="{ active: imageStore.canvasBackgroundColor === 'transparent' }"
+                @click="updateBackgroundColor('transparent')"
+                title="Transparent"
+              >
+                <i class="fas fa-chess-board"></i>
+              </button>
+            </div>
+          </div>
+          <div class="quick-colors">
+            <button
+              v-for="color in quickColors"
+              :key="color.value"
+              class="color-swatch"
+              :class="{ active: imageStore.canvasBackgroundColor === color.value, transparent: color.value === 'transparent' }"
+              :style="color.value !== 'transparent' ? { backgroundColor: color.value } : {}"
+              @click="updateBackgroundColor(color.value)"
+              :title="color.label"
+            >
+              <i v-if="color.value === 'transparent'" class="fas fa-chess-board"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Ausgewählter Layer Eigenschaften -->
       <div class="panel-section" v-if="selectedLayer">
         <h3 class="section-title collapsible" @click="toggleSection('transform')">
@@ -713,11 +764,24 @@ watch(() => imageStore.selectedLayerId, (newLayerId) => {
 })
 
 const openSections = reactive({
+  canvas: true,
   transform: true,
   filters: false,
   border: false,
   shadow: false
 })
+
+// Schnellfarben für Hintergrund
+const quickColors = [
+  { value: 'transparent', label: 'Transparent' },
+  { value: '#ffffff', label: 'Weiß' },
+  { value: '#000000', label: 'Schwarz' },
+  { value: '#f0f0f0', label: 'Hellgrau' },
+  { value: '#808080', label: 'Grau' },
+  { value: '#ff0000', label: 'Rot' },
+  { value: '#00ff00', label: 'Grün' },
+  { value: '#0000ff', label: 'Blau' }
+]
 
 const selectedLayer = computed(() => imageStore.selectedImageLayer)
 
@@ -757,6 +821,12 @@ const layerShadow = computed(() => ({
 
 function toggleSection(section) {
   openSections[section] = !openSections[section]
+}
+
+function updateBackgroundColor(color) {
+  imageStore.canvasBackgroundColor = color
+  emit('render')
+  debouncedSaveState('Hintergrundfarbe geändert', 'layer')
 }
 
 function selectLayer(layerId) {
@@ -1357,6 +1427,50 @@ onUnmounted(() => {
 
   .color-text-input {
     flex: 1;
+  }
+}
+
+.quick-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+
+  &:hover {
+    transform: scale(1.1);
+    border-color: var(--color-primary);
+  }
+
+  &.active {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary-light, rgba(59, 130, 246, 0.3));
+  }
+
+  &.transparent {
+    background: linear-gradient(45deg, #ccc 25%, transparent 25%),
+                linear-gradient(-45deg, #ccc 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #ccc 75%),
+                linear-gradient(-45deg, transparent 75%, #ccc 75%);
+    background-size: 8px 8px;
+    background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+
+    i {
+      font-size: 0.7rem;
+      color: #666;
+    }
   }
 }
 

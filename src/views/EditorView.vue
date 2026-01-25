@@ -111,13 +111,24 @@
             <!-- Quality Slider (nur für Formate mit Quality-Support) -->
             <div v-if="supportsQuality" class="filter-control">
               <label>{{ $t('editor.export.quality', 'Qualität') }}</label>
-              <input 
-                type="range" 
-                min="1" 
-                max="100" 
+              <input
+                type="range"
+                min="1"
+                max="100"
                 v-model.number="exportQuality"
               >
               <span>{{ exportQuality }}%</span>
+            </div>
+
+            <!-- Transparenter Hintergrund (nur für PNG im Collage-Modus) -->
+            <div v-if="outputFormat === 'png' && isCollageMode" class="filter-control checkbox-control">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  v-model="exportTransparent"
+                >
+                <span>Transparenter Hintergrund</span>
+              </label>
             </div>
           </div>
 
@@ -669,6 +680,7 @@ const currentImageFormat = ref('') // Format des hochgeladenen Bildes
 // ===== EXPORT STATE =====
 const exportQuality = ref(92) // Quality-Wert (0-100)
 const isExporting = ref(false) // Loading-State beim Export
+const exportTransparent = ref(false) // Transparenter Hintergrund beim PNG-Export
 
 // ===== TEXT INTERACTION STATE =====
 const selectedTextId = ref(null)
@@ -970,11 +982,11 @@ function renderImage() {
     const ctx = canvas.value.getContext('2d')
     ctx.clearRect(0, 0, canvas.value.width, canvas.value.height)
 
-    // Hintergrund zeichnen
-    if (background.value.opacity > 0) {
+    // Hintergrund zeichnen (Canvas-Hintergrundfarbe aus imageStore für Collage-Modus)
+    const bgColor = imageStore.canvasBackgroundColor
+    if (bgColor && bgColor !== 'transparent') {
       ctx.save()
-      ctx.globalAlpha = background.value.opacity / 100
-      ctx.fillStyle = background.value.color
+      ctx.fillStyle = bgColor
       ctx.fillRect(0, 0, canvas.value.width, canvas.value.height)
       ctx.restore()
     }
@@ -1465,17 +1477,17 @@ function drawTextSelection() {
 }
 
 // Rendert Bild ohne Auswahl-Markierung (für Export)
-function renderImageForExport() {
+function renderImageForExport(forceTransparent = false) {
   // Im Collage-Modus: Zeichne Layer direkt ohne Auswahl-Markierung
   if (isCollageMode.value && imageStore.hasImageLayers) {
     const ctx = canvas.value.getContext('2d')
     ctx.clearRect(0, 0, canvas.value.width, canvas.value.height)
 
-    // Hintergrund zeichnen
-    if (background.value.opacity > 0) {
+    // Hintergrund zeichnen (nur wenn nicht transparent forciert wird)
+    const bgColor = imageStore.canvasBackgroundColor
+    if (!forceTransparent && bgColor && bgColor !== 'transparent') {
       ctx.save()
-      ctx.globalAlpha = background.value.opacity / 100
-      ctx.fillStyle = background.value.color
+      ctx.fillStyle = bgColor
       ctx.fillRect(0, 0, canvas.value.width, canvas.value.height)
       ctx.restore()
     }
@@ -2060,7 +2072,9 @@ async function downloadImage() {
     const filename = `image-${Date.now()}`
 
     // ✨ FIX: Rendere ohne Auswahl-Markierung vor dem Export
-    renderImageForExport()
+    // Bei PNG mit transparentem Hintergrund: forceTransparent = true
+    const useTransparent = outputFormat.value === 'png' && exportTransparent.value
+    renderImageForExport(useTransparent)
 
     // Export mit neuer Export-Utils
     const result = await exportImage(
@@ -3786,6 +3800,24 @@ function handleKeyup(e) {
     color: var(--color-text-light);
     min-width: 40px;
     text-align: right;
+  }
+
+  &.checkbox-control {
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      font-size: 0.8rem;
+      color: var(--color-text);
+
+      input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        accent-color: var(--color-primary);
+      }
+    }
   }
 }
 
