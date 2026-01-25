@@ -536,6 +536,7 @@
           :canvas-selected-text-id="selectedTextId"
           @render="renderImage"
           @select-text="onSelectTextFromPanel"
+          @preview="handleLayerPreview"
         />
 
         <!-- Rechte Spalte: TransformPanel (Text + Crop + Transform Features) - Normaler Modus -->
@@ -2834,6 +2835,33 @@ function openPreview() {
 
 function closePreview() {
   showPreviewModal.value = false
+}
+
+// Preview Handler für LayerControlPanel (Collage-Modus)
+function handleLayerPreview() {
+  if (!canvas.value) return
+
+  // Rendere die Canvas mit allen aktuellen Änderungen neu
+  renderImage()
+
+  // Warte kurz, damit das Rendering abgeschlossen ist
+  setTimeout(() => {
+    // Im Collage-Modus: Erstes Layer-Bild als "Original" verwenden
+    if (imageStore.imageLayers.length > 0) {
+      originalPreviewSrc.value = imageStore.imageLayers[0].url || ''
+    } else {
+      originalPreviewSrc.value = ''
+    }
+
+    // Aktualisiere bearbeitetes Preview mit der aktuellen Canvas
+    if (canvas.value) {
+      editedPreviewSrc.value = canvas.value.toDataURL('image/png')
+    }
+
+    // Trigger Update und öffne Modal
+    previewUpdateTrigger.value++
+    showPreviewModal.value = true
+  }, 100)
 }
 
 // ===========================
