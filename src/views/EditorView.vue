@@ -1022,6 +1022,15 @@ function renderImage() {
         ctx.translate(-centerX, -centerY)
       }
 
+      // Spiegelung (horizontal und/oder vertikal)
+      if (layer.flipX || layer.flipY) {
+        const centerX = layer.x + layer.width / 2
+        const centerY = layer.y + layer.height / 2
+        ctx.translate(centerX, centerY)
+        ctx.scale(layer.flipX ? -1 : 1, layer.flipY ? -1 : 1)
+        ctx.translate(-centerX, -centerY)
+      }
+
       // Schlagschatten für Layer - MUSS VOR dem Clipping gezeichnet werden
       const hasShadow = layer.shadow && layer.shadow.enabled
       const borderRadiusPercent = layer.border?.radius || 0
@@ -1517,6 +1526,15 @@ function renderImageForExport(forceTransparent = false) {
         const centerY = layer.y + layer.height / 2
         ctx.translate(centerX, centerY)
         ctx.rotate((layer.rotation * Math.PI) / 180)
+        ctx.translate(-centerX, -centerY)
+      }
+
+      // Spiegelung (horizontal und/oder vertikal)
+      if (layer.flipX || layer.flipY) {
+        const centerX = layer.x + layer.width / 2
+        const centerY = layer.y + layer.height / 2
+        ctx.translate(centerX, centerY)
+        ctx.scale(layer.flipX ? -1 : 1, layer.flipY ? -1 : 1)
         ctx.translate(-centerX, -centerY)
       }
 
