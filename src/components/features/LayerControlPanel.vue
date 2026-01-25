@@ -539,16 +539,28 @@
           <select
             :value="selectedText.fontFamily || 'Arial'"
             @change="updateTextProperty('fontFamily', $event.target.value)"
-            class="form-select"
+            class="form-select font-select"
           >
-            <option value="Arial">Arial</option>
-            <option value="Helvetica">Helvetica</option>
-            <option value="Times New Roman">Times New Roman</option>
-            <option value="Georgia">Georgia</option>
-            <option value="Verdana">Verdana</option>
-            <option value="Courier New">Courier New</option>
-            <option value="Impact">Impact</option>
-            <option value="Comic Sans MS">Comic Sans MS</option>
+            <optgroup label="Benutzerdefinierte Schriften">
+              <option
+                v-for="font in availableFonts"
+                :key="font"
+                :value="font"
+                :style="{ fontFamily: font }"
+              >
+                {{ font }}
+              </option>
+            </optgroup>
+            <optgroup label="System-Schriften">
+              <option
+                v-for="font in systemFonts"
+                :key="font"
+                :value="font"
+                :style="{ fontFamily: font }"
+              >
+                {{ font }}
+              </option>
+            </optgroup>
           </select>
         </div>
 
@@ -701,6 +713,7 @@
 <script setup>
 import { ref, computed, reactive, watch, onMounted, onUnmounted } from 'vue'
 import { useImageStore } from '@/stores/imageStore'
+import { availableFonts } from '@/assets/fonts/fontList.js'
 
 const props = defineProps({
   canvasSelectedTextId: {
@@ -781,6 +794,19 @@ const quickColors = [
   { value: '#ff0000', label: 'Rot' },
   { value: '#00ff00', label: 'Grün' },
   { value: '#0000ff', label: 'Blau' }
+]
+
+// System-Fonts als Fallback
+const systemFonts = [
+  'Arial',
+  'Helvetica',
+  'Times New Roman',
+  'Georgia',
+  'Verdana',
+  'Courier New',
+  'Impact',
+  'Tahoma',
+  'Trebuchet MS'
 ]
 
 const selectedLayer = computed(() => imageStore.selectedImageLayer)
@@ -967,7 +993,7 @@ function addText() {
     x: 100,
     y: 100,
     fontSize: 48,
-    fontFamily: 'Arial',
+    fontFamily: availableFonts[0] || 'Arial', // Erste verfügbare Schriftart
     color: '#000000',
     opacity: 100,
     rotation: 0,
@@ -1395,6 +1421,22 @@ onUnmounted(() => {
     color: var(--color-text);
     font-size: 0.8rem;
     cursor: pointer;
+
+    &.font-select {
+      max-height: 300px;
+
+      optgroup {
+        font-weight: 600;
+        font-style: normal;
+        color: var(--color-text-secondary);
+        padding: 0.25rem 0;
+      }
+
+      option {
+        padding: 0.35rem 0.5rem;
+        font-weight: normal;
+      }
+    }
   }
 }
 
