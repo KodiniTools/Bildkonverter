@@ -908,6 +908,22 @@ function renderImage() {
   const ctx = canvas.value.getContext('2d')
   ctx.clearRect(0, 0, canvas.value.width, canvas.value.height)
 
+  // Berechne Shadow-Padding wenn Schatten aktiviert ist
+  let shadowPadding = 0
+  if (transform.transforms.value.shadowEnabled) {
+    const offsetX = Math.abs(transform.transforms.value.shadowOffsetX)
+    const offsetY = Math.abs(transform.transforms.value.shadowOffsetY)
+    const blur = transform.transforms.value.shadowBlur
+    // Padding = max(offset) + blur + extra margin
+    shadowPadding = Math.max(offsetX, offsetY) + blur + 10
+  }
+
+  // Berechne Bildbereich mit Padding
+  const drawX = shadowPadding
+  const drawY = shadowPadding
+  const drawWidth = canvas.value.width - (shadowPadding * 2)
+  const drawHeight = canvas.value.height - (shadowPadding * 2)
+
   // Hintergrund zeichnen (unterste Ebene)
   if (background.value.opacity > 0) {
     ctx.save()
@@ -939,6 +955,13 @@ function renderImage() {
 
   ctx.filter = filterString
 
+  // Berechne BorderRadius in Pixeln für den Zeichenbereich
+  const getBorderRadiusForDraw = () => {
+    const radiusPercent = transform.transforms.value.borderRadius
+    const minDimension = Math.min(drawWidth, drawHeight)
+    return (radiusPercent / 100) * minDimension
+  }
+
   // Schlagschatten (Drop Shadow) - muss VOR dem Clipping gezeichnet werden
   if (transform.transforms.value.shadowEnabled) {
     ctx.save()
@@ -958,23 +981,23 @@ function renderImage() {
     ctx.shadowOffsetX = transform.transforms.value.shadowOffsetX
     ctx.shadowOffsetY = transform.transforms.value.shadowOffsetY
 
-    // Zeichne die Schatten-Form (abhängig von borderRadius)
+    // Zeichne die Schatten-Form (abhängig von borderRadius) - mit Padding
     ctx.fillStyle = 'rgba(0, 0, 0, 1)' // Nur für die Schatten-Silhouette
     if (transform.transforms.value.borderRadius >= 50) {
       // Kreis-Schatten
-      const centerX = canvas.value.width / 2
-      const centerY = canvas.value.height / 2
-      const radius = Math.min(canvas.value.width, canvas.value.height) / 2
+      const centerX = drawX + drawWidth / 2
+      const centerY = drawY + drawHeight / 2
+      const radius = Math.min(drawWidth, drawHeight) / 2
       ctx.beginPath()
       ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
       ctx.fill()
     } else if (transform.transforms.value.borderRadius > 0) {
       // Abgerundetes Rechteck-Schatten
-      roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, getBorderRadiusPixels())
+      roundedRect(ctx, drawX, drawY, drawWidth, drawHeight, getBorderRadiusForDraw())
       ctx.fill()
     } else {
       // Normales Rechteck-Schatten
-      ctx.fillRect(0, 0, canvas.value.width, canvas.value.height)
+      ctx.fillRect(drawX, drawY, drawWidth, drawHeight)
     }
     ctx.restore()
 
@@ -987,37 +1010,37 @@ function renderImage() {
     ctx.save()
     if (transform.transforms.value.borderRadius >= 50) {
       // Vollständiger Kreis-Clip (50% = perfekter Kreis)
-      const centerX = canvas.value.width / 2
-      const centerY = canvas.value.height / 2
-      const radius = Math.min(canvas.value.width, canvas.value.height) / 2
+      const centerX = drawX + drawWidth / 2
+      const centerY = drawY + drawHeight / 2
+      const radius = Math.min(drawWidth, drawHeight) / 2
       ctx.beginPath()
       ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
       ctx.clip()
     } else {
-      roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, getBorderRadiusPixels())
+      roundedRect(ctx, drawX, drawY, drawWidth, drawHeight, getBorderRadiusForDraw())
       ctx.clip()
     }
   }
 
-  ctx.drawImage(currentImage.value, 0, 0, canvas.value.width, canvas.value.height)
-  
+  ctx.drawImage(currentImage.value, drawX, drawY, drawWidth, drawHeight)
+
   // Border zeichnen
   if (transform.transforms.value.borderWidth > 0) {
     ctx.strokeStyle = transform.transforms.value.borderColor
     ctx.lineWidth = transform.transforms.value.borderWidth
     if (transform.transforms.value.borderRadius >= 50) {
       // Vollständiger Kreis (50% = perfekter Kreis)
-      const centerX = canvas.value.width / 2
-      const centerY = canvas.value.height / 2
-      const radius = Math.min(canvas.value.width, canvas.value.height) / 2 - transform.transforms.value.borderWidth / 2
+      const centerX = drawX + drawWidth / 2
+      const centerY = drawY + drawHeight / 2
+      const radius = Math.min(drawWidth, drawHeight) / 2 - transform.transforms.value.borderWidth / 2
       ctx.beginPath()
       ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
       ctx.stroke()
     } else if (transform.transforms.value.borderRadius > 0) {
-      roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, getBorderRadiusPixels())
+      roundedRect(ctx, drawX, drawY, drawWidth, drawHeight, getBorderRadiusForDraw())
       ctx.stroke()
     } else {
-      ctx.strokeRect(0, 0, canvas.value.width, canvas.value.height)
+      ctx.strokeRect(drawX, drawY, drawWidth, drawHeight)
     }
   }
 
@@ -1133,6 +1156,21 @@ function renderImageForExport() {
   const ctx = canvas.value.getContext('2d')
   ctx.clearRect(0, 0, canvas.value.width, canvas.value.height)
 
+  // Berechne Shadow-Padding wenn Schatten aktiviert ist
+  let shadowPadding = 0
+  if (transform.transforms.value.shadowEnabled) {
+    const offsetX = Math.abs(transform.transforms.value.shadowOffsetX)
+    const offsetY = Math.abs(transform.transforms.value.shadowOffsetY)
+    const blur = transform.transforms.value.shadowBlur
+    shadowPadding = Math.max(offsetX, offsetY) + blur + 10
+  }
+
+  // Berechne Bildbereich mit Padding
+  const drawX = shadowPadding
+  const drawY = shadowPadding
+  const drawWidth = canvas.value.width - (shadowPadding * 2)
+  const drawHeight = canvas.value.height - (shadowPadding * 2)
+
   // Hintergrund zeichnen
   if (background.value.opacity > 0) {
     ctx.save()
@@ -1155,6 +1193,13 @@ function renderImageForExport() {
   `
   ctx.filter = filterString
 
+  // Berechne BorderRadius in Pixeln für den Zeichenbereich
+  const getBorderRadiusForDraw = () => {
+    const radiusPercent = transform.transforms.value.borderRadius
+    const minDimension = Math.min(drawWidth, drawHeight)
+    return (radiusPercent / 100) * minDimension
+  }
+
   // Schlagschatten (Drop Shadow) für Export
   if (transform.transforms.value.shadowEnabled) {
     ctx.save()
@@ -1173,17 +1218,17 @@ function renderImageForExport() {
 
     ctx.fillStyle = 'rgba(0, 0, 0, 1)'
     if (transform.transforms.value.borderRadius >= 50) {
-      const centerX = canvas.value.width / 2
-      const centerY = canvas.value.height / 2
-      const radius = Math.min(canvas.value.width, canvas.value.height) / 2
+      const centerX = drawX + drawWidth / 2
+      const centerY = drawY + drawHeight / 2
+      const radius = Math.min(drawWidth, drawHeight) / 2
       ctx.beginPath()
       ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
       ctx.fill()
     } else if (transform.transforms.value.borderRadius > 0) {
-      roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, getBorderRadiusPixels())
+      roundedRect(ctx, drawX, drawY, drawWidth, drawHeight, getBorderRadiusForDraw())
       ctx.fill()
     } else {
-      ctx.fillRect(0, 0, canvas.value.width, canvas.value.height)
+      ctx.fillRect(drawX, drawY, drawWidth, drawHeight)
     }
     ctx.restore()
     ctx.filter = filterString
@@ -1194,19 +1239,19 @@ function renderImageForExport() {
     ctx.save()
     if (transform.transforms.value.borderRadius >= 50) {
       // Vollständiger Kreis-Clip (50% = perfekter Kreis)
-      const centerX = canvas.value.width / 2
-      const centerY = canvas.value.height / 2
-      const radius = Math.min(canvas.value.width, canvas.value.height) / 2
+      const centerX = drawX + drawWidth / 2
+      const centerY = drawY + drawHeight / 2
+      const radius = Math.min(drawWidth, drawHeight) / 2
       ctx.beginPath()
       ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
       ctx.clip()
     } else {
-      roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, getBorderRadiusPixels())
+      roundedRect(ctx, drawX, drawY, drawWidth, drawHeight, getBorderRadiusForDraw())
       ctx.clip()
     }
   }
 
-  ctx.drawImage(currentImage.value, 0, 0, canvas.value.width, canvas.value.height)
+  ctx.drawImage(currentImage.value, drawX, drawY, drawWidth, drawHeight)
 
   // Border
   if (transform.transforms.value.borderWidth > 0) {
@@ -1214,17 +1259,17 @@ function renderImageForExport() {
     ctx.lineWidth = transform.transforms.value.borderWidth
     if (transform.transforms.value.borderRadius >= 50) {
       // Vollständiger Kreis (50% = perfekter Kreis)
-      const centerX = canvas.value.width / 2
-      const centerY = canvas.value.height / 2
-      const radius = Math.min(canvas.value.width, canvas.value.height) / 2 - transform.transforms.value.borderWidth / 2
+      const centerX = drawX + drawWidth / 2
+      const centerY = drawY + drawHeight / 2
+      const radius = Math.min(drawWidth, drawHeight) / 2 - transform.transforms.value.borderWidth / 2
       ctx.beginPath()
       ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
       ctx.stroke()
     } else if (transform.transforms.value.borderRadius > 0) {
-      roundedRect(ctx, 0, 0, canvas.value.width, canvas.value.height, getBorderRadiusPixels())
+      roundedRect(ctx, drawX, drawY, drawWidth, drawHeight, getBorderRadiusForDraw())
       ctx.stroke()
     } else {
-      ctx.strokeRect(0, 0, canvas.value.width, canvas.value.height)
+      ctx.strokeRect(drawX, drawY, drawWidth, drawHeight)
     }
   }
 
