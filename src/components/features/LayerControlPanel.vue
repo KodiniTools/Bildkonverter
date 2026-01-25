@@ -241,6 +241,31 @@
             </div>
           </div>
 
+          <!-- Spiegelung -->
+          <div class="control-group">
+            <label>Spiegeln</label>
+            <div class="flip-buttons">
+              <button
+                class="btn btn-sm"
+                :class="{ active: selectedLayer.flipX }"
+                @click="toggleFlip('flipX')"
+                title="Horizontal spiegeln"
+              >
+                <i class="fas fa-arrows-alt-h"></i>
+                Horizontal
+              </button>
+              <button
+                class="btn btn-sm"
+                :class="{ active: selectedLayer.flipY }"
+                @click="toggleFlip('flipY')"
+                title="Vertikal spiegeln"
+              >
+                <i class="fas fa-arrows-alt-v"></i>
+                Vertikal
+              </button>
+            </div>
+          </div>
+
           <!-- Deckkraft -->
           <div class="control-group">
             <label>Deckkraft: {{ selectedLayer.opacity }}%</label>
@@ -927,6 +952,15 @@ function rotateBy(degrees) {
   }
 }
 
+function toggleFlip(direction) {
+  if (selectedLayer.value) {
+    const currentValue = selectedLayer.value[direction] || false
+    imageStore.updateImageLayer(selectedLayer.value.id, { [direction]: !currentValue })
+    emit('render')
+    saveStateNow(direction === 'flipX' ? 'Horizontal gespiegelt' : 'Vertikal gespiegelt', 'layer')
+  }
+}
+
 function updateFilter(filterName, value) {
   if (selectedLayer.value) {
     const newFilters = { ...selectedLayer.value.filters, [filterName]: value }
@@ -1544,6 +1578,25 @@ onUnmounted(() => {
   gap: 0.4rem;
   margin-top: 0.4rem;
   justify-content: center;
+}
+
+.flip-buttons {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+
+  .btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+
+    &.active {
+      background: var(--color-primary);
+      color: white;
+    }
+  }
 }
 
 .btn {

@@ -617,7 +617,10 @@ export const useImageStore = defineStore('image', () => {
             blur: 10,
             color: '#000000',
             opacity: 50
-          }
+          },
+          // Spiegelung
+          flipX: false,
+          flipY: false
         }
 
         imageLayers.value.push(layer)
