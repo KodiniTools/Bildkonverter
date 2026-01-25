@@ -1007,8 +1007,93 @@ function renderImage() {
         ctx.translate(-centerX, -centerY)
       }
 
-      // Bild zeichnen
-      ctx.drawImage(layer.image, layer.x, layer.y, layer.width, layer.height)
+      // Schlagschatten für Layer
+      if (layer.shadow && layer.shadow.enabled) {
+        ctx.shadowColor = layer.shadow.color || '#000000'
+        ctx.shadowBlur = layer.shadow.blur || 10
+        ctx.shadowOffsetX = layer.shadow.offsetX || 5
+        ctx.shadowOffsetY = layer.shadow.offsetY || 5
+        // Schatten-Opacity über rgba
+        const shadowOpacity = (layer.shadow.opacity || 50) / 100
+        const hexColor = layer.shadow.color || '#000000'
+        const r = parseInt(hexColor.slice(1, 3), 16)
+        const g = parseInt(hexColor.slice(3, 5), 16)
+        const b = parseInt(hexColor.slice(5, 7), 16)
+        ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${shadowOpacity})`
+      }
+
+      // Umrandung mit Radius (vor dem Bild zeichnen wenn Radius > 0)
+      const borderWidth = layer.border?.width || 0
+      const borderRadiusPercent = layer.border?.radius || 0
+
+      if (borderRadiusPercent > 0) {
+        // Clipping-Pfad für abgerundete Ecken
+        ctx.save()
+        ctx.beginPath()
+        const rx = layer.x
+        const ry = layer.y
+        const rw = layer.width
+        const rh = layer.height
+        // Konvertiere Prozent in Pixel (basierend auf kleinerer Dimension)
+        const minDimension = Math.min(rw, rh)
+        const rad = (borderRadiusPercent / 100) * (minDimension / 2)
+        ctx.moveTo(rx + rad, ry)
+        ctx.lineTo(rx + rw - rad, ry)
+        ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + rad)
+        ctx.lineTo(rx + rw, ry + rh - rad)
+        ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - rad, ry + rh)
+        ctx.lineTo(rx + rad, ry + rh)
+        ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - rad)
+        ctx.lineTo(rx, ry + rad)
+        ctx.quadraticCurveTo(rx, ry, rx + rad, ry)
+        ctx.closePath()
+        ctx.clip()
+
+        // Bild zeichnen (innerhalb des Clipping-Pfads)
+        ctx.drawImage(layer.image, layer.x, layer.y, layer.width, layer.height)
+
+        ctx.restore()
+
+        // Schatten zurücksetzen für Umrandung
+        ctx.shadowColor = 'transparent'
+        ctx.shadowBlur = 0
+        ctx.shadowOffsetX = 0
+        ctx.shadowOffsetY = 0
+
+        // Umrandung zeichnen (außerhalb des Clips)
+        if (borderWidth > 0) {
+          ctx.strokeStyle = layer.border?.color || '#000000'
+          ctx.lineWidth = borderWidth
+          ctx.beginPath()
+          ctx.moveTo(rx + rad, ry)
+          ctx.lineTo(rx + rw - rad, ry)
+          ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + rad)
+          ctx.lineTo(rx + rw, ry + rh - rad)
+          ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - rad, ry + rh)
+          ctx.lineTo(rx + rad, ry + rh)
+          ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - rad)
+          ctx.lineTo(rx, ry + rad)
+          ctx.quadraticCurveTo(rx, ry, rx + rad, ry)
+          ctx.closePath()
+          ctx.stroke()
+        }
+      } else {
+        // Bild ohne abgerundete Ecken zeichnen
+        ctx.drawImage(layer.image, layer.x, layer.y, layer.width, layer.height)
+
+        // Schatten zurücksetzen für Umrandung
+        ctx.shadowColor = 'transparent'
+        ctx.shadowBlur = 0
+        ctx.shadowOffsetX = 0
+        ctx.shadowOffsetY = 0
+
+        // Rechteckige Umrandung zeichnen
+        if (borderWidth > 0) {
+          ctx.strokeStyle = layer.border?.color || '#000000'
+          ctx.lineWidth = borderWidth
+          ctx.strokeRect(layer.x, layer.y, layer.width, layer.height)
+        }
+      }
 
       ctx.restore()
 
@@ -1293,7 +1378,7 @@ function drawTextSelection() {
 
 // Rendert Bild ohne Auswahl-Markierung (für Export)
 function renderImageForExport() {
-  // Im Collage-Modus: Verwende imageStore zum Zeichnen ohne Auswahl-Markierung
+  // Im Collage-Modus: Zeichne Layer direkt ohne Auswahl-Markierung
   if (isCollageMode.value && imageStore.hasImageLayers) {
     const ctx = canvas.value.getContext('2d')
     ctx.clearRect(0, 0, canvas.value.width, canvas.value.height)
@@ -1307,11 +1392,140 @@ function renderImageForExport() {
       ctx.restore()
     }
 
-    // Zeichne Layer ohne Auswahl
-    const originalSelectedId = imageStore.selectedLayerId
-    imageStore.selectImageLayer(null) // Temporär Auswahl entfernen
-    imageStore.draw()
-    imageStore.selectImageLayer(originalSelectedId) // Auswahl wiederherstellen
+    // Layer direkt zeichnen (ohne Auswahl-Markierung für Export)
+    imageStore.imageLayers.forEach(layer => {
+      if (!layer.visible) return
+      if (!layer.image || !layer.image.complete) return
+
+      ctx.save()
+
+      // Deckkraft
+      ctx.globalAlpha = layer.opacity / 100
+
+      // Filter für diesen Layer
+      const filterParts = []
+      if (layer.filters.brightness !== 100) filterParts.push(`brightness(${layer.filters.brightness}%)`)
+      if (layer.filters.contrast !== 100) filterParts.push(`contrast(${layer.filters.contrast}%)`)
+      if (layer.filters.saturation !== 100) filterParts.push(`saturate(${layer.filters.saturation}%)`)
+      if (layer.filters.grayscale > 0) filterParts.push(`grayscale(${layer.filters.grayscale}%)`)
+      if (layer.filters.sepia > 0) filterParts.push(`sepia(${layer.filters.sepia}%)`)
+      ctx.filter = filterParts.length > 0 ? filterParts.join(' ') : 'none'
+
+      // Rotation um Mittelpunkt
+      if (layer.rotation !== 0) {
+        const centerX = layer.x + layer.width / 2
+        const centerY = layer.y + layer.height / 2
+        ctx.translate(centerX, centerY)
+        ctx.rotate((layer.rotation * Math.PI) / 180)
+        ctx.translate(-centerX, -centerY)
+      }
+
+      // Schlagschatten für Layer
+      if (layer.shadow && layer.shadow.enabled) {
+        const shadowOpacity = (layer.shadow.opacity || 50) / 100
+        const hexColor = layer.shadow.color || '#000000'
+        const r = parseInt(hexColor.slice(1, 3), 16)
+        const g = parseInt(hexColor.slice(3, 5), 16)
+        const b = parseInt(hexColor.slice(5, 7), 16)
+        ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${shadowOpacity})`
+        ctx.shadowBlur = layer.shadow.blur || 10
+        ctx.shadowOffsetX = layer.shadow.offsetX || 5
+        ctx.shadowOffsetY = layer.shadow.offsetY || 5
+      }
+
+      // Umrandung mit Radius
+      const borderWidth = layer.border?.width || 0
+      const borderRadiusPercent = layer.border?.radius || 0
+
+      if (borderRadiusPercent > 0) {
+        // Clipping-Pfad für abgerundete Ecken
+        ctx.save()
+        ctx.beginPath()
+        const rx = layer.x
+        const ry = layer.y
+        const rw = layer.width
+        const rh = layer.height
+        // Konvertiere Prozent in Pixel (basierend auf kleinerer Dimension)
+        const minDimension = Math.min(rw, rh)
+        const rad = (borderRadiusPercent / 100) * (minDimension / 2)
+        ctx.moveTo(rx + rad, ry)
+        ctx.lineTo(rx + rw - rad, ry)
+        ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + rad)
+        ctx.lineTo(rx + rw, ry + rh - rad)
+        ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - rad, ry + rh)
+        ctx.lineTo(rx + rad, ry + rh)
+        ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - rad)
+        ctx.lineTo(rx, ry + rad)
+        ctx.quadraticCurveTo(rx, ry, rx + rad, ry)
+        ctx.closePath()
+        ctx.clip()
+
+        ctx.drawImage(layer.image, layer.x, layer.y, layer.width, layer.height)
+        ctx.restore()
+
+        // Schatten zurücksetzen für Umrandung
+        ctx.shadowColor = 'transparent'
+        ctx.shadowBlur = 0
+        ctx.shadowOffsetX = 0
+        ctx.shadowOffsetY = 0
+
+        if (borderWidth > 0) {
+          ctx.strokeStyle = layer.border?.color || '#000000'
+          ctx.lineWidth = borderWidth
+          ctx.beginPath()
+          ctx.moveTo(rx + rad, ry)
+          ctx.lineTo(rx + rw - rad, ry)
+          ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + rad)
+          ctx.lineTo(rx + rw, ry + rh - rad)
+          ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - rad, ry + rh)
+          ctx.lineTo(rx + rad, ry + rh)
+          ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - rad)
+          ctx.lineTo(rx, ry + rad)
+          ctx.quadraticCurveTo(rx, ry, rx + rad, ry)
+          ctx.closePath()
+          ctx.stroke()
+        }
+      } else {
+        ctx.drawImage(layer.image, layer.x, layer.y, layer.width, layer.height)
+
+        ctx.shadowColor = 'transparent'
+        ctx.shadowBlur = 0
+        ctx.shadowOffsetX = 0
+        ctx.shadowOffsetY = 0
+
+        if (borderWidth > 0) {
+          ctx.strokeStyle = layer.border?.color || '#000000'
+          ctx.lineWidth = borderWidth
+          ctx.strokeRect(layer.x, layer.y, layer.width, layer.height)
+        }
+      }
+
+      ctx.restore()
+    })
+
+    // Texte zeichnen für Export
+    ctx.filter = 'none'
+    if (imageStore.texts && imageStore.texts.length > 0) {
+      imageStore.texts.forEach(text => {
+        ctx.save()
+        const opacity = text.opacity !== undefined ? text.opacity : 100
+        ctx.globalAlpha = opacity / 100
+        ctx.font = `${text.fontSize || text.size || 32}px ${text.fontFamily || 'Arial'}`
+        ctx.fillStyle = text.color || '#000000'
+        ctx.textBaseline = 'top'
+
+        if (text.shadowBlur && text.shadowBlur > 0) {
+          ctx.shadowColor = text.shadowColor || '#000000'
+          ctx.shadowBlur = text.shadowBlur
+          ctx.shadowOffsetX = text.shadowOffsetX || 2
+          ctx.shadowOffsetY = text.shadowOffsetY || 2
+        }
+
+        ctx.fillText(text.content || text.txt || '', text.x || 0, text.y || 0)
+        ctx.restore()
+      })
+    }
+
     return
   }
 
