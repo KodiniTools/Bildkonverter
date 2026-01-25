@@ -987,6 +987,9 @@ onUnmounted(() => {
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+  width: 280px;
+  min-width: 280px;
+  max-width: 280px;
 }
 
 .history-toolbar {
@@ -1140,6 +1143,8 @@ onUnmounted(() => {
   gap: 0.4rem;
   max-height: 150px;
   overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 .layer-item, .text-item {
@@ -1152,6 +1157,8 @@ onUnmounted(() => {
   cursor: pointer;
   border: 2px solid transparent;
   transition: all 0.2s ease;
+  overflow: hidden;
+  max-width: 100%;
 
   &:hover {
     border-color: var(--color-border);
@@ -1166,6 +1173,8 @@ onUnmounted(() => {
 .layer-preview, .text-preview {
   width: 36px;
   height: 36px;
+  min-width: 36px;
+  min-height: 36px;
   border-radius: 4px;
   overflow: hidden;
   flex-shrink: 0;
@@ -1177,6 +1186,8 @@ onUnmounted(() => {
   img {
     width: 100%;
     height: 100%;
+    min-width: 36px;
+    min-height: 36px;
     object-fit: cover;
   }
 
@@ -1188,6 +1199,8 @@ onUnmounted(() => {
 .layer-info, .text-info {
   flex: 1;
   min-width: 0;
+  max-width: calc(100% - 100px);
+  overflow: hidden;
 
   .layer-name, .text-content {
     display: block;
@@ -1196,6 +1209,7 @@ onUnmounted(() => {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 100%;
   }
 
   .layer-size, .text-meta {
