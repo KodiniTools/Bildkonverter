@@ -120,14 +120,14 @@
               <span>{{ exportQuality }}%</span>
             </div>
 
-            <!-- Transparenter Hintergrund (nur für PNG im Collage-Modus) -->
-            <div v-if="outputFormat === 'png' && isCollageMode" class="filter-control checkbox-control">
+            <!-- Transparenter Hintergrund (für PNG) -->
+            <div v-if="outputFormat === 'png'" class="filter-control checkbox-control">
               <label class="checkbox-label">
                 <input
                   type="checkbox"
                   v-model="exportTransparent"
                 >
-                <span>Transparenter Hintergrund</span>
+                <span>{{ $t('editor.export.transparentBackground', 'Transparenter Hintergrund') }}</span>
               </label>
             </div>
           </div>
@@ -1733,8 +1733,8 @@ function renderImageForExport(forceTransparent = false) {
   const drawWidth = canvas.value.width - (shadowPadding * 2)
   const drawHeight = canvas.value.height - (shadowPadding * 2)
 
-  // Hintergrund zeichnen
-  if (background.value.opacity > 0) {
+  // Hintergrund zeichnen (nur wenn nicht transparent forciert wird)
+  if (!forceTransparent && background.value.opacity > 0) {
     ctx.save()
     ctx.globalAlpha = background.value.opacity / 100
     ctx.fillStyle = background.value.color
