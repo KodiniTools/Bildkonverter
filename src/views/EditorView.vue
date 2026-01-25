@@ -1008,28 +1008,72 @@ function renderImage() {
         ctx.translate(-centerX, -centerY)
       }
 
-      // Schlagschatten für Layer
-      if (layer.shadow && layer.shadow.enabled) {
-        ctx.shadowColor = layer.shadow.color || '#000000'
+      // Schlagschatten für Layer - MUSS VOR dem Clipping gezeichnet werden
+      const hasShadow = layer.shadow && layer.shadow.enabled
+      const borderRadiusPercent = layer.border?.radius || 0
+
+      if (hasShadow && borderRadiusPercent > 0) {
+        // Bei abgerundeten Ecken: Schatten als separate Form zeichnen
+        ctx.save()
+        const shadowOpacity = (layer.shadow.opacity || 50) / 100
+        const hexColor = layer.shadow.color || '#000000'
+        const r = parseInt(hexColor.slice(1, 3), 16)
+        const g = parseInt(hexColor.slice(3, 5), 16)
+        const b = parseInt(hexColor.slice(5, 7), 16)
+
+        ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${shadowOpacity})`
         ctx.shadowBlur = layer.shadow.blur || 10
         ctx.shadowOffsetX = layer.shadow.offsetX || 5
         ctx.shadowOffsetY = layer.shadow.offsetY || 5
-        // Schatten-Opacity über rgba
+
+        // Schattenform als abgerundetes Rechteck zeichnen
+        const rx = layer.x
+        const ry = layer.y
+        const rw = layer.width
+        const rh = layer.height
+        const minDimension = Math.min(rw, rh)
+        const rad = (borderRadiusPercent / 100) * (minDimension / 2)
+
+        ctx.fillStyle = 'rgba(0,0,0,0)' // Transparent füllen, nur Schatten sichtbar
+        ctx.beginPath()
+        ctx.moveTo(rx + rad, ry)
+        ctx.lineTo(rx + rw - rad, ry)
+        ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + rad)
+        ctx.lineTo(rx + rw, ry + rh - rad)
+        ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - rad, ry + rh)
+        ctx.lineTo(rx + rad, ry + rh)
+        ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - rad)
+        ctx.lineTo(rx, ry + rad)
+        ctx.quadraticCurveTo(rx, ry, rx + rad, ry)
+        ctx.closePath()
+        ctx.fill()
+        ctx.restore()
+      } else if (hasShadow) {
+        // Ohne Radius: Schatten normal setzen
         const shadowOpacity = (layer.shadow.opacity || 50) / 100
         const hexColor = layer.shadow.color || '#000000'
         const r = parseInt(hexColor.slice(1, 3), 16)
         const g = parseInt(hexColor.slice(3, 5), 16)
         const b = parseInt(hexColor.slice(5, 7), 16)
         ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${shadowOpacity})`
+        ctx.shadowBlur = layer.shadow.blur || 10
+        ctx.shadowOffsetX = layer.shadow.offsetX || 5
+        ctx.shadowOffsetY = layer.shadow.offsetY || 5
       }
 
-      // Umrandung mit Radius (vor dem Bild zeichnen wenn Radius > 0)
+      // Umrandung mit Radius
       const borderWidth = layer.border?.width || 0
-      const borderRadiusPercent = layer.border?.radius || 0
 
       if (borderRadiusPercent > 0) {
         // Clipping-Pfad für abgerundete Ecken
         ctx.save()
+
+        // Schatten zurücksetzen für geclipptes Bild (wurde bereits separat gezeichnet)
+        ctx.shadowColor = 'transparent'
+        ctx.shadowBlur = 0
+        ctx.shadowOffsetX = 0
+        ctx.shadowOffsetY = 0
+
         ctx.beginPath()
         const rx = layer.x
         const ry = layer.y
@@ -1460,8 +1504,47 @@ function renderImageForExport() {
         ctx.translate(-centerX, -centerY)
       }
 
-      // Schlagschatten für Layer
-      if (layer.shadow && layer.shadow.enabled) {
+      // Schlagschatten für Layer - MUSS VOR dem Clipping gezeichnet werden
+      const hasShadow = layer.shadow && layer.shadow.enabled
+      const borderRadiusPercent = layer.border?.radius || 0
+
+      if (hasShadow && borderRadiusPercent > 0) {
+        // Bei abgerundeten Ecken: Schatten als separate Form zeichnen
+        ctx.save()
+        const shadowOpacity = (layer.shadow.opacity || 50) / 100
+        const hexColor = layer.shadow.color || '#000000'
+        const r = parseInt(hexColor.slice(1, 3), 16)
+        const g = parseInt(hexColor.slice(3, 5), 16)
+        const b = parseInt(hexColor.slice(5, 7), 16)
+
+        ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${shadowOpacity})`
+        ctx.shadowBlur = layer.shadow.blur || 10
+        ctx.shadowOffsetX = layer.shadow.offsetX || 5
+        ctx.shadowOffsetY = layer.shadow.offsetY || 5
+
+        // Schattenform als abgerundetes Rechteck zeichnen
+        const rx = layer.x
+        const ry = layer.y
+        const rw = layer.width
+        const rh = layer.height
+        const minDimension = Math.min(rw, rh)
+        const rad = (borderRadiusPercent / 100) * (minDimension / 2)
+
+        ctx.fillStyle = 'rgba(0,0,0,0)'
+        ctx.beginPath()
+        ctx.moveTo(rx + rad, ry)
+        ctx.lineTo(rx + rw - rad, ry)
+        ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + rad)
+        ctx.lineTo(rx + rw, ry + rh - rad)
+        ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - rad, ry + rh)
+        ctx.lineTo(rx + rad, ry + rh)
+        ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - rad)
+        ctx.lineTo(rx, ry + rad)
+        ctx.quadraticCurveTo(rx, ry, rx + rad, ry)
+        ctx.closePath()
+        ctx.fill()
+        ctx.restore()
+      } else if (hasShadow) {
         const shadowOpacity = (layer.shadow.opacity || 50) / 100
         const hexColor = layer.shadow.color || '#000000'
         const r = parseInt(hexColor.slice(1, 3), 16)
@@ -1475,17 +1558,22 @@ function renderImageForExport() {
 
       // Umrandung mit Radius
       const borderWidth = layer.border?.width || 0
-      const borderRadiusPercent = layer.border?.radius || 0
 
       if (borderRadiusPercent > 0) {
         // Clipping-Pfad für abgerundete Ecken
         ctx.save()
+
+        // Schatten zurücksetzen für geclipptes Bild
+        ctx.shadowColor = 'transparent'
+        ctx.shadowBlur = 0
+        ctx.shadowOffsetX = 0
+        ctx.shadowOffsetY = 0
+
         ctx.beginPath()
         const rx = layer.x
         const ry = layer.y
         const rw = layer.width
         const rh = layer.height
-        // Konvertiere Prozent in Pixel (basierend auf kleinerer Dimension)
         const minDimension = Math.min(rw, rh)
         const rad = (borderRadiusPercent / 100) * (minDimension / 2)
         ctx.moveTo(rx + rad, ry)
@@ -2937,8 +3025,9 @@ onMounted(async () => {
       // ImageStore Canvas initialisieren
       imageStore.initCanvas(canvas.value)
 
-      // Layer-Interaktion initialisieren
-      layerInteraction.initListeners()
+      // HINWEIS: layerInteraction.initListeners() wird NICHT aufgerufen,
+      // da wir die Handler manuell aus onCanvasMouseDown/Move/Up aufrufen.
+      // So haben wir volle Kontrolle und können Text-Interaktionen priorisieren.
 
       // Bilder in Layern neu laden falls nötig
       await reloadImageLayers()
