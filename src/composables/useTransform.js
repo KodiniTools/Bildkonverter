@@ -24,7 +24,10 @@ const DEFAULT_TRANSFORMS = {
   shadowOffsetY: 10,     // -50 bis +50 px
   shadowBlur: 20,        // 0-100 px
   shadowColor: '#000000', // Hex color
-  shadowOpacity: 50      // 0-100%
+  shadowOpacity: 50,     // 0-100%
+  // Skew/Neigung
+  skewX: 0,              // -45 bis +45 Grad
+  skewY: 0               // -45 bis +45 Grad
 }
 
 export function useTransform() {
@@ -339,6 +342,22 @@ export function useTransform() {
   }
 
   /**
+   * Setze Skew X (horizontale Neigung)
+   */
+  function setSkewX(value, saveHistory = false) {
+    transforms.value.skewX = Math.max(-45, Math.min(45, value))
+    if (saveHistory) saveToHistory()
+  }
+
+  /**
+   * Setze Skew Y (vertikale Neigung)
+   */
+  function setSkewY(value, saveHistory = false) {
+    transforms.value.skewY = Math.max(-45, Math.min(45, value))
+    if (saveHistory) saveToHistory()
+  }
+
+  /**
    * Speichere aktuellen Zustand manuell (für Slider-Ende-Events)
    */
   function commitTransform() {
@@ -383,6 +402,13 @@ export function useTransform() {
       const flipX = transforms.value.flipHorizontal ? -1 : 1
       const flipY = transforms.value.flipVertical ? -1 : 1
       context.scale(flipX, flipY)
+    }
+
+    // Skew/Neigung
+    if (transforms.value.skewX !== 0 || transforms.value.skewY !== 0) {
+      const skewXRad = Math.tan((transforms.value.skewX * Math.PI) / 180)
+      const skewYRad = Math.tan((transforms.value.skewY * Math.PI) / 180)
+      context.transform(1, skewYRad, skewXRad, 1, 0, 0)
     }
 
     context.translate(-centerX, -centerY)
@@ -443,7 +469,14 @@ export function useTransform() {
           const flipY = transforms.value.flipVertical ? -1 : 1
           tempCtx.scale(flipX, flipY)
         }
-        
+
+        // Skew/Neigung
+        if (transforms.value.skewX !== 0 || transforms.value.skewY !== 0) {
+          const skewXRad = Math.tan((transforms.value.skewX * Math.PI) / 180)
+          const skewYRad = Math.tan((transforms.value.skewY * Math.PI) / 180)
+          tempCtx.transform(1, skewYRad, skewXRad, 1, 0, 0)
+        }
+
         // Zeichne Bild
         tempCtx.drawImage(
           currentImage,
@@ -497,8 +530,17 @@ export function useTransform() {
       transforms.value.flipVertical ||
       transforms.value.borderRadius !== 0 ||
       transforms.value.borderWidth !== 0 ||
-      transforms.value.shadowEnabled
+      transforms.value.shadowEnabled ||
+      transforms.value.skewX !== 0 ||
+      transforms.value.skewY !== 0
     )
+  })
+
+  /**
+   * Prüfe ob Skew aktiv ist
+   */
+  const hasSkew = computed(() => {
+    return transforms.value.skewX !== 0 || transforms.value.skewY !== 0
   })
 
   /**
@@ -530,6 +572,7 @@ export function useTransform() {
     hasPan,
     canPan,
     hasShadow,
+    hasSkew,
 
     // History State
     canUndoTransform,
@@ -558,6 +601,9 @@ export function useTransform() {
     setShadowBlur,
     setShadowColor,
     setShadowOpacity,
+    // Skew methods
+    setSkewX,
+    setSkewY,
     applyToCanvas,
     applyPermanently,
     resetTransforms,

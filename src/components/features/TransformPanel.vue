@@ -454,7 +454,7 @@
 
       <!-- Spiegeln -->
       <div class="button-group">
-        <button 
+        <button
           class="quick-btn"
           :class="{ 'active': transforms.flipHorizontal }"
           @click="$emit('flip-horizontal')"
@@ -463,7 +463,7 @@
           <i class="fas fa-arrows-alt-h"></i>
           {{ $t('transform.flip.horizontal') }}
         </button>
-        <button 
+        <button
           class="quick-btn"
           :class="{ 'active': transforms.flipVertical }"
           @click="$emit('flip-vertical')"
@@ -472,6 +472,78 @@
           <i class="fas fa-arrows-alt-v"></i>
           {{ $t('transform.flip.vertical') }}
         </button>
+      </div>
+
+      <!-- Neigung/Skew -->
+      <div class="control-group skew-section">
+        <label>
+          <span class="label-text">
+            <i class="fas fa-italic"></i>
+            {{ $t('transform.skew.title', 'Neigung') }}
+          </span>
+        </label>
+
+        <!-- Skew X (Horizontal) -->
+        <div class="skew-control-row">
+          <label class="mini-label">
+            <i class="fas fa-arrows-alt-h"></i>
+            {{ $t('transform.skew.horizontal', 'Horizontal') }}
+          </label>
+          <div class="slider-with-input compact">
+            <input
+              type="range"
+              min="-45"
+              max="45"
+              :value="transforms.skewX"
+              @input="$emit('update:skew-x', Number($event.target.value))"
+              @change="$emit('commit-transform')"
+              class="slider"
+            >
+            <div class="number-input-wrapper">
+              <input
+                type="number"
+                min="-45"
+                max="45"
+                :value="transforms.skewX"
+                @input="$emit('update:skew-x', Math.min(45, Math.max(-45, Number($event.target.value))))"
+                @change="$emit('commit-transform')"
+                class="number-input"
+              >
+              <span class="unit">°</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skew Y (Vertikal) -->
+        <div class="skew-control-row">
+          <label class="mini-label">
+            <i class="fas fa-arrows-alt-v"></i>
+            {{ $t('transform.skew.vertical', 'Vertikal') }}
+          </label>
+          <div class="slider-with-input compact">
+            <input
+              type="range"
+              min="-45"
+              max="45"
+              :value="transforms.skewY"
+              @input="$emit('update:skew-y', Number($event.target.value))"
+              @change="$emit('commit-transform')"
+              class="slider"
+            >
+            <div class="number-input-wrapper">
+              <input
+                type="number"
+                min="-45"
+                max="45"
+                :value="transforms.skewY"
+                @input="$emit('update:skew-y', Math.min(45, Math.max(-45, Number($event.target.value))))"
+                @change="$emit('commit-transform')"
+                class="number-input"
+              >
+              <span class="unit">°</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Zoom/Skalierung -->
@@ -874,6 +946,9 @@ defineEmits([
   'update:shadow-blur',
   'update:shadow-color',
   'update:shadow-opacity',
+  // Skew events
+  'update:skew-x',
+  'update:skew-y',
   'rotate-90',
   'rotate-90-counter',
   'rotate-180',
@@ -1897,5 +1972,24 @@ defineEmits([
 
 .dark-mode .mini-label {
   color: #9ca3af;
+}
+
+/* Skew Section Styles */
+.skew-section {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--color-border, #e5e7eb);
+}
+
+.skew-control-row {
+  margin-bottom: 0.5rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.dark-mode .skew-section {
+  border-top-color: #4b5563;
 }
 </style>
