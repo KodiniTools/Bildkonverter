@@ -57,7 +57,6 @@ let domMutationObserver = null
 /**
  * Misst die Höhe der externen KodiniTools Navigation und setzt sie als CSS-Variable
  * Dies ermöglicht eine dynamische Anpassung der sticky Position des AppHeaders
- * Behandelt auch den Fall, wenn die externe Navigation position: fixed ist
  */
 function updateExternalNavHeight() {
   // Versuche verschiedene Selektoren für die externe Navigation
@@ -72,21 +71,10 @@ function updateExternalNavHeight() {
     const navElement = externalNav.querySelector('nav, header') || externalNav
     const height = navElement.getBoundingClientRect().height
 
-    // Prüfe ob die externe Navigation fixed oder sticky ist
-    const computedStyle = window.getComputedStyle(navElement)
-    const position = computedStyle.position
-    const isFixed = position === 'fixed' || position === 'sticky'
-
-    // Setze die CSS-Variable für die Höhe
+    // Setze die CSS-Variable für die Höhe (wird von AppHeader für sticky top verwendet)
     document.documentElement.style.setProperty('--external-nav-height', `${height}px`)
 
-    // Wenn die externe Navigation fixed ist, braucht #app padding-top
-    const appElement = document.getElementById('app')
-    if (appElement && isFixed) {
-      appElement.style.paddingTop = `${height}px`
-    }
-
-    console.log(`📏 Externe Navigation: ${height}px (${position})`)
+    console.log(`📏 Externe Navigation: ${height}px`)
 
     // Setup ResizeObserver falls noch nicht vorhanden
     if (!externalNavObserver) {
@@ -94,12 +82,6 @@ function updateExternalNavHeight() {
         for (const entry of entries) {
           const newHeight = entry.contentRect.height
           document.documentElement.style.setProperty('--external-nav-height', `${newHeight}px`)
-
-          // Update padding-top wenn fixed
-          const appEl = document.getElementById('app')
-          if (appEl && isFixed) {
-            appEl.style.paddingTop = `${newHeight}px`
-          }
         }
       })
       externalNavObserver.observe(navElement)
