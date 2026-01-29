@@ -36,7 +36,7 @@
 </template>
 
 <script setup>
-import { onMounted, watch } from 'vue'
+import { onMounted, onUnmounted, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useTextModal } from '@/composables/useTextModal'
 import { i18n } from '@/i18n'
@@ -49,6 +49,36 @@ import TextEditModal from '@/components/modals/TextEditModal.vue'
 // Stores & Composables
 const settings = useSettingsStore()
 const textModal = useTextModal()
+
+// ResizeObserver für externe Navigation
+let externalNavObserver = null
+
+/**
+ * Misst die Höhe der externen KodiniTools Navigation und setzt sie als CSS-Variable
+ * Dies ermöglicht eine dynamische Anpassung der sticky Position des AppHeaders
+ */
+function updateExternalNavHeight() {
+  // Versuche verschiedene Selektoren für die externe Navigation
+  const externalNav = document.querySelector('.kodini-nav, .kodinitools-nav, #kodini-nav, header.external-nav')
+    || document.querySelector('body > nav:first-child')
+    || document.querySelector('body > header:first-child')
+
+  if (externalNav && !document.getElementById('app').contains(externalNav)) {
+    const height = externalNav.getBoundingClientRect().height
+    document.documentElement.style.setProperty('--external-nav-height', `${height}px`)
+
+    // Setup ResizeObserver falls noch nicht vorhanden
+    if (!externalNavObserver) {
+      externalNavObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const newHeight = entry.contentRect.height
+          document.documentElement.style.setProperty('--external-nav-height', `${newHeight}px`)
+        }
+      })
+      externalNavObserver.observe(externalNav)
+    }
+  }
+}
 
 // Watchers - settings.locale ist die einzige Quelle der Wahrheit
 // Direkter Zugriff auf die globale i18n-Instanz für zuverlässige Synchronisierung
@@ -95,17 +125,34 @@ onMounted(() => {
   // Initiale Sprache setzen (redundant durch immediate: true im Watcher, aber sicherheitshalber)
   i18n.global.locale.value = settings.locale
   document.documentElement.setAttribute('lang', settings.locale)
-  
+
+  // Externe Navigation messen und CSS-Variable setzen
+  updateExternalNavHeight()
+  // Erneut nach kurzer Verzögerung prüfen (falls externe Navigation verzögert lädt)
+  setTimeout(updateExternalNavHeight, 100)
+
   // Online/Offline Events
   window.addEventListener('online', handleOnline)
   window.addEventListener('offline', handleOffline)
-  
+
   // Debug-Info
   if (settings.debugMode) {
     console.log('📊 Debug-Modus aktiv')
     console.log('🎨 Theme:', settings.theme)
     console.log('🌐 Locale:', settings.locale)
   }
+})
+
+onUnmounted(() => {
+  // ResizeObserver aufräumen
+  if (externalNavObserver) {
+    externalNavObserver.disconnect()
+    externalNavObserver = null
+  }
+
+  // Event Listeners entfernen
+  window.removeEventListener('online', handleOnline)
+  window.removeEventListener('offline', handleOffline)
 })
 
 function handleOnline() {
