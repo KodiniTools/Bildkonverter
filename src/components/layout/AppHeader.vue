@@ -128,7 +128,7 @@ function closeMobileMenu() {
 <style lang="scss" scoped>
 .app-header {
   position: sticky;
-  top: var(--external-nav-height, 0px); // Unter der externen Navigation
+  top: 50px; // Höhe der externen KodiniTools Navigation
   z-index: 1000;
   background: var(--color-bg-secondary);
   border-bottom: 1px solid var(--color-border);

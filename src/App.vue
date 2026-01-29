@@ -122,7 +122,9 @@ function handleOffline() {
 @import '@/styles/global.scss';
 
 #app {
-  min-height: 100vh;
+  // min-height etwas größer als Viewport, damit Seite immer scrollbar ist
+  // und AppHeader sticky unter externer Navigation funktioniert
+  min-height: calc(100vh + 1px);
   display: flex;
   flex-direction: column;
   background: var(--color-bg);
@@ -133,7 +135,14 @@ function handleOffline() {
 .main-content {
   flex: 1;
   padding: var(--spacing-lg);
-  
+
+  // Minimaler Scroll-Bereich, damit AppHeader sticky funktioniert
+  &::after {
+    content: '';
+    display: block;
+    height: 1px;
+  }
+
   @media (max-width: 768px) {
     padding: var(--spacing-md);
   }

@@ -3344,17 +3344,12 @@ function handleKeyup(e) {
 
 <style lang="scss" scoped>
 .editor-view {
-  // Kompensiere das Padding der .main-content
-  margin: calc(-1 * var(--spacing-lg));
-  height: calc(100vh - var(--header-height) - var(--external-nav-height, 0px));
-  overflow: hidden;
-  position: sticky;
-  top: calc(var(--header-height) + var(--external-nav-height, 0px));
+  // Verwende min-height statt height, damit die Seite scrollbar bleibt
+  // und das sticky-Verhalten des AppHeaders funktioniert
+  min-height: calc(100vh - var(--header-height) - var(--external-nav-height, 0px));
 
   @media (max-width: 768px) {
-    margin: calc(-1 * var(--spacing-md));
-    height: calc(100vh - var(--header-height-mobile) - var(--external-nav-height, 0px));
-    top: calc(var(--header-height-mobile) + var(--external-nav-height, 0px));
+    min-height: calc(100vh - var(--header-height-mobile) - var(--external-nav-height, 0px));
   }
 }
 
