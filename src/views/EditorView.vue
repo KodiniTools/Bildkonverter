@@ -491,7 +491,14 @@
         </aside>
 
         <!-- Canvas Area -->
-        <div class="canvas-area">
+        <div
+          class="canvas-area"
+          :class="{ 'drag-over': isDraggingFile }"
+          @dragenter.prevent="isDraggingFile = true"
+          @dragover.prevent="isDraggingFile = true"
+          @dragleave.prevent="handleDragLeave"
+          @drop.prevent="handleFileDrop"
+        >
           <div v-if="!currentImage && !isCollageMode" class="empty-canvas">
             <i class="fas fa-image"></i>
             <h2>{{ $t('editor.canvas.empty.title') }}</h2>
@@ -701,6 +708,9 @@ const previewUpdateTrigger = ref(0)
 // ===== COLLAGE MODE STATE =====
 const isCollageMode = ref(false)
 
+// ===== DRAG & DROP STATE =====
+const isDraggingFile = ref(false)
+
 // ===== COMPOSABLES =====
 
 // Crop Composable
@@ -876,6 +886,65 @@ function handleFileSelect(event) {
       
       await loadImage(img)
       // Speichere auch im Store für Persistenz
+      try {
+        await imageStore.loadImageFromFile(file)
+      } catch (err) {
+        console.warn('Store save failed:', err)
+      }
+    }
+    img.src = e.target.result
+    originalImage.value = img
+  }
+  reader.readAsDataURL(file)
+}
+
+/**
+ * Handles drag leave events to properly reset drag state
+ * Only resets when actually leaving the canvas-area (not child elements)
+ */
+function handleDragLeave(event) {
+  // Check if we're actually leaving the canvas-area
+  const canvasArea = event.currentTarget
+  const relatedTarget = event.relatedTarget
+
+  // Only reset if we're leaving to an element outside the canvas-area
+  if (!canvasArea.contains(relatedTarget)) {
+    isDraggingFile.value = false
+  }
+}
+
+/**
+ * Handles file drop on the canvas area
+ * Validates that the dropped item is an image file before loading
+ */
+function handleFileDrop(event) {
+  isDraggingFile.value = false
+
+  const files = event.dataTransfer?.files
+  if (!files || files.length === 0) return
+
+  const file = files[0]
+
+  // Validate that it's an image file
+  if (!file.type.startsWith('image/')) {
+    console.warn('Dropped file is not an image:', file.type)
+    return
+  }
+
+  // Use the same logic as handleFileSelect
+  // Detect format of uploaded image
+  const fileType = file.type.split('/')[1] // e.g. 'image/jpeg' -> 'jpeg'
+  currentImageFormat.value = fileType === 'jpeg' ? 'jpg' : fileType
+
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const img = new Image()
+    img.onload = async () => {
+      // Save original image as Data URL for preview
+      originalImageDataUrl.value = e.target.result
+
+      await loadImage(img)
+      // Also save in store for persistence
       try {
         await imageStore.loadImageFromFile(file)
       } catch (err) {
@@ -4055,6 +4124,24 @@ function handleKeyup(e) {
   padding: 2rem;
   overflow: auto;
   background: var(--color-bg);
+  position: relative;
+  transition: all 0.2s ease;
+
+  // Drag and drop visual feedback
+  &.drag-over {
+    background: var(--color-light-blue, rgba(59, 130, 246, 0.1));
+    border: 3px dashed var(--color-primary, #3b82f6);
+    border-radius: 8px;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(59, 130, 246, 0.05);
+      pointer-events: none;
+      z-index: 10;
+    }
+  }
 }
 
 .empty-canvas {
