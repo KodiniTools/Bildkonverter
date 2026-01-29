@@ -4171,7 +4171,8 @@ function handleKeyup(e) {
 }
 
 .canvas-container {
-  position: relative;
+  position: sticky;
+  top: 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
