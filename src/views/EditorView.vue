@@ -3457,6 +3457,12 @@ function handleKeyup(e) {
   overflow-y: auto;
   padding: 0.75rem;
 
+  /* Sticky Sidebar - bleibt im Sichtfeld während Canvas scrollt */
+  position: sticky;
+  top: 0;
+  max-height: calc(100vh - var(--external-nav-height, 50px) - var(--header-height, 60px) - 60px);
+  align-self: flex-start;
+
   /* Moderne Scrollbar */
   &::-webkit-scrollbar {
     width: 4px;
@@ -4171,8 +4177,7 @@ function handleKeyup(e) {
 }
 
 .canvas-container {
-  position: sticky;
-  top: 1rem;
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
