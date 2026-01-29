@@ -4120,7 +4120,7 @@ function handleKeyup(e) {
 .canvas-area {
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 2rem;
   overflow: auto;
