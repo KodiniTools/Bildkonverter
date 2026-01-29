@@ -59,12 +59,16 @@ let externalNavObserver = null
  */
 function updateExternalNavHeight() {
   // Versuche verschiedene Selektoren für die externe Navigation
-  const externalNav = document.querySelector('.kodini-nav, .kodinitools-nav, #kodini-nav, header.external-nav')
+  // Priorität: external-nav-wrapper > kodini-nav Varianten > generische nav/header
+  const externalNav = document.querySelector('.external-nav-wrapper')
+    || document.querySelector('.kodini-nav, .kodinitools-nav, #kodini-nav, header.external-nav')
     || document.querySelector('body > nav:first-child')
     || document.querySelector('body > header:first-child')
 
   if (externalNav && !document.getElementById('app').contains(externalNav)) {
-    const height = externalNav.getBoundingClientRect().height
+    // Messe das erste Kind-Element (nav/header) falls vorhanden, sonst den Wrapper selbst
+    const navElement = externalNav.querySelector('nav, header') || externalNav
+    const height = navElement.getBoundingClientRect().height
     document.documentElement.style.setProperty('--external-nav-height', `${height}px`)
 
     // Setup ResizeObserver falls noch nicht vorhanden
@@ -75,7 +79,7 @@ function updateExternalNavHeight() {
           document.documentElement.style.setProperty('--external-nav-height', `${newHeight}px`)
         }
       })
-      externalNavObserver.observe(externalNav)
+      externalNavObserver.observe(navElement)
     }
   }
 }
