@@ -50,22 +50,43 @@ import TextEditModal from '@/components/modals/TextEditModal.vue'
 const settings = useSettingsStore()
 const textModal = useTextModal()
 
-// ResizeObserver für externe Navigation
+// Observer für externe Navigation
 let externalNavObserver = null
+let domMutationObserver = null
 
 /**
  * Misst die Höhe der externen KodiniTools Navigation und setzt sie als CSS-Variable
  * Dies ermöglicht eine dynamische Anpassung der sticky Position des AppHeaders
+ * Behandelt auch den Fall, wenn die externe Navigation position: fixed ist
  */
 function updateExternalNavHeight() {
   // Versuche verschiedene Selektoren für die externe Navigation
-  const externalNav = document.querySelector('.kodini-nav, .kodinitools-nav, #kodini-nav, header.external-nav')
+  // Priorität: external-nav-wrapper > kodini-nav Varianten > generische nav/header
+  const externalNav = document.querySelector('.external-nav-wrapper')
+    || document.querySelector('.kodini-nav, .kodinitools-nav, #kodini-nav, header.external-nav')
     || document.querySelector('body > nav:first-child')
     || document.querySelector('body > header:first-child')
 
   if (externalNav && !document.getElementById('app').contains(externalNav)) {
-    const height = externalNav.getBoundingClientRect().height
+    // Messe das erste Kind-Element (nav/header) falls vorhanden, sonst den Wrapper selbst
+    const navElement = externalNav.querySelector('nav, header') || externalNav
+    const height = navElement.getBoundingClientRect().height
+
+    // Prüfe ob die externe Navigation fixed oder sticky ist
+    const computedStyle = window.getComputedStyle(navElement)
+    const position = computedStyle.position
+    const isFixed = position === 'fixed' || position === 'sticky'
+
+    // Setze die CSS-Variable für die Höhe
     document.documentElement.style.setProperty('--external-nav-height', `${height}px`)
+
+    // Wenn die externe Navigation fixed ist, braucht #app padding-top
+    const appElement = document.getElementById('app')
+    if (appElement && isFixed) {
+      appElement.style.paddingTop = `${height}px`
+    }
+
+    console.log(`📏 Externe Navigation: ${height}px (${position})`)
 
     // Setup ResizeObserver falls noch nicht vorhanden
     if (!externalNavObserver) {
@@ -73,10 +94,18 @@ function updateExternalNavHeight() {
         for (const entry of entries) {
           const newHeight = entry.contentRect.height
           document.documentElement.style.setProperty('--external-nav-height', `${newHeight}px`)
+
+          // Update padding-top wenn fixed
+          const appEl = document.getElementById('app')
+          if (appEl && isFixed) {
+            appEl.style.paddingTop = `${newHeight}px`
+          }
         }
       })
-      externalNavObserver.observe(externalNav)
+      externalNavObserver.observe(navElement)
     }
+  } else {
+    console.log('⚠️ Keine externe Navigation gefunden')
   }
 }
 
@@ -130,6 +159,18 @@ onMounted(() => {
   updateExternalNavHeight()
   // Erneut nach kurzer Verzögerung prüfen (falls externe Navigation verzögert lädt)
   setTimeout(updateExternalNavHeight, 100)
+  setTimeout(updateExternalNavHeight, 500)
+
+  // MutationObserver für dynamisch geladene externe Navigation
+  domMutationObserver = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+        // Prüfe ob externe Navigation hinzugefügt wurde
+        updateExternalNavHeight()
+      }
+    }
+  })
+  domMutationObserver.observe(document.body, { childList: true, subtree: true })
 
   // Online/Offline Events
   window.addEventListener('online', handleOnline)
@@ -148,6 +189,12 @@ onUnmounted(() => {
   if (externalNavObserver) {
     externalNavObserver.disconnect()
     externalNavObserver = null
+  }
+
+  // MutationObserver aufräumen
+  if (domMutationObserver) {
+    domMutationObserver.disconnect()
+    domMutationObserver = null
   }
 
   // Event Listeners entfernen
