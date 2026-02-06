@@ -989,8 +989,8 @@ defineEmits([
   /* Sticky Sidebar - bleibt im Sichtfeld während Canvas scrollt */
   position: sticky;
   top: 0;
-  max-height: calc(100vh - var(--external-nav-height, 50px) - var(--header-height, 60px) - 60px);
-  align-self: flex-start;
+  height: calc(100vh - var(--external-nav-height, 50px) - var(--header-height, 60px) - 60px);
+  align-self: stretch;
 
   /* Moderne Scrollbar - gleich wie linke Sidebar */
   &::-webkit-scrollbar {
