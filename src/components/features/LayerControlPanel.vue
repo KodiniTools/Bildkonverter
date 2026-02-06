@@ -1131,11 +1131,17 @@ onUnmounted(() => {
 .layer-control-panel {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  overflow: hidden;
   width: 280px;
   min-width: 280px;
   max-width: 280px;
+  background: var(--color-bg-secondary);
+  border-left: 1px solid var(--color-border);
+
+  /* Sticky Sidebar - gleiche Struktur wie TransformPanel */
+  position: sticky;
+  top: 0;
+  height: calc(100vh - var(--external-nav-height, 50px) - var(--header-height, 60px) - 60px);
+  align-self: stretch;
 }
 
 .history-toolbar {
@@ -1237,6 +1243,24 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+
+  /* Moderne Scrollbar - gleich wie andere Panels */
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 2px;
+
+    &:hover {
+      background: var(--color-text-light);
+    }
+  }
 }
 
 .panel-section {
@@ -1300,6 +1324,24 @@ onUnmounted(() => {
   overflow-y: auto;
   overflow-x: hidden;
   width: 100%;
+
+  /* Moderne Scrollbar für verschachtelte Listen */
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 2px;
+
+    &:hover {
+      background: var(--color-text-light);
+    }
+  }
 }
 
 .layer-item, .text-item {
