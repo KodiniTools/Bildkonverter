@@ -133,7 +133,7 @@ const toggleFaq = (index) => {
   align-items: center;
   padding: var(--spacing-3xl) var(--spacing-xl);
   min-height: 80vh;
-  background: linear-gradient(135deg, var(--color-light-blue) 0%, var(--color-bg-primary) 100%);
+  background: linear-gradient(135deg, var(--color-accent-lighter) 0%, var(--color-bg-gradient) 50%, var(--color-bg) 100%);
   
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
@@ -238,32 +238,32 @@ const toggleFaq = (index) => {
 // Button Glow Effect
 .btn-glow {
   position: relative;
-  box-shadow: 0 0 20px rgba(74, 144, 226, 0.3);
+  box-shadow: 0 0 20px rgba(1, 79, 153, 0.3);
   animation: pulse-glow 2s ease-in-out infinite;
-  color: white;
+  color: #F5F4D6;
   font-weight: 600;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 
   &:hover {
-    background: #2563eb;
-    box-shadow: 0 0 30px rgba(74, 144, 226, 0.5), 0 0 60px rgba(74, 144, 226, 0.3);
+    background: #003971;
+    box-shadow: 0 0 30px rgba(1, 79, 153, 0.5), 0 0 60px rgba(1, 79, 153, 0.3);
     transform: translateY(-3px) scale(1.02);
-    color: white;
+    color: #F5F4D6;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   }
 
   &:active {
     transform: translateY(-1px) scale(0.98);
-    background: #1d4ed8;
+    background: #002a54;
   }
 }
 
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 20px rgba(74, 144, 226, 0.3);
+    box-shadow: 0 0 20px rgba(1, 79, 153, 0.3);
   }
   50% {
-    box-shadow: 0 0 30px rgba(74, 144, 226, 0.5), 0 0 50px rgba(74, 144, 226, 0.2);
+    box-shadow: 0 0 30px rgba(1, 79, 153, 0.5), 0 0 50px rgba(1, 79, 153, 0.2);
   }
 }
 
@@ -338,7 +338,7 @@ const toggleFaq = (index) => {
 
   &:hover {
     transform: translateY(-8px) scale(1.02);
-    box-shadow: var(--shadow-lg), 0 20px 40px rgba(74, 144, 226, 0.1);
+    box-shadow: var(--shadow-lg), 0 20px 40px rgba(1, 79, 153, 0.1);
 
     .feature-icon {
       transform: scale(1.1) rotate(5deg);
@@ -442,7 +442,7 @@ const toggleFaq = (index) => {
   
   &.active {
     border-color: var(--color-primary);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    box-shadow: 0 4px 12px rgba(1, 79, 153, 0.15);
   }
 }
 

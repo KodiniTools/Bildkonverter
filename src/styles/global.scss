@@ -45,8 +45,9 @@ body {
   font-size: $font-size-base;
   line-height: $line-height-normal;
   color: var(--color-text);
-  background: var(--color-bg);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-gradient) 100%);
+  background-attachment: fixed;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 // ===== TYPOGRAPHY =====
@@ -115,8 +116,8 @@ a {
 
 .btn-primary {
   background: var(--color-primary);
-  color: white;
-  
+  color: var(--color-btn-text-light);
+
   &:hover:not(:disabled) {
     background: $color-primary-dark;
     transform: translateY(-1px);
@@ -136,7 +137,7 @@ a {
 
 .btn-success {
   background: var(--color-success);
-  color: white;
+  color: #1a3a2a;
   
   &:hover:not(:disabled) {
     filter: brightness(1.1);
@@ -179,7 +180,7 @@ input, textarea, select {
   &:focus {
     outline: none;
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+    box-shadow: 0 0 0 3px rgba(1, 79, 153, 0.1);
   }
   
   &:disabled {

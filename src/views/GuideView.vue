@@ -506,8 +506,8 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       inset: 0;
       background: linear-gradient(135deg,
         var(--color-primary) 0%,
-        #6366f1 50%,
-        #8b5cf6 100%
+        #003971 50%,
+        #c9984d 100%
       );
     }
 
@@ -525,7 +525,7 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1;
     text-align: center;
     max-width: 800px;
-    color: white;
+    color: #F5F4D6;
   }
 
   .hero-badge {
@@ -597,7 +597,7 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
   .btn-hero-secondary {
     background: rgba(255, 255, 255, 0.15);
-    color: white;
+    color: #F5F4D6;
     border: 2px solid rgba(255, 255, 255, 0.3);
     backdrop-filter: blur(10px);
 
@@ -666,14 +666,14 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--color-primary) 0%, #6366f1 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #003971 100%);
   border-radius: 20px;
   margin: 0 auto 1.5rem;
-  box-shadow: 0 10px 30px rgba(74, 144, 226, 0.3);
+  box-shadow: 0 10px 30px rgba(1, 79, 153, 0.3);
 
   i {
     font-size: 1.75rem;
-    color: white;
+    color: #F5F4D6;
   }
 
   &.section-icon-small {
@@ -759,14 +759,14 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--color-primary) 0%, #6366f1 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, #003971 100%);
     border-radius: 30px;
     margin-bottom: 2rem;
-    box-shadow: 0 15px 40px rgba(74, 144, 226, 0.35);
+    box-shadow: 0 15px 40px rgba(1, 79, 153, 0.35);
 
     i {
       font-size: 2.5rem;
-      color: white;
+      color: #F5F4D6;
     }
   }
 }
@@ -782,11 +782,11 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 .format-badge {
   padding: 0.5rem 1rem;
   background: var(--color-primary);
-  color: white;
+  color: #F5F4D6;
   border-radius: 50px;
   font-size: 0.8rem;
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+  box-shadow: 0 4px 12px rgba(1, 79, 153, 0.3);
 }
 
 // ===== STEPS =====
@@ -816,13 +816,13 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--color-primary) 0%, #6366f1 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--color-primary) 0%, #003971 100%);
+  color: #F5F4D6;
   font-size: 1.5rem;
   font-weight: 700;
   border-radius: 50%;
   flex-shrink: 0;
-  box-shadow: 0 8px 25px rgba(74, 144, 226, 0.35);
+  box-shadow: 0 8px 25px rgba(1, 79, 153, 0.35);
   position: relative;
   z-index: 1;
 }
@@ -881,7 +881,7 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   &:hover {
     border-color: var(--color-primary);
     transform: translateX(5px);
-    box-shadow: 0 5px 20px rgba(74, 144, 226, 0.15);
+    box-shadow: 0 5px 20px rgba(1, 79, 153, 0.15);
   }
 
   .feature-card-icon {
@@ -1022,7 +1022,7 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   align-items: flex-start;
   gap: 1rem;
   padding: 1.5rem;
-  background: linear-gradient(135deg, rgba(74, 144, 226, 0.08) 0%, rgba(99, 102, 241, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(1, 79, 153, 0.08) 0%, rgba(201, 152, 77, 0.08) 100%);
   border-radius: 14px;
   border-left: 4px solid var(--color-primary);
   margin-top: 1.5rem;
@@ -1039,7 +1039,7 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
     i {
       font-size: 0.9rem;
-      color: white;
+      color: #F5F4D6;
     }
   }
 
@@ -1091,7 +1091,7 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       align-items: center;
       justify-content: center;
       background: var(--color-primary);
-      color: white;
+      color: #F5F4D6;
       font-size: 0.85rem;
       font-weight: 600;
       border-radius: 50%;
@@ -1138,14 +1138,14 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--color-primary) 0%, #6366f1 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, #003971 100%);
     border-radius: 14px;
     margin: 0 auto 1rem;
     transition: transform $transition-smooth;
 
     i {
       font-size: 1.3rem;
-      color: white;
+      color: #F5F4D6;
     }
   }
 
@@ -1284,7 +1284,7 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     gap: 1.5rem;
 
     .resize-box {
-      background: linear-gradient(135deg, var(--color-primary) 0%, #6366f1 100%);
+      background: linear-gradient(135deg, var(--color-primary) 0%, #003971 100%);
       border-radius: 8px;
 
       &-small {
@@ -1352,8 +1352,8 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--color-primary) 0%, #6366f1 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--color-primary) 0%, #003971 100%);
+    color: #F5F4D6;
     font-weight: 700;
     border-radius: 50%;
     flex-shrink: 0;
@@ -1520,8 +1520,8 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       inset: 0;
       background: linear-gradient(135deg,
         var(--color-primary) 0%,
-        #6366f1 50%,
-        #8b5cf6 100%
+        #003971 50%,
+        #c9984d 100%
       );
     }
 
@@ -1539,7 +1539,7 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     text-align: center;
     max-width: 600px;
     margin: 0 auto;
-    color: white;
+    color: #F5F4D6;
 
     h2 {
       font-size: clamp(1.75rem, 4vw, 2.5rem);
@@ -1582,7 +1582,7 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     border-color: var(--color-primary);
   }
   50% {
-    border-color: rgba(74, 144, 226, 0.4);
+    border-color: rgba(1, 79, 153, 0.4);
   }
 }
 

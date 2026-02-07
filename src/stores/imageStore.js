@@ -284,14 +284,14 @@ export const useImageStore = defineStore('image', () => {
     }
 
     // Gestrichelter Rahmen
-    context.strokeStyle = '#3b82f6'
+    context.strokeStyle = '#014f99'
     context.lineWidth = 2
     context.setLineDash([5, 5])
     context.strokeRect(layer.x - 2, layer.y - 2, layer.width + 4, layer.height + 4)
 
     // Resize-Handles
     context.setLineDash([])
-    context.fillStyle = '#3b82f6'
+    context.fillStyle = '#014f99'
     const handleSize = 8
     const handles = [
       { x: layer.x - handleSize / 2, y: layer.y - handleSize / 2 }, // NW

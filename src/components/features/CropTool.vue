@@ -77,7 +77,7 @@ defineEmits(['toggle-crop', 'undo-crop'])
 }
 
 .transform-btn:hover {
-  border-color: var(--color-primary, #3b82f6);
+  border-color: var(--color-primary, #014f99);
   background: var(--color-bg-secondary, #f3f4f6);
 }
 
