@@ -131,34 +131,44 @@ const toggleFaq = (index) => {
   grid-template-columns: 1fr 1fr;
   gap: var(--spacing-2xl);
   align-items: center;
-  padding: var(--spacing-3xl) var(--spacing-xl);
+  padding: 5rem 4rem 6rem;
   min-height: 80vh;
+  max-width: 1400px;
+  margin: 0 auto;
   background: linear-gradient(135deg, var(--color-accent-lighter) 0%, var(--color-bg-gradient) 50%, var(--color-bg) 100%);
-  
+
+  @media (max-width: 1024px) {
+    padding: 4rem 3rem 5rem;
+  }
+
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
-    padding: var(--spacing-xl) var(--spacing-md);
+    padding: 3rem 1.5rem 4rem;
     text-align: center;
   }
 }
 
 .hero-content {
   h1 {
-    font-size: 3.5rem;
+    font-size: 2.8rem;
     font-weight: 700;
     margin-bottom: var(--spacing-lg);
-    line-height: 1.2;
+    line-height: 1.25;
+
+    @media (max-width: 1024px) {
+      font-size: 2.4rem;
+    }
 
     @media (max-width: 768px) {
-      font-size: 2.5rem;
+      font-size: 2rem;
     }
   }
 
   .hero-subtitle {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     color: var(--color-text-secondary);
     margin-bottom: var(--spacing-2xl);
-    line-height: 1.6;
+    line-height: 1.7;
   }
 }
 
@@ -227,8 +237,8 @@ const toggleFaq = (index) => {
 }
 
 .btn-large {
-  padding: var(--spacing-md) var(--spacing-xl);
-  font-size: 1.1rem;
+  padding: 0.75rem 1.75rem;
+  font-size: 1rem;
 
   i {
     margin-right: var(--spacing-sm);
@@ -306,13 +316,25 @@ const toggleFaq = (index) => {
 }
 
 .features-section {
-  padding: var(--spacing-3xl) var(--spacing-xl);
+  padding: 5rem 4rem;
   background: var(--color-bg-primary);
-  
+
+  @media (max-width: 1024px) {
+    padding: 4rem 3rem;
+  }
+
+  @media (max-width: 768px) {
+    padding: 3rem 1.5rem;
+  }
+
   h2 {
     text-align: center;
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     margin-bottom: var(--spacing-2xl);
+
+    @media (max-width: 768px) {
+      font-size: 1.8rem;
+    }
   }
 }
 
