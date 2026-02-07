@@ -213,7 +213,7 @@ function closeMobileMenu() {
   
   &.active {
     background: var(--color-primary);
-    color: white;
+    color: #F5F4D6;
   }
 }
 
@@ -307,7 +307,7 @@ function closeMobileMenu() {
   
   &.active {
     background: var(--color-primary);
-    color: white;
+    color: #F5F4D6;
   }
 }
 

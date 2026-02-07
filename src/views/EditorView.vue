@@ -1016,14 +1016,14 @@ function drawLayerSelection(context, layer) {
   }
 
   // Gestrichelter Rahmen
-  context.strokeStyle = '#3b82f6'
+  context.strokeStyle = '#014f99'
   context.lineWidth = 2
   context.setLineDash([5, 5])
   context.strokeRect(layer.x - 2, layer.y - 2, layer.width + 4, layer.height + 4)
 
   // Resize-Handles
   context.setLineDash([])
-  context.fillStyle = '#3b82f6'
+  context.fillStyle = '#014f99'
   const handleSize = 8
   const handles = [
     { x: layer.x - handleSize / 2, y: layer.y - handleSize / 2 },
@@ -3410,10 +3410,10 @@ function handleKeyup(e) {
 
 .btn-primary {
   background: var(--color-primary);
-  color: white;
+  color: #F5F4D6;
 
   &:hover:not(:disabled) {
-    background: rgba(59, 130, 246, 0.9);
+    background: rgba(1, 79, 153, 0.9);
   }
 }
 
@@ -3677,7 +3677,7 @@ function handleKeyup(e) {
   &:focus {
     outline: none;
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 3px rgba(1, 79, 153, 0.1);
   }
 }
 
@@ -3705,7 +3705,7 @@ function handleKeyup(e) {
       font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
       min-width: 40px;
       text-align: right;
-      background: rgba(59, 130, 246, 0.08);
+      background: rgba(1, 79, 153, 0.08);
       padding: 2px 6px;
       border-radius: 4px;
     }
@@ -3793,7 +3793,7 @@ function handleKeyup(e) {
 
     &:hover::-webkit-slider-thumb {
       transform: scale(1.2);
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+      box-shadow: 0 2px 8px rgba(1, 79, 153, 0.4);
     }
 
     &:active::-webkit-slider-thumb {
@@ -3815,7 +3815,7 @@ function handleKeyup(e) {
 
     &:hover::-moz-range-thumb {
       transform: scale(1.2);
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+      box-shadow: 0 2px 8px rgba(1, 79, 153, 0.4);
     }
 
     // Firefox - Track
@@ -3977,7 +3977,7 @@ function handleKeyup(e) {
   color: var(--color-text-secondary);
   margin-top: 0.5rem;
   padding: 0.5rem;
-  background: rgba(59, 130, 246, 0.05);
+  background: rgba(1, 79, 153, 0.05);
   border-radius: 4px;
 
   i {
@@ -4006,15 +4006,15 @@ function handleKeyup(e) {
 
   &:hover {
     border-color: var(--color-primary);
-    background: rgba(59, 130, 246, 0.05); // ✨ Subtiler Hover
+    background: rgba(1, 79, 153, 0.05); // ✨ Subtiler Hover
     transform: translateY(-1px); // ✨ Leichtes Anheben
   }
 
   &.active {
     background: var(--color-primary);
-    color: white;
+    color: #F5F4D6;
     border-color: var(--color-primary);
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3); // ✨ Shadow bei Active
+    box-shadow: 0 2px 8px rgba(1, 79, 153, 0.3); // ✨ Shadow bei Active
   }
 
   .preset-icon {
@@ -4063,7 +4063,7 @@ function handleKeyup(e) {
       &:focus {
         outline: none;
         border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        box-shadow: 0 0 0 3px rgba(1, 79, 153, 0.1);
       }
 
       &:disabled {
@@ -4100,7 +4100,7 @@ function handleKeyup(e) {
       &:focus {
         outline: none;
         border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        box-shadow: 0 0 0 3px rgba(1, 79, 153, 0.1);
       }
     }
   }
@@ -4136,15 +4136,15 @@ function handleKeyup(e) {
 
   // Drag and drop visual feedback
   &.drag-over {
-    background: var(--color-light-blue, rgba(59, 130, 246, 0.1));
-    border: 3px dashed var(--color-primary, #3b82f6);
+    background: var(--color-light-blue, rgba(1, 79, 153, 0.1));
+    border: 3px dashed var(--color-primary, #014f99);
     border-radius: 8px;
 
     &::after {
       content: '';
       position: absolute;
       inset: 0;
-      background: rgba(59, 130, 246, 0.05);
+      background: rgba(1, 79, 153, 0.05);
       pointer-events: none;
       z-index: 10;
     }
@@ -4387,7 +4387,7 @@ function handleKeyup(e) {
 
   .filter-control {
     label .filter-value {
-      background: rgba(59, 130, 246, 0.15);
+      background: rgba(1, 79, 153, 0.15);
       color: #60a5fa;
     }
 
@@ -4425,7 +4425,7 @@ function handleKeyup(e) {
     }
 
     &:focus {
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+      box-shadow: 0 0 0 3px rgba(1, 79, 153, 0.2);
     }
   }
 
@@ -4434,7 +4434,7 @@ function handleKeyup(e) {
     border-color: rgba(255, 255, 255, 0.1);
 
     &:hover {
-      background: rgba(59, 130, 246, 0.1);
+      background: rgba(1, 79, 153, 0.1);
       border-color: var(--color-primary);
     }
   }
@@ -4445,7 +4445,7 @@ function handleKeyup(e) {
 
     &:focus {
       border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+      box-shadow: 0 0 0 3px rgba(1, 79, 153, 0.2);
     }
   }
 
@@ -4463,7 +4463,7 @@ function handleKeyup(e) {
   }
 
   .format-badge {
-    background: rgba(59, 130, 246, 0.15);
+    background: rgba(1, 79, 153, 0.15);
     color: #60a5fa;
   }
 

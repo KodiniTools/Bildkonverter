@@ -564,7 +564,7 @@ async function createCollage() {
     transition: background 0.3s ease;
     
     &:hover {
-      background: var(--color-primary-dark, #3b82f6);
+      background: var(--color-primary-dark, #003971);
     }
   }
   
@@ -598,7 +598,7 @@ async function createCollage() {
 
   &.multi-selected {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 0 3px rgba(1, 79, 153, 0.3);
 
     .multi-select-checkbox i {
       color: var(--color-primary);

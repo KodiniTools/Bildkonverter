@@ -1181,10 +1181,10 @@ onUnmounted(() => {
 .history-btn.preview-btn {
   margin-left: auto;
   background: var(--color-primary);
-  color: white;
+  color: #F5F4D6;
 
   &:hover {
-    background: var(--color-primary-dark, #2563eb);
+    background: var(--color-primary-dark, #003971);
   }
 }
 
@@ -1363,7 +1363,7 @@ onUnmounted(() => {
 
   &.selected {
     border-color: var(--color-primary);
-    background: rgba(59, 130, 246, 0.1);
+    background: rgba(1, 79, 153, 0.1);
   }
 }
 
@@ -1579,7 +1579,7 @@ onUnmounted(() => {
 
   &.active {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px var(--color-primary-light, rgba(59, 130, 246, 0.3));
+    box-shadow: 0 0 0 2px var(--color-primary-light, rgba(1, 79, 153, 0.3));
   }
 
   &.transparent {
@@ -1666,10 +1666,10 @@ onUnmounted(() => {
 
   &.btn-primary {
     background: var(--color-primary);
-    color: white;
+    color: #F5F4D6;
 
     &:hover {
-      background: var(--color-primary-dark, #2563eb);
+      background: var(--color-primary-dark, #003971);
     }
   }
 

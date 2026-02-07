@@ -140,7 +140,7 @@ const { t } = useI18n({ useScope: 'global' })
 .hero-section {
   text-align: center;
   padding: var(--spacing-3xl) var(--spacing-xl);
-  background: linear-gradient(135deg, var(--color-light-blue) 0%, var(--color-bg-primary) 100%);
+  background: linear-gradient(135deg, var(--color-accent-lighter) 0%, var(--color-bg-gradient) 50%, var(--color-bg) 100%);
   margin-bottom: 5rem;
   
   h1 {
@@ -352,8 +352,8 @@ const { t } = useI18n({ useScope: 'global' })
   padding-bottom: 5rem;
   padding-left: var(--spacing-xl);
   padding-right: var(--spacing-xl);
-  background: linear-gradient(135deg, var(--color-primary) 0%, #0056b3 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--color-primary) 0%, #003971 100%);
+  color: #F5F4D6;
   text-align: center;
   
   @media (max-width: 768px) {
@@ -380,7 +380,7 @@ const { t } = useI18n({ useScope: 'global' })
     
     .website-link {
       display: inline-block;
-      color: white;
+      color: #F5F4D6;
       text-decoration: none;
       font-size: 1.1rem;
       font-weight: 500;

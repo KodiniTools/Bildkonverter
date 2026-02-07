@@ -6,9 +6,15 @@
 // ===== COLORS =====
 
 // Primary Colors
-$color-primary: #4a90e2;
-$color-primary-light: #6ba4e8;
-$color-primary-dark: #3a7bc8;
+$color-primary: #014f99;
+$color-primary-light: #0160b8;
+$color-primary-dark: #003971;
+
+// Accent Colors (Gold)
+$color-accent: #c9984d;
+$color-accent-light: #f8e1a9;
+$color-accent-lighter: #f9f2d5;
+$color-bg-gradient: #F5F4D6;
 
 // Success, Warning, Error
 $color-success: #50e3c2;
@@ -31,7 +37,7 @@ $color-gray-900: #212529;
 
 // Background & Text
 $color-bg: $color-white;
-$color-bg-secondary: $color-gray-100;
+$color-bg-secondary: $color-accent-lighter;
 $color-text: $color-gray-900;
 $color-text-light: $color-gray-600;
 $color-text-muted: $color-gray-500;
@@ -40,9 +46,11 @@ $color-text-muted: $color-gray-500;
 $color-border: $color-gray-300;
 $color-border-light: $color-gray-200;
 
-// Accent Colors
-$color-light-blue: rgba(74, 144, 226, 0.1);
-$color-medium-blue: rgba(74, 144, 226, 0.2);
+// Light Accent Colors
+$color-light-blue: rgba(1, 79, 153, 0.1);
+$color-medium-blue: rgba(1, 79, 153, 0.2);
+$color-light-gold: rgba(201, 152, 77, 0.15);
+$color-medium-gold: rgba(201, 152, 77, 0.25);
 
 // ===== DARK MODE COLORS =====
 $dark-bg: #1a1a1a;
@@ -212,12 +220,19 @@ $breakpoint-2xl: 1536px;
   --color-white: #{$color-white};
   --color-bg: #{$color-bg};
   --color-bg-secondary: #{$color-bg-secondary};
+  --color-bg-gradient: #{$color-bg-gradient};
   --color-text: #{$color-text};
   --color-text-light: #{$color-text-light};
   --color-border: #{$color-border};
-  
+
   --color-light-blue: #{$color-light-blue};
   --color-medium-blue: #{$color-medium-blue};
+  --color-accent: #{$color-accent};
+  --color-accent-light: #{$color-accent-light};
+  --color-accent-lighter: #{$color-accent-lighter};
+  --color-light-gold: #{$color-light-gold};
+  --color-medium-gold: #{$color-medium-gold};
+  --color-btn-text-light: #F5F4D6;
   
   // Spacing
   --spacing-xs: #{$spacing-xs};

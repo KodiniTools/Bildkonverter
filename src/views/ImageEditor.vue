@@ -341,7 +341,7 @@ onUnmounted(() => {
 
 .text-count {
   padding: 0.5rem 1rem;
-  background: var(--color-primary, #3b82f6);
+  background: var(--color-primary, #014f99);
   color: white;
   border-radius: 6px;
   font-size: 0.875rem;
@@ -367,7 +367,7 @@ onUnmounted(() => {
 
 .btn:hover:not(:disabled) {
   background: var(--color-bg-secondary, #f3f4f6);
-  border-color: var(--color-primary, #3b82f6);
+  border-color: var(--color-primary, #014f99);
 }
 
 .btn:disabled {
@@ -376,13 +376,13 @@ onUnmounted(() => {
 }
 
 .btn-primary {
-  background: var(--color-primary, #3b82f6);
-  color: white;
-  border-color: var(--color-primary, #3b82f6);
+  background: var(--color-primary, #014f99);
+  color: #F5F4D6;
+  border-color: var(--color-primary, #014f99);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--color-primary-dark, #2563eb);
+  background: var(--color-primary-dark, #003971);
 }
 
 .btn-danger {

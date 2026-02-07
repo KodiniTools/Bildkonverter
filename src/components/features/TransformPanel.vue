@@ -1020,7 +1020,7 @@ defineEmits([
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: var(--color-primary, #3b82f6);
+    border-color: var(--color-primary, #014f99);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
 
@@ -1041,7 +1041,7 @@ defineEmits([
   gap: 0.5rem;
 
   i {
-    color: var(--color-primary, #3b82f6);
+    color: var(--color-primary, #014f99);
     font-size: 0.85rem;
     opacity: 0.8;
   }
@@ -1065,8 +1065,8 @@ defineEmits([
   font-weight: 500;
 
   &:hover {
-    border-color: var(--color-primary, #3b82f6);
-    background: rgba(59, 130, 246, 0.05);
+    border-color: var(--color-primary, #014f99);
+    background: rgba(1, 79, 153, 0.05);
     transform: translateY(-1px);
   }
 
@@ -1093,13 +1093,13 @@ defineEmits([
   }
 
   &.apply-btn {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: white;
-    border-color: #2563eb;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    background: linear-gradient(135deg, #014f99, #003971);
+    color: #F5F4D6;
+    border-color: #003971;
+    box-shadow: 0 2px 8px rgba(1, 79, 153, 0.3);
 
     &:hover {
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      background: linear-gradient(135deg, #003971, #002a54);
       transform: translateY(-1px);
     }
   }
@@ -1136,18 +1136,18 @@ defineEmits([
 
     i {
       margin-right: 0.5rem;
-      color: var(--color-primary, #3b82f6);
+      color: var(--color-primary, #014f99);
       font-size: 0.8rem;
     }
 
     .value {
       font-size: 0.7rem;
       font-weight: 600;
-      color: var(--color-primary, #3b82f6);
+      color: var(--color-primary, #014f99);
       font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
       min-width: 40px;
       text-align: right;
-      background: rgba(59, 130, 246, 0.08);
+      background: rgba(1, 79, 153, 0.08);
       padding: 2px 6px;
       border-radius: 4px;
     }
@@ -1175,12 +1175,12 @@ defineEmits([
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: var(--color-primary, #3b82f6);
+    border-color: var(--color-primary, #014f99);
   }
 
   &:focus-within {
-    border-color: var(--color-primary, #3b82f6);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    border-color: var(--color-primary, #014f99);
+    box-shadow: 0 0 0 2px rgba(1, 79, 153, 0.1);
   }
 
   .number-input {
@@ -1191,7 +1191,7 @@ defineEmits([
     font-size: 0.75rem;
     font-weight: 600;
     font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
-    color: var(--color-primary, #3b82f6);
+    color: var(--color-primary, #014f99);
     text-align: right;
     -moz-appearance: textfield;
 
@@ -1220,11 +1220,11 @@ defineEmits([
   border-color: #4b5563;
 
   &:hover {
-    border-color: var(--color-primary, #3b82f6);
+    border-color: var(--color-primary, #014f99);
   }
 
   .number-input {
-    color: var(--color-primary, #3b82f6);
+    color: var(--color-primary, #014f99);
   }
 
   .unit {
@@ -1257,7 +1257,7 @@ defineEmits([
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: var(--color-primary, #3b82f6);
+    background: var(--color-primary, #014f99);
     cursor: pointer;
     transition: all 0.15s ease;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
@@ -1266,19 +1266,19 @@ defineEmits([
 
   &:hover::-webkit-slider-thumb {
     transform: scale(1.2);
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 2px 8px rgba(1, 79, 153, 0.4);
   }
 
   &:active::-webkit-slider-thumb {
     transform: scale(1.1);
-    background: var(--color-primary, #3b82f6);
+    background: var(--color-primary, #014f99);
   }
 
   &::-moz-range-thumb {
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: var(--color-primary, #3b82f6);
+    background: var(--color-primary, #014f99);
     cursor: pointer;
     border: 2px solid var(--color-bg, #ffffff);
     transition: all 0.15s ease;
@@ -1287,7 +1287,7 @@ defineEmits([
 
   &:hover::-moz-range-thumb {
     transform: scale(1.2);
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 2px 8px rgba(1, 79, 153, 0.4);
   }
 
   &::-moz-range-track {
@@ -1314,16 +1314,16 @@ defineEmits([
   gap: 0.35rem;
 
   &:hover {
-    border-color: var(--color-primary, #3b82f6);
-    background: rgba(59, 130, 246, 0.05);
+    border-color: var(--color-primary, #014f99);
+    background: rgba(1, 79, 153, 0.05);
     transform: translateY(-1px);
   }
 
   &.active {
-    background: var(--color-primary, #3b82f6);
+    background: var(--color-primary, #014f99);
     color: white;
-    border-color: var(--color-primary, #3b82f6);
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    border-color: var(--color-primary, #014f99);
+    box-shadow: 0 2px 8px rgba(1, 79, 153, 0.3);
   }
 
   i {
@@ -1358,7 +1358,7 @@ defineEmits([
   margin-bottom: 0.5rem;
 
   i {
-    color: var(--color-primary, #3b82f6);
+    color: var(--color-primary, #014f99);
     font-size: 0.75rem;
   }
 }
@@ -1398,16 +1398,16 @@ defineEmits([
   }
 
   &:hover {
-    border-color: var(--color-primary, #3b82f6);
-    background: rgba(59, 130, 246, 0.05);
+    border-color: var(--color-primary, #014f99);
+    background: rgba(1, 79, 153, 0.05);
     transform: translateY(-1px);
   }
 
   &.active {
-    background: var(--color-primary, #3b82f6);
+    background: var(--color-primary, #014f99);
     color: white;
-    border-color: var(--color-primary, #3b82f6);
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    border-color: var(--color-primary, #014f99);
+    box-shadow: 0 2px 8px rgba(1, 79, 153, 0.3);
 
     i {
       opacity: 1;
@@ -1430,12 +1430,12 @@ defineEmits([
 
   &:hover {
     background: #4b5563;
-    border-color: var(--color-primary, #3b82f6);
+    border-color: var(--color-primary, #014f99);
   }
 
   &.active {
-    background: var(--color-primary, #3b82f6);
-    border-color: var(--color-primary, #3b82f6);
+    background: var(--color-primary, #014f99);
+    border-color: var(--color-primary, #014f99);
   }
 }
 
@@ -1458,7 +1458,7 @@ defineEmits([
   transition: border-color 0.2s ease;
 
   &:hover {
-    border-color: var(--color-primary, #3b82f6);
+    border-color: var(--color-primary, #014f99);
   }
 
   &::-webkit-color-swatch-wrapper {
@@ -1496,7 +1496,7 @@ defineEmits([
   border-color: #374151;
 
   &:hover {
-    border-color: var(--color-primary, #3b82f6);
+    border-color: var(--color-primary, #014f99);
   }
 }
 
@@ -1511,7 +1511,7 @@ defineEmits([
 
   &:hover {
     background: #4b5563;
-    border-color: var(--color-primary, #3b82f6);
+    border-color: var(--color-primary, #014f99);
   }
 }
 
@@ -1522,7 +1522,7 @@ defineEmits([
 
   &:hover {
     background: #4b5563;
-    border-color: var(--color-primary, #3b82f6);
+    border-color: var(--color-primary, #014f99);
   }
 }
 
@@ -1530,8 +1530,8 @@ defineEmits([
   color: #f9fafb;
 
   .value {
-    color: var(--color-primary, #3b82f6);
-    background: rgba(59, 130, 246, 0.15);
+    color: var(--color-primary, #014f99);
+    background: rgba(1, 79, 153, 0.15);
   }
 }
 
@@ -1553,15 +1553,15 @@ defineEmits([
 
 /* Text Section - hervorgehobene Section */
 .text-section {
-  background: rgba(59, 130, 246, 0.03);
-  border: 1px solid rgba(59, 130, 246, 0.25);
+  background: rgba(1, 79, 153, 0.03);
+  border: 1px solid rgba(1, 79, 153, 0.25);
   border-radius: 8px;
   padding: 0.75rem 1rem;
   margin-bottom: 0.5rem;
 
   &:hover {
-    border-color: rgba(59, 130, 246, 0.4);
-    box-shadow: 0 2px 12px rgba(59, 130, 246, 0.08);
+    border-color: rgba(1, 79, 153, 0.4);
+    box-shadow: 0 2px 12px rgba(1, 79, 153, 0.08);
   }
 }
 
@@ -1596,9 +1596,9 @@ defineEmits([
   transition: all 0.2s ease;
 
   &:hover:not(:disabled) {
-    background: var(--color-primary, #3b82f6);
+    background: var(--color-primary, #014f99);
     color: white;
-    border-color: var(--color-primary, #3b82f6);
+    border-color: var(--color-primary, #014f99);
   }
 
   &:disabled {
@@ -1617,8 +1617,8 @@ defineEmits([
   color: #f9fafb;
 
   &:hover:not(:disabled) {
-    background: var(--color-primary, #3b82f6);
-    border-color: var(--color-primary, #3b82f6);
+    background: var(--color-primary, #014f99);
+    border-color: var(--color-primary, #014f99);
   }
 }
 
@@ -1633,13 +1633,13 @@ defineEmits([
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: var(--color-primary, #3b82f6);
+    border-color: var(--color-primary, #014f99);
   }
 
   &:focus {
     outline: none;
-    border-color: var(--color-primary, #3b82f6);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: var(--color-primary, #014f99);
+    box-shadow: 0 0 0 3px rgba(1, 79, 153, 0.1);
   }
 }
 
@@ -1655,13 +1655,13 @@ defineEmits([
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: var(--color-primary, #3b82f6);
+    border-color: var(--color-primary, #014f99);
   }
 
   &:focus {
     outline: none;
-    border-color: var(--color-primary, #3b82f6);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: var(--color-primary, #014f99);
+    box-shadow: 0 0 0 3px rgba(1, 79, 153, 0.1);
   }
 }
 
@@ -1687,13 +1687,13 @@ defineEmits([
     transition: all 0.2s ease;
 
     &:hover {
-      border-color: var(--color-primary, #3b82f6);
+      border-color: var(--color-primary, #014f99);
     }
 
     &:focus {
       outline: none;
-      border-color: var(--color-primary, #3b82f6);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      border-color: var(--color-primary, #014f99);
+      box-shadow: 0 0 0 3px rgba(1, 79, 153, 0.1);
     }
   }
 }
@@ -1745,7 +1745,7 @@ defineEmits([
 
     &:focus {
       outline: none;
-      border-color: var(--color-primary, #3b82f6);
+      border-color: var(--color-primary, #014f99);
     }
   }
 }
@@ -1768,8 +1768,8 @@ defineEmits([
 }
 
 .text-hint {
-  background: rgba(59, 130, 246, 0.05);
-  border: 1px dashed rgba(59, 130, 246, 0.3);
+  background: rgba(1, 79, 153, 0.05);
+  border: 1px dashed rgba(1, 79, 153, 0.3);
   border-radius: 8px;
   padding: 0.75rem 1rem;
 }
@@ -1784,15 +1784,15 @@ defineEmits([
   line-height: 1.4;
 
   i {
-    color: var(--color-primary, #3b82f6);
+    color: var(--color-primary, #014f99);
     font-size: 0.9rem;
   }
 }
 
 /* Dark Mode Text Section */
 .dark-mode .text-section {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: rgba(59, 130, 246, 0.3);
+  background: rgba(1, 79, 153, 0.1);
+  border-color: rgba(1, 79, 153, 0.3);
 }
 
 .dark-mode .text-input,
@@ -1809,8 +1809,8 @@ defineEmits([
 }
 
 .dark-mode .text-hint {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: rgba(59, 130, 246, 0.3);
+  background: rgba(1, 79, 153, 0.1);
+  border-color: rgba(1, 79, 153, 0.3);
 }
 
 /* Pan Info Styles */
@@ -1885,7 +1885,7 @@ defineEmits([
   padding: 2px;
 
   &.active {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    background: linear-gradient(135deg, #014f99, #003971);
   }
 
   .toggle-slider {
@@ -1906,8 +1906,8 @@ defineEmits([
 }
 
 .shadow-controls-panel {
-  background: rgba(59, 130, 246, 0.05);
-  border: 1px solid rgba(59, 130, 246, 0.15);
+  background: rgba(1, 79, 153, 0.05);
+  border: 1px solid rgba(1, 79, 153, 0.15);
   border-radius: 8px;
   padding: 0.75rem;
   margin-top: 0.5rem;
@@ -1931,7 +1931,7 @@ defineEmits([
   font-weight: 500;
 
   i {
-    color: var(--color-primary, #3b82f6);
+    color: var(--color-primary, #014f99);
     font-size: 0.7rem;
     opacity: 0.8;
   }
@@ -1966,13 +1966,13 @@ defineEmits([
   background: #4b5563;
 
   &.active {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    background: linear-gradient(135deg, #014f99, #003971);
   }
 }
 
 .dark-mode .shadow-controls-panel {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: rgba(59, 130, 246, 0.25);
+  background: rgba(1, 79, 153, 0.1);
+  border-color: rgba(1, 79, 153, 0.25);
 }
 
 .dark-mode .mini-label {

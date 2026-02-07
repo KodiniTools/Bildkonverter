@@ -203,9 +203,10 @@ function handleOffline() {
   min-height: calc(100vh + 1px);
   display: flex;
   flex-direction: column;
-  background: var(--color-bg);
+  background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-gradient) 100%);
+  background-attachment: fixed;
   color: var(--color-text);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 .main-content {
