@@ -96,6 +96,8 @@ function updateExternalNavHeight() {
 watch(() => settings.locale, (newLocale) => {
   i18n.global.locale.value = newLocale
   document.documentElement.setAttribute('lang', newLocale)
+  // SSI-Nav Buttons synchronisieren
+  syncExternalLangButtons(newLocale)
   console.log('🌍 i18n locale geändert:', newLocale)
 }, { immediate: true })
 
@@ -137,6 +139,49 @@ function handleGlobalThemeChange(e) {
   }
 }
 
+/**
+ * Fängt Klicks auf die Sprach-Buttons der externen SSI-Navigation ab,
+ * verhindert den Reload und steuert die Sprache über den Vue-Store.
+ */
+const langBtnAbortController = new AbortController()
+const interceptedLangBtns = new WeakSet()
+
+function interceptExternalLangSwitcher() {
+  const langBtns = document.querySelectorAll('.global-nav-lang-btn')
+  if (!langBtns.length) return
+
+  langBtns.forEach(btn => {
+    if (interceptedLangBtns.has(btn)) return
+    interceptedLangBtns.add(btn)
+
+    btn.addEventListener('click', (e) => {
+      // Reload der SSI-Navigation verhindern
+      e.preventDefault()
+      e.stopImmediatePropagation()
+
+      const targetLang = btn.getAttribute('data-lang')
+      if (!targetLang || targetLang === settings.locale) return
+
+      // Sprachänderung über den Vue-Store (aktualisiert i18n reaktiv)
+      settings.setLocale(targetLang)
+
+      // Button-Active-States in der SSI-Nav synchronisieren
+      syncExternalLangButtons(targetLang)
+    }, { capture: true, signal: langBtnAbortController.signal })
+  })
+
+  // Initialen Active-State setzen
+  syncExternalLangButtons(settings.locale)
+}
+
+function syncExternalLangButtons(activeLang) {
+  const langBtns = document.querySelectorAll('.global-nav-lang-btn')
+  langBtns.forEach(btn => {
+    const btnLang = btn.getAttribute('data-lang')
+    btn.classList.toggle('active', btnLang === activeLang)
+  })
+}
+
 // Lifecycle
 onMounted(() => {
   console.log('🚀 Vue Bildkonverter Pro gestartet')
@@ -147,6 +192,9 @@ onMounted(() => {
 
   // Auf Theme-Wechsel der globalen Navigation hören
   window.addEventListener('theme-changed', handleGlobalThemeChange)
+
+  // Sprach-Buttons der SSI-Navigation abfangen (Reload verhindern)
+  interceptExternalLangSwitcher()
 
   // Externe Navigation messen und CSS-Variable setzen
   updateExternalNavHeight()
@@ -160,6 +208,8 @@ onMounted(() => {
       if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
         // Prüfe ob externe Navigation hinzugefügt wurde
         updateExternalNavHeight()
+        // Sprach-Buttons der SSI-Navigation abfangen (falls nachgeladen)
+        interceptExternalLangSwitcher()
       }
     }
   })
@@ -194,6 +244,9 @@ onUnmounted(() => {
   window.removeEventListener('theme-changed', handleGlobalThemeChange)
   window.removeEventListener('online', handleOnline)
   window.removeEventListener('offline', handleOffline)
+
+  // SSI-Nav Interception aufräumen
+  langBtnAbortController.abort()
 })
 
 function handleOnline() {
