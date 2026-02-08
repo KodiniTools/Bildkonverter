@@ -13,12 +13,18 @@ import { i18n } from '@/i18n'
  */
 export const useSettingsStore = defineStore('settings', () => {
   // ===== STATE =====
-  
-  // Theme
-  const theme = ref(localStorage.getItem('bildkonverter-theme') || 'light')
-  
-  // Sprache
-  const locale = ref(localStorage.getItem('bildkonverter-locale') || 'de')
+
+  // Theme - globale Nav nutzt 'theme', Vue App nutzte bisher 'bildkonverter-theme'
+  // Priorität: globale Nav Key > alter App Key > Fallback 'light'
+  const theme = ref(
+    localStorage.getItem('theme') || localStorage.getItem('bildkonverter-theme') || 'light'
+  )
+
+  // Sprache - globale Nav nutzt 'locale', Vue App nutzte bisher 'bildkonverter-locale'
+  // Priorität: globale Nav Key > alter App Key > Fallback 'de'
+  const locale = ref(
+    localStorage.getItem('locale') || localStorage.getItem('bildkonverter-locale') || 'de'
+  )
   
   // Performance
   const performanceMode = ref(localStorage.getItem('bildkonverter-performance') || 'balanced')
@@ -88,9 +94,10 @@ export const useSettingsStore = defineStore('settings', () => {
       document.documentElement.setAttribute('data-theme', newTheme)
     }
     
-    // Persistieren
+    // Persistieren - beide Keys für Kompatibilität mit globaler Nav
+    localStorage.setItem('theme', newTheme)
     localStorage.setItem('bildkonverter-theme', newTheme)
-    
+
     console.log(`🎨 Theme geändert: ${newTheme}`)
   }
   
@@ -117,7 +124,8 @@ export const useSettingsStore = defineStore('settings', () => {
     i18n.global.locale.value = newLocale
     document.documentElement.setAttribute('lang', newLocale)
 
-    // Persistieren
+    // Persistieren - beide Keys für Kompatibilität mit globaler Nav
+    localStorage.setItem('locale', newLocale)
     localStorage.setItem('bildkonverter-locale', newLocale)
 
     console.log(`🌍 Sprache geändert: ${newLocale}, i18n.global.locale: ${i18n.global.locale.value}`)

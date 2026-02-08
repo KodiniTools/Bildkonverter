@@ -25,29 +25,8 @@
 
       <!-- Actions -->
       <div class="header-actions">
-        <!-- Language Switcher -->
-        <div class="language-switcher">
-          <button 
-            @click="toggleLanguage"
-            class="btn-icon"
-            :title="$t('app.changeLanguage')"
-          >
-            <i class="fas fa-language"></i>
-            <span class="lang-code">{{ currentLocale.toUpperCase() }}</span>
-          </button>
-        </div>
-
-        <!-- Theme Switcher -->
-        <button 
-          @click="toggleTheme"
-          class="btn-icon"
-          :title="$t('app.changeTheme')"
-        >
-          <i :class="isDarkTheme ? 'fas fa-sun' : 'fas fa-moon'"></i>
-        </button>
-
         <!-- Mobile Menu Toggle -->
-        <button 
+        <button
           @click="toggleMobileMenu"
           class="btn-icon mobile-menu-toggle"
           :class="{ active: isMobileMenuOpen }"
@@ -77,12 +56,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { useSettingsStore } from '@/stores/settingsStore'
 
 const route = useRoute()
-const settingsStore = useSettingsStore()
 
 // State
 const isMobileMenuOpen = ref(false)
@@ -96,24 +73,9 @@ const routes = [
   { path: '/about', icon: 'fas fa-info-circle', label: 'nav.about' }
 ]
 
-// Computed - Store als einzige Quelle der Wahrheit
-const currentLocale = computed(() => settingsStore.locale)
-const isDarkTheme = computed(() => settingsStore.theme === 'dark')
-
 // Methods
 function isActiveRoute(path) {
   return route.path === path
-}
-
-function toggleLanguage() {
-  // NUR den Store ändern - App.vue's Watcher setzt die i18n locale
-  const newLocale = settingsStore.locale === 'de' ? 'en' : 'de'
-  settingsStore.setLocale(newLocale)
-}
-
-function toggleTheme() {
-  const newTheme = settingsStore.theme === 'light' ? 'dark' : 'light'
-  settingsStore.setTheme(newTheme)
 }
 
 function toggleMobileMenu() {
@@ -221,19 +183,6 @@ function closeMobileMenu() {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-}
-
-.language-switcher {
-  button {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-  }
-  
-  .lang-code {
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-  }
 }
 
 .btn-icon {

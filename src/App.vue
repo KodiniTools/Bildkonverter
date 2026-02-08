@@ -129,6 +129,14 @@ function handleTextDelete() {
   }
 }
 
+// Listener für Theme-Wechsel über globale Navigation (SSI include)
+function handleGlobalThemeChange(e) {
+  const newTheme = e.detail?.theme
+  if (newTheme && newTheme !== settings.theme) {
+    settings.setTheme(newTheme)
+  }
+}
+
 // Lifecycle
 onMounted(() => {
   console.log('🚀 Vue Bildkonverter Pro gestartet')
@@ -136,6 +144,9 @@ onMounted(() => {
   // Initiale Sprache setzen (redundant durch immediate: true im Watcher, aber sicherheitshalber)
   i18n.global.locale.value = settings.locale
   document.documentElement.setAttribute('lang', settings.locale)
+
+  // Auf Theme-Wechsel der globalen Navigation hören
+  window.addEventListener('theme-changed', handleGlobalThemeChange)
 
   // Externe Navigation messen und CSS-Variable setzen
   updateExternalNavHeight()
@@ -180,6 +191,7 @@ onUnmounted(() => {
   }
 
   // Event Listeners entfernen
+  window.removeEventListener('theme-changed', handleGlobalThemeChange)
   window.removeEventListener('online', handleOnline)
   window.removeEventListener('offline', handleOffline)
 })
