@@ -53,11 +53,17 @@ $color-light-gold: rgba(201, 152, 77, 0.15);
 $color-medium-gold: rgba(201, 152, 77, 0.25);
 
 // ===== DARK MODE COLORS =====
-$dark-bg: #1a1a1a;
-$dark-bg-secondary: #2d2d2d;
-$dark-text: #e0e0e0;
-$dark-text-light: #b0b0b0;
-$dark-border: #3d3d3d;
+$dark-primary-bg: #091428;        // Sehr dunkles Navy (Seitenhintergrund)
+$dark-secondary-bg: #0E1C32;      // Dunkles Navy (Buttons/Controls)
+$dark-card-bg: #142640;            // Etwas helleres Navy (Karten)
+$dark-accent-primary: #c9984d;     // Gold (Hauptakzent)
+$dark-accent-secondary: #014f99;   // Blau (Gradienten)
+$dark-accent-tertiary: #f8e1a9;    // Helles Gold (Hover-Zustand)
+$dark-accent-text: #091428;        // Dunkles Navy (Text auf Gold-Buttons)
+$dark-text-primary: #f9f2d5;       // Warmes Creme (Haupttext)
+$dark-text-secondary: #f8e1a9;     // Helles Gold (Sekundärtext)
+$dark-text-muted: #7A8DA0;         // Gedämpftes Blaugrau
+$dark-border: #1c3a5e;
 
 // ===== SPACING =====
 $spacing-xs: 0.25rem;    // 4px
@@ -273,10 +279,28 @@ $breakpoint-2xl: 1536px;
 
 // Dark Mode
 :root[data-theme="dark"] {
-  --color-bg: #{$dark-bg};
-  --color-bg-secondary: #{$dark-bg-secondary};
-  --color-text: #{$dark-text};
-  --color-text-light: #{$dark-text-light};
+  --color-bg: #{$dark-primary-bg};
+  --color-bg-secondary: #{$dark-secondary-bg};
+  --color-bg-gradient: #{$dark-primary-bg};
+  --color-card-bg: #{$dark-card-bg};
+  --color-white: #{$dark-card-bg};
+
+  --color-accent: #{$dark-accent-primary};
+  --color-accent-light: #{$dark-accent-tertiary};
+  --color-accent-lighter: #{$dark-text-primary};
+  --color-primary: #{$dark-accent-secondary};
+  --color-light-gold: rgba(201, 152, 77, 0.25);
+  --color-medium-gold: rgba(201, 152, 77, 0.35);
+  --color-light-blue: rgba(1, 79, 153, 0.2);
+  --color-medium-blue: rgba(1, 79, 153, 0.3);
+  --color-btn-text-light: #{$dark-accent-text};
+
+  --color-text: #{$dark-text-primary};
+  --color-text-light: #{$dark-text-secondary};
+  --color-text-muted: #{$dark-text-muted};
   --color-border: #{$dark-border};
-  --color-white: #2d2d2d;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
 }

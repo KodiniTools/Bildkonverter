@@ -383,7 +383,7 @@ textarea {
 
 :root[data-theme="dark"] {
   .card {
-    background: $dark-bg-secondary;
+    background: var(--color-card-bg, #{$dark-card-bg});
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   }
 }
