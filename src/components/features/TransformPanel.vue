@@ -1060,7 +1060,7 @@ defineEmits([
   align-items: center;
   gap: 0.5rem;
   font-size: 0.8rem;
-  color: var(--color-text-primary, #111827);
+  color: var(--color-text);
   margin-bottom: 0.5rem;
   font-weight: 500;
 
@@ -1209,26 +1209,22 @@ defineEmits([
   .unit {
     font-size: 0.65rem;
     font-weight: 500;
-    color: var(--color-text-secondary, #6b7280);
+    color: var(--color-text-light);
     margin-left: 1px;
   }
 }
 
 /* Dark Mode für number-input */
-.dark-mode .number-input-wrapper {
-  background: #374151;
-  border-color: #4b5563;
-
-  &:hover {
-    border-color: var(--color-primary, #014f99);
-  }
+:root[data-theme="dark"] .number-input-wrapper {
+  background: var(--color-card-bg, var(--color-bg));
+  border-color: var(--color-border);
 
   .number-input {
-    color: var(--color-primary, #014f99);
+    color: var(--color-primary);
   }
 
   .unit {
-    color: #9ca3af;
+    color: var(--color-text-light);
   }
 }
 
@@ -1306,7 +1302,7 @@ defineEmits([
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 0.75rem;
-  color: var(--color-text-primary, #111827);
+  color: var(--color-text);
   font-weight: 500;
   display: flex;
   flex-direction: column;
@@ -1382,7 +1378,7 @@ defineEmits([
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 0.65rem;
-  color: var(--color-text-primary, #111827);
+  color: var(--color-text);
   font-weight: 500;
 
   i {
@@ -1415,27 +1411,27 @@ defineEmits([
   }
 }
 
-.dark-mode .aspect-ratio-section {
-  border-top-color: #4b5563;
+:root[data-theme="dark"] .aspect-ratio-section {
+  border-top-color: var(--color-border);
 }
 
-.dark-mode .aspect-label {
-  color: #9ca3af;
+:root[data-theme="dark"] .aspect-label {
+  color: var(--color-text-light);
 }
 
-.dark-mode .aspect-btn {
-  background: #374151;
-  border-color: #4b5563;
-  color: #f9fafb;
+:root[data-theme="dark"] .aspect-btn {
+  background: var(--color-card-bg, var(--color-bg));
+  border-color: var(--color-border);
+  color: var(--color-text);
 
   &:hover {
-    background: #4b5563;
-    border-color: var(--color-primary, #014f99);
+    background: var(--color-bg-secondary);
+    border-color: var(--color-primary);
   }
 
   &.active {
-    background: var(--color-primary, #014f99);
-    border-color: var(--color-primary, #014f99);
+    background: var(--color-primary);
+    border-color: var(--color-primary);
   }
 }
 
@@ -1473,82 +1469,82 @@ defineEmits([
 
 .color-label {
   font-size: 0.75rem;
-  color: var(--color-text-secondary, #6b7280);
+  color: var(--color-text-light);
   font-weight: 500;
 }
 
 .control-hint {
   font-size: 0.7rem;
-  color: var(--color-text-secondary, #6b7280);
+  color: var(--color-text-light);
   margin-top: 0.35rem;
   font-style: italic;
   opacity: 0.8;
 }
 
 /* Dark Mode - angeglichen an linke Sidebar */
-.dark-mode .transform-panel {
-  background: var(--color-bg-secondary, #1f2937);
-  border-left-color: #374151;
+:root[data-theme="dark"] .transform-panel {
+  background: var(--color-bg-secondary);
+  border-left-color: var(--color-border);
 }
 
-.dark-mode .panel-section {
-  background: var(--color-bg, #1a1a2e);
-  border-color: #374151;
+:root[data-theme="dark"] .panel-section {
+  background: var(--color-bg);
+  border-color: var(--color-border);
 
   &:hover {
-    border-color: var(--color-primary, #014f99);
+    border-color: var(--color-primary);
   }
 }
 
-.dark-mode .panel-section h3 {
-  color: #9ca3af;
+:root[data-theme="dark"] .panel-section h3 {
+  color: var(--color-text-light);
 }
 
-.dark-mode .transform-btn {
-  background: #374151;
-  border-color: #4b5563;
-  color: #f9fafb;
+:root[data-theme="dark"] .transform-btn {
+  background: var(--color-card-bg, var(--color-bg));
+  border-color: var(--color-border);
+  color: var(--color-text);
 
   &:hover {
-    background: #4b5563;
-    border-color: var(--color-primary, #014f99);
+    background: var(--color-bg-secondary);
+    border-color: var(--color-primary);
   }
 }
 
-.dark-mode .quick-btn {
-  background: #374151;
-  border-color: #4b5563;
-  color: #f9fafb;
+:root[data-theme="dark"] .quick-btn {
+  background: var(--color-card-bg, var(--color-bg));
+  border-color: var(--color-border);
+  color: var(--color-text);
 
   &:hover {
-    background: #4b5563;
-    border-color: var(--color-primary, #014f99);
+    background: var(--color-bg-secondary);
+    border-color: var(--color-primary);
   }
 }
 
-.dark-mode .control-group label {
-  color: #f9fafb;
+:root[data-theme="dark"] .control-group label {
+  color: var(--color-text);
 
   .value {
-    color: var(--color-primary, #014f99);
+    color: var(--color-primary);
     background: rgba(1, 79, 153, 0.15);
   }
 }
 
-.dark-mode .slider {
-  background: #4b5563;
+:root[data-theme="dark"] .slider {
+  background: var(--color-border);
 
   &::-webkit-slider-thumb {
-    border-color: #374151;
+    border-color: var(--color-bg);
   }
 
   &::-moz-range-thumb {
-    border-color: #374151;
+    border-color: var(--color-bg);
   }
 }
 
-.dark-mode .color-input {
-  border-color: #4b5563;
+:root[data-theme="dark"] .color-input {
+  border-color: var(--color-border);
 }
 
 /* Text Section - hervorgehobene Section */
@@ -1592,7 +1588,7 @@ defineEmits([
   border: 1.5px solid var(--color-border, #d1d5db);
   border-radius: 6px;
   cursor: pointer;
-  color: var(--color-text-primary, #333);
+  color: var(--color-text);
   transition: all 0.2s ease;
 
   &:hover:not(:disabled) {
@@ -1611,14 +1607,14 @@ defineEmits([
   }
 }
 
-.dark-mode .btn-icon-small {
-  background: #374151;
-  border-color: #4b5563;
-  color: #f9fafb;
+:root[data-theme="dark"] .btn-icon-small {
+  background: var(--color-card-bg, var(--color-bg));
+  border-color: var(--color-border);
+  color: var(--color-text);
 
   &:hover:not(:disabled) {
-    background: var(--color-primary, #014f99);
-    border-color: var(--color-primary, #014f99);
+    background: var(--color-primary);
+    border-color: var(--color-primary);
   }
 }
 
@@ -1629,7 +1625,7 @@ defineEmits([
   border-radius: 6px;
   font-size: 0.85rem;
   background: var(--color-bg, #ffffff);
-  color: var(--color-text-primary, #111827);
+  color: var(--color-text);
   transition: all 0.2s ease;
 
   &:hover {
@@ -1650,7 +1646,7 @@ defineEmits([
   border-radius: 6px;
   font-size: 0.85rem;
   background: var(--color-bg, #ffffff);
-  color: var(--color-text-primary, #111827);
+  color: var(--color-text);
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -1682,7 +1678,7 @@ defineEmits([
     border: 1px solid var(--color-border, #d1d5db);
     border-radius: 4px;
     background: var(--color-bg, #ffffff);
-    color: var(--color-text-primary, #111827);
+    color: var(--color-text);
     text-transform: uppercase;
     transition: all 0.2s ease;
 
@@ -1728,7 +1724,7 @@ defineEmits([
   label {
     font-size: 0.75rem;
     font-weight: 600;
-    color: var(--color-text-secondary, #6b7280);
+    color: var(--color-text-light);
     min-width: 14px;
   }
 
@@ -1739,7 +1735,7 @@ defineEmits([
     border: 1px solid var(--color-border, #d1d5db);
     border-radius: 4px;
     background: var(--color-bg, #ffffff);
-    color: var(--color-text-primary, #111827);
+    color: var(--color-text);
     width: 100%;
     max-width: 70px;
 
@@ -1750,10 +1746,10 @@ defineEmits([
   }
 }
 
-.dark-mode .mini-control .mini-input {
-  background: #374151;
-  border-color: #4b5563;
-  color: #f9fafb;
+:root[data-theme="dark"] .mini-control .mini-input {
+  background: var(--color-card-bg, var(--color-bg));
+  border-color: var(--color-border);
+  color: var(--color-text);
 }
 
 .delete-btn {
@@ -1779,7 +1775,7 @@ defineEmits([
   align-items: center;
   gap: 0.5rem;
   font-size: 0.75rem;
-  color: var(--color-text-secondary, #6b7280);
+  color: var(--color-text-light);
   margin: 0;
   line-height: 1.4;
 
@@ -1790,25 +1786,25 @@ defineEmits([
 }
 
 /* Dark Mode Text Section */
-.dark-mode .text-section {
+:root[data-theme="dark"] .text-section {
   background: rgba(1, 79, 153, 0.1);
   border-color: rgba(1, 79, 153, 0.3);
 }
 
-.dark-mode .text-input,
-.dark-mode .font-select {
-  background: #374151;
-  border-color: #4b5563;
-  color: #f9fafb;
+:root[data-theme="dark"] .text-input,
+:root[data-theme="dark"] .font-select {
+  background: var(--color-card-bg, var(--color-bg));
+  border-color: var(--color-border);
+  color: var(--color-text);
 }
 
-.dark-mode .color-picker-row .color-text {
-  background: #374151;
-  border-color: #4b5563;
-  color: #f9fafb;
+:root[data-theme="dark"] .color-picker-row .color-text {
+  background: var(--color-card-bg, var(--color-bg));
+  border-color: var(--color-border);
+  color: var(--color-text);
 }
 
-.dark-mode .text-hint {
+:root[data-theme="dark"] .text-hint {
   background: rgba(1, 79, 153, 0.1);
   border-color: rgba(1, 79, 153, 0.3);
 }
@@ -1827,7 +1823,7 @@ defineEmits([
   align-items: flex-start;
   gap: 0.5rem;
   font-size: 0.75rem;
-  color: var(--color-text-secondary, #6b7280);
+  color: var(--color-text-light);
   margin: 0 0 0.5rem 0;
   line-height: 1.4;
 
@@ -1849,13 +1845,13 @@ defineEmits([
   }
 }
 
-.dark-mode .pan-info {
+:root[data-theme="dark"] .pan-info {
   background: rgba(74, 222, 128, 0.15);
   border-color: rgba(74, 222, 128, 0.3);
 }
 
-.dark-mode .pan-hint {
-  color: #9ca3af;
+:root[data-theme="dark"] .pan-hint {
+  color: var(--color-text-light);
 }
 
 /* Shadow Section Styles */
@@ -1926,7 +1922,7 @@ defineEmits([
   align-items: center;
   gap: 0.4rem;
   font-size: 0.7rem;
-  color: var(--color-text-secondary, #6b7280);
+  color: var(--color-text-light);
   margin-bottom: 0.35rem;
   font-weight: 500;
 
@@ -1958,25 +1954,25 @@ defineEmits([
 }
 
 /* Dark Mode Shadow Styles */
-.dark-mode .shadow-section {
-  border-top-color: #4b5563;
+:root[data-theme="dark"] .shadow-section {
+  border-top-color: var(--color-border);
 }
 
-.dark-mode .toggle-btn {
-  background: #4b5563;
+:root[data-theme="dark"] .toggle-btn {
+  background: var(--color-border);
 
   &.active {
     background: linear-gradient(135deg, #014f99, #003971);
   }
 }
 
-.dark-mode .shadow-controls-panel {
+:root[data-theme="dark"] .shadow-controls-panel {
   background: rgba(1, 79, 153, 0.1);
   border-color: rgba(1, 79, 153, 0.25);
 }
 
-.dark-mode .mini-label {
-  color: #9ca3af;
+:root[data-theme="dark"] .mini-label {
+  color: var(--color-text-light);
 }
 
 /* Skew Section Styles */
@@ -1994,7 +1990,7 @@ defineEmits([
   }
 }
 
-.dark-mode .skew-section {
-  border-top-color: #4b5563;
+:root[data-theme="dark"] .skew-section {
+  border-top-color: var(--color-border);
 }
 </style>
