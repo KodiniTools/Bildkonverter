@@ -56,7 +56,7 @@ defineEmits(['toggle-crop', 'undo-crop'])
 .sidebar-section h3 {
   font-size: 1rem;
   margin-bottom: 1rem;
-  color: var(--color-text-primary, #111827);
+  color: var(--color-text);
   font-weight: 600;
 }
 
@@ -72,7 +72,7 @@ defineEmits(['toggle-crop', 'undo-crop'])
   align-items: center;
   gap: 0.75rem;
   font-size: 0.95rem;
-  color: var(--color-text-primary, #111827);
+  color: var(--color-text);
   margin-bottom: 0.75rem;
 }
 
@@ -113,22 +113,18 @@ defineEmits(['toggle-crop', 'undo-crop'])
 }
 
 /* Dark Mode Support */
-.dark-mode .right-sidebar {
-  background: #1f2937;
-  border-left-color: #374151;
+:root[data-theme="dark"] .right-sidebar {
+  background: var(--color-bg-secondary);
+  border-left-color: var(--color-border);
 }
 
-.dark-mode .transform-btn {
-  background: #374151;
-  border-color: #4b5563;
-  color: #f9fafb;
+:root[data-theme="dark"] .transform-btn {
+  background: var(--color-card-bg, var(--color-bg));
+  border-color: var(--color-border);
+  color: var(--color-text);
 }
 
-.dark-mode .transform-btn:hover {
-  background: #4b5563;
-}
-
-.dark-mode .sidebar-section h3 {
-  color: #f9fafb;
+:root[data-theme="dark"] .transform-btn:hover {
+  background: var(--color-bg-secondary);
 }
 </style>
