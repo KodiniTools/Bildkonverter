@@ -54,6 +54,89 @@ const textModal = useTextModal()
 let externalNavObserver = null
 let domMutationObserver = null
 
+// ─── Übersetzungen für die externe SSI-Navigation ───
+// Muss mit nav.html synchron gehalten werden
+const navTranslations = {
+  de: {
+    'nav.aria':           'Hauptnavigation',
+    'nav.audiotools':     'Audiotools',
+    'nav.mp3converter':   'MP3 Konverter',
+    'nav.audioequalizer': 'Interactive Audio Equalizer',
+    'nav.modernplayer':   'Moderner Musikplayer',
+    'nav.ultimateplayer': 'Ultimativer Musikplayer',
+    'nav.playlistgen':    'Audio Playlist Generator',
+    'nav.playlistconv':   'Audio Playlist Konverter',
+    'nav.alarmtool':      'Modernes Alarmtool',
+    'nav.normalizer':     'Audio Normalizer',
+    'nav.visualizer':     'Audio Visualizer',
+    'nav.eq19':           '19 Band Equalizer',
+    'nav.audioconv':      'Audio Konverter',
+    'nav.imagetools':     'Bildtools',
+    'nav.imageconv':      'Bildkonverter',
+    'nav.batchedit':      'Bildserie bearbeiten',
+    'nav.collage':        'Fotocollage',
+    'nav.tools':          'Tools',
+    'nav.colorextractor': 'Kodini Farbextraktor',
+    'nav.videoconv':      'Videokonverter',
+    'nav.contact':        'Kontakt',
+    'nav.themeAria':      'Theme wechseln',
+    'nav.themeTitle':     'Hell/Dunkel umschalten',
+    'nav.langAria':       'Sprache wählen'
+  },
+  en: {
+    'nav.aria':           'Main Navigation',
+    'nav.audiotools':     'Audio Tools',
+    'nav.mp3converter':   'MP3 Converter',
+    'nav.audioequalizer': 'Interactive Audio Equalizer',
+    'nav.modernplayer':   'Modern Music Player',
+    'nav.ultimateplayer': 'Ultimate Music Player',
+    'nav.playlistgen':    'Audio Playlist Generator',
+    'nav.playlistconv':   'Audio Playlist Converter',
+    'nav.alarmtool':      'Modern Alarm Tool',
+    'nav.normalizer':     'Audio Normalizer',
+    'nav.visualizer':     'Audio Visualizer',
+    'nav.eq19':           '19 Band Equalizer',
+    'nav.audioconv':      'Audio Converter',
+    'nav.imagetools':     'Image Tools',
+    'nav.imageconv':      'Image Converter',
+    'nav.batchedit':      'Batch Image Editor',
+    'nav.collage':        'Photo Collage',
+    'nav.tools':          'Tools',
+    'nav.colorextractor': 'Kodini Color Extractor',
+    'nav.videoconv':      'Video Converter',
+    'nav.contact':        'Contact',
+    'nav.themeAria':      'Toggle theme',
+    'nav.themeTitle':     'Switch Light/Dark',
+    'nav.langAria':       'Select language'
+  }
+}
+
+/**
+ * Übersetzt die externe SSI-Navigation (data-nav-i18n Attribute).
+ * Da e.stopImmediatePropagation() den eigenen Handler der nav.html blockiert,
+ * muss die Vue-App die Übersetzung der Nav-Elemente selbst übernehmen.
+ */
+function translateExternalNav(lang) {
+  const t = navTranslations[lang] || navTranslations['de']
+  const nav = document.querySelector('.global-nav')
+  if (!nav) return
+
+  nav.querySelectorAll('[data-nav-i18n]').forEach(el => {
+    const key = el.getAttribute('data-nav-i18n')
+    if (t[key]) el.textContent = t[key]
+  })
+
+  nav.querySelectorAll('[data-nav-i18n-aria]').forEach(el => {
+    const key = el.getAttribute('data-nav-i18n-aria')
+    if (t[key]) el.setAttribute('aria-label', t[key])
+  })
+
+  nav.querySelectorAll('[data-nav-i18n-title]').forEach(el => {
+    const key = el.getAttribute('data-nav-i18n-title')
+    if (t[key]) el.setAttribute('title', t[key])
+  })
+}
+
 /**
  * Misst die Höhe der externen KodiniTools Navigation und setzt sie als CSS-Variable
  * Dies ermöglicht eine dynamische Anpassung der sticky Position des AppHeaders
@@ -98,6 +181,8 @@ watch(() => settings.locale, (newLocale) => {
   document.documentElement.setAttribute('lang', newLocale)
   // SSI-Nav Buttons synchronisieren
   syncExternalLangButtons(newLocale)
+  // SSI-Nav Texte übersetzen (da stopImmediatePropagation den nav.html-Handler blockiert)
+  translateExternalNav(newLocale)
   console.log('🌍 i18n locale geändert:', newLocale)
 }, { immediate: true })
 
@@ -210,6 +295,8 @@ onMounted(() => {
         updateExternalNavHeight()
         // Sprach-Buttons der SSI-Navigation abfangen (falls nachgeladen)
         interceptExternalLangSwitcher()
+        // SSI-Nav Texte für aktuelle Sprache übersetzen (falls nachgeladen)
+        translateExternalNav(settings.locale)
       }
     }
   })
