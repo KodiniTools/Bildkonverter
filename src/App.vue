@@ -112,6 +112,33 @@ const navTranslations = {
 }
 
 /**
+ * Dispatcht das 'language-changed' Event und aktualisiert die Sichtbarkeit
+ * von SSI-Elementen mit data-lang-de / data-lang-en Attributen.
+ */
+function dispatchLanguageChanged(lang) {
+  // MutationObserver temporär disconnecten, da SSI-Partials auf das Event
+  // reagieren und DOM-Änderungen auslösen können → sonst Endlosschleife
+  if (domMutationObserver) domMutationObserver.disconnect()
+
+  // Custom-Event auf window (konsistent mit theme-changed) für SSI-Partials
+  window.dispatchEvent(new CustomEvent('language-changed', { detail: { lang } }))
+
+  // data-lang-* Sichtbarkeit: Elemente mit data-lang-de / data-lang-en
+  // werden je nach aktiver Sprache ein-/ausgeblendet
+  document.querySelectorAll('[data-lang-de]').forEach(el => {
+    el.style.display = lang === 'de' ? '' : 'none'
+  })
+  document.querySelectorAll('[data-lang-en]').forEach(el => {
+    el.style.display = lang === 'en' ? '' : 'none'
+  })
+
+  // MutationObserver wieder aktivieren
+  if (domMutationObserver) {
+    domMutationObserver.observe(document.body, { childList: true, subtree: true })
+  }
+}
+
+/**
  * Übersetzt die externe SSI-Navigation (data-nav-i18n Attribute).
  * Da e.stopImmediatePropagation() den eigenen Handler der nav.html blockiert,
  * muss die Vue-App die Übersetzung der Nav-Elemente selbst übernehmen.
@@ -192,6 +219,8 @@ watch(() => settings.locale, (newLocale) => {
   syncExternalLangButtons(newLocale)
   // SSI-Nav Texte übersetzen (da stopImmediatePropagation den nav.html-Handler blockiert)
   translateExternalNav(newLocale)
+  // SSI-Partials über Sprachwechsel informieren (cookie-banner, footer etc.)
+  dispatchLanguageChanged(newLocale)
   console.log('🌍 i18n locale geändert:', newLocale)
 }, { immediate: true })
 
@@ -306,6 +335,8 @@ onMounted(() => {
         interceptExternalLangSwitcher()
         // SSI-Nav Texte für aktuelle Sprache übersetzen (falls nachgeladen)
         translateExternalNav(settings.locale)
+        // SSI-Partials data-lang-* Sichtbarkeit aktualisieren (falls nachgeladen)
+        dispatchLanguageChanged(settings.locale)
       }
     }
   })
