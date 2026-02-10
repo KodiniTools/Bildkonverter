@@ -121,6 +121,10 @@ function translateExternalNav(lang) {
   const nav = document.querySelector('.global-nav')
   if (!nav) return
 
+  // MutationObserver temporär disconnecten, da textContent-Änderungen
+  // childList-Mutationen erzeugen und sonst eine Endlosschleife entsteht
+  if (domMutationObserver) domMutationObserver.disconnect()
+
   nav.querySelectorAll('[data-nav-i18n]').forEach(el => {
     const key = el.getAttribute('data-nav-i18n')
     if (t[key]) el.textContent = t[key]
@@ -135,6 +139,11 @@ function translateExternalNav(lang) {
     const key = el.getAttribute('data-nav-i18n-title')
     if (t[key]) el.setAttribute('title', t[key])
   })
+
+  // MutationObserver wieder aktivieren
+  if (domMutationObserver) {
+    domMutationObserver.observe(document.body, { childList: true, subtree: true })
+  }
 }
 
 /**
