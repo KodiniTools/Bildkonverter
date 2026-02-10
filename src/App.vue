@@ -112,8 +112,11 @@ const navTranslations = {
 }
 
 /**
- * Dispatcht das 'language-changed' Event und aktualisiert die Sichtbarkeit
- * von SSI-Elementen mit data-lang-de / data-lang-en Attributen.
+ * Dispatcht das 'language-changed' Event und aktualisiert SSI-Elemente
+ * mit data-lang-de / data-lang-en Attributen.
+ *
+ * SSI-Muster: <span data-lang-de="Deutscher Text" data-lang-en="English text"></span>
+ * → textContent wird auf den Wert des aktiven Sprach-Attributs gesetzt.
  */
 function dispatchLanguageChanged(lang) {
   // MutationObserver temporär disconnecten, da SSI-Partials auf das Event
@@ -123,13 +126,11 @@ function dispatchLanguageChanged(lang) {
   // Custom-Event auf window (konsistent mit theme-changed) für SSI-Partials
   window.dispatchEvent(new CustomEvent('language-changed', { detail: { lang } }))
 
-  // data-lang-* Sichtbarkeit: Elemente mit data-lang-de / data-lang-en
-  // werden je nach aktiver Sprache ein-/ausgeblendet
-  document.querySelectorAll('[data-lang-de]').forEach(el => {
-    el.style.display = lang === 'de' ? '' : 'none'
-  })
-  document.querySelectorAll('[data-lang-en]').forEach(el => {
-    el.style.display = lang === 'en' ? '' : 'none'
+  // data-lang-* Attribut-Wert → textContent
+  const attr = `data-lang-${lang}`
+  document.querySelectorAll(`[${attr}]`).forEach(el => {
+    const text = el.getAttribute(attr)
+    if (text) el.textContent = text
   })
 
   // MutationObserver wieder aktivieren
