@@ -116,8 +116,12 @@ const navTranslations = {
  * von SSI-Elementen mit data-lang-de / data-lang-en Attributen.
  */
 function dispatchLanguageChanged(lang) {
-  // Custom-Event für SSI-Partials (cookie-banner, footer etc.)
-  document.dispatchEvent(new CustomEvent('language-changed', { detail: { lang } }))
+  // MutationObserver temporär disconnecten, da SSI-Partials auf das Event
+  // reagieren und DOM-Änderungen auslösen können → sonst Endlosschleife
+  if (domMutationObserver) domMutationObserver.disconnect()
+
+  // Custom-Event auf window (konsistent mit theme-changed) für SSI-Partials
+  window.dispatchEvent(new CustomEvent('language-changed', { detail: { lang } }))
 
   // data-lang-* Sichtbarkeit: Elemente mit data-lang-de / data-lang-en
   // werden je nach aktiver Sprache ein-/ausgeblendet
@@ -127,6 +131,11 @@ function dispatchLanguageChanged(lang) {
   document.querySelectorAll('[data-lang-en]').forEach(el => {
     el.style.display = lang === 'en' ? '' : 'none'
   })
+
+  // MutationObserver wieder aktivieren
+  if (domMutationObserver) {
+    domMutationObserver.observe(document.body, { childList: true, subtree: true })
+  }
 }
 
 /**
