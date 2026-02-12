@@ -4,6 +4,16 @@
  */
 @import './variables.scss';
 
+// ===== CUSTOM FONT =====
+
+@font-face {
+  font-family: 'Supreme';
+  src: url('/fonts/Supreme-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 // ===== RESET & NORMALIZE =====
 
 *, *::before, *::after {
