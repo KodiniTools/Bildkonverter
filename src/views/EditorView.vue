@@ -4216,8 +4216,24 @@ function handleKeyup(e) {
 
   .sidebar {
     width: 100%;
+    min-width: 100%;
+    max-width: 100%;
     border-right: none;
     border-bottom: 1px solid var(--color-border);
+    height: auto;
+    position: static;
+    max-height: 40vh;
+  }
+
+  .toolbar {
+    gap: 0.25rem;
+    padding: 0.5rem;
+  }
+
+  .btn {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.8rem;
+    min-height: 40px;
   }
 }
 

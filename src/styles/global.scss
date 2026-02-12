@@ -416,8 +416,16 @@ textarea {
 
 @include respond-to('sm') {
   .btn {
-    padding: $spacing-xs $spacing-md;
+    padding: $spacing-sm $spacing-md;
     font-size: $font-size-sm;
+    min-height: 44px;
+  }
+}
+
+@include respond-to('xs') {
+  .btn-large {
+    padding: $spacing-sm $spacing-lg;
+    font-size: $font-size-base;
   }
 }
 

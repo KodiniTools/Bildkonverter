@@ -1711,4 +1711,37 @@ onUnmounted(() => {
     opacity: 0.5;
   }
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .layer-control-panel {
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    height: auto;
+    position: static;
+    max-height: 40vh;
+    border-left: none;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .tab-btn {
+    min-height: 44px;
+    font-size: 0.9rem;
+  }
+
+  .history-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .layer-list, .text-list {
+    max-height: 160px;
+  }
+}
 </style>

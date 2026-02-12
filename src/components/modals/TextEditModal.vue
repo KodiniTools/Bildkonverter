@@ -399,4 +399,49 @@ function close() {
 .btn-secondary:hover {
   background: var(--color-bg-tertiary, #e0e0e0);
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+  .modal-content {
+    min-width: auto;
+    width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 16px;
+  }
+
+  .modal-header h3 {
+    font-size: 1rem;
+  }
+
+  .btn-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .form-group input,
+  .form-group select {
+    padding: 12px;
+    font-size: 16px;
+  }
+
+  .form-group input[type="color"] {
+    height: 44px;
+  }
+
+  .font-select {
+    font-size: 16px;
+  }
+
+  .modal-actions {
+    flex-wrap: wrap;
+  }
+
+  .btn-danger,
+  .btn-primary,
+  .btn-secondary {
+    padding: 12px 16px;
+    min-height: 44px;
+  }
+}
 </style>
