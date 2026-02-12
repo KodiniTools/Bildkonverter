@@ -567,20 +567,56 @@ onUnmounted(() => {
   .editor-toolbar {
     flex-direction: column;
     align-items: stretch;
+    padding: 0.75rem;
+    gap: 0.5rem;
   }
-  
+
   .toolbar-section {
     width: 100%;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.375rem;
   }
-  
-  .btn span {
-    display: none;
-  }
-  
+
   .btn {
     flex: 1;
     justify-content: center;
+    min-height: 44px;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .btn span {
+    display: none;
+  }
+
+  .canvas-wrapper {
+    min-height: 250px;
+  }
+
+  .canvas-placeholder {
+    padding: 2rem;
+  }
+
+  .placeholder-content svg {
+    width: 50px;
+    height: 50px;
+  }
+
+  .placeholder-content p {
+    font-size: 0.9rem;
+  }
+
+  .text-info-panel {
+    padding: 1rem;
+  }
+
+  .panel-header h3 {
+    font-size: 1rem;
+  }
+
+  .panel-actions .btn {
+    min-height: 40px;
   }
 }
 

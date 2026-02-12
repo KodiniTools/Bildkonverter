@@ -876,4 +876,103 @@ function formatSize(bytes) {
   height: 400px;
   background: var(--color-border);
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .batch-view {
+    padding: var(--spacing-md);
+  }
+
+  .batch-header {
+    margin-bottom: var(--spacing-lg);
+
+    h1 {
+      font-size: 1.8rem;
+    }
+
+    .batch-subtitle {
+      font-size: 1rem;
+    }
+  }
+
+  .upload-zone {
+    padding: var(--spacing-xl);
+
+    i {
+      font-size: 2.5rem;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+    }
+  }
+
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .action-buttons {
+    button {
+      min-width: 0;
+      font-size: 0.85rem;
+    }
+  }
+
+  .progress-summary .progress-bar {
+    width: 120px;
+  }
+
+  .files-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+  }
+
+  .remove-btn {
+    width: 44px;
+    height: 44px;
+
+    i {
+      font-size: 1rem;
+    }
+  }
+
+  .btn-icon {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .preview-modal {
+    padding: var(--spacing-sm);
+  }
+
+  .modal-content {
+    padding: var(--spacing-md);
+    max-width: 95vw;
+  }
+}
+
+@media (max-width: 480px) {
+  .batch-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+
+    button {
+      width: 100%;
+    }
+  }
+
+  .files-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .progress-summary .progress-bar {
+    width: 80px;
+  }
+}
 </style>

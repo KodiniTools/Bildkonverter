@@ -138,6 +138,14 @@ function closeMobileMenu() {
   }
   
   @media (max-width: 480px) {
+    font-size: 1.1rem;
+
+    .logo-text {
+      font-size: 0.95rem;
+    }
+  }
+
+  @media (max-width: 360px) {
     .logo-text {
       display: none;
     }

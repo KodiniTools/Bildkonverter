@@ -1993,4 +1993,52 @@ defineEmits([
 :root[data-theme="dark"] .skew-section {
   border-top-color: var(--color-border);
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .transform-panel {
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    height: auto;
+    position: static;
+    max-height: 40vh;
+    border-left: none;
+    border-top: 1px solid var(--color-border, #e5e7eb);
+  }
+
+  .panel-section {
+    padding: 0.75rem;
+  }
+
+  .btn-icon-small {
+    width: 44px;
+    height: 44px;
+  }
+
+  .aspect-ratio-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+  }
+
+  .aspect-btn {
+    padding: 0.6rem 0.35rem;
+    font-size: 0.7rem;
+  }
+
+  .transform-btn {
+    min-height: 44px;
+    padding: 0.75rem;
+  }
+
+  .quick-btn {
+    min-height: 44px;
+    padding: 0.75rem 0.5rem;
+  }
+
+  .toggle-btn {
+    width: 50px;
+    height: 28px;
+  }
+}
 </style>
