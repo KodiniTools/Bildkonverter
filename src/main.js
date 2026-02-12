@@ -8,9 +8,6 @@ import i18n from './i18n'
 // Globale Styles
 import './styles/main.scss'
 
-// Font Awesome (optional - kann auch über CDN eingebunden werden)
-// import '@fortawesome/fontawesome-free/css/all.css'
-
 /**
  * Vue App Initialisierung
  */
