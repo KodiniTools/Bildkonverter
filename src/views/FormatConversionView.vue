@@ -3,13 +3,85 @@
     <section class="conversion-hero">
       <h1>{{ $t(`conversion.${pair}.title`) }}</h1>
       <p class="hero-description">{{ $t(`conversion.${pair}.description`) }}</p>
+    </section>
 
-      <div class="action-buttons">
-        <router-link :to="{ name: 'editor' }" class="btn btn-primary btn-large btn-glow">
-          <i class="fas fa-exchange-alt"></i>
-          {{ $t(`conversion.${pair}.cta`) }}
-        </router-link>
-        <router-link :to="{ name: 'batch' }" class="btn btn-secondary btn-large">
+    <!-- Conversion Tool Widget -->
+    <section class="converter-widget">
+      <div class="widget-container">
+        <!-- Upload State -->
+        <div
+          v-if="!sourceFile"
+          class="upload-zone"
+          :class="{ 'drag-over': isDragging }"
+          @drop="handleDrop"
+          @dragover.prevent="isDragging = true"
+          @dragleave="isDragging = false"
+          @click="triggerFileInput"
+        >
+          <input
+            ref="fileInput"
+            type="file"
+            accept="image/*"
+            @change="handleFileSelect"
+            style="display: none"
+          />
+          <i class="fas fa-cloud-upload-alt"></i>
+          <h3>{{ $t(`conversion.${pair}.cta`) }}</h3>
+          <p>{{ conversionData.from }}-{{ $t('conversion.widget.dropHint') }}</p>
+          <span class="upload-formats">{{ conversionData.from }} → {{ conversionData.to }}</span>
+        </div>
+
+        <!-- Processing State -->
+        <div v-else-if="isConverting" class="processing-state">
+          <div class="spinner-large"></div>
+          <p>{{ $t('conversion.widget.converting') }}</p>
+          <p class="processing-detail">{{ conversionData.from }} → {{ conversionData.to }}</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="conversionError" class="error-state">
+          <i class="fas fa-exclamation-triangle"></i>
+          <p>{{ conversionError }}</p>
+          <button class="btn btn-primary" @click="resetConverter">
+            {{ $t('conversion.widget.tryAgain') }}
+          </button>
+        </div>
+
+        <!-- Result State -->
+        <div v-else-if="convertedUrl" class="result-state">
+          <div class="result-preview">
+            <div class="preview-comparison">
+              <div class="preview-item">
+                <span class="preview-label">{{ conversionData.from }}</span>
+                <img :src="sourcePreview" :alt="sourceFile.name" />
+                <span class="preview-size">{{ formatSize(sourceFile.size) }}</span>
+              </div>
+              <div class="preview-arrow">
+                <i class="fas fa-arrow-right"></i>
+              </div>
+              <div class="preview-item">
+                <span class="preview-label">{{ conversionData.to }}</span>
+                <img :src="convertedUrl" :alt="outputFilename" />
+                <span class="preview-size">{{ formatSize(convertedSize) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-actions">
+            <button class="btn btn-primary btn-large" @click="downloadResult">
+              <i class="fas fa-download"></i>
+              {{ $t('conversion.widget.download') }} ({{ conversionData.to }})
+            </button>
+            <button class="btn btn-secondary btn-large" @click="resetConverter">
+              <i class="fas fa-redo"></i>
+              {{ $t('conversion.widget.convertAnother') }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget-footer">
+        <router-link :to="{ name: 'batch' }" class="batch-link">
           <i class="fas fa-images"></i>
           {{ $t('conversion.batchCta') }}
         </router-link>
@@ -92,8 +164,13 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { formatConversions } from '@/router/index.js'
+import { FORMAT_INFO } from '@/utils/exportUtils'
+import { ApiClient } from '@/api/api'
+
+const { t } = useI18n({ useScope: 'global' })
 
 const props = defineProps({
   pair: {
@@ -109,6 +186,187 @@ const conversionData = computed(() => {
 const otherConversions = computed(() => {
   return formatConversions.filter(f => f.pair !== props.pair).slice(0, 6)
 })
+
+// Converter widget state
+const fileInput = ref(null)
+const isDragging = ref(false)
+const sourceFile = ref(null)
+const sourcePreview = ref(null)
+const isConverting = ref(false)
+const conversionError = ref(null)
+const convertedUrl = ref(null)
+const convertedBlob = ref(null)
+const convertedSize = ref(0)
+
+// Map format names to export keys
+const FORMAT_MAP = {
+  JPG: 'jpg',
+  JPEG: 'jpg',
+  PNG: 'png',
+  WebP: 'webp',
+  WEBP: 'webp',
+  TIFF: 'tiff',
+  GIF: 'gif',
+  BMP: 'bmp',
+  HEIC: 'heic',
+  HEIF: 'heif',
+  SVG: 'png' // SVG→PNG is rendered client-side
+}
+
+const outputFormat = computed(() => {
+  return FORMAT_MAP[conversionData.value.to] || 'png'
+})
+
+const outputFilename = computed(() => {
+  if (!sourceFile.value) return ''
+  const baseName = sourceFile.value.name.replace(/\.[^.]+$/, '')
+  const ext = FORMAT_INFO[outputFormat.value]?.extension || outputFormat.value
+  return `${baseName}.${ext}`
+})
+
+// Reset when pair changes (navigation between conversion pages)
+watch(() => props.pair, () => {
+  resetConverter()
+})
+
+function triggerFileInput() {
+  fileInput.value?.click()
+}
+
+function handleFileSelect(event) {
+  const file = event.target.files[0]
+  if (file) startConversion(file)
+}
+
+function handleDrop(event) {
+  event.preventDefault()
+  isDragging.value = false
+  const file = event.dataTransfer.files[0]
+  if (file && file.type.startsWith('image/')) startConversion(file)
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(new Error('Bild konnte nicht geladen werden'))
+    img.src = src
+  })
+}
+
+function canvasToBlob(canvas, mimeType, quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      blob => {
+        if (blob) resolve(blob)
+        else reject(new Error('Konvertierung fehlgeschlagen'))
+      },
+      mimeType,
+      quality
+    )
+  })
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = (e) => resolve(e.target.result)
+    reader.readAsDataURL(file)
+  })
+}
+
+async function startConversion(file) {
+  sourceFile.value = file
+  isConverting.value = true
+  conversionError.value = null
+  convertedUrl.value = null
+  convertedBlob.value = null
+
+  try {
+    // Read the source file
+    const dataURL = await readFileAsDataURL(file)
+    sourcePreview.value = dataURL
+
+    // Load image onto canvas
+    const img = await loadImage(dataURL)
+
+    const canvas = document.createElement('canvas')
+    canvas.width = img.width
+    canvas.height = img.height
+    const ctx = canvas.getContext('2d')
+
+    const format = outputFormat.value
+
+    // White background for formats without transparency
+    if (format === 'jpg' || format === 'bmp') {
+      ctx.fillStyle = '#FFFFFF'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+    }
+
+    ctx.drawImage(img, 0, 0)
+
+    const formatInfo = FORMAT_INFO[format]
+
+    if (formatInfo && formatInfo.requiresBackend) {
+      // Backend conversion
+      const sourceBlob = await canvasToBlob(canvas, 'image/png', 1)
+      const resultBlob = await ApiClient.convertImage(sourceBlob, format, file.name, { quality: 0.92 })
+      convertedBlob.value = resultBlob
+      convertedSize.value = resultBlob.size
+      convertedUrl.value = URL.createObjectURL(resultBlob)
+    } else {
+      // Client-side conversion
+      let mimeType = 'image/png'
+      let quality = undefined
+      if (format === 'jpg') { mimeType = 'image/jpeg'; quality = 0.92 }
+      else if (format === 'webp') { mimeType = 'image/webp'; quality = 0.85 }
+      else if (format === 'bmp') { mimeType = 'image/bmp' }
+
+      const blob = await canvasToBlob(canvas, mimeType, quality)
+      convertedBlob.value = blob
+      convertedSize.value = blob.size
+      convertedUrl.value = URL.createObjectURL(blob)
+    }
+  } catch (error) {
+    conversionError.value = error.message || 'Konvertierung fehlgeschlagen'
+  } finally {
+    isConverting.value = false
+  }
+}
+
+function downloadResult() {
+  if (!convertedBlob.value) return
+  const url = URL.createObjectURL(convertedBlob.value)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = outputFilename.value
+  link.style.display = 'none'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+function resetConverter() {
+  if (convertedUrl.value && convertedUrl.value.startsWith('blob:')) {
+    URL.revokeObjectURL(convertedUrl.value)
+  }
+  sourceFile.value = null
+  sourcePreview.value = null
+  isConverting.value = false
+  conversionError.value = null
+  convertedUrl.value = null
+  convertedBlob.value = null
+  convertedSize.value = 0
+  if (fileInput.value) fileInput.value.value = ''
+}
+
+function formatSize(bytes) {
+  if (!bytes) return '0 B'
+  const sizes = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(1024))
+  return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i]
+}
 </script>
 
 <style lang="scss" scoped>
@@ -118,7 +376,7 @@ const otherConversions = computed(() => {
 
 .conversion-hero {
   text-align: center;
-  padding: 4rem 2rem 3rem;
+  padding: 4rem 2rem 2rem;
   max-width: 800px;
   margin: 0 auto;
 
@@ -133,17 +391,199 @@ const otherConversions = computed(() => {
     font-size: 1.15rem;
     color: var(--color-text-secondary);
     line-height: 1.7;
-    margin-bottom: var(--spacing-2xl);
   }
 }
 
-.action-buttons {
+/* Converter Widget */
+.converter-widget {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+}
+
+.widget-container {
+  background: var(--color-bg-secondary);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.upload-zone {
+  padding: var(--spacing-3xl) var(--spacing-xl);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 3px dashed var(--color-border);
+  border-radius: var(--border-radius-lg);
+  margin: var(--spacing-lg);
+
+  &:hover,
+  &.drag-over {
+    border-color: var(--color-primary);
+    background: var(--color-light-blue, rgba(1, 79, 153, 0.05));
+  }
+
+  i {
+    font-size: 3.5rem;
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-md);
+    display: block;
+  }
+
+  h3 {
+    font-size: 1.3rem;
+    margin-bottom: var(--spacing-sm);
+    color: var(--color-primary);
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .upload-formats {
+    display: inline-block;
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: var(--color-primary);
+    color: #fff;
+    border-radius: var(--border-radius-md);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+}
+
+.processing-state {
+  padding: var(--spacing-3xl);
+  text-align: center;
+
+  p {
+    font-size: 1.1rem;
+    margin-top: var(--spacing-lg);
+    color: var(--color-text-primary);
+  }
+
+  .processing-detail {
+    font-size: 0.95rem;
+    color: var(--color-text-secondary);
+    margin-top: var(--spacing-xs);
+  }
+}
+
+.spinner-large {
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error-state {
+  padding: var(--spacing-3xl);
+  text-align: center;
+
+  i {
+    font-size: 3rem;
+    color: var(--color-danger, #dc3545);
+    margin-bottom: var(--spacing-md);
+  }
+
+  p {
+    color: var(--color-danger, #dc3545);
+    margin-bottom: var(--spacing-lg);
+  }
+}
+
+.result-state {
+  padding: var(--spacing-xl);
+}
+
+.preview-comparison {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  justify-content: center;
+  margin-bottom: var(--spacing-xl);
+
+  @media (max-width: 500px) {
+    flex-direction: column;
+  }
+}
+
+.preview-item {
+  flex: 1;
+  max-width: 250px;
+  text-align: center;
+
+  .preview-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: var(--spacing-xs);
+    font-size: 0.85rem;
+    color: var(--color-primary);
+    text-transform: uppercase;
+  }
+
+  img {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-sm);
+    object-fit: contain;
+    background: var(--color-bg-primary);
+  }
+
+  .preview-size {
+    display: block;
+    margin-top: var(--spacing-xs);
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+  }
+}
+
+.preview-arrow {
+  color: var(--color-primary);
+  font-size: 1.5rem;
+
+  @media (max-width: 500px) {
+    transform: rotate(90deg);
+  }
+}
+
+.result-actions {
   display: flex;
   gap: var(--spacing-md);
   justify-content: center;
   flex-wrap: wrap;
 }
 
+.widget-footer {
+  text-align: center;
+  margin-top: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+}
+
+.batch-link {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.2s ease;
+
+  i {
+    margin-right: var(--spacing-xs);
+  }
+
+  &:hover {
+    color: var(--color-primary);
+  }
+}
+
+/* Buttons */
 .btn-large {
   padding: 0.75rem 1.75rem;
   font-size: 1rem;
@@ -171,23 +611,7 @@ const otherConversions = computed(() => {
   }
 }
 
-.btn-glow {
-  position: relative;
-  box-shadow: 0 0 20px rgba(1, 79, 153, 0.3);
-  color: #F5F4D6;
-  font-weight: 600;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  border-radius: var(--border-radius-md);
-
-  &:hover {
-    background: #003971;
-    box-shadow: 0 0 30px rgba(1, 79, 153, 0.5), 0 0 60px rgba(1, 79, 153, 0.3);
-    transform: translateY(-3px) scale(1.02);
-  }
-}
-
+/* Info Section */
 .info-section {
   padding: 3rem 2rem;
   background: var(--color-bg-primary);
@@ -242,6 +666,7 @@ const otherConversions = computed(() => {
   }
 }
 
+/* Format Details */
 .format-details {
   padding: 3rem 2rem;
   max-width: 900px;
@@ -311,6 +736,7 @@ const otherConversions = computed(() => {
   font-size: 1.05rem;
 }
 
+/* Steps */
 .steps-section {
   padding: 3rem 2rem;
   background: var(--color-bg-primary);
@@ -360,6 +786,7 @@ const otherConversions = computed(() => {
   }
 }
 
+/* Other Conversions */
 .other-conversions {
   padding: 3rem 2rem;
   max-width: 900px;
@@ -398,11 +825,15 @@ const otherConversions = computed(() => {
 
 @media (max-width: 768px) {
   .conversion-hero {
-    padding: 2.5rem 1.5rem 2rem;
+    padding: 2.5rem 1.5rem 1.5rem;
 
     h1 {
       font-size: 1.8rem;
     }
+  }
+
+  .converter-widget {
+    padding: 0 1rem 2rem;
   }
 
   .format-details h2,
@@ -417,7 +848,7 @@ const otherConversions = computed(() => {
     font-size: 1.5rem;
   }
 
-  .action-buttons {
+  .result-actions {
     flex-direction: column;
     align-items: stretch;
   }
