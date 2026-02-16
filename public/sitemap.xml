@@ -20,6 +20,15 @@
     <priority>0.9</priority>
   </url>
 
+  <!-- Batch-Konvertierung -->
+  <url>
+    <loc>https://www.kodinitools.com/bildkonverter/batch</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.kodinitools.com/bildkonverter/batch"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.kodinitools.com/bildkonverter/batch"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- Galerie -->
   <url>
     <loc>https://www.kodinitools.com/bildkonverter/gallery</loc>
@@ -45,6 +54,68 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://www.kodinitools.com/bildkonverter/about"/>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
+  </url>
+
+  <!-- Format-spezifische Konvertierungs-Landingpages -->
+  <url>
+    <loc>https://www.kodinitools.com/bildkonverter/konvertieren/heic-zu-jpg</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.kodinitools.com/bildkonverter/konvertieren/png-zu-webp</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.kodinitools.com/bildkonverter/konvertieren/jpg-zu-webp</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.kodinitools.com/bildkonverter/konvertieren/webp-zu-png</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.kodinitools.com/bildkonverter/konvertieren/jpg-zu-png</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.kodinitools.com/bildkonverter/konvertieren/png-zu-jpg</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.kodinitools.com/bildkonverter/konvertieren/tiff-zu-jpg</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.kodinitools.com/bildkonverter/konvertieren/bmp-zu-webp</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.kodinitools.com/bildkonverter/konvertieren/gif-zu-webp</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.kodinitools.com/bildkonverter/konvertieren/heic-zu-png</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.kodinitools.com/bildkonverter/konvertieren/webp-zu-jpg</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.kodinitools.com/bildkonverter/konvertieren/svg-zu-png</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 
 </urlset>
