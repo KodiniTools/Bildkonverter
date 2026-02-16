@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useHead } from '@/composables/useHead'
+import { updateSeoMeta } from '@/composables/useSeoMeta'
 import HomeView from '@/views/HomeView.vue'
 
 /**
@@ -23,15 +23,20 @@ const formatConversions = [
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) return savedPosition
+    return { top: 0 }
+  },
   routes: [
     {
       path: '/',
       name: 'home',
       component: HomeView,
       meta: {
-        title: 'Kodini Bildkonverter – Bilder kostenlos online umwandeln | KodiniTools',
-        description: 'Kostenloser Online-Bildkonverter: Bilder umwandeln zwischen PNG, JPG, WebP, HEIC, TIFF, GIF und PDF. Schnelle Konvertierung direkt im Browser – sicher und DSGVO-konform.',
-        keywords: 'Bildkonverter, Bild umwandeln, PNG zu WebP, HEIC zu JPG, Online Bildbearbeitung, Batch Bildkonverter, Bilder komprimieren'
+        title: 'Kostenlose Bildbearbeitung im Browser',
+        description: 'Kostenloser Online-Bildkonverter: Bilder konvertieren, bearbeiten, komprimieren und zuschneiden direkt im Browser. Unterstützt JPG, PNG, WebP, TIFF, GIF, HEIF und PDF. DSGVO-konform.',
+        keywords: 'Bildkonverter, Bild umwandeln, PNG zu WebP, HEIC zu JPG, Online Bildbearbeitung, Batch Bildkonverter, Bilder komprimieren',
+        path: '/'
       }
     },
     {
@@ -39,9 +44,10 @@ const router = createRouter({
       name: 'editor',
       component: () => import('@/views/EditorView.vue'),
       meta: {
-        title: 'Bild bearbeiten – Online Editor | Kodini Bildkonverter',
-        description: 'Bilder online bearbeiten: Filter, Zuschneiden, Drehen, Komprimieren und in verschiedene Formate konvertieren. Kostenlos und ohne Anmeldung.',
-        keywords: 'Bild bearbeiten online, Bildeditor, Filter anwenden, Bild zuschneiden, Bild drehen'
+        title: 'Bild-Editor',
+        description: 'Online Bild-Editor: Bilder bearbeiten mit Filtern, Effekten, Helligkeit, Kontrast und Sättigung. Formate konvertieren zwischen JPG, PNG, WebP, TIFF, GIF und PDF. Kostenlos im Browser.',
+        keywords: 'Bild bearbeiten online, Bildeditor, Filter anwenden, Bild zuschneiden, Bild drehen',
+        path: '/editor'
       }
     },
     {
@@ -49,9 +55,10 @@ const router = createRouter({
       name: 'batch',
       component: () => import('@/views/BatchView.vue'),
       meta: {
-        title: 'Batch Bildkonverter – Mehrere Bilder gleichzeitig umwandeln | KodiniTools',
+        title: 'Batch Bildkonverter – Mehrere Bilder gleichzeitig umwandeln',
         description: 'Hunderte Bilder gleichzeitig konvertieren: Wählen Sie Zielformat, Qualität und Größe. Batch-Verarbeitung für PNG, JPG, WebP und mehr – schnell und kostenlos.',
-        keywords: 'Batch Bildkonverter, mehrere Bilder konvertieren, Massenkonvertierung, Bilder gleichzeitig umwandeln'
+        keywords: 'Batch Bildkonverter, mehrere Bilder konvertieren, Massenkonvertierung, Bilder gleichzeitig umwandeln',
+        path: '/batch'
       }
     },
     {
@@ -59,9 +66,10 @@ const router = createRouter({
       name: 'gallery',
       component: () => import('@/views/GalleryView.vue'),
       meta: {
-        title: 'Bildergalerie – Bilder verwalten | Kodini Bildkonverter',
-        description: 'Verwalten Sie Ihre Bilder in der Galerie: Hochladen, Vorschau, Bearbeiten und Herunterladen. Erstellen Sie Collagen aus mehreren Bildern.',
-        keywords: 'Bildergalerie, Bilder verwalten, Fotocollage erstellen, Bilder herunterladen'
+        title: 'Galerie',
+        description: 'Bildergalerie mit bearbeiteten Bildern. Verwalten und vergleichen Sie Ihre konvertierten und bearbeiteten Bilder im Bildkonverter Pro.',
+        keywords: 'Bildergalerie, Bilder verwalten, Fotocollage erstellen, Bilder herunterladen',
+        path: '/gallery'
       }
     },
     {
@@ -69,9 +77,10 @@ const router = createRouter({
       name: 'guide',
       component: () => import('@/views/GuideView.vue'),
       meta: {
-        title: 'Anleitung – So nutzen Sie den Bildkonverter | KodiniTools',
-        description: 'Schritt-für-Schritt-Anleitung für den Kodini Bildkonverter: Bilder hochladen, bearbeiten, konvertieren und herunterladen. Alle Funktionen erklärt.',
-        keywords: 'Bildkonverter Anleitung, Bilder konvertieren Anleitung, WebP Anleitung, Bildbearbeitung Tutorial'
+        title: 'Anleitung',
+        description: 'Schritt-für-Schritt-Anleitung zum Bildkonverter Pro: Bilder hochladen, bearbeiten, konvertieren und exportieren. Tipps zu Filtern, Zuschneiden und Formatwahl.',
+        keywords: 'Bildkonverter Anleitung, Bilder konvertieren Anleitung, WebP Anleitung, Bildbearbeitung Tutorial',
+        path: '/guide'
       }
     },
     {
@@ -79,9 +88,10 @@ const router = createRouter({
       name: 'about',
       component: () => import('@/views/AboutView.vue'),
       meta: {
-        title: 'Über uns – Kodini Bildkonverter | KodiniTools',
-        description: 'Erfahren Sie mehr über den Kodini Bildkonverter: Unsere Mission, Technologie und Datenschutz-Standards. Kostenlose Bildbearbeitung, DSGVO-konform.',
-        keywords: 'Kodini Bildkonverter, KodiniTools, Über uns, Datenschutz Bildkonverter'
+        title: 'Über uns',
+        description: 'Über Bildkonverter Pro von KodiniTools: Datenschutz-fokussierte Bildbearbeitung mit lokaler Verarbeitung im Browser. Server in Deutschland, DSGVO-konform.',
+        keywords: 'Kodini Bildkonverter, KodiniTools, Über uns, Datenschutz Bildkonverter',
+        path: '/about'
       }
     },
     // Format-spezifische Konvertierungs-Landingpages
@@ -98,25 +108,57 @@ const router = createRouter({
         // Meta wird dynamisch im beforeEach-Guard basierend auf :pair gesetzt
         isDynamic: true
       }
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('@/views/NotFoundView.vue'),
+      meta: {
+        title: 'Seite nicht gefunden',
+        description: 'Die angeforderte Seite wurde nicht gefunden.',
+        noIndex: true,
+        path: '/404'
+      }
     }
   ]
 })
 
-// Navigation Guard für dynamische Meta-Tags
+// Navigation Guard: SEO Meta-Tags bei jedem Routenwechsel aktualisieren
 router.beforeEach((to, from, next) => {
   // Format-Konvertierungsseiten: Dynamische Meta-Daten generieren
   if (to.name === 'format-conversion' && to.params.pair) {
     const conversion = formatConversions.find(f => f.pair === to.params.pair)
     if (conversion) {
       const { from: srcFormat, to: destFormat, pair } = conversion
-      to.meta.title = `${srcFormat} in ${destFormat} umwandeln – Schnell & Kostenlos | KodiniTools`
+      to.meta.title = `${srcFormat} in ${destFormat} umwandeln – Schnell & Kostenlos`
       to.meta.description = `${srcFormat} Dateien kostenlos in ${destFormat} konvertieren. Schnelle Umwandlung direkt im Browser, ohne Upload. Perfekt für Web-Optimierung und Kompatibilität.`
       to.meta.keywords = `${srcFormat} zu ${destFormat}, ${srcFormat} in ${destFormat} umwandeln, ${srcFormat} konvertieren, ${pair} Konverter, Bildformat ändern`
+      to.meta.path = `/konvertieren/${pair}`
     }
   }
 
-  // SEO-Meta-Tags aktualisieren via useHead Composable
-  useHead(to.meta, to.path)
+  // SEO-Meta-Tags aktualisieren
+  updateSeoMeta({
+    title: to.meta.title,
+    description: to.meta.description,
+    path: to.meta.path || to.path
+  })
+
+  // noindex für 404 und andere nicht-indexierbare Seiten
+  if (to.meta.noIndex) {
+    let robotsMeta = document.querySelector('meta[name="robots"]')
+    if (!robotsMeta) {
+      robotsMeta = document.createElement('meta')
+      robotsMeta.setAttribute('name', 'robots')
+      document.head.appendChild(robotsMeta)
+    }
+    robotsMeta.setAttribute('content', 'noindex, nofollow')
+  } else {
+    const robotsMeta = document.querySelector('meta[name="robots"]')
+    if (robotsMeta) {
+      robotsMeta.setAttribute('content', 'index, follow')
+    }
+  }
 
   next()
 })

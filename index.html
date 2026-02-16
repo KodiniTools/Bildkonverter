@@ -3,48 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Kostenloser Online-Bildkonverter: Bilder umwandeln zwischen PNG, JPG, WebP, HEIC, TIFF, GIF und PDF. Schnelle Konvertierung direkt im Browser – sicher und DSGVO-konform.">
-  <meta name="keywords" content="Bildkonverter, Bild umwandeln, PNG zu WebP, HEIC zu JPG, Bild konvertieren online, Bildformat ändern, WebP Konverter, Batch Bildkonverter, Bilder komprimieren, Online Bildbearbeitung">
+  <meta name="description" content="Kostenloser Online-Bildkonverter: Bilder konvertieren, bearbeiten, komprimieren und zuschneiden direkt im Browser. Unterstützt JPG, PNG, WebP, TIFF, GIF, HEIF und PDF. DSGVO-konform.">
+  <meta name="keywords" content="Bildkonverter, Bild umwandeln, PNG zu WebP, HEIC zu JPG, Bild konvertieren online, Bildformat ändern, WebP Konverter, Batch Bildkonverter, Bilder komprimieren, Online Bildbearbeitung, DSGVO">
   <meta name="author" content="KodiniTools">
   <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://kodinitools.de/bildkonverter/">
+  <meta name="theme-color" content="#014F99">
 
-  <!-- Open Graph / Social Media -->
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://www.kodinitools.com/bildkonverter/">
+
+  <!-- Hreflang für Mehrsprachigkeit -->
+  <link rel="alternate" hreflang="de" href="https://www.kodinitools.com/bildkonverter/">
+  <link rel="alternate" hreflang="en" href="https://www.kodinitools.com/bildkonverter/">
+  <link rel="alternate" hreflang="x-default" href="https://www.kodinitools.com/bildkonverter/">
+
+  <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Kodini Bildkonverter – Bilder kostenlos online umwandeln">
-  <meta property="og:description" content="PNG, JPG, WebP, HEIC, TIFF, GIF und PDF: Bilder schnell und sicher konvertieren. Direkt im Browser, ohne Upload – DSGVO-konform.">
-  <meta property="og:url" content="https://kodinitools.de/bildkonverter/">
-  <meta property="og:site_name" content="KodiniTools">
+  <meta property="og:url" content="https://www.kodinitools.com/bildkonverter/">
+  <meta property="og:title" content="Bildkonverter Pro - Kostenlose Bildbearbeitung im Browser">
+  <meta property="og:description" content="Bilder konvertieren, bearbeiten und komprimieren direkt im Browser. JPG, PNG, WebP, TIFF, GIF, HEIF, PDF. Kostenlos und DSGVO-konform.">
   <meta property="og:locale" content="de_DE">
   <meta property="og:locale:alternate" content="en_US">
+  <meta property="og:site_name" content="KodiniTools">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Kodini Bildkonverter – Bilder kostenlos online umwandeln">
-  <meta name="twitter:description" content="PNG, JPG, WebP, HEIC, TIFF, GIF und PDF: Bilder schnell und sicher konvertieren. Direkt im Browser.">
-
-  <!-- Hreflang für Mehrsprachigkeit -->
-  <link rel="alternate" hreflang="de" href="https://kodinitools.de/bildkonverter/">
-  <link rel="alternate" hreflang="en" href="https://kodinitools.de/bildkonverter/?lang=en">
-  <link rel="alternate" hreflang="x-default" href="https://kodinitools.de/bildkonverter/">
+  <meta name="twitter:title" content="Bildkonverter Pro - Kostenlose Bildbearbeitung im Browser">
+  <meta name="twitter:description" content="Bilder konvertieren, bearbeiten und komprimieren direkt im Browser. Kostenlos und DSGVO-konform.">
 
   <!-- Favicon -->
   <link rel="icon" href="/favicon.ico">
+
+  <!-- Kritische Schriftarten vorladen -->
+  <link rel="preload" href="/bildkonverter/assets/fonts/Supreme-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/bildkonverter/assets/fonts/Supreme-Bold.woff2" as="font" type="font/woff2" crossorigin>
 
   <!-- Font Awesome (lokal) -->
   <link rel="stylesheet" href="/fontawesome/css/fontawesome.min.css" />
   <link rel="stylesheet" href="/fontawesome/css/solid.min.css" />
 
-  <title>Kodini Bildkonverter – Bilder kostenlos online umwandeln | KodiniTools</title>
-
-  <!-- Schema.org Structured Data: SoftwareApplication -->
+  <!-- Strukturierte Daten: WebApplication -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "Kodini Bildkonverter",
-    "description": "Kostenloser Online-Bildkonverter zum Umwandeln von Bildern zwischen PNG, JPG, WebP, HEIC, TIFF, GIF und PDF. Schnell, sicher und DSGVO-konform.",
-    "url": "https://kodinitools.de/bildkonverter/",
+    "@type": "WebApplication",
+    "name": "Bildkonverter Pro",
+    "url": "https://www.kodinitools.com/bildkonverter/",
+    "description": "Kostenloser Online-Bildkonverter: Bilder konvertieren, bearbeiten, komprimieren und zuschneiden direkt im Browser.",
     "applicationCategory": "MultimediaApplication",
     "operatingSystem": "Web Browser",
     "offers": {
@@ -53,23 +58,27 @@
       "priceCurrency": "EUR"
     },
     "featureList": [
-      "PNG zu WebP Konvertierung",
+      "Bildformat-Konvertierung (JPG, PNG, WebP, TIFF, GIF, HEIF, PDF)",
       "HEIC zu JPG Konvertierung",
+      "PNG zu WebP Konvertierung",
       "Batch-Konvertierung mehrerer Bilder",
+      "Bildbearbeitung mit Filtern und Effekten",
       "Bildkomprimierung ohne Qualitätsverlust",
-      "Filter und Bildbearbeitung",
+      "Bilder zuschneiden und skalieren",
       "PDF-Export",
-      "Lokale Verarbeitung im Browser"
+      "Lokale Verarbeitung im Browser (DSGVO-konform)",
+      "Mehrsprachig (Deutsch/Englisch)"
     ],
-    "author": {
+    "inLanguage": ["de", "en"],
+    "provider": {
       "@type": "Organization",
       "name": "KodiniTools",
-      "url": "https://kodinitools.de"
+      "url": "https://www.kodinitools.com"
     }
   }
   </script>
 
-  <!-- Schema.org: FAQ (wird dynamisch pro Seite ergänzt) -->
+  <!-- Strukturierte Daten: FAQPage -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -102,6 +111,9 @@
     ]
   }
   </script>
+
+  <title>Bildkonverter Pro - Kostenlose Bildbearbeitung im Browser | KodiniTools</title>
+
 </head>
 <body>
   <!-- Externe/Globale Navigation -->

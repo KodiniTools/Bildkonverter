@@ -1,4 +1,15 @@
+# Robots.txt für Bildkonverter Pro
+# https://www.robotstxt.org/
+
 User-agent: *
 Allow: /
 
-Sitemap: https://kodinitools.de/bildkonverter/sitemap.xml
+# Statische Assets nicht crawlen
+Disallow: /assets/
+Disallow: /fontawesome/
+
+# API-Endpunkte nicht crawlen
+Disallow: /bildkonverter/api/
+
+# Sitemap
+Sitemap: https://www.kodinitools.com/bildkonverter/sitemap.xml
