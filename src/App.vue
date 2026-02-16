@@ -194,8 +194,6 @@ function updateExternalNavHeight() {
     // Setze die CSS-Variable für die Höhe (wird von AppHeader für sticky top verwendet)
     document.documentElement.style.setProperty('--external-nav-height', `${height}px`)
 
-    console.log(`📏 Externe Navigation: ${height}px`)
-
     // Setup ResizeObserver falls noch nicht vorhanden
     if (!externalNavObserver) {
       externalNavObserver = new ResizeObserver((entries) => {
@@ -206,8 +204,6 @@ function updateExternalNavHeight() {
       })
       externalNavObserver.observe(navElement)
     }
-  } else {
-    console.log('⚠️ Keine externe Navigation gefunden')
   }
 }
 
@@ -328,18 +324,29 @@ onMounted(() => {
 
   // MutationObserver für dynamisch geladene externe Navigation
   domMutationObserver = new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-      if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-        // Prüfe ob externe Navigation hinzugefügt wurde
-        updateExternalNavHeight()
-        // Sprach-Buttons der SSI-Navigation abfangen (falls nachgeladen)
-        interceptExternalLangSwitcher()
-        // SSI-Nav Texte für aktuelle Sprache übersetzen (falls nachgeladen)
-        translateExternalNav(settings.locale)
-        // SSI-Partials data-lang-* Sichtbarkeit aktualisieren (falls nachgeladen)
-        dispatchLanguageChanged(settings.locale)
+    // Prüfe ob relevante Nodes hinzugefügt wurden (nicht nur Text-Änderungen)
+    const hasRelevantChanges = mutations.some(m =>
+      m.type === 'childList' && m.addedNodes.length > 0 &&
+      Array.from(m.addedNodes).some(n => n.nodeType === Node.ELEMENT_NODE)
+    )
+    if (!hasRelevantChanges) return
+
+    // Observer pausieren um Endlos-Schleifen zu verhindern:
+    // translateExternalNav und dispatchLanguageChanged modifizieren DOM-Nodes,
+    // was ohne Pause den Observer erneut triggern würde.
+    domMutationObserver.disconnect()
+
+    updateExternalNavHeight()
+    interceptExternalLangSwitcher()
+    translateExternalNav(settings.locale)
+    dispatchLanguageChanged(settings.locale)
+
+    // Observer nach kurzem Delay wieder aktivieren (nach DOM-Settle)
+    requestAnimationFrame(() => {
+      if (domMutationObserver) {
+        domMutationObserver.observe(document.body, { childList: true, subtree: true })
       }
-    }
+    })
   })
   domMutationObserver.observe(document.body, { childList: true, subtree: true })
 
