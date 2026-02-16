@@ -175,6 +175,9 @@
             <h4>{{ file.name }}</h4>
             <p class="file-meta">
               {{ formatSize(file.size) }} • {{ file.width }}×{{ file.height }}
+              <template v-if="file.status === 'completed' && file.processedSize">
+                <br />→ {{ formatSize(file.processedSize) }} ({{ settings.format.toUpperCase() }})
+              </template>
             </p>
             
             <div v-if="file.status === 'completed'" class="file-actions">
@@ -245,6 +248,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { FORMAT_INFO } from '@/utils/exportUtils'
+import { ApiClient } from '@/api/api'
 
 const { t } = useI18n({ useScope: 'global' })
 
@@ -289,18 +294,18 @@ function handleFileSelect(event) {
 function handleDrop(event) {
   event.preventDefault()
   isDragging.value = false
-  
+
   const droppedFiles = Array.from(event.dataTransfer.files)
   addFiles(droppedFiles)
 }
 
 async function addFiles(fileList) {
   const imageFiles = fileList.filter(f => f.type.startsWith('image/'))
-  
+
   for (const file of imageFiles) {
     const preview = await createPreview(file)
     const dimensions = await getImageDimensions(preview)
-    
+
     files.value.push({
       id: `${file.name}-${Date.now()}-${Math.random()}`,
       file,
@@ -312,6 +317,8 @@ async function addFiles(fileList) {
       status: 'pending',
       progress: 0,
       processedPreview: null,
+      processedBlob: null,
+      processedSize: 0,
       error: null
     })
   }
@@ -336,13 +343,13 @@ function getImageDimensions(src) {
 async function startProcessing() {
   isProcessing.value = true
   processedFiles.value = []
-  
+
   for (const file of files.value) {
     if (file.status === 'completed') continue
-    
+
     file.status = 'processing'
     file.progress = 0
-    
+
     try {
       await processFile(file)
       file.status = 'completed'
@@ -353,28 +360,132 @@ async function startProcessing() {
       file.error = error.message
     }
   }
-  
+
   isProcessing.value = false
 }
 
-async function processFile(file) {
-  // Simuliere Verarbeitung - In Produktion würde hier die echte Konvertierung stattfinden
-  return new Promise((resolve) => {
-    let progress = 0
-    const interval = setInterval(() => {
-      progress += 10
-      file.progress = Math.min(progress, 100)
-      
-      if (progress >= 100) {
-        clearInterval(interval)
-        file.processedPreview = file.preview // Placeholder
-        resolve()
-      }
-    }, 100)
+/**
+ * Loads an image element from a data URL
+ */
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(new Error('Bild konnte nicht geladen werden'))
+    img.src = src
   })
 }
 
+/**
+ * Converts a canvas to a Blob
+ */
+function canvasToBlob(canvas, mimeType, quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      blob => {
+        if (blob) resolve(blob)
+        else reject(new Error('Canvas-zu-Blob-Konvertierung fehlgeschlagen'))
+      },
+      mimeType,
+      quality
+    )
+  })
+}
+
+/**
+ * Real image conversion using Canvas API
+ */
+async function processFile(file) {
+  const format = settings.value.format
+  const quality = settings.value.quality / 100
+  const targetWidth = settings.value.width
+  const targetHeight = settings.value.height
+  const maintainAspect = settings.value.maintainAspect
+
+  file.progress = 10
+
+  // Load source image onto canvas
+  const img = await loadImage(file.preview)
+  file.progress = 30
+
+  // Calculate target dimensions
+  let drawWidth = img.width
+  let drawHeight = img.height
+
+  if (targetWidth || targetHeight) {
+    if (targetWidth && targetHeight && !maintainAspect) {
+      drawWidth = targetWidth
+      drawHeight = targetHeight
+    } else if (targetWidth && targetHeight) {
+      // Maintain aspect ratio, fit within the given bounds
+      const ratio = Math.min(targetWidth / img.width, targetHeight / img.height)
+      drawWidth = Math.round(img.width * ratio)
+      drawHeight = Math.round(img.height * ratio)
+    } else if (targetWidth) {
+      const ratio = targetWidth / img.width
+      drawWidth = targetWidth
+      drawHeight = maintainAspect ? Math.round(img.height * ratio) : img.height
+    } else if (targetHeight) {
+      const ratio = targetHeight / img.height
+      drawHeight = targetHeight
+      drawWidth = maintainAspect ? Math.round(img.width * ratio) : img.width
+    }
+  }
+
+  // Create canvas with target dimensions
+  const canvas = document.createElement('canvas')
+  canvas.width = drawWidth
+  canvas.height = drawHeight
+  const ctx = canvas.getContext('2d')
+
+  // For JPEG/BMP: add white background (no transparency support)
+  if (format === 'jpg' || format === 'bmp') {
+    ctx.fillStyle = '#FFFFFF'
+    ctx.fillRect(0, 0, drawWidth, drawHeight)
+  }
+
+  // Draw the image
+  ctx.drawImage(img, 0, 0, drawWidth, drawHeight)
+  file.progress = 60
+
+  // Get format info
+  const formatInfo = FORMAT_INFO[format]
+
+  // Check if backend format is needed
+  if (formatInfo && formatInfo.requiresBackend) {
+    // Backend-based conversion (TIFF, GIF, HEIF)
+    const sourceBlob = await canvasToBlob(canvas, 'image/png', 1)
+    file.progress = 70
+    const convertedBlob = await ApiClient.convertImage(sourceBlob, format, file.name, { quality })
+    file.progress = 90
+
+    file.processedBlob = convertedBlob
+    file.processedSize = convertedBlob.size
+    file.processedPreview = URL.createObjectURL(convertedBlob)
+  } else {
+    // Client-side conversion (PNG, JPG, WebP, BMP)
+    let mimeType = 'image/png'
+    if (format === 'jpg') mimeType = 'image/jpeg'
+    else if (format === 'webp') mimeType = 'image/webp'
+    else if (format === 'bmp') mimeType = 'image/bmp'
+
+    const useQuality = (format === 'jpg' || format === 'webp') ? quality : undefined
+    const blob = await canvasToBlob(canvas, mimeType, useQuality)
+    file.progress = 90
+
+    file.processedBlob = blob
+    file.processedSize = blob.size
+    file.processedPreview = URL.createObjectURL(blob)
+  }
+
+  file.progress = 100
+}
+
 function removeFile(fileId) {
+  const file = files.value.find(f => f.id === fileId)
+  if (file && file.processedPreview && file.processedPreview.startsWith('blob:')) {
+    URL.revokeObjectURL(file.processedPreview)
+  }
   const index = files.value.findIndex(f => f.id === fileId)
   if (index !== -1) {
     files.value.splice(index, 1)
@@ -383,21 +494,42 @@ function removeFile(fileId) {
 
 function clearAll() {
   if (confirm(t('batch.confirmClear'))) {
+    // Revoke all blob URLs
+    files.value.forEach(f => {
+      if (f.processedPreview && f.processedPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(f.processedPreview)
+      }
+    })
     files.value = []
     processedFiles.value = []
   }
 }
 
+function getOutputFilename(file) {
+  const prefix = settings.value.prefix || ''
+  const format = settings.value.format
+  const ext = FORMAT_INFO[format]?.extension || format
+  const baseName = file.name.replace(/\.[^.]+$/, '')
+  return `${prefix}${baseName}.${ext}`
+}
+
 function downloadFile(file) {
+  if (!file.processedBlob) return
+
+  const url = URL.createObjectURL(file.processedBlob)
   const link = document.createElement('a')
-  link.href = file.processedPreview || file.preview
-  link.download = (settings.value.prefix || '') + file.name
+  link.href = url
+  link.download = getOutputFilename(file)
+  link.style.display = 'none'
+  document.body.appendChild(link)
   link.click()
+  document.body.removeChild(link)
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
 function downloadAll() {
-  processedFiles.value.forEach(file => {
-    setTimeout(() => downloadFile(file), 100)
+  processedFiles.value.forEach((file, index) => {
+    setTimeout(() => downloadFile(file), index * 200)
   })
 }
 

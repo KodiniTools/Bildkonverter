@@ -107,6 +107,13 @@ const de = {
   },
   conversion: {
     batchCta: 'Mehrere Bilder konvertieren',
+    widget: {
+      dropHint: 'Datei hierher ziehen oder klicken zum Auswählen',
+      converting: 'Wird konvertiert...',
+      download: 'Herunterladen',
+      convertAnother: 'Weiteres Bild konvertieren',
+      tryAgain: 'Erneut versuchen'
+    },
     benefits: {
       fast: {
         title: 'Blitzschnell',
@@ -925,6 +932,40 @@ const de = {
       newText: 'Neuer Text'
     }
   },
+  batch: {
+    title: 'Batch-Konvertierung',
+    subtitle: 'Konvertieren Sie mehrere Bilder gleichzeitig in das gewünschte Format',
+    upload: {
+      title: 'Bilder hochladen',
+      description: 'Ziehen Sie Ihre Bilder hierher oder klicken Sie zum Auswählen',
+      hint: 'JPG, PNG, WebP, GIF, BMP und mehr'
+    },
+    settings: {
+      title: 'Konvertierungs-Einstellungen',
+      format: 'Zielformat',
+      quality: 'Qualität',
+      resize: 'Größe ändern',
+      width: 'Breite',
+      height: 'Höhe',
+      maintainAspect: 'Seitenverhältnis beibehalten',
+      prefix: 'Dateiname-Präfix',
+      prefixPlaceholder: 'z.B. konvertiert_'
+    },
+    processing: 'Wird konvertiert...',
+    start: 'Konvertierung starten',
+    downloadAll: 'Alle herunterladen',
+    clearAll: 'Alle entfernen',
+    files: {
+      title: 'Dateien',
+      download: 'Herunterladen',
+      preview: 'Vorschau'
+    },
+    preview: {
+      original: 'Original',
+      processed: 'Konvertiert'
+    },
+    confirmClear: 'Möchten Sie wirklich alle Dateien entfernen?'
+  },
   notFound: {
     title: 'Seite nicht gefunden',
     description: 'Die angeforderte Seite existiert nicht. Möglicherweise wurde sie verschoben oder gelöscht.',
@@ -1039,6 +1080,13 @@ const en = {
   },
   conversion: {
     batchCta: 'Convert multiple images',
+    widget: {
+      dropHint: 'Drop file here or click to select',
+      converting: 'Converting...',
+      download: 'Download',
+      convertAnother: 'Convert another image',
+      tryAgain: 'Try again'
+    },
     benefits: {
       fast: {
         title: 'Lightning Fast',
@@ -1856,6 +1904,40 @@ const en = {
       confirmDelete: 'Do you really want to delete this text?',
       newText: 'New Text'
     }
+  },
+  batch: {
+    title: 'Batch Conversion',
+    subtitle: 'Convert multiple images at once to your desired format',
+    upload: {
+      title: 'Upload Images',
+      description: 'Drag your images here or click to select',
+      hint: 'JPG, PNG, WebP, GIF, BMP and more'
+    },
+    settings: {
+      title: 'Conversion Settings',
+      format: 'Target Format',
+      quality: 'Quality',
+      resize: 'Resize',
+      width: 'Width',
+      height: 'Height',
+      maintainAspect: 'Maintain aspect ratio',
+      prefix: 'Filename Prefix',
+      prefixPlaceholder: 'e.g. converted_'
+    },
+    processing: 'Converting...',
+    start: 'Start Conversion',
+    downloadAll: 'Download All',
+    clearAll: 'Remove All',
+    files: {
+      title: 'Files',
+      download: 'Download',
+      preview: 'Preview'
+    },
+    preview: {
+      original: 'Original',
+      processed: 'Converted'
+    },
+    confirmClear: 'Do you really want to remove all files?'
   },
   notFound: {
     title: 'Page not found',
