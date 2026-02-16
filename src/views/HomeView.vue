@@ -72,6 +72,39 @@
       </div>
     </section>
 
+    <!-- Beliebte Konvertierungen (SEO Long-Tail Keywords) -->
+    <section class="conversions-section">
+      <h2>{{ $t('home.conversions.title') }}</h2>
+      <p class="conversions-subtitle">{{ $t('home.conversions.subtitle') }}</p>
+
+      <div class="conversions-grid">
+        <router-link
+          v-for="conv in popularConversions"
+          :key="conv.pair"
+          :to="{ name: 'format-conversion', params: { pair: conv.pair } }"
+          class="conversion-card"
+        >
+          <span class="format-badge source">{{ conv.from }}</span>
+          <i class="fas fa-arrow-right"></i>
+          <span class="format-badge target">{{ conv.to }}</span>
+        </router-link>
+      </div>
+    </section>
+
+    <!-- WebP Info-Banner (SEO + Nutzer-Aufklärung) -->
+    <section class="webp-promo-section">
+      <div class="webp-promo-content">
+        <div class="webp-icon"><i class="fas fa-tachometer-alt"></i></div>
+        <div>
+          <h3>{{ $t('home.webpPromo.title') }}</h3>
+          <p>{{ $t('home.webpPromo.description') }}</p>
+          <router-link :to="{ name: 'format-conversion', params: { pair: 'png-zu-webp' } }" class="webp-link">
+            {{ $t('home.webpPromo.cta') }} &rarr;
+          </router-link>
+        </div>
+      </div>
+    </section>
+
     <section class="faq-section">
       <h2>{{ $t('home.faq.title') }}</h2>
       <p class="faq-subtitle">{{ $t('home.faq.subtitle') }}</p>
@@ -114,6 +147,16 @@ const faqs = [
   { key: 'crop' },
   { key: 'resize' },
   { key: 'download' }
+]
+
+// Beliebte Konvertierungs-Paare (Long-Tail SEO)
+const popularConversions = [
+  { pair: 'heic-zu-jpg', from: 'HEIC', to: 'JPG' },
+  { pair: 'png-zu-webp', from: 'PNG', to: 'WebP' },
+  { pair: 'jpg-zu-webp', from: 'JPG', to: 'WebP' },
+  { pair: 'webp-zu-jpg', from: 'WebP', to: 'JPG' },
+  { pair: 'tiff-zu-jpg', from: 'TIFF', to: 'JPG' },
+  { pair: 'svg-zu-png', from: 'SVG', to: 'PNG' }
 ]
 
 const toggleFaq = (index) => {
@@ -417,6 +460,148 @@ const toggleFaq = (index) => {
   }
   50% {
     transform: scale(1.2);
+  }
+}
+
+// Beliebte Konvertierungen
+.conversions-section {
+  padding: 3rem 4rem;
+
+  @media (max-width: 1024px) {
+    padding: 3rem;
+  }
+
+  @media (max-width: 768px) {
+    padding: 2rem 1.5rem;
+  }
+
+  h2 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: var(--spacing-md);
+
+    @media (max-width: 768px) {
+      font-size: 1.6rem;
+    }
+  }
+
+  .conversions-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 1.05rem;
+    margin-bottom: var(--spacing-xl);
+  }
+}
+
+.conversions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--spacing-md);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.conversion-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  text-decoration: none;
+  color: var(--color-text-primary);
+  transition: all 0.25s ease;
+
+  &:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+  }
+
+  i {
+    color: var(--color-primary);
+    font-size: 0.85rem;
+  }
+}
+
+.format-badge {
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--border-radius-sm, 4px);
+
+  &.source {
+    background: var(--color-bg-primary);
+  }
+
+  &.target {
+    background: var(--color-light-blue, rgba(1, 79, 153, 0.1));
+    color: var(--color-primary);
+  }
+}
+
+// WebP Promo Banner
+.webp-promo-section {
+  padding: 0 4rem 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+
+  @media (max-width: 768px) {
+    padding: 0 1.5rem 2rem;
+  }
+}
+
+.webp-promo-content {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-xl);
+  background: var(--color-light-blue, rgba(1, 79, 153, 0.06));
+  border: 1px solid var(--color-primary);
+  border-radius: var(--border-radius-lg);
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .webp-icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-primary);
+    color: #fff;
+    border-radius: var(--border-radius-md);
+    font-size: 1.3rem;
+  }
+
+  h3 {
+    font-size: 1.15rem;
+    margin-bottom: var(--spacing-xs, 0.25rem);
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .webp-link {
+    color: var(--color-primary);
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 0.95rem;
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 }
 
