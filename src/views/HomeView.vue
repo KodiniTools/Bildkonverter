@@ -14,7 +14,13 @@
       </div>
 
       <div class="hero-image animate-image">
-        <img :src="heroImage" alt="Hero Image" class="hero-img floating" />
+        <img
+          :src="heroImage"
+          :alt="$t('home.heroAlt')"
+          class="hero-img floating"
+          width="500"
+          height="333"
+        />
       </div>
     </section>
 
@@ -98,11 +104,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import heroImage from '@/assets/foto/foto1.jpg'
 
-const { t } = useI18n({ useScope: 'global' })
+const { t, locale } = useI18n({ useScope: 'global' })
 
 // FAQ State
 const activeFaq = ref(null)
@@ -119,6 +125,34 @@ const faqs = [
 const toggleFaq = (index) => {
   activeFaq.value = activeFaq.value === index ? null : index
 }
+
+// FAQ JSON-LD Structured Data
+const faqJsonLd = computed(() => ({
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  'mainEntity': faqs.map(faq => ({
+    '@type': 'Question',
+    'name': t(`home.faq.items.${faq.key}.question`),
+    'acceptedAnswer': {
+      '@type': 'Answer',
+      'text': t(`home.faq.items.${faq.key}.answer`)
+    }
+  }))
+}))
+
+function updateFaqSchema() {
+  let script = document.getElementById('faq-jsonld')
+  if (!script) {
+    script = document.createElement('script')
+    script.id = 'faq-jsonld'
+    script.type = 'application/ld+json'
+    document.head.appendChild(script)
+  }
+  script.textContent = JSON.stringify(faqJsonLd.value)
+}
+
+onMounted(updateFaqSchema)
+watch(locale, updateFaqSchema)
 </script>
 
 <style lang="scss" scoped>

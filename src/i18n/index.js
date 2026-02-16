@@ -30,6 +30,7 @@ const de = {
     title: 'Willkommen beim Bildkonverter Pro',
     subtitle: 'Schnelle und sichere Bildbearbeitung meist lokal im Browser, Spezialformate sicher auf dem deutschen Server',
     startEditing: 'Bearbeitung starten',
+    heroAlt: 'Bildkonverter Pro - Online-Bildbearbeitung und Formatkonvertierung',
     features: {
       title: 'Funktionen',
       convert: {
@@ -785,6 +786,11 @@ const de = {
       confirmDelete: 'Möchten Sie diesen Text wirklich löschen?',
       newText: 'Neuer Text'
     }
+  },
+  notFound: {
+    title: 'Seite nicht gefunden',
+    description: 'Die angeforderte Seite existiert nicht. Möglicherweise wurde sie verschoben oder gelöscht.',
+    backHome: 'Zur Startseite'
   }
 }
 
@@ -818,6 +824,7 @@ const en = {
     title: 'Welcome to Image Converter Pro',
     subtitle: 'Fast and secure image editing mostly local in your browser, specialized formats securely on German server',
     startEditing: 'Start Editing',
+    heroAlt: 'Image Converter Pro - Online image editing and format conversion',
     features: {
       title: 'Features',
       convert: {
@@ -1573,6 +1580,11 @@ const en = {
       confirmDelete: 'Do you really want to delete this text?',
       newText: 'New Text'
     }
+  },
+  notFound: {
+    title: 'Page not found',
+    description: 'The requested page does not exist. It may have been moved or deleted.',
+    backHome: 'Back to Home'
   }
 }
 
