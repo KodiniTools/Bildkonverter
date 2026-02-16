@@ -242,7 +242,11 @@ function handleDrop(event) {
   event.preventDefault()
   isDragging.value = false
   const file = event.dataTransfer.files[0]
-  if (file && file.type.startsWith('image/')) startConversion(file)
+  if (file && file.type.startsWith('image/')) {
+    startConversion(file)
+  } else if (file) {
+    window.$toast?.warning(t('toast.batch.noImages'))
+  }
 }
 
 function loadImage(src) {
@@ -281,6 +285,8 @@ async function startConversion(file) {
   conversionError.value = null
   convertedUrl.value = null
   convertedBlob.value = null
+
+  window.$toast?.info(t('toast.conversion.uploadReceived'))
 
   try {
     // Read the source file
@@ -327,8 +333,14 @@ async function startConversion(file) {
       convertedSize.value = blob.size
       convertedUrl.value = URL.createObjectURL(blob)
     }
+
+    window.$toast?.success(t('toast.conversion.success', {
+      from: conversionData.value.from,
+      to: conversionData.value.to
+    }))
   } catch (error) {
-    conversionError.value = error.message || 'Konvertierung fehlgeschlagen'
+    conversionError.value = error.message || t('conversion.widget.converting')
+    window.$toast?.error(t('toast.conversion.error', { error: error.message }))
   } finally {
     isConverting.value = false
   }
@@ -345,6 +357,8 @@ function downloadResult() {
   link.click()
   document.body.removeChild(link)
   setTimeout(() => URL.revokeObjectURL(url), 1000)
+
+  window.$toast?.success(t('toast.conversion.downloadStarted', { filename: outputFilename.value }))
 }
 
 function resetConverter() {

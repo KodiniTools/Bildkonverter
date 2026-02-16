@@ -302,6 +302,11 @@ function handleDrop(event) {
 async function addFiles(fileList) {
   const imageFiles = fileList.filter(f => f.type.startsWith('image/'))
 
+  if (imageFiles.length === 0) {
+    window.$toast?.warning(t('toast.batch.noImages'))
+    return
+  }
+
   for (const file of imageFiles) {
     const preview = await createPreview(file)
     const dimensions = await getImageDimensions(preview)
@@ -322,6 +327,8 @@ async function addFiles(fileList) {
       error: null
     })
   }
+
+  window.$toast?.success(t('toast.batch.filesAdded', { count: imageFiles.length }))
 }
 
 function createPreview(file) {
@@ -344,6 +351,11 @@ async function startProcessing() {
   isProcessing.value = true
   processedFiles.value = []
 
+  const pendingFiles = files.value.filter(f => f.status !== 'completed')
+  window.$toast?.info(t('toast.batch.processingStarted', { count: pendingFiles.length }))
+
+  let errorCount = 0
+
   for (const file of files.value) {
     if (file.status === 'completed') continue
 
@@ -358,10 +370,21 @@ async function startProcessing() {
     } catch (error) {
       file.status = 'error'
       file.error = error.message
+      errorCount++
+      window.$toast?.error(t('toast.batch.fileError', { name: file.name, error: error.message }))
     }
   }
 
   isProcessing.value = false
+
+  // Summary toast
+  const successCount = processedFiles.value.length
+  const totalCount = pendingFiles.length
+  if (errorCount === 0) {
+    window.$toast?.success(t('toast.batch.processingCompleteAll', { count: successCount }))
+  } else {
+    window.$toast?.warning(t('toast.batch.processingComplete', { success: successCount, total: totalCount }))
+  }
 }
 
 /**
@@ -483,13 +506,16 @@ async function processFile(file) {
 
 function removeFile(fileId) {
   const file = files.value.find(f => f.id === fileId)
-  if (file && file.processedPreview && file.processedPreview.startsWith('blob:')) {
+  if (!file) return
+  const fileName = file.name
+  if (file.processedPreview && file.processedPreview.startsWith('blob:')) {
     URL.revokeObjectURL(file.processedPreview)
   }
   const index = files.value.findIndex(f => f.id === fileId)
   if (index !== -1) {
     files.value.splice(index, 1)
   }
+  window.$toast?.info(t('toast.batch.fileRemoved', { name: fileName }))
 }
 
 function clearAll() {
@@ -502,6 +528,7 @@ function clearAll() {
     })
     files.value = []
     processedFiles.value = []
+    window.$toast?.info(t('toast.batch.cleared'))
   }
 }
 
@@ -513,7 +540,7 @@ function getOutputFilename(file) {
   return `${prefix}${baseName}.${ext}`
 }
 
-function downloadFile(file) {
+function downloadFile(file, showToast = true) {
   if (!file.processedBlob) return
 
   const url = URL.createObjectURL(file.processedBlob)
@@ -525,11 +552,16 @@ function downloadFile(file) {
   link.click()
   document.body.removeChild(link)
   setTimeout(() => URL.revokeObjectURL(url), 1000)
+
+  if (showToast) {
+    window.$toast?.success(t('toast.batch.downloadStarted'))
+  }
 }
 
 function downloadAll() {
+  window.$toast?.info(t('toast.batch.downloadAllStarted', { count: processedFiles.value.length }))
   processedFiles.value.forEach((file, index) => {
-    setTimeout(() => downloadFile(file), index * 200)
+    setTimeout(() => downloadFile(file, false), index * 200)
   })
 }
 
