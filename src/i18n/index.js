@@ -93,6 +93,144 @@ const de = {
           answer: 'Klicken Sie einfach auf den Download-Button in der Toolbar. Sie können das Bildformat wählen und das bearbeitete Bild wird direkt auf Ihr Gerät heruntergeladen. Kein Account erforderlich!'
         }
       }
+    },
+    conversions: {
+      title: 'Beliebte Konvertierungen',
+      subtitle: 'Wählen Sie Ihr gewünschtes Format – schnell, kostenlos und direkt im Browser'
+    },
+    webpPromo: {
+      title: 'Warum WebP? Verbessere dein Google PageSpeed Ranking!',
+      description: 'WebP bietet bis zu 30% kleinere Dateien als PNG und JPG bei gleicher Qualität. Google empfiehlt WebP für schnellere Ladezeiten – ein direkter Ranking-Faktor für SEO.',
+      cta: 'Jetzt zu WebP konvertieren'
+    }
+  },
+  conversion: {
+    batchCta: 'Mehrere Bilder konvertieren',
+    benefits: {
+      fast: {
+        title: 'Blitzschnell',
+        description: 'Konvertierung in Sekunden, direkt in Ihrem Browser.'
+      },
+      privacy: {
+        title: 'DSGVO-konform',
+        description: 'Ihre Bilder werden lokal verarbeitet. Kein Upload nötig.'
+      },
+      quality: {
+        title: 'Beste Qualität',
+        description: 'Wählen Sie die Qualitätsstufe – von maximaler Kompression bis verlustfrei.'
+      }
+    },
+    howTo: {
+      title: 'So funktioniert es',
+      step1: {
+        title: 'Bild hochladen',
+        description: 'Ziehen Sie Ihr Bild in den Editor oder klicken Sie auf den Upload-Button.'
+      },
+      step2: {
+        title: 'Format wählen',
+        description: 'Wählen Sie das gewünschte Zielformat und die Qualitätsstufe.'
+      },
+      step3: {
+        title: 'Herunterladen',
+        description: 'Klicken Sie auf Download und Ihr konvertiertes Bild wird sofort gespeichert.'
+      }
+    },
+    otherFormats: {
+      title: 'Weitere Konvertierungen'
+    },
+    formats: {
+      heic: { info: 'Apple-Format für iPhone-Fotos. Hohe Qualität bei geringer Dateigröße, aber eingeschränkte Kompatibilität.' },
+      jpg: { info: 'Das universellste Bildformat. Ideal für Fotos und Web-Inhalte mit einstellbarer Kompression.' },
+      png: { info: 'Verlustfreies Format mit Transparenz-Unterstützung. Perfekt für Grafiken, Logos und Screenshots.' },
+      webp: { info: 'Modernes Google-Format. Bis zu 30% kleiner als JPG/PNG bei gleicher Qualität – ideal für Web-Performance.' },
+      tiff: { info: 'Professionelles Druckformat. Verlustfrei mit hoher Farbtiefe – Standard in der Druckindustrie.' },
+      gif: { info: 'Unterstützt Animationen und einfache Grafiken mit bis zu 256 Farben.' },
+      bmp: { info: 'Unkomprimiertes Windows-Bitmap-Format. Hohe Qualität, aber große Dateigröße.' },
+      svg: { info: 'Vektorbasiertes Format. Unendlich skalierbar ohne Qualitätsverlust – ideal für Logos und Icons.' }
+    },
+    'heic-zu-jpg': {
+      title: 'HEIC in JPG umwandeln – Schnell & Kostenlos',
+      description: 'iPhone-Fotos im HEIC-Format einfach und kostenlos in JPG konvertieren. Direkt im Browser, ohne Upload auf externe Server.',
+      cta: 'HEIC jetzt in JPG konvertieren',
+      whyTitle: 'Warum HEIC in JPG umwandeln?',
+      advantage: 'JPG ist das universellste Bildformat und wird von allen Geräten, Browsern und Programmen unterstützt. HEIC-Dateien von iPhones sind oft nicht direkt kompatibel – die Konvertierung zu JPG löst dieses Problem sofort.'
+    },
+    'png-zu-webp': {
+      title: 'PNG in WebP umwandeln – Für schnellere Websites',
+      description: 'PNG-Dateien kostenlos in das moderne WebP-Format konvertieren. Bis zu 30% kleinere Dateien bei gleicher Qualität – perfekt für Web-Performance und SEO.',
+      cta: 'PNG jetzt in WebP konvertieren',
+      whyTitle: 'Warum PNG zu WebP konvertieren?',
+      advantage: 'WebP bietet deutlich kleinere Dateigrößen als PNG bei vergleichbarer Qualität und unterstützt ebenfalls Transparenz. Google empfiehlt WebP für schnellere Ladezeiten, was direkt das PageSpeed-Ranking verbessert.'
+    },
+    'jpg-zu-webp': {
+      title: 'JPG in WebP umwandeln – Web-Optimierung',
+      description: 'JPG-Bilder kostenlos in WebP konvertieren. Modernste Kompression für schnellere Ladezeiten und besseres Google PageSpeed Ranking.',
+      cta: 'JPG jetzt in WebP konvertieren',
+      whyTitle: 'Warum JPG zu WebP konvertieren?',
+      advantage: 'WebP komprimiert Bilder effizienter als JPG und wird von allen modernen Browsern unterstützt. Durch den Wechsel zu WebP verbessern Sie die Ladezeit Ihrer Website – ein wichtiger Ranking-Faktor bei Google.'
+    },
+    'webp-zu-png': {
+      title: 'WebP in PNG umwandeln – Für maximale Kompatibilität',
+      description: 'WebP-Dateien kostenlos in PNG konvertieren. Verlustfreie Qualität mit universeller Kompatibilität.',
+      cta: 'WebP jetzt in PNG konvertieren',
+      whyTitle: 'Warum WebP zu PNG konvertieren?',
+      advantage: 'PNG bietet maximale Kompatibilität mit allen Bildbearbeitungsprogrammen und älteren Systemen. Wenn Sie ein WebP-Bild für den Druck oder in Programmen verwenden möchten, die WebP nicht unterstützen, ist PNG die beste Wahl.'
+    },
+    'jpg-zu-png': {
+      title: 'JPG in PNG umwandeln – Für Transparenz und Qualität',
+      description: 'JPG-Bilder kostenlos und verlustfrei in PNG konvertieren. Ideal wenn Sie Transparenz benötigen oder Qualitätsverluste vermeiden möchten.',
+      cta: 'JPG jetzt in PNG konvertieren',
+      whyTitle: 'Warum JPG zu PNG konvertieren?',
+      advantage: 'PNG unterstützt Transparenz und verlustfreie Kompression. Ideal wenn Sie Bilder weiterbearbeiten, Hintergründe entfernen oder Grafiken mit scharfen Kanten erstellen möchten.'
+    },
+    'png-zu-jpg': {
+      title: 'PNG in JPG umwandeln – Dateigröße reduzieren',
+      description: 'PNG-Dateien kostenlos in JPG konvertieren. Reduzieren Sie die Dateigröße deutlich – ideal für den E-Mail-Versand und Social Media.',
+      cta: 'PNG jetzt in JPG konvertieren',
+      whyTitle: 'Warum PNG zu JPG konvertieren?',
+      advantage: 'JPG-Dateien sind deutlich kleiner als PNGs. Wenn Sie keine Transparenz benötigen, sparen Sie mit JPG erheblich Speicherplatz – ideal für Fotos, E-Mail-Anhänge und Social-Media-Posts.'
+    },
+    'tiff-zu-jpg': {
+      title: 'TIFF in JPG umwandeln – Für Web und E-Mail',
+      description: 'Große TIFF-Dateien kostenlos in kompakte JPG-Bilder konvertieren. Perfekt für den Web-Upload und E-Mail-Versand.',
+      cta: 'TIFF jetzt in JPG konvertieren',
+      whyTitle: 'Warum TIFF zu JPG konvertieren?',
+      advantage: 'TIFF-Dateien sind für den Druck optimiert und oft sehr groß. JPG reduziert die Dateigröße massiv und ermöglicht das einfache Teilen per Web, E-Mail oder Social Media.'
+    },
+    'bmp-zu-webp': {
+      title: 'BMP in WebP umwandeln – Massive Kompression',
+      description: 'Unkomprimierte BMP-Dateien in das moderne WebP-Format konvertieren. Drastische Größenreduktion bei hervorragender Qualität.',
+      cta: 'BMP jetzt in WebP konvertieren',
+      whyTitle: 'Warum BMP zu WebP konvertieren?',
+      advantage: 'BMP-Dateien sind unkomprimiert und extrem groß. WebP bietet modernste Kompression und reduziert die Dateigröße um bis zu 95% – ideal um alte BMP-Bestände webfähig zu machen.'
+    },
+    'gif-zu-webp': {
+      title: 'GIF in WebP umwandeln – Kleiner und schärfer',
+      description: 'GIF-Dateien kostenlos in WebP konvertieren. Kleinere Dateigröße mit besserer Farbtiefe als GIF.',
+      cta: 'GIF jetzt in WebP konvertieren',
+      whyTitle: 'Warum GIF zu WebP konvertieren?',
+      advantage: 'WebP unterstützt mehr als 256 Farben (im Gegensatz zu GIF) und bietet bessere Kompression. Ihre Bilder sehen schärfer aus und laden schneller – ein Gewinn für jede Website.'
+    },
+    'heic-zu-png': {
+      title: 'HEIC in PNG umwandeln – Verlustfrei konvertieren',
+      description: 'iPhone HEIC-Fotos kostenlos in das verlustfreie PNG-Format konvertieren. Maximale Qualität mit Transparenz-Unterstützung.',
+      cta: 'HEIC jetzt in PNG konvertieren',
+      whyTitle: 'Warum HEIC zu PNG konvertieren?',
+      advantage: 'PNG bietet verlustfreie Qualität und Transparenz. Ideal wenn Sie iPhone-Fotos weiterbearbeiten oder in der höchsten Qualität archivieren möchten.'
+    },
+    'webp-zu-jpg': {
+      title: 'WebP in JPG umwandeln – Universelle Kompatibilität',
+      description: 'WebP-Bilder kostenlos in das universelle JPG-Format konvertieren. Für maximale Kompatibilität mit allen Geräten.',
+      cta: 'WebP jetzt in JPG konvertieren',
+      whyTitle: 'Warum WebP zu JPG konvertieren?',
+      advantage: 'JPG wird von jedem Gerät und Programm unterstützt. Wenn Sie WebP-Bilder in älteren Programmen, per E-Mail oder für den Druck verwenden möchten, ist JPG die sicherste Wahl.'
+    },
+    'svg-zu-png': {
+      title: 'SVG in PNG umwandeln – Vektor zu Pixel',
+      description: 'SVG-Vektorgrafiken kostenlos in PNG-Pixelbilder konvertieren. Ideal für Social Media, Präsentationen und Druck.',
+      cta: 'SVG jetzt in PNG konvertieren',
+      whyTitle: 'Warum SVG zu PNG konvertieren?',
+      advantage: 'SVG ist ein Vektorformat, das nicht überall angezeigt werden kann. PNG ist universell kompatibel und ideal wenn Sie eine SVG-Grafik in fester Größe für Social Media, Präsentationen oder den Druck benötigen.'
     }
   },
   editor: {
@@ -881,6 +1019,144 @@ const en = {
           answer: 'Simply click the download button in the toolbar. You can choose the image format and the edited image will be downloaded directly to your device. No account required!'
         }
       }
+    },
+    conversions: {
+      title: 'Popular Conversions',
+      subtitle: 'Choose your desired format – fast, free and directly in your browser'
+    },
+    webpPromo: {
+      title: 'Why WebP? Improve your Google PageSpeed ranking!',
+      description: 'WebP offers up to 30% smaller files than PNG and JPG at the same quality. Google recommends WebP for faster loading times – a direct ranking factor for SEO.',
+      cta: 'Convert to WebP now'
+    }
+  },
+  conversion: {
+    batchCta: 'Convert multiple images',
+    benefits: {
+      fast: {
+        title: 'Lightning Fast',
+        description: 'Conversion in seconds, right in your browser.'
+      },
+      privacy: {
+        title: 'GDPR Compliant',
+        description: 'Your images are processed locally. No upload needed.'
+      },
+      quality: {
+        title: 'Best Quality',
+        description: 'Choose the quality level – from maximum compression to lossless.'
+      }
+    },
+    howTo: {
+      title: 'How it works',
+      step1: {
+        title: 'Upload image',
+        description: 'Drag your image into the editor or click the upload button.'
+      },
+      step2: {
+        title: 'Choose format',
+        description: 'Select the desired target format and quality level.'
+      },
+      step3: {
+        title: 'Download',
+        description: 'Click download and your converted image will be saved instantly.'
+      }
+    },
+    otherFormats: {
+      title: 'More conversions'
+    },
+    formats: {
+      heic: { info: 'Apple format for iPhone photos. High quality at small file size, but limited compatibility.' },
+      jpg: { info: 'The most universal image format. Ideal for photos and web content with adjustable compression.' },
+      png: { info: 'Lossless format with transparency support. Perfect for graphics, logos and screenshots.' },
+      webp: { info: 'Modern Google format. Up to 30% smaller than JPG/PNG at the same quality – ideal for web performance.' },
+      tiff: { info: 'Professional print format. Lossless with high color depth – industry standard for print.' },
+      gif: { info: 'Supports animations and simple graphics with up to 256 colors.' },
+      bmp: { info: 'Uncompressed Windows bitmap format. High quality, but large file size.' },
+      svg: { info: 'Vector-based format. Infinitely scalable without quality loss – ideal for logos and icons.' }
+    },
+    'heic-zu-jpg': {
+      title: 'Convert HEIC to JPG – Fast & Free',
+      description: 'Easily convert iPhone photos in HEIC format to JPG for free. Directly in your browser, without uploading to external servers.',
+      cta: 'Convert HEIC to JPG now',
+      whyTitle: 'Why convert HEIC to JPG?',
+      advantage: 'JPG is the most universal image format, supported by all devices, browsers and programs. HEIC files from iPhones are often not directly compatible – converting to JPG solves this problem instantly.'
+    },
+    'png-zu-webp': {
+      title: 'Convert PNG to WebP – For Faster Websites',
+      description: 'Convert PNG files to the modern WebP format for free. Up to 30% smaller files at the same quality – perfect for web performance and SEO.',
+      cta: 'Convert PNG to WebP now',
+      whyTitle: 'Why convert PNG to WebP?',
+      advantage: 'WebP offers significantly smaller file sizes than PNG at comparable quality and also supports transparency. Google recommends WebP for faster loading times, which directly improves PageSpeed rankings.'
+    },
+    'jpg-zu-webp': {
+      title: 'Convert JPG to WebP – Web Optimization',
+      description: 'Convert JPG images to WebP for free. State-of-the-art compression for faster loading times and better Google PageSpeed ranking.',
+      cta: 'Convert JPG to WebP now',
+      whyTitle: 'Why convert JPG to WebP?',
+      advantage: 'WebP compresses images more efficiently than JPG and is supported by all modern browsers. By switching to WebP, you improve your website loading time – an important ranking factor for Google.'
+    },
+    'webp-zu-png': {
+      title: 'Convert WebP to PNG – For Maximum Compatibility',
+      description: 'Convert WebP files to PNG for free. Lossless quality with universal compatibility.',
+      cta: 'Convert WebP to PNG now',
+      whyTitle: 'Why convert WebP to PNG?',
+      advantage: 'PNG offers maximum compatibility with all image editing programs and older systems. If you want to use a WebP image for printing or in programs that don\'t support WebP, PNG is the best choice.'
+    },
+    'jpg-zu-png': {
+      title: 'Convert JPG to PNG – For Transparency and Quality',
+      description: 'Convert JPG images to PNG for free and losslessly. Ideal when you need transparency or want to avoid quality loss.',
+      cta: 'Convert JPG to PNG now',
+      whyTitle: 'Why convert JPG to PNG?',
+      advantage: 'PNG supports transparency and lossless compression. Ideal when you want to further edit images, remove backgrounds, or create graphics with sharp edges.'
+    },
+    'png-zu-jpg': {
+      title: 'Convert PNG to JPG – Reduce File Size',
+      description: 'Convert PNG files to JPG for free. Significantly reduce file size – ideal for email and social media.',
+      cta: 'Convert PNG to JPG now',
+      whyTitle: 'Why convert PNG to JPG?',
+      advantage: 'JPG files are significantly smaller than PNGs. If you don\'t need transparency, you save considerable storage space with JPG – ideal for photos, email attachments and social media posts.'
+    },
+    'tiff-zu-jpg': {
+      title: 'Convert TIFF to JPG – For Web and Email',
+      description: 'Convert large TIFF files to compact JPG images for free. Perfect for web uploads and email.',
+      cta: 'Convert TIFF to JPG now',
+      whyTitle: 'Why convert TIFF to JPG?',
+      advantage: 'TIFF files are optimized for print and often very large. JPG massively reduces the file size and enables easy sharing via web, email or social media.'
+    },
+    'bmp-zu-webp': {
+      title: 'Convert BMP to WebP – Massive Compression',
+      description: 'Convert uncompressed BMP files to the modern WebP format. Drastic size reduction with excellent quality.',
+      cta: 'Convert BMP to WebP now',
+      whyTitle: 'Why convert BMP to WebP?',
+      advantage: 'BMP files are uncompressed and extremely large. WebP offers state-of-the-art compression and reduces file size by up to 95% – ideal for making old BMP archives web-ready.'
+    },
+    'gif-zu-webp': {
+      title: 'Convert GIF to WebP – Smaller and Sharper',
+      description: 'Convert GIF files to WebP for free. Smaller file size with better color depth than GIF.',
+      cta: 'Convert GIF to WebP now',
+      whyTitle: 'Why convert GIF to WebP?',
+      advantage: 'WebP supports more than 256 colors (unlike GIF) and offers better compression. Your images look sharper and load faster – a win for any website.'
+    },
+    'heic-zu-png': {
+      title: 'Convert HEIC to PNG – Lossless Conversion',
+      description: 'Convert iPhone HEIC photos to the lossless PNG format for free. Maximum quality with transparency support.',
+      cta: 'Convert HEIC to PNG now',
+      whyTitle: 'Why convert HEIC to PNG?',
+      advantage: 'PNG offers lossless quality and transparency. Ideal when you want to further edit iPhone photos or archive them at the highest quality.'
+    },
+    'webp-zu-jpg': {
+      title: 'Convert WebP to JPG – Universal Compatibility',
+      description: 'Convert WebP images to the universal JPG format for free. For maximum compatibility with all devices.',
+      cta: 'Convert WebP to JPG now',
+      whyTitle: 'Why convert WebP to JPG?',
+      advantage: 'JPG is supported by every device and program. If you want to use WebP images in older programs, via email or for print, JPG is the safest choice.'
+    },
+    'svg-zu-png': {
+      title: 'Convert SVG to PNG – Vector to Pixel',
+      description: 'Convert SVG vector graphics to PNG pixel images for free. Ideal for social media, presentations and print.',
+      cta: 'Convert SVG to PNG now',
+      whyTitle: 'Why convert SVG to PNG?',
+      advantage: 'SVG is a vector format that cannot be displayed everywhere. PNG is universally compatible and ideal when you need an SVG graphic in a fixed size for social media, presentations or print.'
     }
   },
   editor: {
