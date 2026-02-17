@@ -669,6 +669,7 @@ import FilterPresets from '@/components/editor/FilterPresets.vue'
 
 // ===== NEU: Export Utils Import =====
 import { exportImage, FORMAT_INFO, SUPPORTED_FORMATS, getFormatInfo } from '@/utils/exportUtils'
+import { ApiClient } from '@/api/api'
 
 const { t } = useI18n({ useScope: 'global' })
 const route = useRoute()
@@ -869,33 +870,58 @@ function triggerFileInput() {
   fileInput.value?.click()
 }
 
+/**
+ * Checks if a file needs backend conversion for browser display (TIFF/HEIC)
+ */
+function needsBackendPreview(file) {
+  const unsupportedTypes = ['image/tiff', 'image/heic', 'image/heif']
+  if (unsupportedTypes.includes(file.type)) return true
+  return /\.(tiff?|heic|heif)$/i.test(file.name)
+}
+
+/**
+ * Loads a file into the editor canvas, converting via backend if needed
+ */
+async function loadFileIntoEditor(file) {
+  const fileType = file.type ? file.type.split('/')[1] : file.name.split('.').pop().toLowerCase()
+  currentImageFormat.value = fileType === 'jpeg' ? 'jpg' : fileType
+
+  let imageUrl
+  if (needsBackendPreview(file)) {
+    // Browser can't display TIFF/HEIC – convert to PNG via backend
+    const pngBlob = await ApiClient.convertImage(file, 'png', file.name, {})
+    imageUrl = URL.createObjectURL(pngBlob)
+  } else {
+    imageUrl = await new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = (e) => resolve(e.target.result)
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const img = await new Promise((resolve, reject) => {
+    const i = new Image()
+    i.onload = () => resolve(i)
+    i.onerror = () => reject(new Error('Bild konnte nicht geladen werden'))
+    i.src = imageUrl
+  })
+
+  originalImageDataUrl.value = imageUrl
+  originalImage.value = img
+  await loadImage(img)
+
+  // Also save in store for persistence
+  try {
+    await imageStore.loadImageFromFile(file)
+  } catch (err) {
+    console.warn('Store save failed:', err)
+  }
+}
+
 function handleFileSelect(event) {
   const file = event.target.files[0]
   if (!file) return
-
-  // Erkenne Format des hochgeladenen Bildes
-  const fileType = file.type.split('/')[1] // z.B. 'image/jpeg' -> 'jpeg'
-  currentImageFormat.value = fileType === 'jpeg' ? 'jpg' : fileType
-
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const img = new Image()
-    img.onload = async () => {
-      // Speichere das Original-Bild als Data URL für die Vorschau
-      originalImageDataUrl.value = e.target.result
-      
-      await loadImage(img)
-      // Speichere auch im Store für Persistenz
-      try {
-        await imageStore.loadImageFromFile(file)
-      } catch (err) {
-        console.warn('Store save failed:', err)
-      }
-    }
-    img.src = e.target.result
-    originalImage.value = img
-  }
-  reader.readAsDataURL(file)
+  loadFileIntoEditor(file).catch(err => console.error('Fehler beim Laden:', err))
 }
 
 /**
@@ -932,30 +958,7 @@ function handleFileDrop(event) {
     return
   }
 
-  // Use the same logic as handleFileSelect
-  // Detect format of uploaded image
-  const fileType = file.type ? file.type.split('/')[1] : file.name.split('.').pop().toLowerCase()
-  currentImageFormat.value = fileType === 'jpeg' ? 'jpg' : fileType
-
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const img = new Image()
-    img.onload = async () => {
-      // Save original image as Data URL for preview
-      originalImageDataUrl.value = e.target.result
-
-      await loadImage(img)
-      // Also save in store for persistence
-      try {
-        await imageStore.loadImageFromFile(file)
-      } catch (err) {
-        console.warn('Store save failed:', err)
-      }
-    }
-    img.src = e.target.result
-    originalImage.value = img
-  }
-  reader.readAsDataURL(file)
+  loadFileIntoEditor(file).catch(err => console.error('Fehler beim Laden:', err))
 }
 
 async function loadImage(img) {
