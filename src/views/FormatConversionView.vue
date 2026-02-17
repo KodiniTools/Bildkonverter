@@ -210,17 +210,22 @@ const FORMAT_MAP = {
   BMP: 'bmp',
   HEIC: 'heic',
   HEIF: 'heif',
-  SVG: 'png' // SVG→PNG is rendered client-side
+  SVG: 'svg',
+  PDF: 'pdf'
 }
 
 const outputFormat = computed(() => {
   return FORMAT_MAP[conversionData.value.to] || 'png'
 })
 
+// Extension map for special formats not in FORMAT_INFO
+const EXT_MAP = { jpg: 'jpg', png: 'png', webp: 'webp', bmp: 'bmp', tiff: 'tiff', gif: 'gif', heic: 'heic', heif: 'heif', pdf: 'pdf', svg: 'svg' }
+
 const outputFilename = computed(() => {
   if (!sourceFile.value) return ''
   const baseName = sourceFile.value.name.replace(/\.[^.]+$/, '')
-  const ext = FORMAT_INFO[outputFormat.value]?.extension || outputFormat.value
+  const fmt = outputFormat.value
+  const ext = FORMAT_INFO[fmt]?.extension || EXT_MAP[fmt] || fmt
   return `${baseName}.${ext}`
 })
 
@@ -279,6 +284,56 @@ function readFileAsDataURL(file) {
   })
 }
 
+/**
+ * Converts an image to PDF using jsPDF (dynamic import)
+ */
+async function convertToPDF(canvas, img) {
+  const { jsPDF } = await import('jspdf')
+  const aspectRatio = canvas.width / canvas.height
+  const a4Width = 210
+  const a4Height = 297
+  let orientation, width, height, x, y
+
+  if (aspectRatio > 1) {
+    orientation = 'landscape'
+    width = a4Height - 20
+    height = width / aspectRatio
+    x = 10
+    y = (a4Width - height) / 2
+  } else {
+    orientation = 'portrait'
+    width = a4Width - 20
+    height = width / aspectRatio
+    x = 10
+    y = (a4Height - height) / 2
+    if (height > a4Height - 20) {
+      height = a4Height - 20
+      width = height * aspectRatio
+      x = (a4Width - width) / 2
+      y = 10
+    }
+  }
+
+  const pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4', compress: true })
+  const imgData = canvas.toDataURL('image/jpeg', 0.92)
+  pdf.addImage(imgData, 'JPEG', x, y, width, height, undefined, 'FAST')
+  return pdf.output('blob')
+}
+
+/**
+ * Wraps a raster image inside an SVG container
+ */
+async function convertToSVG(canvas) {
+  const dataURL = canvas.toDataURL('image/png')
+  const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="${canvas.width}" height="${canvas.height}"
+     viewBox="0 0 ${canvas.width} ${canvas.height}">
+  <image width="${canvas.width}" height="${canvas.height}" xlink:href="${dataURL}"/>
+</svg>`
+  return new Blob([svgContent], { type: 'image/svg+xml' })
+}
+
 async function startConversion(file) {
   sourceFile.value = file
   isConverting.value = true
@@ -304,7 +359,7 @@ async function startConversion(file) {
     const format = outputFormat.value
 
     // White background for formats without transparency
-    if (format === 'jpg' || format === 'bmp') {
+    if (format === 'jpg' || format === 'bmp' || format === 'pdf') {
       ctx.fillStyle = '#FFFFFF'
       ctx.fillRect(0, 0, canvas.width, canvas.height)
     }
@@ -313,15 +368,27 @@ async function startConversion(file) {
 
     const formatInfo = FORMAT_INFO[format]
 
-    if (formatInfo && formatInfo.requiresBackend) {
-      // Backend conversion
+    if (format === 'pdf') {
+      // PDF conversion via jsPDF
+      const blob = await convertToPDF(canvas, img)
+      convertedBlob.value = blob
+      convertedSize.value = blob.size
+      convertedUrl.value = URL.createObjectURL(blob)
+    } else if (format === 'svg') {
+      // SVG wrapper conversion
+      const blob = await convertToSVG(canvas)
+      convertedBlob.value = blob
+      convertedSize.value = blob.size
+      convertedUrl.value = URL.createObjectURL(blob)
+    } else if (formatInfo && formatInfo.requiresBackend) {
+      // Backend conversion (TIFF, GIF, HEIF)
       const sourceBlob = await canvasToBlob(canvas, 'image/png', 1)
       const resultBlob = await ApiClient.convertImage(sourceBlob, format, file.name, { quality: 0.92 })
       convertedBlob.value = resultBlob
       convertedSize.value = resultBlob.size
       convertedUrl.value = URL.createObjectURL(resultBlob)
     } else {
-      // Client-side conversion
+      // Client-side raster conversion (PNG, JPG, WebP, BMP)
       let mimeType = 'image/png'
       let quality = undefined
       if (format === 'jpg') { mimeType = 'image/jpeg'; quality = 0.92 }

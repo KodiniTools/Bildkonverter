@@ -162,7 +162,9 @@ const popularConversions = [
   { pair: 'jpg-zu-webp', from: 'JPG', to: 'WebP' },
   { pair: 'webp-zu-jpg', from: 'WebP', to: 'JPG' },
   { pair: 'tiff-zu-jpg', from: 'TIFF', to: 'JPG' },
-  { pair: 'svg-zu-png', from: 'SVG', to: 'PNG' }
+  { pair: 'svg-zu-png', from: 'SVG', to: 'PNG' },
+  { pair: 'jpg-zu-pdf', from: 'JPG', to: 'PDF' },
+  { pair: 'png-zu-svg', from: 'PNG', to: 'SVG' }
 ]
 
 const toggleFaq = (index) => {

@@ -154,7 +154,8 @@ const de = {
       tiff: { info: 'Professionelles Druckformat. Verlustfrei mit hoher Farbtiefe – Standard in der Druckindustrie.' },
       gif: { info: 'Unterstützt Animationen und einfache Grafiken mit bis zu 256 Farben.' },
       bmp: { info: 'Unkomprimiertes Windows-Bitmap-Format. Hohe Qualität, aber große Dateigröße.' },
-      svg: { info: 'Vektorbasiertes Format. Unendlich skalierbar ohne Qualitätsverlust – ideal für Logos und Icons.' }
+      svg: { info: 'Vektorbasiertes Format. Unendlich skalierbar ohne Qualitätsverlust – ideal für Logos und Icons.' },
+      pdf: { info: 'Universelles Dokumentenformat. Ideal für den Druck, Archivierung und den Austausch von Bildern als Dokument.' }
     },
     'heic-zu-jpg': {
       title: 'HEIC in JPG umwandeln – Schnell & Kostenlos',
@@ -239,6 +240,20 @@ const de = {
       cta: 'SVG jetzt in PNG konvertieren',
       whyTitle: 'Warum SVG zu PNG konvertieren?',
       advantage: 'SVG ist ein Vektorformat, das nicht überall angezeigt werden kann. PNG ist universell kompatibel und ideal wenn Sie eine SVG-Grafik in fester Größe für Social Media, Präsentationen oder den Druck benötigen.'
+    },
+    'jpg-zu-pdf': {
+      title: 'JPG in PDF umwandeln – Bilder als Dokument',
+      description: 'JPG-Bilder kostenlos in PDF-Dokumente konvertieren. Perfekt für den Druck, Bewerbungen, Archivierung und den professionellen Versand.',
+      cta: 'JPG jetzt in PDF konvertieren',
+      whyTitle: 'Warum JPG zu PDF konvertieren?',
+      advantage: 'PDF ist das universelle Dokumentenformat und wird auf jedem Gerät identisch angezeigt. Ideal um Fotos professionell zu versenden, zu drucken oder zu archivieren – mit garantierter Darstellung auf allen Plattformen.'
+    },
+    'png-zu-svg': {
+      title: 'PNG in SVG umwandeln – Bild in Vektorformat',
+      description: 'PNG-Bilder kostenlos in das SVG-Format konvertieren. Erzeugt eine SVG-Datei mit eingebettetem Rasterbild – kompatibel mit allen Vektorgrafik-Programmen.',
+      cta: 'PNG jetzt in SVG konvertieren',
+      whyTitle: 'Warum PNG zu SVG konvertieren?',
+      advantage: 'SVG ist das Standardformat für Webgrafiken und wird von allen modernen Browsern und Designprogrammen unterstützt. Durch die Konvertierung erhalten Sie eine SVG-Datei, die Sie in Illustrator, Figma oder als Webgrafik einsetzen können.'
     }
   },
   editor: {
@@ -1145,7 +1160,8 @@ const en = {
       tiff: { info: 'Professional print format. Lossless with high color depth – industry standard for print.' },
       gif: { info: 'Supports animations and simple graphics with up to 256 colors.' },
       bmp: { info: 'Uncompressed Windows bitmap format. High quality, but large file size.' },
-      svg: { info: 'Vector-based format. Infinitely scalable without quality loss – ideal for logos and icons.' }
+      svg: { info: 'Vector-based format. Infinitely scalable without quality loss – ideal for logos and icons.' },
+      pdf: { info: 'Universal document format. Ideal for printing, archiving and sharing images as documents.' }
     },
     'heic-zu-jpg': {
       title: 'Convert HEIC to JPG – Fast & Free',
@@ -1230,6 +1246,20 @@ const en = {
       cta: 'Convert SVG to PNG now',
       whyTitle: 'Why convert SVG to PNG?',
       advantage: 'SVG is a vector format that cannot be displayed everywhere. PNG is universally compatible and ideal when you need an SVG graphic in a fixed size for social media, presentations or print.'
+    },
+    'jpg-zu-pdf': {
+      title: 'Convert JPG to PDF – Images as Documents',
+      description: 'Convert JPG images to PDF documents for free. Perfect for printing, applications, archiving and professional sharing.',
+      cta: 'Convert JPG to PDF now',
+      whyTitle: 'Why convert JPG to PDF?',
+      advantage: 'PDF is the universal document format and displays identically on every device. Ideal for sending photos professionally, printing or archiving – with guaranteed display across all platforms.'
+    },
+    'png-zu-svg': {
+      title: 'Convert PNG to SVG – Image to Vector Format',
+      description: 'Convert PNG images to SVG format for free. Creates an SVG file with embedded raster image – compatible with all vector graphics editors.',
+      cta: 'Convert PNG to SVG now',
+      whyTitle: 'Why convert PNG to SVG?',
+      advantage: 'SVG is the standard format for web graphics and is supported by all modern browsers and design tools. The conversion produces an SVG file you can use in Illustrator, Figma or as a web graphic.'
     }
   },
   editor: {
