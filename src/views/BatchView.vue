@@ -68,18 +68,20 @@
         <div class="setting-group">
           <label>{{ $t('batch.settings.resize') }}</label>
           <div class="resize-options">
-            <input 
+            <input
               v-model.number="settings.width"
               type="number"
               :placeholder="$t('batch.settings.width')"
               min="1"
+              @input="onWidthInput"
             />
             <span>×</span>
-            <input 
+            <input
               v-model.number="settings.height"
               type="number"
               :placeholder="$t('batch.settings.height')"
               min="1"
+              @input="onHeightInput"
             />
             <label class="checkbox-label">
               <input v-model="settings.maintainAspect" type="checkbox" />
@@ -249,7 +251,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { FORMAT_INFO } from '@/utils/exportUtils'
 import { ApiClient } from '@/api/api'
@@ -271,6 +273,33 @@ const settings = ref({
   height: null,
   maintainAspect: true,
   prefix: ''
+})
+
+// Aspect ratio: use the first uploaded image as reference
+const referenceAspectRatio = ref(null)
+const isUpdatingDimension = ref(false)
+
+function onWidthInput() {
+  if (!settings.value.maintainAspect || isUpdatingDimension.value) return
+  if (!settings.value.width || !referenceAspectRatio.value) return
+  isUpdatingDimension.value = true
+  settings.value.height = Math.max(1, Math.round(settings.value.width / referenceAspectRatio.value))
+  isUpdatingDimension.value = false
+}
+
+function onHeightInput() {
+  if (!settings.value.maintainAspect || isUpdatingDimension.value) return
+  if (!settings.value.height || !referenceAspectRatio.value) return
+  isUpdatingDimension.value = true
+  settings.value.width = Math.max(1, Math.round(settings.value.height * referenceAspectRatio.value))
+  isUpdatingDimension.value = false
+}
+
+// When maintainAspect is toggled on, recalculate height from current width
+watch(() => settings.value.maintainAspect, (newVal) => {
+  if (newVal && settings.value.width && referenceAspectRatio.value) {
+    settings.value.height = Math.max(1, Math.round(settings.value.width / referenceAspectRatio.value))
+  }
 })
 
 // Computed
@@ -350,6 +379,14 @@ async function addFiles(fileList) {
       processedSize: 0,
       error: null
     })
+  }
+
+  // Set reference aspect ratio from first image for maintain-aspect-ratio calculations
+  if (!referenceAspectRatio.value && files.value.length > 0) {
+    const first = files.value[0]
+    if (first.width && first.height) {
+      referenceAspectRatio.value = first.width / first.height
+    }
   }
 
   window.$toast?.success(t('toast.batch.filesAdded', { count: imageFiles.length }))
@@ -631,6 +668,7 @@ function clearAll() {
     })
     files.value = []
     processedFiles.value = []
+    referenceAspectRatio.value = null
     window.$toast?.info(t('toast.batch.cleared'))
   }
 }
