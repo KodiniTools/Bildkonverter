@@ -96,6 +96,17 @@ const router = createRouter({
         path: '/about'
       }
     },
+    {
+      path: '/faq',
+      name: 'faq',
+      component: () => import('@/views/FaqView.vue'),
+      meta: {
+        title: 'Häufig gestellte Fragen (FAQ)',
+        description: 'Antworten auf häufig gestellte Fragen zum Bildkonverter Pro: Unterstützte Formate, Datenschutz, Filter, Zuschneiden, Drehen und Download.',
+        keywords: 'FAQ Bildkonverter, häufig gestellte Fragen, Bildkonverter Hilfe, Bildformate FAQ',
+        path: '/faq'
+      }
+    },
     // Format-spezifische Konvertierungs-Landingpages
     {
       path: '/konvertieren/:pair',
