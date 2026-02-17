@@ -11,7 +11,7 @@
           <input 
             ref="fileInput" 
             type="file" 
-            accept="image/*" 
+            accept="image/*,.tiff,.tif,.heic,.heif"
             @change="handleFileSelect"
             style="display: none"
           >
@@ -925,15 +925,16 @@ function handleFileDrop(event) {
 
   const file = files[0]
 
-  // Validate that it's an image file
-  if (!file.type.startsWith('image/')) {
+  // Validate that it's an image file (also check extension for TIFF/HEIC where MIME may be empty)
+  const isImage = file.type.startsWith('image/') || /\.(jpe?g|png|gif|webp|bmp|svg|tiff?|heic|heif)$/i.test(file.name)
+  if (!isImage) {
     console.warn('Dropped file is not an image:', file.type)
     return
   }
 
   // Use the same logic as handleFileSelect
   // Detect format of uploaded image
-  const fileType = file.type.split('/')[1] // e.g. 'image/jpeg' -> 'jpeg'
+  const fileType = file.type ? file.type.split('/')[1] : file.name.split('.').pop().toLowerCase()
   currentImageFormat.value = fileType === 'jpeg' ? 'jpg' : fileType
 
   const reader = new FileReader()

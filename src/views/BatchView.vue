@@ -18,7 +18,7 @@
         ref="fileInput"
         type="file"
         multiple
-        accept="image/*"
+        accept="image/*,.tiff,.tif,.heic,.heif"
         @change="handleFileSelect"
         style="display: none"
       />
@@ -311,8 +311,13 @@ function needsBackendPreview(file) {
   return /\.(tiff?|heic|heif)$/i.test(file.name)
 }
 
+function isImageFile(file) {
+  if (file.type.startsWith('image/')) return true
+  return /\.(jpe?g|png|gif|webp|bmp|svg|tiff?|heic|heif)$/i.test(file.name)
+}
+
 async function addFiles(fileList) {
-  const imageFiles = fileList.filter(f => f.type.startsWith('image/'))
+  const imageFiles = fileList.filter(f => isImageFile(f))
 
   if (imageFiles.length === 0) {
     window.$toast?.warning(t('toast.batch.noImages'))
