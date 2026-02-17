@@ -1327,11 +1327,21 @@ function renderImage() {
     shadowPadding = Math.max(offsetX, offsetY) + blur + 10
   }
 
-  // Berechne Bildbereich mit Padding
-  const drawX = shadowPadding
-  const drawY = shadowPadding
-  const drawWidth = canvas.value.width - (shadowPadding * 2)
-  const drawHeight = canvas.value.height - (shadowPadding * 2)
+  // Berechne Skew-Padding damit das geskewte Bild nicht abgeschnitten wird
+  let skewPadX = 0
+  let skewPadY = 0
+  if (transform.transforms.value.skewX !== 0 || transform.transforms.value.skewY !== 0) {
+    skewPadX = Math.ceil(Math.abs(Math.tan(transform.transforms.value.skewX * Math.PI / 180)) * canvas.value.height / 2)
+    skewPadY = Math.ceil(Math.abs(Math.tan(transform.transforms.value.skewY * Math.PI / 180)) * canvas.value.width / 2)
+  }
+
+  // Berechne Bildbereich mit Padding (Shadow + Skew)
+  const totalPadX = shadowPadding + skewPadX
+  const totalPadY = shadowPadding + skewPadY
+  const drawX = totalPadX
+  const drawY = totalPadY
+  const drawWidth = canvas.value.width - (totalPadX * 2)
+  const drawHeight = canvas.value.height - (totalPadY * 2)
 
   // Hintergrund zeichnen (unterste Ebene)
   if (background.value.opacity > 0) {
