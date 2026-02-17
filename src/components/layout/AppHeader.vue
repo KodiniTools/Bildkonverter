@@ -91,9 +91,10 @@ function closeMobileMenu() {
 }
 
 .header-container {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   height: var(--header-height);
   padding: 0 var(--spacing-lg);
   max-width: 1400px;
@@ -141,9 +142,15 @@ function closeMobileMenu() {
 }
 
 .header-actions {
+  position: absolute;
+  right: var(--spacing-lg);
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
+
+  @media (max-width: 768px) {
+    right: var(--spacing-md);
+  }
 }
 
 .btn-icon {
