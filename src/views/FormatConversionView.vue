@@ -321,9 +321,24 @@ async function convertToPDF(canvas, img) {
 }
 
 /**
- * Wraps a raster image inside an SVG container
+ * Converts raster image to SVG.
+ * Tries backend vectorization (potrace/vtracer) first,
+ * falls back to SVG wrapper with embedded raster image.
  */
-async function convertToSVG(canvas) {
+async function convertToSVG(canvas, filename) {
+  // Try backend vectorization first
+  try {
+    const sourceBlob = await canvasToBlob(canvas, 'image/png', 1)
+    const svgBlob = await ApiClient.convertImage(sourceBlob, 'svg', filename, {})
+    // Verify we got valid SVG back
+    if (svgBlob && svgBlob.size > 0) {
+      return svgBlob
+    }
+  } catch (error) {
+    console.warn('Backend-SVG nicht verfügbar, verwende Client-Fallback:', error.message)
+  }
+
+  // Fallback: SVG wrapper with embedded raster
   const dataURL = canvas.toDataURL('image/png')
   const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -375,8 +390,8 @@ async function startConversion(file) {
       convertedSize.value = blob.size
       convertedUrl.value = URL.createObjectURL(blob)
     } else if (format === 'svg') {
-      // SVG wrapper conversion
-      const blob = await convertToSVG(canvas)
+      // SVG conversion (backend vectorization with client fallback)
+      const blob = await convertToSVG(canvas, file.name)
       convertedBlob.value = blob
       convertedSize.value = blob.size
       convertedUrl.value = URL.createObjectURL(blob)
