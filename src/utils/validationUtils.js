@@ -37,15 +37,18 @@ export class ValidationUtils {
       'image/webp',
       'image/gif',
       'image/bmp',
-      'image/svg+xml'
+      'image/svg+xml',
+      'image/tiff',
+      'image/heic',
+      'image/heif'
     ]
-    
+
     if (!allowedTypes.includes(file.type)) {
-      errors.push(`Ungültiger Dateityp: ${file.type}. Erlaubt: JPG, PNG, WEBP, GIF, BMP, SVG`)
+      errors.push(`Ungültiger Dateityp: ${file.type}. Erlaubt: JPG, PNG, WEBP, GIF, BMP, SVG, TIFF, HEIC`)
     }
-    
+
     // Dateiendung prüfen
-    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.svg']
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.svg', '.tiff', '.tif', '.heic', '.heif']
     const extension = file.name.toLowerCase().match(/\.[^.]+$/)
     
     if (!extension || !allowedExtensions.includes(extension[0])) {

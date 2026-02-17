@@ -20,7 +20,7 @@
         <div class="upload-info">
           <p class="text-muted">
             <strong>{{ $t('upload.supportedFormats') }}:</strong> 
-            JPG, PNG, GIF, WebP, BMP
+            JPG, PNG, GIF, WebP, BMP, TIFF, HEIC
           </p>
           <p class="text-muted">
             <strong>{{ $t('upload.maxFileSize') }}:</strong> 
