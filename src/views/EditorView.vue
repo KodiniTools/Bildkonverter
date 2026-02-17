@@ -1335,9 +1335,24 @@ function renderImage() {
     skewPadY = Math.ceil(Math.abs(Math.tan(transform.transforms.value.skewY * Math.PI / 180)) * canvas.value.width / 2)
   }
 
-  // Berechne Bildbereich mit Padding (Shadow + Skew)
-  const totalPadX = shadowPadding + skewPadX
-  const totalPadY = shadowPadding + skewPadY
+  // Berechne Rotations-Padding damit das rotierte Bild nicht abgeschnitten wird
+  let rotPadX = 0
+  let rotPadY = 0
+  if (transform.transforms.value.rotation !== 0) {
+    const radians = (transform.transforms.value.rotation * Math.PI) / 180
+    const cos = Math.abs(Math.cos(radians))
+    const sin = Math.abs(Math.sin(radians))
+    const w = canvas.value.width - (shadowPadding + skewPadX) * 2
+    const h = canvas.value.height - (shadowPadding + skewPadY) * 2
+    const rotatedW = w * cos + h * sin
+    const rotatedH = w * sin + h * cos
+    rotPadX = Math.ceil((rotatedW - w) / 2)
+    rotPadY = Math.ceil((rotatedH - h) / 2)
+  }
+
+  // Berechne Bildbereich mit Padding (Shadow + Skew + Rotation)
+  const totalPadX = shadowPadding + skewPadX + rotPadX
+  const totalPadY = shadowPadding + skewPadY + rotPadY
   const drawX = totalPadX
   const drawY = totalPadY
   const drawWidth = canvas.value.width - (totalPadX * 2)
@@ -1818,9 +1833,24 @@ function renderImageForExport(forceTransparent = false) {
     skewPadY = Math.ceil(Math.abs(Math.tan(transform.transforms.value.skewY * Math.PI / 180)) * canvas.value.width / 2)
   }
 
-  // Berechne Bildbereich mit Padding (Shadow + Skew)
-  const totalPadX = shadowPadding + skewPadX
-  const totalPadY = shadowPadding + skewPadY
+  // Berechne Rotations-Padding damit das rotierte Bild nicht abgeschnitten wird
+  let rotPadX = 0
+  let rotPadY = 0
+  if (transform.transforms.value.rotation !== 0) {
+    const radians = (transform.transforms.value.rotation * Math.PI) / 180
+    const cos = Math.abs(Math.cos(radians))
+    const sin = Math.abs(Math.sin(radians))
+    const w = canvas.value.width - (shadowPadding + skewPadX) * 2
+    const h = canvas.value.height - (shadowPadding + skewPadY) * 2
+    const rotatedW = w * cos + h * sin
+    const rotatedH = w * sin + h * cos
+    rotPadX = Math.ceil((rotatedW - w) / 2)
+    rotPadY = Math.ceil((rotatedH - h) / 2)
+  }
+
+  // Berechne Bildbereich mit Padding (Shadow + Skew + Rotation)
+  const totalPadX = shadowPadding + skewPadX + rotPadX
+  const totalPadY = shadowPadding + skewPadY + rotPadY
   const drawX = totalPadX
   const drawY = totalPadY
   const drawWidth = canvas.value.width - (totalPadX * 2)
