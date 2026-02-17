@@ -179,19 +179,19 @@ const popularConversions = [
   grid-template-columns: 1fr 1fr;
   gap: var(--spacing-2xl);
   align-items: center;
-  padding: 5rem 4rem 6rem;
-  min-height: 80vh;
+  padding: 3.5rem 4rem;
+  min-height: 60vh;
   max-width: 1400px;
   margin: 0 auto;
   background: linear-gradient(135deg, var(--color-accent-lighter) 0%, var(--color-bg-gradient) 50%, var(--color-bg) 100%);
 
   @media (max-width: 1024px) {
-    padding: 4rem 3rem 5rem;
+    padding: 3rem 3rem;
   }
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
-    padding: 3rem 1.5rem 4rem;
+    padding: 2.5rem 1.5rem;
     text-align: center;
   }
 }
@@ -364,15 +364,15 @@ const popularConversions = [
 }
 
 .features-section {
-  padding: 5rem 4rem;
+  padding: 3rem 4rem;
   background: var(--color-bg-primary);
 
   @media (max-width: 1024px) {
-    padding: 4rem 3rem;
+    padding: 2.5rem 3rem;
   }
 
   @media (max-width: 768px) {
-    padding: 3rem 1.5rem;
+    padding: 2rem 1.5rem;
   }
 
   h2 {
@@ -473,7 +473,7 @@ const popularConversions = [
   padding: 3rem 4rem;
 
   @media (max-width: 1024px) {
-    padding: 3rem;
+    padding: 2.5rem 3rem;
   }
 
   @media (max-width: 768px) {
@@ -549,12 +549,16 @@ const popularConversions = [
 
 // WebP Promo Banner
 .webp-promo-section {
-  padding: 0 4rem 2rem;
+  padding: 3rem 4rem;
   max-width: 900px;
   margin: 0 auto;
 
+  @media (max-width: 1024px) {
+    padding: 2.5rem 3rem;
+  }
+
   @media (max-width: 768px) {
-    padding: 0 1.5rem 2rem;
+    padding: 2rem 1.5rem;
   }
 }
 
@@ -612,14 +616,14 @@ const popularConversions = [
 
 // Weitere Tools
 .more-tools-section {
-  padding: 4rem 4rem 2rem;
+  padding: 3rem 4rem;
 
   @media (max-width: 1024px) {
-    padding: 3rem;
+    padding: 2.5rem 3rem;
   }
 
   @media (max-width: 768px) {
-    padding: 2.5rem 1.5rem;
+    padding: 2rem 1.5rem;
   }
 
   h2 {
@@ -741,7 +745,7 @@ const popularConversions = [
 
 @media (max-width: 480px) {
   .hero-section {
-    padding: 2rem 1rem 3rem;
+    padding: 1.5rem 1rem;
     min-height: auto;
   }
 
@@ -754,7 +758,7 @@ const popularConversions = [
   }
 
   .features-section {
-    padding: 2.5rem 1rem;
+    padding: 1.5rem 1rem;
 
     h2 {
       font-size: 1.5rem;
