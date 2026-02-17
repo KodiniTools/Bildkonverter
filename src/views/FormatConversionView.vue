@@ -349,6 +349,16 @@ async function convertToSVG(canvas, filename) {
   return new Blob([svgContent], { type: 'image/svg+xml' })
 }
 
+/**
+ * Checks if a file format cannot be displayed natively in the browser
+ */
+function needsBackendPreview(file) {
+  const unsupportedTypes = ['image/tiff', 'image/heic', 'image/heif']
+  if (unsupportedTypes.includes(file.type)) return true
+  // Fallback: check extension (some OS don't set MIME correctly)
+  return /\.(tiff?|heic|heif)$/i.test(file.name)
+}
+
 async function startConversion(file) {
   sourceFile.value = file
   isConverting.value = true
@@ -359,12 +369,20 @@ async function startConversion(file) {
   window.$toast?.info(t('toast.conversion.uploadReceived'))
 
   try {
-    // Read the source file
-    const dataURL = await readFileAsDataURL(file)
-    sourcePreview.value = dataURL
+    let previewUrl
+
+    if (needsBackendPreview(file)) {
+      // Browser can't display TIFF/HEIC natively – convert to PNG via backend
+      const pngBlob = await ApiClient.convertImage(file, 'png', file.name, {})
+      previewUrl = URL.createObjectURL(pngBlob)
+    } else {
+      previewUrl = await readFileAsDataURL(file)
+    }
+
+    sourcePreview.value = previewUrl
 
     // Load image onto canvas
-    const img = await loadImage(dataURL)
+    const img = await loadImage(previewUrl)
 
     const canvas = document.createElement('canvas')
     canvas.width = img.width

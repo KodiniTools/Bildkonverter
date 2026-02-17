@@ -302,6 +302,15 @@ function handleDrop(event) {
   addFiles(droppedFiles)
 }
 
+/**
+ * Checks if a file format cannot be displayed natively in the browser
+ */
+function needsBackendPreview(file) {
+  const unsupportedTypes = ['image/tiff', 'image/heic', 'image/heif']
+  if (unsupportedTypes.includes(file.type)) return true
+  return /\.(tiff?|heic|heif)$/i.test(file.name)
+}
+
 async function addFiles(fileList) {
   const imageFiles = fileList.filter(f => f.type.startsWith('image/'))
 
@@ -311,7 +320,14 @@ async function addFiles(fileList) {
   }
 
   for (const file of imageFiles) {
-    const preview = await createPreview(file)
+    let preview
+    if (needsBackendPreview(file)) {
+      // Browser can't display TIFF/HEIC – convert to PNG via backend for preview
+      const pngBlob = await ApiClient.convertImage(file, 'png', file.name, {})
+      preview = URL.createObjectURL(pngBlob)
+    } else {
+      preview = await createPreview(file)
+    }
     const dimensions = await getImageDimensions(preview)
 
     files.value.push({

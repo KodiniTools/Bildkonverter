@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, reactive } from 'vue'
 import { ValidationUtils } from '@/utils/validationUtils'
+import { ApiClient } from '@/api/api'
 import {
   drawText,
   drawTextSelection,
@@ -133,11 +134,22 @@ export const useImageStore = defineStore('image', () => {
       if (!validation.isValid) {
         throw new Error(validation.errors.join(', '))
       }
-      
+
       isProcessing.value = true
-      
+
+      // Browser-inkompatible Formate (TIFF, HEIC) via Backend zu PNG konvertieren
+      let url
+      const unsupportedTypes = ['image/tiff', 'image/heic', 'image/heif']
+      const needsConversion = unsupportedTypes.includes(file.type) || /\.(tiff?|heic|heif)$/i.test(file.name)
+
+      if (needsConversion) {
+        const pngBlob = await ApiClient.convertImage(file, 'png', file.name, {})
+        url = URL.createObjectURL(pngBlob)
+      } else {
+        url = URL.createObjectURL(file)
+      }
+
       // Bild laden
-      const url = URL.createObjectURL(file)
       await loadImageFromUrl(url)
       
       // State aktualisieren
