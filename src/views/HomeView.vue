@@ -111,49 +111,11 @@
       </div>
     </section>
 
-    <section class="faq-section">
-      <h2>{{ $t('home.faq.title') }}</h2>
-      <p class="faq-subtitle">{{ $t('home.faq.subtitle') }}</p>
-      
-      <div class="faq-container">
-        <div 
-          v-for="(faq, index) in faqs" 
-          :key="index" 
-          class="faq-item"
-          :class="{ 'active': activeFaq === index }"
-          @click="toggleFaq(index)"
-        >
-          <div class="faq-question">
-            <h3>{{ $t(`home.faq.items.${faq.key}.question`) }}</h3>
-            <i class="fas" :class="activeFaq === index ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
-          </div>
-          <div class="faq-answer" v-show="activeFaq === index">
-            <p>{{ $t(`home.faq.items.${faq.key}.answer`) }}</p>
-          </div>
-        </div>
-      </div>
-    </section>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import heroImage from '@/assets/foto/foto1.jpg'
-
-const { t, locale } = useI18n({ useScope: 'global' })
-
-// FAQ State
-const activeFaq = ref(null)
-
-const faqs = [
-  { key: 'formats' },
-  { key: 'privacy' },
-  { key: 'filters' },
-  { key: 'crop' },
-  { key: 'resize' },
-  { key: 'download' }
-]
 
 // Beliebte Konvertierungs-Paare (Long-Tail SEO)
 const popularConversions = [
@@ -166,38 +128,6 @@ const popularConversions = [
   { pair: 'jpg-zu-pdf', from: 'JPG', to: 'PDF' },
   { pair: 'png-zu-svg', from: 'PNG', to: 'SVG' }
 ]
-
-const toggleFaq = (index) => {
-  activeFaq.value = activeFaq.value === index ? null : index
-}
-
-// FAQ JSON-LD Structured Data
-const faqJsonLd = computed(() => ({
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  'mainEntity': faqs.map(faq => ({
-    '@type': 'Question',
-    'name': t(`home.faq.items.${faq.key}.question`),
-    'acceptedAnswer': {
-      '@type': 'Answer',
-      'text': t(`home.faq.items.${faq.key}.answer`)
-    }
-  }))
-}))
-
-function updateFaqSchema() {
-  let script = document.getElementById('faq-jsonld')
-  if (!script) {
-    script = document.createElement('script')
-    script.id = 'faq-jsonld'
-    script.type = 'application/ld+json'
-    document.head.appendChild(script)
-  }
-  script.textContent = JSON.stringify(faqJsonLd.value)
-}
-
-onMounted(updateFaqSchema)
-watch(locale, updateFaqSchema)
 </script>
 
 <style lang="scss" scoped>
@@ -641,118 +571,8 @@ watch(locale, updateFaqSchema)
   }
 }
 
-.faq-section {
-  margin-top: 4rem;
-  padding-top: 5rem;
-  padding-bottom: 3rem;
-  padding-left: var(--spacing-xl);
-  padding-right: var(--spacing-xl);
-  background: var(--color-bg-secondary);
-  
-  h2 {
-    text-align: center;
-    font-size: 2.5rem;
-    margin-bottom: var(--spacing-md);
-  }
-  
-  .faq-subtitle {
-    text-align: center;
-    font-size: 1.1rem;
-    color: var(--color-text-secondary);
-    margin-bottom: var(--spacing-2xl);
-  }
-}
-
-.faq-container {
-  max-width: 800px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-
-.faq-item {
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-lg);
-  overflow: hidden;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  
-  &:hover {
-    box-shadow: var(--shadow-md);
-  }
-  
-  &.active {
-    border-color: var(--color-primary);
-    box-shadow: 0 4px 12px rgba(1, 79, 153, 0.15);
-  }
-}
-
-.faq-question {
-  padding: var(--spacing-lg);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--spacing-md);
-  
-  h3 {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--color-text-primary);
-    margin: 0;
-  }
-  
-  i {
-    font-size: 1rem;
-    color: var(--color-primary);
-    transition: transform 0.3s ease;
-  }
-}
-
-.faq-answer {
-  padding: 0 var(--spacing-lg) var(--spacing-lg);
-  animation: fadeIn 0.3s ease;
-  
-  p {
-    color: var(--color-text-secondary);
-    line-height: 1.7;
-    margin: 0;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 @media (max-width: 768px) {
-  .faq-section {
-    margin-top: 3rem;
-    padding-top: 3.5rem;
-    padding-bottom: 2rem;
-    padding-left: var(--spacing-md);
-    padding-right: var(--spacing-md);
-
-    h2 {
-      font-size: 2rem;
-    }
-  }
-
-  .faq-question {
-    padding: var(--spacing-md);
-
-    h3 {
-      font-size: 1rem;
-    }
-  }
-
   .features-grid {
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: var(--spacing-lg);
@@ -809,33 +629,5 @@ watch(locale, updateFaqSchema)
     }
   }
 
-  .faq-section {
-    padding-left: var(--spacing-sm);
-    padding-right: var(--spacing-sm);
-
-    h2 {
-      font-size: 1.6rem;
-    }
-
-    .faq-subtitle {
-      font-size: 0.95rem;
-    }
-  }
-
-  .faq-question {
-    padding: var(--spacing-sm) var(--spacing-md);
-
-    h3 {
-      font-size: 0.9rem;
-    }
-  }
-
-  .faq-answer {
-    padding: 0 var(--spacing-md) var(--spacing-md);
-
-    p {
-      font-size: 0.9rem;
-    }
-  }
 }
 </style>

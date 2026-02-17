@@ -17,6 +17,7 @@ const de = {
     gallery: 'Galerie',
     guide: 'Anleitung',
     about: 'Über uns',
+    faq: 'FAQ',
     upload: 'Bild hochladen',
     edit: 'Bearbeiten',
     filters: 'Filter',
@@ -103,6 +104,43 @@ const de = {
       title: 'Warum WebP? Verbessere dein Google PageSpeed Ranking!',
       description: 'WebP bietet bis zu 30% kleinere Dateien als PNG und JPG bei gleicher Qualität. Google empfiehlt WebP für schnellere Ladezeiten – ein direkter Ranking-Faktor für SEO.',
       cta: 'Jetzt zu WebP konvertieren'
+    }
+  },
+  faq: {
+    title: 'Häufig gestellte Fragen',
+    subtitle: 'Alles, was Sie über unseren Bildeditor wissen müssen',
+    items: {
+      formats: {
+        question: 'Welche Bildformate werden unterstützt?',
+        answer: 'Unser Editor unterstützt PNG, JPEG, WEBP, TIFF, GIF, HAIF und PDF Formate. Sie können Bilder hochladen und in jedes dieser Formate konvertieren.'
+      },
+      privacy: {
+        question: 'Sind meine Bilder sicher und privat?',
+        answer: 'Ja, absolut. Der Schutz Ihrer Daten hat für uns höchste Priorität. Um transparent zu sein, hängt der genaue Prozess vom gewählten Dateiformat ab:\n\n' +
+          'Für die meisten Formate: Wenn Sie gängige Formate wie JPG, PNG, WEBP und PDF konvertieren, findet die gesamte Verarbeitung zu 100% lokal in Ihrem Webbrowser statt. Ihre Bilder verlassen Ihr Gerät zu keinem Zeitpunkt. Dies ist die schnellste und privateste Methode, die wir für die Mehrheit unserer Formate anbieten.\n\n' +
+          'Für Spezialformate: Für komplexe Formate wie TIFF, GIF und HAIC ist eine serverseitige Verarbeitung auf unseren Servern nötig, da Browser diese Umwandlung (noch) nicht lokal durchführen können.\n\n' +
+          'Unser Datenschutz-Versprechen für diese Server-Verarbeitung:\n' +
+          '1. Sicherer Upload: Ihre Datei wird SSL-verschlüsselt auf unseren Server übertragen.\n' +
+          '2. Standort Deutschland: Unser Server steht in Deutschland und arbeitet streng nach DSGVO-Richtlinien.\n' +
+          '3. Keine Speicherung: Ihre Datei wird ausschließlich für den automatisierten Konvertierungsprozess genutzt und unmittelbar (spätestens innerhalb von 15 Minuten) nach der erfolgreichen Konvertierung dauerhaft gelöscht.\n' +
+          '4. Keine Einsicht: Weder das Original noch die konvertierte Datei wird von uns gespeichert, analysiert oder eingesehen.'
+      },
+      filters: {
+        question: 'Welche Filter und Anpassungen kann ich vornehmen?',
+        answer: 'Sie können Helligkeit, Kontrast, Sättigung, Unschärfe und Farbton anpassen. Zusätzlich bieten wir vorgefertigte Presets wie Grayscale, Sepia, Vintage und mehr für schnelle Stiländerungen.'
+      },
+      crop: {
+        question: 'Kann ich Bilder zuschneiden und in der Größe ändern?',
+        answer: 'Ja, Sie können Bilder präzise zuschneiden und die Größe anpassen. Mit der Crop-Funktion wählen Sie den gewünschten Bereich aus, und mit den Resize-Optionen ändern Sie Breite und Höhe bei Beibehaltung des Seitenverhältnisses.'
+      },
+      resize: {
+        question: 'Kann ich Bilder drehen und spiegeln?',
+        answer: 'Selbstverständlich! Sie können Bilder um 90° oder 180° drehen, horizontal oder vertikal spiegeln und sogar benutzerdefinierte Rotationen mit präziser Gradeingabe durchführen.'
+      },
+      download: {
+        question: 'Wie speichere ich mein bearbeitetes Bild?',
+        answer: 'Klicken Sie einfach auf den Download-Button in der Toolbar. Sie können das Bildformat wählen und das bearbeitete Bild wird direkt auf Ihr Gerät heruntergeladen. Kein Account erforderlich!'
+      }
     }
   },
   conversion: {
@@ -1023,6 +1061,7 @@ const en = {
     gallery: 'Gallery',
     guide: 'Guide',
     about: 'About',
+    faq: 'FAQ',
     upload: 'Upload Image',
     edit: 'Edit',
     filters: 'Filters',
@@ -1109,6 +1148,43 @@ const en = {
       title: 'Why WebP? Improve your Google PageSpeed ranking!',
       description: 'WebP offers up to 30% smaller files than PNG and JPG at the same quality. Google recommends WebP for faster loading times – a direct ranking factor for SEO.',
       cta: 'Convert to WebP now'
+    }
+  },
+  faq: {
+    title: 'Frequently Asked Questions',
+    subtitle: 'Everything you need to know about our image editor',
+    items: {
+      formats: {
+        question: 'Which image formats are supported?',
+        answer: 'Our editor supports PNG, JPEG, WEBP, TIFF, GIF, HAIF, and PDF formats. You can upload images and convert them to any of these formats.'
+      },
+      privacy: {
+        question: 'Are my images safe and private?',
+        answer: 'Yes, absolutely. Protecting your data is our top priority. To be transparent, the exact process depends on the file format you choose:\n\n' +
+          'For most formats: When you convert common formats like JPG, PNG, WEBP, and PDF, all processing happens 100% locally in your web browser. Your images never leave your device. This is the fastest and most private method we offer for the majority of our formats.\n\n' +
+          'For specialized formats: For complex formats like TIFF, GIF, and HAIC, server-side processing on our servers is necessary, as browsers cannot (yet) perform these conversions locally.\n\n' +
+          'Our privacy promise for this server processing:\n' +
+          '1. Secure upload: Your file is transferred to our server with SSL encryption.\n' +
+          '2. Location Germany: Our server is located in Germany and operates strictly according to GDPR regulations.\n' +
+          '3. No storage: Your file is used exclusively for the automated conversion process and permanently deleted immediately (at the latest within 15 minutes) after successful conversion.\n' +
+          '4. No inspection: Neither the original nor the converted file is stored, analyzed, or viewed by us.'
+      },
+      filters: {
+        question: 'What filters and adjustments can I make?',
+        answer: 'You can adjust brightness, contrast, saturation, blur, and hue. Additionally, we offer pre-made presets like Grayscale, Sepia, Vintage, and more for quick style changes.'
+      },
+      crop: {
+        question: 'Can I crop and resize images?',
+        answer: 'Yes, you can precisely crop images and adjust their size. Use the crop function to select the desired area, and the resize options to change width and height while maintaining aspect ratio.'
+      },
+      resize: {
+        question: 'Can I rotate and flip images?',
+        answer: 'Of course! You can rotate images by 90° or 180°, flip horizontally or vertically, and even perform custom rotations with precise degree input.'
+      },
+      download: {
+        question: 'How do I save my edited image?',
+        answer: 'Simply click the download button in the toolbar. You can choose the image format and the edited image will be downloaded directly to your device. No account required!'
+      }
     }
   },
   conversion: {

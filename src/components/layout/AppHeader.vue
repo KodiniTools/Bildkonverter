@@ -1,14 +1,6 @@
 <template>
   <header class="app-header">
     <div class="header-container">
-      <!-- Logo & Title -->
-      <div class="header-left">
-        <router-link to="/" class="logo">
-          <i class="fas fa-images"></i>
-          <span class="logo-text">{{ $t('app.title') }}</span>
-        </router-link>
-      </div>
-
       <!-- Navigation -->
       <nav class="header-nav">
         <router-link 
@@ -70,6 +62,7 @@ const routes = [
   { path: '/editor', icon: 'fas fa-edit', label: 'nav.editor' },
   { path: '/gallery', icon: 'fas fa-images', label: 'nav.gallery' },
   { path: '/guide', icon: 'fas fa-book-open', label: 'nav.guide' },
+  { path: '/faq', icon: 'fas fa-question-circle', label: 'nav.faq' },
   { path: '/about', icon: 'fas fa-info-circle', label: 'nav.about' }
 ]
 
@@ -109,46 +102,6 @@ function closeMobileMenu() {
   @media (max-width: 768px) {
     height: var(--header-height-mobile);
     padding: 0 var(--spacing-md);
-  }
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  text-decoration: none;
-  color: var(--color-text-primary);
-  font-size: 1.3rem;
-  font-weight: 700;
-  transition: color 0.2s ease;
-  
-  i {
-    color: var(--color-primary);
-    font-size: 1.5rem;
-  }
-  
-  &:hover {
-    color: var(--color-primary);
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 1.1rem;
-
-    .logo-text {
-      font-size: 0.95rem;
-    }
-  }
-
-  @media (max-width: 360px) {
-    .logo-text {
-      display: none;
-    }
   }
 }
 
