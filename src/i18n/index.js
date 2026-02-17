@@ -833,6 +833,24 @@ const de = {
       flippedHorizontal: 'Bild horizontal gespiegelt',
       flippedVertical: 'Bild vertikal gespiegelt',
       reset: 'Transformationen zurückgesetzt'
+    },
+    batch: {
+      filesAdded: '{count} Bild(er) hinzugefügt',
+      noImages: 'Keine gültigen Bilddateien gefunden',
+      processingStarted: 'Konvertierung gestartet für {count} Bild(er)',
+      processingComplete: '{success} von {total} Bild(ern) erfolgreich konvertiert',
+      processingCompleteAll: 'Alle {count} Bilder erfolgreich konvertiert!',
+      fileError: 'Fehler bei „{name}": {error}',
+      downloadStarted: 'Download gestartet',
+      downloadAllStarted: 'Download aller {count} Dateien gestartet',
+      cleared: 'Alle Dateien entfernt',
+      fileRemoved: '„{name}" entfernt'
+    },
+    conversion: {
+      success: '{from} erfolgreich in {to} konvertiert',
+      error: 'Konvertierung fehlgeschlagen: {error}',
+      downloadStarted: '{filename} wird heruntergeladen',
+      uploadReceived: 'Bild empfangen – Konvertierung läuft...'
     }
   },
   layerPanel: {
@@ -1806,6 +1824,24 @@ const en = {
       flippedHorizontal: 'Image flipped horizontally',
       flippedVertical: 'Image flipped vertically',
       reset: 'Transformations reset'
+    },
+    batch: {
+      filesAdded: '{count} image(s) added',
+      noImages: 'No valid image files found',
+      processingStarted: 'Conversion started for {count} image(s)',
+      processingComplete: '{success} of {total} image(s) successfully converted',
+      processingCompleteAll: 'All {count} images successfully converted!',
+      fileError: 'Error on "{name}": {error}',
+      downloadStarted: 'Download started',
+      downloadAllStarted: 'Downloading all {count} files',
+      cleared: 'All files removed',
+      fileRemoved: '"{name}" removed'
+    },
+    conversion: {
+      success: '{from} successfully converted to {to}',
+      error: 'Conversion failed: {error}',
+      downloadStarted: 'Downloading {filename}',
+      uploadReceived: 'Image received – converting...'
     }
   },
   layerPanel: {
