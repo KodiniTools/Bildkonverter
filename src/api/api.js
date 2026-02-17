@@ -40,7 +40,9 @@ export class ApiClient {
    */
   static async convertImage(imageBlob, format, filename, options = {}) {
     const formData = new FormData()
-    formData.append('image', imageBlob, 'canvas_image.png')
+    // Preserve original filename so the backend can detect the format correctly
+    const uploadName = (imageBlob instanceof File && imageBlob.name) ? imageBlob.name : (filename || 'image.png')
+    formData.append('image', imageBlob, uploadName)
     formData.append('format', format)
     formData.append('filename', filename)
     

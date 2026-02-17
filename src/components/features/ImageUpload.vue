@@ -32,7 +32,7 @@
       <input
         ref="fileInput"
         type="file"
-        accept="image/*"
+        accept="image/*,.tiff,.tif,.heic,.heif"
         @change="handleFileSelect"
         style="display: none"
       >
@@ -112,7 +112,8 @@ async function handleDrop(event) {
   isDragging.value = false
   const file = event.dataTransfer.files?.[0]
   
-  if (file && file.type.startsWith('image/')) {
+  const isImage = (file?.type?.startsWith('image/')) || /\.(jpe?g|png|gif|webp|bmp|svg|tiff?|heic|heif)$/i.test(file?.name || '')
+  if (file && isImage) {
     await loadImage(file)
   } else {
     showError(t('errors.invalidImage'))

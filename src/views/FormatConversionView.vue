@@ -21,7 +21,7 @@
           <input
             ref="fileInput"
             type="file"
-            accept="image/*"
+            accept="image/*,.tiff,.tif,.heic,.heif"
             @change="handleFileSelect"
             style="display: none"
           />
@@ -243,11 +243,17 @@ function handleFileSelect(event) {
   if (file) startConversion(file)
 }
 
+function isImageFile(file) {
+  if (file.type.startsWith('image/')) return true
+  // Fallback: check extension when MIME type is missing (common for TIFF/HEIC)
+  return /\.(jpe?g|png|gif|webp|bmp|svg|tiff?|heic|heif)$/i.test(file.name)
+}
+
 function handleDrop(event) {
   event.preventDefault()
   isDragging.value = false
   const file = event.dataTransfer.files[0]
-  if (file && file.type.startsWith('image/')) {
+  if (file && isImageFile(file)) {
     startConversion(file)
   } else if (file) {
     window.$toast?.warning(t('toast.batch.noImages'))
