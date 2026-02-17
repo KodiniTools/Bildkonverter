@@ -427,14 +427,22 @@ export function useTransform() {
 
     return new Promise((resolve, reject) => {
       try {
-        // Berechne neue Dimensionen basierend auf Rotation und Scale
+        // Berechne neue Dimensionen basierend auf Rotation, Scale und Skew
         const radians = (transforms.value.rotation * Math.PI) / 180
         const cos = Math.abs(Math.cos(radians))
         const sin = Math.abs(Math.sin(radians))
-        
+
         const scaleValue = transforms.value.scale / 100
-        const newWidth = Math.round((canvas.width * cos + canvas.height * sin) * scaleValue)
-        const newHeight = Math.round((canvas.width * sin + canvas.height * cos) * scaleValue)
+
+        // Skew-Overflow berechnen
+        const skewOverflowX = Math.abs(Math.tan(transforms.value.skewX * Math.PI / 180)) * canvas.height
+        const skewOverflowY = Math.abs(Math.tan(transforms.value.skewY * Math.PI / 180)) * canvas.width
+
+        const baseWidth = canvas.width + skewOverflowX
+        const baseHeight = canvas.height + skewOverflowY
+
+        const newWidth = Math.round((baseWidth * cos + baseHeight * sin) * scaleValue)
+        const newHeight = Math.round((baseWidth * sin + baseHeight * cos) * scaleValue)
         
         // Erstelle temporäres Canvas
         const tempCanvas = document.createElement('canvas')
