@@ -126,7 +126,11 @@ const popularConversions = [
   { pair: 'tiff-zu-jpg', from: 'TIFF', to: 'JPG' },
   { pair: 'svg-zu-png', from: 'SVG', to: 'PNG' },
   { pair: 'jpg-zu-pdf', from: 'JPG', to: 'PDF' },
-  { pair: 'png-zu-svg', from: 'PNG', to: 'SVG' }
+  { pair: 'png-zu-svg', from: 'PNG', to: 'SVG' },
+  { pair: 'jpg-zu-png', from: 'JPG', to: 'PNG' },
+  { pair: 'png-zu-jpg', from: 'PNG', to: 'JPG' },
+  { pair: 'gif-zu-webp', from: 'GIF', to: 'WebP' },
+  { pair: 'heic-zu-png', from: 'HEIC', to: 'PNG' }
 ]
 </script>
 
