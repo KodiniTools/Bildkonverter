@@ -100,6 +100,23 @@ const de = {
       title: 'Beliebte Konvertierungen',
       subtitle: 'Wählen Sie Ihr gewünschtes Format – schnell, kostenlos und direkt im Browser'
     },
+    moreTools: {
+      title: 'Weitere Bild-Tools von KodiniTools',
+      subtitle: 'Entdecken Sie unsere kostenlosen Online-Tools für Bildbearbeitung',
+      batchEditor: {
+        title: 'Bilderserie bearbeiten',
+        description: 'Bearbeiten Sie ganze Bilderserien auf einmal – Größe ändern, zuschneiden und Filter anwenden im Stapelmodus.'
+      },
+      collageMaker: {
+        title: 'Collage Maker',
+        description: 'Erstellen Sie beeindruckende Fotocollagen aus Ihren Bildern – mit flexiblen Layouts und Anpassungen.'
+      },
+      colorExtractor: {
+        title: 'Color Extractor',
+        description: 'Extrahieren Sie Farbpaletten aus Bildern – perfekt für Designer, Webentwickler und kreative Projekte.'
+      },
+      cta: 'Jetzt ausprobieren'
+    },
     webpPromo: {
       title: 'Warum WebP? Verbessere dein Google PageSpeed Ranking!',
       description: 'WebP bietet bis zu 30% kleinere Dateien als PNG und JPG bei gleicher Qualität. Google empfiehlt WebP für schnellere Ladezeiten – ein direkter Ranking-Faktor für SEO.',
@@ -1143,6 +1160,23 @@ const en = {
     conversions: {
       title: 'Popular Conversions',
       subtitle: 'Choose your desired format – fast, free and directly in your browser'
+    },
+    moreTools: {
+      title: 'More Image Tools by KodiniTools',
+      subtitle: 'Discover our free online tools for image editing',
+      batchEditor: {
+        title: 'Batch Image Editor',
+        description: 'Edit entire image series at once – resize, crop and apply filters in batch mode.'
+      },
+      collageMaker: {
+        title: 'Collage Maker',
+        description: 'Create stunning photo collages from your images – with flexible layouts and customizations.'
+      },
+      colorExtractor: {
+        title: 'Color Extractor',
+        description: 'Extract color palettes from images – perfect for designers, web developers and creative projects.'
+      },
+      cta: 'Try it now'
     },
     webpPromo: {
       title: 'Why WebP? Improve your Google PageSpeed ranking!',

@@ -97,6 +97,41 @@
       </div>
     </section>
 
+    <!-- Weitere Tools von KodiniTools -->
+    <section class="more-tools-section">
+      <h2>{{ $t('home.moreTools.title') }}</h2>
+      <p class="more-tools-subtitle">{{ $t('home.moreTools.subtitle') }}</p>
+
+      <div class="tools-grid">
+        <a href="https://kodinitools.com/bilderseriebearbeiten/" class="tool-card" target="_blank" rel="noopener">
+          <div class="tool-icon">
+            <i class="fas fa-layer-group"></i>
+          </div>
+          <h3>{{ $t('home.moreTools.batchEditor.title') }}</h3>
+          <p>{{ $t('home.moreTools.batchEditor.description') }}</p>
+          <span class="tool-cta">{{ $t('home.moreTools.cta') }} &rarr;</span>
+        </a>
+
+        <a href="https://kodinitools.com/collagemaker/" class="tool-card" target="_blank" rel="noopener">
+          <div class="tool-icon">
+            <i class="fas fa-th-large"></i>
+          </div>
+          <h3>{{ $t('home.moreTools.collageMaker.title') }}</h3>
+          <p>{{ $t('home.moreTools.collageMaker.description') }}</p>
+          <span class="tool-cta">{{ $t('home.moreTools.cta') }} &rarr;</span>
+        </a>
+
+        <a href="https://kodinitools.com/kodini-color-extractor/" class="tool-card" target="_blank" rel="noopener">
+          <div class="tool-icon">
+            <i class="fas fa-palette"></i>
+          </div>
+          <h3>{{ $t('home.moreTools.colorExtractor.title') }}</h3>
+          <p>{{ $t('home.moreTools.colorExtractor.description') }}</p>
+          <span class="tool-cta">{{ $t('home.moreTools.cta') }} &rarr;</span>
+        </a>
+      </div>
+    </section>
+
     <!-- WebP Info-Banner (SEO + Nutzer-Aufklärung) -->
     <section class="webp-promo-section">
       <div class="webp-promo-content">
@@ -572,6 +607,119 @@ const popularConversions = [
     &:hover {
       text-decoration: underline;
     }
+  }
+}
+
+// Weitere Tools
+.more-tools-section {
+  padding: 4rem 4rem 2rem;
+
+  @media (max-width: 1024px) {
+    padding: 3rem;
+  }
+
+  @media (max-width: 768px) {
+    padding: 2.5rem 1.5rem;
+  }
+
+  h2 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: var(--spacing-md);
+
+    @media (max-width: 768px) {
+      font-size: 1.6rem;
+    }
+  }
+
+  .more-tools-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 1.05rem;
+    margin-bottom: var(--spacing-xl);
+  }
+}
+
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-xl);
+  max-width: 1100px;
+  margin: 0 auto;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+    gap: var(--spacing-lg);
+  }
+}
+
+.tool-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--spacing-xl) var(--spacing-lg);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  text-decoration: none;
+  color: var(--color-text-primary);
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-lg), 0 10px 30px rgba(1, 79, 153, 0.1);
+    transform: translateY(-6px);
+
+    .tool-icon {
+      transform: scale(1.1);
+      background: var(--color-primary);
+      color: #fff;
+    }
+  }
+
+  .tool-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-light-blue);
+    border-radius: var(--border-radius-md);
+    margin-bottom: var(--spacing-md);
+    transition: all 0.3s ease;
+
+    i {
+      font-size: 1.6rem;
+      color: var(--color-primary);
+    }
+
+    &:hover i,
+    .tool-card:hover & i {
+      color: #fff;
+    }
+  }
+
+  h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: var(--spacing-md);
+    flex-grow: 1;
+  }
+
+  .tool-cta {
+    color: var(--color-primary);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: gap 0.2s ease;
   }
 }
 
