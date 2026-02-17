@@ -18,7 +18,9 @@ const formatConversions = [
   { pair: 'gif-zu-webp', from: 'GIF', to: 'WebP' },
   { pair: 'heic-zu-png', from: 'HEIC', to: 'PNG' },
   { pair: 'webp-zu-jpg', from: 'WebP', to: 'JPG' },
-  { pair: 'svg-zu-png', from: 'SVG', to: 'PNG' }
+  { pair: 'svg-zu-png', from: 'SVG', to: 'PNG' },
+  { pair: 'jpg-zu-pdf', from: 'JPG', to: 'PDF' },
+  { pair: 'png-zu-svg', from: 'PNG', to: 'SVG' }
 ]
 
 const router = createRouter({

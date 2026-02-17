@@ -127,6 +127,18 @@ export const FORMAT_INFO = {
     maxSize: '500MB',
     recommended: 'Documents, Print',
     icon: '📑'
+  },
+  svg: {
+    name: 'SVG',
+    description: 'Scalable Vector Graphics',
+    extension: 'svg',
+    mimeType: 'image/svg+xml',
+    supportsQuality: false,
+    requiresBackend: true,
+    clientFallback: true,
+    maxSize: '100MB',
+    recommended: 'Logos, Icons, Web Graphics',
+    icon: '✏️'
   }
 }
 
@@ -239,7 +251,10 @@ export class ExportManager {
         
         case 'pdf':
           return await this.exportPDF(canvas, filename, exportOptions)
-        
+
+        case 'svg':
+          return await this.exportSVG(canvas, filename, exportOptions)
+
         default:
           // Fallback zu PNG
           return await this.exportPNG(canvas, filename, exportOptions)
@@ -425,6 +440,48 @@ export class ExportManager {
       pages: 1,
       orientation: pdfConfig.orientation
     }
+  }
+
+  /**
+   * SVG Export (Backend mit Client-Fallback)
+   * Versucht zuerst echte Vektorisierung über Backend (potrace/vtracer),
+   * fällt bei Fehler auf SVG-Wrapper mit eingebettetem Rasterbild zurück.
+   */
+  async exportSVG(canvas, filename, options) {
+    let svgBlob
+
+    // Versuch 1: Backend-Vektorisierung
+    try {
+      const blob = await this.canvasToBlob(canvas, 'image/png')
+      svgBlob = await ApiClient.convertImage(blob, 'svg', filename, options)
+    } catch (error) {
+      console.warn('Backend-SVG nicht verfügbar, verwende Client-Fallback:', error.message)
+      // Fallback: SVG-Wrapper mit eingebettetem Rasterbild
+      svgBlob = this.createSVGWrapper(canvas)
+    }
+
+    this.downloadBlob(svgBlob, `${filename}.svg`)
+
+    return {
+      success: true,
+      format: 'svg',
+      filename: `${filename}.svg`,
+      size: this.formatBytes(svgBlob.size)
+    }
+  }
+
+  /**
+   * Erstellt einen SVG-Wrapper mit eingebettetem Rasterbild (Fallback)
+   */
+  createSVGWrapper(canvas) {
+    const dataURL = canvas.toDataURL('image/png')
+    const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="${canvas.width}" height="${canvas.height}"
+     viewBox="0 0 ${canvas.width} ${canvas.height}">
+  <image width="${canvas.width}" height="${canvas.height}" xlink:href="${dataURL}"/>
+</svg>`
+    return new Blob([svgContent], { type: 'image/svg+xml' })
   }
 
   /**

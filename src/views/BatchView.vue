@@ -45,6 +45,9 @@
             <option value="webp">WebP</option>
             <option value="gif">GIF</option>
             <option value="bmp">BMP</option>
+            <option value="tiff">TIFF</option>
+            <option value="pdf">PDF</option>
+            <option value="svg">SVG</option>
           </select>
         </div>
 
@@ -416,6 +419,68 @@ function canvasToBlob(canvas, mimeType, quality) {
 }
 
 /**
+ * Converts canvas to PDF using jsPDF (dynamic import)
+ */
+async function convertToPDF(canvas) {
+  const { jsPDF } = await import('jspdf')
+  const aspectRatio = canvas.width / canvas.height
+  const a4Width = 210
+  const a4Height = 297
+  let orientation, width, height, x, y
+
+  if (aspectRatio > 1) {
+    orientation = 'landscape'
+    width = a4Height - 20
+    height = width / aspectRatio
+    x = 10
+    y = (a4Width - height) / 2
+  } else {
+    orientation = 'portrait'
+    width = a4Width - 20
+    height = width / aspectRatio
+    x = 10
+    y = (a4Height - height) / 2
+    if (height > a4Height - 20) {
+      height = a4Height - 20
+      width = height * aspectRatio
+      x = (a4Width - width) / 2
+      y = 10
+    }
+  }
+
+  const pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4', compress: true })
+  const imgData = canvas.toDataURL('image/jpeg', 0.92)
+  pdf.addImage(imgData, 'JPEG', x, y, width, height, undefined, 'FAST')
+  return pdf.output('blob')
+}
+
+/**
+ * Converts canvas to SVG (backend vectorization with client fallback)
+ */
+async function convertToSVG(canvas, filename) {
+  // Try backend vectorization first
+  try {
+    const sourceBlob = await canvasToBlob(canvas, 'image/png', 1)
+    const svgBlob = await ApiClient.convertImage(sourceBlob, 'svg', filename, {})
+    if (svgBlob && svgBlob.size > 0) {
+      return svgBlob
+    }
+  } catch (error) {
+    console.warn('Backend-SVG nicht verfügbar, verwende Client-Fallback:', error.message)
+  }
+
+  // Fallback: SVG wrapper with embedded raster
+  const dataURL = canvas.toDataURL('image/png')
+  const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="${canvas.width}" height="${canvas.height}"
+     viewBox="0 0 ${canvas.width} ${canvas.height}">
+  <image width="${canvas.width}" height="${canvas.height}" xlink:href="${dataURL}"/>
+</svg>`
+  return new Blob([svgContent], { type: 'image/svg+xml' })
+}
+
+/**
  * Real image conversion using Canvas API
  */
 async function processFile(file) {
@@ -461,8 +526,8 @@ async function processFile(file) {
   canvas.height = drawHeight
   const ctx = canvas.getContext('2d')
 
-  // For JPEG/BMP: add white background (no transparency support)
-  if (format === 'jpg' || format === 'bmp') {
+  // For JPEG/BMP/PDF: add white background (no transparency support)
+  if (format === 'jpg' || format === 'bmp' || format === 'pdf') {
     ctx.fillStyle = '#FFFFFF'
     ctx.fillRect(0, 0, drawWidth, drawHeight)
   }
@@ -471,34 +536,51 @@ async function processFile(file) {
   ctx.drawImage(img, 0, 0, drawWidth, drawHeight)
   file.progress = 60
 
-  // Get format info
-  const formatInfo = FORMAT_INFO[format]
-
-  // Check if backend format is needed
-  if (formatInfo && formatInfo.requiresBackend) {
-    // Backend-based conversion (TIFF, GIF, HEIF)
-    const sourceBlob = await canvasToBlob(canvas, 'image/png', 1)
-    file.progress = 70
-    const convertedBlob = await ApiClient.convertImage(sourceBlob, format, file.name, { quality })
+  // Format-specific conversion
+  if (format === 'pdf') {
+    // PDF conversion via jsPDF
+    const blob = await convertToPDF(canvas)
     file.progress = 90
-
-    file.processedBlob = convertedBlob
-    file.processedSize = convertedBlob.size
-    file.processedPreview = URL.createObjectURL(convertedBlob)
-  } else {
-    // Client-side conversion (PNG, JPG, WebP, BMP)
-    let mimeType = 'image/png'
-    if (format === 'jpg') mimeType = 'image/jpeg'
-    else if (format === 'webp') mimeType = 'image/webp'
-    else if (format === 'bmp') mimeType = 'image/bmp'
-
-    const useQuality = (format === 'jpg' || format === 'webp') ? quality : undefined
-    const blob = await canvasToBlob(canvas, mimeType, useQuality)
+    file.processedBlob = blob
+    file.processedSize = blob.size
+    file.processedPreview = file.preview // Use original preview for PDF
+  } else if (format === 'svg') {
+    // SVG conversion (backend vectorization with client fallback)
+    const blob = await convertToSVG(canvas, file.name)
     file.progress = 90
-
     file.processedBlob = blob
     file.processedSize = blob.size
     file.processedPreview = URL.createObjectURL(blob)
+  } else {
+    // Get format info
+    const formatInfo = FORMAT_INFO[format]
+
+    // Check if backend format is needed
+    if (formatInfo && formatInfo.requiresBackend) {
+      // Backend-based conversion (TIFF, GIF, HEIF)
+      const sourceBlob = await canvasToBlob(canvas, 'image/png', 1)
+      file.progress = 70
+      const convertedBlob = await ApiClient.convertImage(sourceBlob, format, file.name, { quality })
+      file.progress = 90
+
+      file.processedBlob = convertedBlob
+      file.processedSize = convertedBlob.size
+      file.processedPreview = URL.createObjectURL(convertedBlob)
+    } else {
+      // Client-side conversion (PNG, JPG, WebP, BMP)
+      let mimeType = 'image/png'
+      if (format === 'jpg') mimeType = 'image/jpeg'
+      else if (format === 'webp') mimeType = 'image/webp'
+      else if (format === 'bmp') mimeType = 'image/bmp'
+
+      const useQuality = (format === 'jpg' || format === 'webp') ? quality : undefined
+      const blob = await canvasToBlob(canvas, mimeType, useQuality)
+      file.progress = 90
+
+      file.processedBlob = blob
+      file.processedSize = blob.size
+      file.processedPreview = URL.createObjectURL(blob)
+    }
   }
 
   file.progress = 100
