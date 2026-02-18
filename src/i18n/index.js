@@ -914,7 +914,10 @@ const de = {
       downloadStarted: 'Download gestartet',
       downloadAllStarted: 'Download aller {count} Dateien gestartet',
       cleared: 'Alle Dateien entfernt',
-      fileRemoved: '„{name}" entfernt'
+      fileRemoved: '„{name}" entfernt',
+      zipCreating: 'ZIP-Datei wird erstellt...',
+      zipDownloaded: 'ZIP-Datei heruntergeladen',
+      conversionReset: 'Konvertierung zurückgesetzt – Bilder bleiben erhalten'
     },
     conversion: {
       success: '{from} erfolgreich in {to} konvertiert',
@@ -1037,12 +1040,19 @@ const de = {
       height: 'Höhe',
       maintainAspect: 'Seitenverhältnis beibehalten',
       prefix: 'Dateiname-Präfix',
-      prefixPlaceholder: 'z.B. konvertiert_'
+      prefixPlaceholder: 'z.B. konvertiert_',
+      pdfMode: 'PDF-Modus',
+      pdfModeSingle: 'Jedes Bild als einzelne PDF',
+      pdfModeMerged: 'Alle Bilder in eine gemeinsame PDF'
     },
     processing: 'Wird konvertiert...',
     start: 'Konvertierung starten',
+    reconvert: 'Erneut konvertieren',
     downloadAll: 'Alle herunterladen',
+    downloadZip: 'Als ZIP herunterladen',
     clearAll: 'Alle entfernen',
+    resetConversion: 'Konvertierung zurücksetzen',
+    mergedPdfFilename: 'Zusammengefügt',
     files: {
       title: 'Dateien',
       download: 'Herunterladen',
@@ -1975,7 +1985,10 @@ const en = {
       downloadStarted: 'Download started',
       downloadAllStarted: 'Downloading all {count} files',
       cleared: 'All files removed',
-      fileRemoved: '"{name}" removed'
+      fileRemoved: '"{name}" removed',
+      zipCreating: 'Creating ZIP file...',
+      zipDownloaded: 'ZIP file downloaded',
+      conversionReset: 'Conversion reset – images preserved'
     },
     conversion: {
       success: '{from} successfully converted to {to}',
@@ -2098,12 +2111,19 @@ const en = {
       height: 'Height',
       maintainAspect: 'Maintain aspect ratio',
       prefix: 'Filename Prefix',
-      prefixPlaceholder: 'e.g. converted_'
+      prefixPlaceholder: 'e.g. converted_',
+      pdfMode: 'PDF Mode',
+      pdfModeSingle: 'Each image as individual PDF',
+      pdfModeMerged: 'All images into one PDF'
     },
     processing: 'Converting...',
     start: 'Start Conversion',
+    reconvert: 'Re-convert',
     downloadAll: 'Download All',
+    downloadZip: 'Download as ZIP',
     clearAll: 'Remove All',
+    resetConversion: 'Reset Conversion',
+    mergedPdfFilename: 'Merged',
     files: {
       title: 'Files',
       download: 'Download',

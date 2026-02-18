@@ -6,7 +6,7 @@
     </header>
 
     <!-- Upload Area -->
-    <div 
+    <div
       class="upload-zone"
       :class="{ 'drag-over': isDragging }"
       @drop="handleDrop"
@@ -14,7 +14,7 @@
       @dragleave="isDragging = false"
       @click="triggerFileInput"
     >
-      <input 
+      <input
         ref="fileInput"
         type="file"
         multiple
@@ -22,7 +22,7 @@
         @change="handleFileSelect"
         style="display: none"
       />
-      
+
       <i class="fas fa-cloud-upload-alt"></i>
       <h3>{{ $t('batch.upload.title') }}</h3>
       <p>{{ $t('batch.upload.description') }}</p>
@@ -51,10 +51,25 @@
           </select>
         </div>
 
+        <!-- PDF Options: shown when PDF format is selected -->
+        <div v-if="settings.format === 'pdf'" class="setting-group">
+          <label>{{ $t('batch.settings.pdfMode') }}</label>
+          <div class="pdf-mode-options">
+            <label class="radio-label">
+              <input v-model="settings.pdfMode" type="radio" value="single" />
+              {{ $t('batch.settings.pdfModeSingle') }}
+            </label>
+            <label class="radio-label">
+              <input v-model="settings.pdfMode" type="radio" value="merged" />
+              {{ $t('batch.settings.pdfModeMerged') }}
+            </label>
+          </div>
+        </div>
+
         <div class="setting-group">
           <label>{{ $t('batch.settings.quality') }}</label>
           <div class="quality-control">
-            <input 
+            <input
               v-model.number="settings.quality"
               type="range"
               min="1"
@@ -92,7 +107,7 @@
 
         <div class="setting-group">
           <label>{{ $t('batch.settings.prefix') }}</label>
-          <input 
+          <input
             v-model="settings.prefix"
             type="text"
             :placeholder="$t('batch.settings.prefixPlaceholder')"
@@ -101,17 +116,18 @@
       </div>
 
       <div class="action-buttons">
-        <button 
+        <button
           class="btn btn-primary"
-          :disabled="isProcessing"
+          :disabled="isProcessing || !hasConvertableFiles"
           @click="startProcessing"
         >
           <i class="fas fa-play"></i>
-          {{ isProcessing ? $t('batch.processing') : $t('batch.start') }}
+          {{ isProcessing ? $t('batch.processing') : (hasCompletedFiles ? $t('batch.reconvert') : $t('batch.start')) }}
         </button>
 
-        <button 
-          class="btn btn-secondary"
+        <button
+          class="btn btn-download"
+          :class="{ 'btn-download-ready': downloadReady }"
           :disabled="isProcessing || processedFiles.length === 0"
           @click="downloadAll"
         >
@@ -119,13 +135,33 @@
           {{ $t('batch.downloadAll') }}
         </button>
 
-        <button 
+        <button
+          class="btn btn-zip"
+          :class="{ 'btn-zip-ready': downloadReady }"
+          :disabled="isProcessing || processedFiles.length === 0"
+          @click="downloadAsZip"
+        >
+          <i class="fas fa-file-archive"></i>
+          {{ $t('batch.downloadZip') }}
+        </button>
+
+        <button
           class="btn btn-danger"
           :disabled="isProcessing"
           @click="clearAll"
         >
           <i class="fas fa-trash"></i>
           {{ $t('batch.clearAll') }}
+        </button>
+
+        <button
+          v-if="hasCompletedFiles"
+          class="btn btn-secondary"
+          :disabled="isProcessing"
+          @click="resetConversion"
+        >
+          <i class="fas fa-undo"></i>
+          {{ $t('batch.resetConversion') }}
         </button>
       </div>
     </div>
@@ -265,6 +301,7 @@ const files = ref([])
 const processedFiles = ref([])
 const isProcessing = ref(false)
 const previewingFile = ref(null)
+const downloadReady = ref(false)
 
 const settings = ref({
   format: 'jpg',
@@ -272,7 +309,17 @@ const settings = ref({
   width: null,
   height: null,
   maintainAspect: true,
-  prefix: ''
+  prefix: '',
+  pdfMode: 'single' // 'single' = each image as individual PDF, 'merged' = all in one PDF
+})
+
+// Computed: check if there are files that can be converted
+const hasConvertableFiles = computed(() => {
+  return files.value.some(f => f.status !== 'completed')
+})
+
+const hasCompletedFiles = computed(() => {
+  return files.value.some(f => f.status === 'completed')
 })
 
 // Aspect ratio: use the first uploaded image as reference
@@ -410,6 +457,20 @@ function getImageDimensions(src) {
 
 async function startProcessing() {
   isProcessing.value = true
+  downloadReady.value = false
+
+  // Reset all files to pending for re-conversion support (Schritt 4)
+  files.value.forEach(f => {
+    f.status = 'pending'
+    f.progress = 0
+    if (f.processedPreview && f.processedPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(f.processedPreview)
+    }
+    f.processedBlob = null
+    f.processedPreview = null
+    f.processedSize = 0
+    f.error = null
+  })
   processedFiles.value = []
 
   const pendingFiles = files.value.filter(f => f.status !== 'completed')
@@ -417,17 +478,27 @@ async function startProcessing() {
 
   let errorCount = 0
 
-  for (const file of files.value) {
-    if (file.status === 'completed') continue
+  // For merged PDF mode, collect canvases first
+  const isMergedPdf = settings.value.format === 'pdf' && settings.value.pdfMode === 'merged'
+  const canvasesForMerge = []
 
+  for (const file of files.value) {
     file.status = 'processing'
     file.progress = 0
 
     try {
-      await processFile(file)
-      file.status = 'completed'
-      file.progress = 100
-      processedFiles.value.push(file)
+      if (isMergedPdf) {
+        // Prepare canvas but don't convert to PDF yet
+        const canvas = await prepareCanvas(file)
+        canvasesForMerge.push({ file, canvas })
+        file.status = 'completed'
+        file.progress = 100
+      } else {
+        await processFile(file)
+        file.status = 'completed'
+        file.progress = 100
+        processedFiles.value.push(file)
+      }
     } catch (error) {
       file.status = 'error'
       file.error = error.message
@@ -436,10 +507,38 @@ async function startProcessing() {
     }
   }
 
+  // Merged PDF: combine all canvases into a single PDF
+  if (isMergedPdf && canvasesForMerge.length > 0) {
+    try {
+      const mergedBlob = await convertToMergedPDF(canvasesForMerge.map(c => c.canvas))
+      // Store the merged PDF in a virtual "merged" entry and in each file for download
+      const mergedFile = {
+        id: 'merged-pdf',
+        name: t('batch.mergedPdfFilename'),
+        processedBlob: mergedBlob,
+        processedSize: mergedBlob.size,
+        processedPreview: null,
+        isMerged: true
+      }
+      processedFiles.value = [mergedFile]
+
+      // Also set individual files as completed with reference to merged
+      canvasesForMerge.forEach(({ file }) => {
+        file.processedBlob = mergedBlob
+        file.processedSize = mergedBlob.size
+        file.processedPreview = file.preview
+      })
+    } catch (error) {
+      window.$toast?.error(t('toast.batch.fileError', { name: 'PDF', error: error.message }))
+      errorCount++
+    }
+  }
+
   isProcessing.value = false
+  downloadReady.value = processedFiles.value.length > 0
 
   // Summary toast
-  const successCount = processedFiles.value.length
+  const successCount = isMergedPdf ? canvasesForMerge.length : processedFiles.value.length
   const totalCount = pendingFiles.length
   if (errorCount === 0) {
     window.$toast?.success(t('toast.batch.processingCompleteAll', { count: successCount }))
@@ -474,6 +573,105 @@ function canvasToBlob(canvas, mimeType, quality) {
       quality
     )
   })
+}
+
+/**
+ * Prepares a canvas for a file (used in merged PDF mode)
+ */
+async function prepareCanvas(file) {
+  const format = settings.value.format
+  const targetWidth = settings.value.width
+  const targetHeight = settings.value.height
+  const maintainAspect = settings.value.maintainAspect
+
+  file.progress = 10
+  const img = await loadImage(file.preview)
+  file.progress = 30
+
+  let drawWidth = img.width
+  let drawHeight = img.height
+
+  if (targetWidth || targetHeight) {
+    if (targetWidth && targetHeight && !maintainAspect) {
+      drawWidth = targetWidth
+      drawHeight = targetHeight
+    } else if (targetWidth && targetHeight) {
+      const ratio = Math.min(targetWidth / img.width, targetHeight / img.height)
+      drawWidth = Math.round(img.width * ratio)
+      drawHeight = Math.round(img.height * ratio)
+    } else if (targetWidth) {
+      const ratio = targetWidth / img.width
+      drawWidth = targetWidth
+      drawHeight = maintainAspect ? Math.round(img.height * ratio) : img.height
+    } else if (targetHeight) {
+      const ratio = targetHeight / img.height
+      drawHeight = targetHeight
+      drawWidth = maintainAspect ? Math.round(img.width * ratio) : img.width
+    }
+  }
+
+  const canvas = document.createElement('canvas')
+  canvas.width = drawWidth
+  canvas.height = drawHeight
+  const ctx = canvas.getContext('2d')
+
+  if (format === 'jpg' || format === 'bmp' || format === 'pdf') {
+    ctx.fillStyle = '#FFFFFF'
+    ctx.fillRect(0, 0, drawWidth, drawHeight)
+  }
+
+  ctx.drawImage(img, 0, 0, drawWidth, drawHeight)
+  file.progress = 80
+  file.processedPreview = file.preview
+  return canvas
+}
+
+/**
+ * Converts multiple canvases into a single merged PDF (one image per page)
+ */
+async function convertToMergedPDF(canvases) {
+  const { jsPDF } = await import('jspdf')
+  const a4Width = 210
+  const a4Height = 297
+
+  let pdf = null
+
+  for (let i = 0; i < canvases.length; i++) {
+    const canvas = canvases[i]
+    const aspectRatio = canvas.width / canvas.height
+    let orientation, width, height, x, y
+
+    if (aspectRatio > 1) {
+      orientation = 'landscape'
+      width = a4Height - 20
+      height = width / aspectRatio
+      x = 10
+      y = (a4Width - height) / 2
+    } else {
+      orientation = 'portrait'
+      width = a4Width - 20
+      height = width / aspectRatio
+      x = 10
+      y = (a4Height - height) / 2
+      if (height > a4Height - 20) {
+        height = a4Height - 20
+        width = height * aspectRatio
+        x = (a4Width - width) / 2
+        y = 10
+      }
+    }
+
+    if (i === 0) {
+      pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4', compress: true })
+    } else {
+      pdf.addPage('a4', orientation)
+    }
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.92)
+    pdf.addImage(imgData, 'JPEG', x, y, width, height, undefined, 'FAST')
+  }
+
+  return pdf.output('blob')
 }
 
 /**
@@ -687,12 +885,15 @@ function downloadFile(file, showToast = true) {
   const url = URL.createObjectURL(file.processedBlob)
   const link = document.createElement('a')
   link.href = url
-  link.download = getOutputFilename(file)
+  link.download = file.isMerged ? (settings.value.prefix || '') + 'merged.pdf' : getOutputFilename(file)
   link.style.display = 'none'
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
   setTimeout(() => URL.revokeObjectURL(url), 1000)
+
+  // Reset download button color after download (Schritt 3)
+  downloadReady.value = false
 
   if (showToast) {
     window.$toast?.success(t('toast.batch.downloadStarted'))
@@ -700,10 +901,80 @@ function downloadFile(file, showToast = true) {
 }
 
 function downloadAll() {
+  const isMergedPdf = settings.value.format === 'pdf' && settings.value.pdfMode === 'merged'
+
+  if (isMergedPdf && processedFiles.value.length === 1 && processedFiles.value[0].isMerged) {
+    // Download the single merged PDF
+    downloadFile(processedFiles.value[0])
+    return
+  }
+
   window.$toast?.info(t('toast.batch.downloadAllStarted', { count: processedFiles.value.length }))
   processedFiles.value.forEach((file, index) => {
     setTimeout(() => downloadFile(file, false), index * 200)
   })
+
+  // Reset download button color after download (Schritt 3)
+  downloadReady.value = false
+}
+
+/**
+ * Downloads all processed files as a ZIP archive (Schritt 2)
+ */
+async function downloadAsZip() {
+  const JSZip = (await import('jszip')).default
+  const zip = new JSZip()
+
+  const isMergedPdf = settings.value.format === 'pdf' && settings.value.pdfMode === 'merged'
+
+  if (isMergedPdf && processedFiles.value.length === 1 && processedFiles.value[0].isMerged) {
+    zip.file((settings.value.prefix || '') + 'merged.pdf', processedFiles.value[0].processedBlob)
+  } else {
+    for (const file of processedFiles.value) {
+      if (file.processedBlob) {
+        const filename = file.isMerged ? (settings.value.prefix || '') + 'merged.pdf' : getOutputFilename(file)
+        zip.file(filename, file.processedBlob)
+      }
+    }
+  }
+
+  window.$toast?.info(t('toast.batch.zipCreating'))
+
+  const zipBlob = await zip.generateAsync({ type: 'blob' })
+  const url = URL.createObjectURL(zipBlob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = (settings.value.prefix || 'batch_') + 'images.zip'
+  link.style.display = 'none'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+
+  // Reset download button color after download (Schritt 3)
+  downloadReady.value = false
+
+  window.$toast?.success(t('toast.batch.zipDownloaded'))
+}
+
+/**
+ * Resets conversion state but keeps uploaded files (Schritt 5)
+ */
+function resetConversion() {
+  files.value.forEach(f => {
+    if (f.processedPreview && f.processedPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(f.processedPreview)
+    }
+    f.status = 'pending'
+    f.progress = 0
+    f.processedBlob = null
+    f.processedPreview = null
+    f.processedSize = 0
+    f.error = null
+  })
+  processedFiles.value = []
+  downloadReady.value = false
+  window.$toast?.info(t('toast.batch.conversionReset'))
 }
 
 function previewFile(file) {
@@ -878,19 +1149,58 @@ function formatSize(bytes) {
   }
 }
 
+.pdf-mode-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+
+  input[type="radio"] {
+    width: auto;
+  }
+}
+
 .action-buttons {
   display: flex;
   gap: var(--spacing-md);
   flex-wrap: wrap;
-  
+
   button {
     flex: 1;
     min-width: 150px;
-    
+
     i {
       margin-right: var(--spacing-xs);
     }
   }
+}
+
+.btn-download,
+.btn-zip {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  transition: all 0.3s ease;
+}
+
+.btn-download-ready,
+.btn-zip-ready {
+  background: #28a745 !important;
+  border-color: #28a745 !important;
+  color: white !important;
+  animation: pulse-green 1s ease-in-out 2;
+}
+
+@keyframes pulse-green {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(40, 167, 69, 0); }
 }
 
 .files-list {
