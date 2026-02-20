@@ -96,6 +96,7 @@ const de = {
         }
       }
     },
+    batchLink: 'mehrere Bilder konvertieren',
     conversions: {
       title: 'Beliebte Konvertierungen',
       subtitle: 'Wählen Sie Ihr gewünschtes Format – schnell, kostenlos und direkt im Browser'
@@ -1167,6 +1168,7 @@ const en = {
         }
       }
     },
+    batchLink: 'convert multiple images',
     conversions: {
       title: 'Popular Conversions',
       subtitle: 'Choose your desired format – fast, free and directly in your browser'

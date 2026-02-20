@@ -95,6 +95,14 @@
           <span class="format-badge target">{{ conv.to }}</span>
         </router-link>
       </div>
+
+      <div class="batch-link-wrapper">
+        <router-link to="/batch" class="batch-link">
+          <i class="fas fa-images"></i>
+          {{ $t('home.batchLink') }}
+          <i class="fas fa-arrow-right"></i>
+        </router-link>
+      </div>
     </section>
 
     <!-- Weitere Tools von KodiniTools -->
@@ -528,6 +536,38 @@ const popularConversions = [
   i {
     color: var(--color-primary);
     font-size: 0.85rem;
+  }
+}
+
+.batch-link-wrapper {
+  text-align: center;
+  margin-top: var(--spacing-xl);
+}
+
+.batch-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 1.05rem;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius-md);
+  transition: all 0.25s ease;
+
+  &:hover {
+    text-decoration: underline;
+    transform: translateX(4px);
+  }
+
+  .fa-arrow-right {
+    font-size: 0.85rem;
+    transition: transform 0.25s ease;
+  }
+
+  &:hover .fa-arrow-right {
+    transform: translateX(4px);
   }
 }
 
