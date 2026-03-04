@@ -138,6 +138,11 @@ const router = createRouter({
 
 // Navigation Guard: SEO Meta-Tags bei jedem Routenwechsel aktualisieren
 router.beforeEach((to, from, next) => {
+  // Handoff-Redirect: Eingehende Handoffs immer zur Galerie umleiten
+  if (to.query.handoff === 'kodinitools' && to.name !== 'gallery') {
+    return next({ name: 'gallery', query: { handoff: 'kodinitools' } })
+  }
+
   // Format-Konvertierungsseiten: Dynamische Meta-Daten generieren
   if (to.name === 'format-conversion' && to.params.pair) {
     const conversion = formatConversions.find(f => f.pair === to.params.pair)
