@@ -5,6 +5,9 @@
       <p class="gallery-subtitle">{{ $t('gallery.subtitle', 'Verwalten Sie Ihre Bilder') }}</p>
     </header>
 
+    <!-- Handoff Banner -->
+    <HandoffReceiver @accept="handleHandoffAccept" @dismiss="handleHandoffDismiss" />
+
     <!-- Upload & Actions Bar -->
     <div class="actions-bar">
       <div class="left-actions">
@@ -176,6 +179,8 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useGalleryStore } from '@/stores/galleryStore'
 import { useImageStore } from '@/stores/imageStore'
+import HandoffReceiver from '@/components/features/HandoffReceiver.vue'
+import { handoffImageToCanvas } from '@/lib/core/handoff'
 
 const { t } = useI18n({ useScope: 'global' })
 const router = useRouter()
@@ -186,6 +191,37 @@ const imageStore = useImageStore()
 const fileInput = ref(null)
 const previewImage = ref(null)
 const isMultiSelectMode = ref(false)
+
+// Handoff handlers
+async function handleHandoffAccept(images) {
+  for (const img of images) {
+    try {
+      const canvas = await handoffImageToCanvas(img)
+      const thumbnailUrl = createThumbnail(canvas, 300, 300)
+
+      const imageEntry = {
+        id: Date.now() + Math.random(),
+        name: img.name,
+        url: img.dataUrl,
+        thumbnail: thumbnailUrl,
+        width: img.width,
+        height: img.height,
+        size: Math.round(img.dataUrl.length * 0.75), // estimate from base64
+        uploadedAt: new Date(),
+        file: null
+      }
+
+      galleryStore.addImage(imageEntry)
+    } catch (error) {
+      console.error(`[Handoff] Fehler beim Import von ${img.name}:`, error)
+    }
+  }
+  console.log(`[Handoff] ${images.length} Bild(er) in Galerie importiert`)
+}
+
+function handleHandoffDismiss() {
+  console.log('[Handoff] Verworfen')
+}
 
 // Methods
 function triggerFileInput() {

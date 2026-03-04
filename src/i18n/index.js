@@ -1069,6 +1069,12 @@ const de = {
     title: 'Seite nicht gefunden',
     description: 'Die angeforderte Seite existiert nicht. Möglicherweise wurde sie verschoben oder gelöscht.',
     backHome: 'Zur Startseite'
+  },
+  handoff: {
+    title: '{count} Bild(er) bereit zur Uebernahme',
+    from: 'Aus {tool} uebertragen',
+    accept: 'Bilder uebernehmen',
+    dismiss: 'Verwerfen'
   }
 }
 
@@ -2141,6 +2147,12 @@ const en = {
     title: 'Page not found',
     description: 'The requested page does not exist. It may have been moved or deleted.',
     backHome: 'Back to Home'
+  },
+  handoff: {
+    title: '{count} image(s) ready for import',
+    from: 'Transferred from {tool}',
+    accept: 'Import images',
+    dismiss: 'Dismiss'
   }
 }
 
