@@ -128,15 +128,13 @@ export function prepareHandoff(canvases, target, source = 'unknown') {
 }
 
 /**
- * RECEIVER: Check if a handoff is waiting.
- * Call this on app mount when `?handoff=kodinitools` is in the URL.
+ * RECEIVER: Check if a handoff is waiting in localStorage.
+ * Checks localStorage directly — no URL query param required.
+ * This makes the receiver robust regardless of how the sender navigates.
  *
  * @returns {HandoffPayload|null} The handoff payload if valid and not expired, otherwise null
  */
 export function checkHandoff() {
-  const params = new URLSearchParams(window.location.search)
-  if (params.get('handoff') !== 'kodinitools') return null
-
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
@@ -173,11 +171,7 @@ export function consumeHandoff() {
 
     const payload = JSON.parse(raw)
     localStorage.removeItem(STORAGE_KEY)
-
-    // Clean URL param
-    const url = new URL(window.location.href)
-    url.searchParams.delete('handoff')
-    window.history.replaceState({}, '', url.toString())
+    cleanHandoffUrl()
 
     return payload.images
   } catch {
@@ -191,9 +185,22 @@ export function consumeHandoff() {
  */
 export function dismissHandoff() {
   localStorage.removeItem(STORAGE_KEY)
-  const url = new URL(window.location.href)
-  url.searchParams.delete('handoff')
-  window.history.replaceState({}, '', url.toString())
+  cleanHandoffUrl()
+}
+
+/**
+ * Remove the handoff query param from the URL if present.
+ */
+function cleanHandoffUrl() {
+  try {
+    const url = new URL(window.location.href)
+    if (url.searchParams.has('handoff')) {
+      url.searchParams.delete('handoff')
+      window.history.replaceState({}, '', url.toString())
+    }
+  } catch {
+    // Ignore URL cleanup errors
+  }
 }
 
 /**
