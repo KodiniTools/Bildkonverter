@@ -139,8 +139,13 @@ const router = createRouter({
 // Navigation Guard: SEO Meta-Tags bei jedem Routenwechsel aktualisieren
 router.beforeEach((to, from, next) => {
   // Handoff-Redirect: Eingehende Handoffs immer zur Galerie umleiten
-  if (to.query.handoff === 'kodinitools' && to.name !== 'gallery') {
-    return next({ name: 'gallery', query: { handoff: 'kodinitools' } })
+  // Prüfe sowohl URL-Parameter als auch localStorage (falls Sender keinen Param setzt)
+  if (to.name !== 'gallery') {
+    const hasHandoffParam = to.query.handoff === 'kodinitools'
+    const hasHandoffData = !!localStorage.getItem('kodinitools-handoff')
+    if (hasHandoffParam || hasHandoffData) {
+      return next({ name: 'gallery', query: { ...to.query, handoff: 'kodinitools' } })
+    }
   }
 
   // Format-Konvertierungsseiten: Dynamische Meta-Daten generieren
