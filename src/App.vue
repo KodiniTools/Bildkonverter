@@ -58,56 +58,58 @@ let domMutationObserver = null
 // Muss mit nav.html synchron gehalten werden
 const navTranslations = {
   de: {
-    'nav.aria':           'Hauptnavigation',
-    'nav.audiotools':     'Audiotools',
-    'nav.mp3converter':   'MP3 Konverter',
-    'nav.audioequalizer': 'Interactive Audio Equalizer',
-    'nav.modernplayer':   'Moderner Musikplayer',
-    'nav.ultimateplayer': 'Ultimativer Musikplayer',
-    'nav.playlistgen':    'Audio Playlist Generator',
-    'nav.playlistconv':   'Audio Playlist Konverter',
-    'nav.alarmtool':      'Modernes Alarmtool',
-    'nav.normalizer':     'Audio Normalizer',
-    'nav.visualizer':     'Audio Visualizer',
-    'nav.eq19':           '19 Band Equalizer',
-    'nav.audioconv':      'Audio Konverter',
-    'nav.imagetools':     'Bildtools',
-    'nav.imageconv':      'Bildkonverter',
-    'nav.batchedit':      'Bildserie bearbeiten',
-    'nav.collage':        'Fotocollage',
-    'nav.tools':          'Tools',
-    'nav.colorextractor': 'Kodini Farbextraktor',
-    'nav.videoconv':      'Videokonverter',
-    'nav.contact':        'Kontakt',
-    'nav.themeAria':      'Theme wechseln',
-    'nav.themeTitle':     'Hell/Dunkel umschalten',
-    'nav.langAria':       'Sprache wählen'
+    'nav.audioTools':        'Audiotools',
+    'nav.imageTools':        'Bildtools',
+    'nav.tools':             'Tools',
+    'nav.contact':           'Kontakt',
+    'nav.mp3Converter':      'MP3 Konverter',
+    'nav.audioEqualizer':    'Interaktiver Audio Equalizer',
+    'nav.modernPlayer':      'Moderner Musikplayer',
+    'nav.ultimatePlayer':    'Ultimativer Musikplayer',
+    'nav.playlistGenerator': 'Audioplaylist Generator',
+    'nav.playlistConverter': 'Playlist zu WebM Konverter',
+    'nav.alarmTool':         'Alarmtool',
+    'nav.audioNormalizer':   'Audio Normalizer',
+    'nav.visualizer':        'Visualizer',
+    'nav.equalizer19':       '19-Band Equalizer',
+    'nav.audioConverter':    'Audio Konverter',
+    'nav.imageConverter':    'Bildkonverter',
+    'nav.batchImageEditor':  'Bildserie bearbeiten',
+    'nav.photoCollage':      'Fotocollage',
+    'nav.colorExtractor':    'Kodini Farbextraktor',
+    'nav.videoConverter':    'Videokonverter',
+    'aria.toggleTheme':      'Theme wechseln',
+    'aria.selectLanguage':   'Sprache wählen',
+    'aria.menuOpen':         'Menü öffnen',
+    'aria.menuClose':        'Menü schliessen',
+    'aria.mainNav':          'Hauptnavigation'
   },
   en: {
-    'nav.aria':           'Main Navigation',
-    'nav.audiotools':     'Audio Tools',
-    'nav.mp3converter':   'MP3 Converter',
-    'nav.audioequalizer': 'Interactive Audio Equalizer',
-    'nav.modernplayer':   'Modern Music Player',
-    'nav.ultimateplayer': 'Ultimate Music Player',
-    'nav.playlistgen':    'Audio Playlist Generator',
-    'nav.playlistconv':   'Audio Playlist Converter',
-    'nav.alarmtool':      'Modern Alarm Tool',
-    'nav.normalizer':     'Audio Normalizer',
-    'nav.visualizer':     'Audio Visualizer',
-    'nav.eq19':           '19 Band Equalizer',
-    'nav.audioconv':      'Audio Converter',
-    'nav.imagetools':     'Image Tools',
-    'nav.imageconv':      'Image Converter',
-    'nav.batchedit':      'Batch Image Editor',
-    'nav.collage':        'Photo Collage',
-    'nav.tools':          'Tools',
-    'nav.colorextractor': 'Kodini Color Extractor',
-    'nav.videoconv':      'Video Converter',
-    'nav.contact':        'Contact',
-    'nav.themeAria':      'Toggle theme',
-    'nav.themeTitle':     'Switch Light/Dark',
-    'nav.langAria':       'Select language'
+    'nav.audioTools':        'Audio Tools',
+    'nav.imageTools':        'Image Tools',
+    'nav.tools':             'Tools',
+    'nav.contact':           'Contact',
+    'nav.mp3Converter':      'MP3 Converter',
+    'nav.audioEqualizer':    'Interactive Audio Equalizer',
+    'nav.modernPlayer':      'Modern Music Player',
+    'nav.ultimatePlayer':    'Ultimate Music Player',
+    'nav.playlistGenerator': 'Audio Playlist Generator',
+    'nav.playlistConverter': 'Playlist to WebM Converter',
+    'nav.alarmTool':         'Alarm Tool',
+    'nav.audioNormalizer':   'Audio Normalizer',
+    'nav.visualizer':        'Visualizer',
+    'nav.equalizer19':       '19-Band Equalizer',
+    'nav.audioConverter':    'Audio Converter',
+    'nav.imageConverter':    'Image Converter',
+    'nav.batchImageEditor':  'Batch Image Editor',
+    'nav.photoCollage':      'Photo Collage',
+    'nav.colorExtractor':    'Kodini Color Extractor',
+    'nav.videoConverter':    'Video Converter',
+    'aria.toggleTheme':      'Toggle theme',
+    'aria.selectLanguage':   'Select language',
+    'aria.menuOpen':         'Open menu',
+    'aria.menuClose':        'Close menu',
+    'aria.mainNav':          'Main navigation'
   }
 }
 
@@ -123,7 +125,10 @@ function dispatchLanguageChanged(lang) {
   // reagieren und DOM-Änderungen auslösen können → sonst Endlosschleife
   if (domMutationObserver) domMutationObserver.disconnect()
 
-  // Custom-Event auf window (konsistent mit theme-changed) für SSI-Partials
+  // Custom-Events auf window für SSI-Partials (Footer, Cookie-Banner)
+  // 'locale-changed' ist das Event das nav.html normalerweise dispatcht
+  // 'language-changed' ist das Legacy-Event für Abwärtskompatibilität
+  window.dispatchEvent(new CustomEvent('locale-changed', { detail: { locale: lang } }))
   window.dispatchEvent(new CustomEvent('language-changed', { detail: { lang } }))
 
   // data-lang-* Attribut-Wert → textContent
@@ -140,7 +145,7 @@ function dispatchLanguageChanged(lang) {
 }
 
 /**
- * Übersetzt die externe SSI-Navigation (data-nav-i18n Attribute).
+ * Übersetzt die externe SSI-Navigation (data-i18n Attribute).
  * Da e.stopImmediatePropagation() den eigenen Handler der nav.html blockiert,
  * muss die Vue-App die Übersetzung der Nav-Elemente selbst übernehmen.
  */
@@ -153,18 +158,18 @@ function translateExternalNav(lang) {
   // childList-Mutationen erzeugen und sonst eine Endlosschleife entsteht
   if (domMutationObserver) domMutationObserver.disconnect()
 
-  nav.querySelectorAll('[data-nav-i18n]').forEach(el => {
-    const key = el.getAttribute('data-nav-i18n')
+  nav.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n')
     if (t[key]) el.textContent = t[key]
   })
 
-  nav.querySelectorAll('[data-nav-i18n-aria]').forEach(el => {
-    const key = el.getAttribute('data-nav-i18n-aria')
+  nav.querySelectorAll('[data-i18n-aria]').forEach(el => {
+    const key = el.getAttribute('data-i18n-aria')
     if (t[key]) el.setAttribute('aria-label', t[key])
   })
 
-  nav.querySelectorAll('[data-nav-i18n-title]').forEach(el => {
-    const key = el.getAttribute('data-nav-i18n-title')
+  nav.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const key = el.getAttribute('data-i18n-title')
     if (t[key]) el.setAttribute('title', t[key])
   })
 
