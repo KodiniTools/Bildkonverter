@@ -661,7 +661,7 @@ import { useFilterManagement, DEFAULT_FILTERS, DEFAULT_BACKGROUND } from '@/comp
 import { useImageHistory } from '@/composables/useImageHistory'
 import { useTextHistory } from '@/composables/useTextHistory'
 import { useResizeManager } from '@/composables/useResizeManager'
-import { useGalleryIntegration } from '@/composables/useGalleryIntegration'
+
 import { useImageLayerInteraction } from '@/composables/useImageLayerInteraction'
 import TransformPanel from '@/components/features/TransformPanel.vue'
 import LayerControlPanel from '@/components/features/LayerControlPanel.vue'
@@ -753,16 +753,6 @@ const resizeManager = useResizeManager({
   }
 })
 const { resizeWidth, resizeHeight, maintainAspectRatio } = resizeManager
-
-// Gallery Integration Composable
-const galleryIntegration = useGalleryIntegration({
-  onImageLoad: async (imageData) => {
-    await loadImageFromUrl(imageData.url, imageData.name)
-  },
-  onError: (error) => {
-    console.error('Gallery load error:', error)
-  }
-})
 
 // Image Layer Interaction Composable (für Collage-Modus)
 const layerInteraction = useImageLayerInteraction(canvas)
@@ -2264,7 +2254,8 @@ function saveHistory() {
     filters: { ...filters.value },
     background: { ...background.value },
     width: canvas.value.width,
-    height: canvas.value.height
+    height: canvas.value.height,
+    hasCropped: crop.hasCropped.value
   })
 }
 
@@ -2281,6 +2272,8 @@ function restoreState(state) {
   img.onload = () => {
     canvas.value.width = state.width
     canvas.value.height = state.height
+    currentImage.value = img
+    resizeManager.initFromDimensions(state.width, state.height)
     // Verwende filterManagement für konsistenten State
     if (state.filters) {
       filterManagement.importState({
@@ -2290,6 +2283,10 @@ function restoreState(state) {
     }
     const ctx = canvas.value.getContext('2d')
     ctx.drawImage(img, 0, 0)
+    // Crop-State zurücksetzen wenn der gespeicherte State kein Zuschnitt war
+    if (!state.hasCropped) {
+      crop.resetCropState()
+    }
     updateImageInfo()
     renderImage()
   }
