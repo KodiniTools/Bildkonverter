@@ -462,7 +462,8 @@ export function useCrop() {
           width: canvas.value.width,
           height: canvas.value.height,
           filters: { ...filters.value },
-          texts: imageStore ? [...imageStore.texts] : []
+          texts: imageStore ? [...imageStore.texts] : [],
+          borderRadius: context.borderRadiusBeforeCrop ?? 0
         }
         console.log('Original-Bild (ohne Texte) vor Crop gespeichert')
       }

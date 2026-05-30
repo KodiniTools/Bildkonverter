@@ -2341,6 +2341,7 @@ function handleFinishCrop() {
     currentImage,
     filters,
     imageStore,
+    borderRadiusBeforeCrop: transform.transforms.value.borderRadius,
     onCropComplete: (img, width, height, isCircleCrop) => {
       currentImage.value = img
       canvas.value.width = width
@@ -2368,6 +2369,8 @@ function handleUndoCrop() {
       canvas.value.height = beforeCropData.height
       resizeManager.initFromDimensions(beforeCropData.width, beforeCropData.height)
       filters.value = { ...beforeCropData.filters }
+      // BorderRadius auf den Wert vor dem Zuschnitt zurücksetzen (wichtig für Kreis-Preset)
+      transform.setBorderRadius(beforeCropData.borderRadius ?? 0, false)
       renderImage()
       updateImageSize() // Dateigröße neu berechnen nach Undo
       saveHistory()
