@@ -2248,9 +2248,25 @@ async function downloadImage() {
 function saveHistory() {
   if (!canvas.value) return
 
+  // Das rohe Bild (ohne Transforms) für verlässliches Undo/Redo speichern
+  let rawImageSrc = null
+  if (currentImage.value) {
+    if (currentImage.value.src && currentImage.value.src.startsWith('data:')) {
+      rawImageSrc = currentImage.value.src
+    } else {
+      // Blob-URL o.ä.: als Data-URL über Hilfs-Canvas sichern
+      const tmpCanvas = document.createElement('canvas')
+      tmpCanvas.width = canvas.value.width
+      tmpCanvas.height = canvas.value.height
+      tmpCanvas.getContext('2d').drawImage(currentImage.value, 0, 0, tmpCanvas.width, tmpCanvas.height)
+      rawImageSrc = tmpCanvas.toDataURL('image/png')
+    }
+  }
+
   // Verwende das History Composable
   imageHistory.saveState({
     imageData: canvas.value.toDataURL(),
+    rawImageSrc,
     filters: { ...filters.value },
     background: { ...background.value },
     width: canvas.value.width,
@@ -2268,6 +2284,9 @@ function redo() {
 }
 
 function restoreState(state) {
+  // rawImageSrc enthält das rohe Bild ohne gebackene Transforms → für renderImage() verwenden
+  // imageData ist der gerenderte Canvas-Snapshot (Fallback)
+  const srcToLoad = state.rawImageSrc || state.imageData
   const img = new Image()
   img.onload = () => {
     canvas.value.width = state.width
@@ -2281,8 +2300,6 @@ function restoreState(state) {
         background: state.background
       })
     }
-    const ctx = canvas.value.getContext('2d')
-    ctx.drawImage(img, 0, 0)
     // Crop-State zurücksetzen wenn der gespeicherte State kein Zuschnitt war
     if (!state.hasCropped) {
       crop.resetCropState()
@@ -2290,7 +2307,7 @@ function restoreState(state) {
     updateImageInfo()
     renderImage()
   }
-  img.src = state.imageData
+  img.src = srcToLoad
 }
 
 function formatSize(bytes) {
