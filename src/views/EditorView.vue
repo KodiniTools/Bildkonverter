@@ -2269,6 +2269,7 @@ function saveHistory() {
     rawImageSrc,
     filters: { ...filters.value },
     background: { ...background.value },
+    transforms: { ...transform.transforms.value },
     width: canvas.value.width,
     height: canvas.value.height,
     hasCropped: crop.hasCropped.value
@@ -2299,6 +2300,10 @@ function restoreState(state) {
         filters: state.filters,
         background: state.background
       })
+    }
+    // Transform-State wiederherstellen (inkl. borderRadius für Kreis-Zuschnitt)
+    if (state.transforms) {
+      transform.transforms.value = { ...state.transforms }
     }
     // Crop-State zurücksetzen wenn der gespeicherte State kein Zuschnitt war
     if (!state.hasCropped) {
