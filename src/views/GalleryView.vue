@@ -23,6 +23,19 @@
           style="display: none"
           @change="handleFileSelect"
         />
+        <button class="btn btn-secondary" @click="triggerFolderInput">
+          <i class="fas fa-folder-open"></i>
+          {{ $t('gallery.buttons.uploadFolder', 'Ordner hochladen') }}
+        </button>
+        <input
+          ref="folderInput"
+          type="file"
+          accept="image/*"
+          multiple
+          webkitdirectory
+          style="display: none"
+          @change="handleFolderSelect"
+        />
         <button
           v-if="galleryStore.images.length > 0"
           class="btn btn-danger-outline"
@@ -221,6 +234,7 @@ const imageStore = useImageStore();
 
 // Refs
 const fileInput = ref(null);
+const folderInput = ref(null);
 const previewImage = ref(null);
 const isMultiSelectMode = ref(false);
 
@@ -258,6 +272,25 @@ function handleHandoffDismiss() {
 // Methods
 function triggerFileInput() {
   fileInput.value?.click();
+}
+
+function triggerFolderInput() {
+  folderInput.value?.click();
+}
+
+async function handleFolderSelect(event) {
+  const files = Array.from(event.target.files).filter((f) => f.type.startsWith('image/'));
+  if (files.length === 0) return;
+
+  for (const file of files) {
+    try {
+      await addImageToGallery(file);
+    } catch (error) {
+      console.error(`Fehler beim Laden von ${file.name}:`, error);
+    }
+  }
+
+  event.target.value = '';
 }
 
 async function handleFileSelect(event) {

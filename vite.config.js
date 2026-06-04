@@ -43,6 +43,17 @@ export default defineConfig({
     host: true,
   },
 
+  // CSS / Sass Optionen
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern-compiler',
+        // Unterdrückt Deprecation-Warnings für @import in externen Abhängigkeiten
+        quietDeps: true,
+      },
+    },
+  },
+
   // Resolve-Optionen
   resolve: {
     alias: {

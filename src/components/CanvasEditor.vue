@@ -23,6 +23,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useImageStore } from '@/stores/imageStore';
 import { useTextInteraction } from '@/composables/useTextInteraction';
 import TextEditModal from './TextEditModal.vue';
@@ -111,16 +112,19 @@ onUnmounted(() => {
   window.removeEventListener('keydown', onKeyDown);
 });
 
-// Canvas neu zeichnen wenn sich Daten ändern
-watch(
-  () => [imageStore.workingUrl, imageStore.filters, imageStore.texts, imageStore.selectedTextId],
-  () => {
-    if (imageStore.hasImage) {
-      imageStore.draw();
-    }
-  },
-  { deep: true }
-);
+const { workingUrl, filters, texts, selectedTextId } = storeToRefs(imageStore);
+
+watch([workingUrl, selectedTextId], () => {
+  if (imageStore.hasImage) imageStore.draw();
+});
+
+watch(filters, () => {
+  if (imageStore.hasImage) imageStore.draw();
+}, { deep: true });
+
+watch(texts, () => {
+  if (imageStore.hasImage) imageStore.draw();
+}, { deep: true });
 </script>
 
 <style scoped>

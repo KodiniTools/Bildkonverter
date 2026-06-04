@@ -3,9 +3,5 @@
  * Importiert alle Style-Module
  */
 
-@import './variables.scss';
-@import './global.scss';
-
-// Zusätzliche Component-Styles können hier importiert werden
-// @import './components/button.scss';
-// @import './components/card.scss';
+@use './variables' as *;
+@use './global';

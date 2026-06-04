@@ -37,6 +37,16 @@
           </button>
           <span class="toolbar-divider"></span>
           <button
+            v-if="isCollageMode"
+            class="btn btn-secondary"
+            :title="$t('editor.toolbar.exitCollage', 'Collage-Modus beenden')"
+            @click="exitCollageMode"
+          >
+            <i class="fas fa-th"></i>
+            {{ $t('editor.toolbar.exitCollage', 'Collage beenden') }}
+          </button>
+          <span v-if="isCollageMode" class="toolbar-divider"></span>
+          <button
             class="btn btn-secondary"
             :disabled="!currentImage && !isCollageMode"
             @click="addText"
@@ -288,7 +298,8 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
-import { useRoute } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useImageStore } from '@/stores/imageStore';
 import { useTextModal } from '@/composables/useTextModal';
@@ -321,7 +332,9 @@ import { ApiClient } from '@/api/api';
 
 const { t } = useI18n({ useScope: 'global' });
 const route = useRoute();
+const router = useRouter();
 const imageStore = useImageStore();
+const { texts: storeTexts } = storeToRefs(imageStore);
 const textModal = useTextModal();
 
 // ===== CORE REFS =====
@@ -729,6 +742,13 @@ function resetFilters() {
   if (window.$toast) {
     window.$toast.success('Image has been reset to its original state');
   }
+}
+
+function exitCollageMode() {
+  imageStore.clearImageLayers();
+  isCollageMode.value = false;
+  layerInteraction.removeListeners();
+  router.push('/gallery');
 }
 
 function clearImage() {
@@ -1619,13 +1639,9 @@ function onCanvasDoubleClick(e) {
 }
 
 // Watch texts
-watch(
-  () => imageStore.texts,
-  () => {
-    renderImage();
-  },
-  { deep: true }
-);
+watch(storeTexts, () => {
+  renderImage();
+}, { deep: true });
 
 // ===== PREVIEW FUNCTIONS =====
 
