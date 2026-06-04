@@ -406,6 +406,7 @@ export function useCanvasRenderer({
     }
 
     // Berechne Rotations-Padding damit das rotierte Bild nicht abgeschnitten wird
+    // Einheitlicher Skalierungsfaktor bewahrt das Seitenverhältnis (auch bei Rechtecken)
     let rotPadX = 0;
     let rotPadY = 0;
     if (transform.transforms.value.rotation !== 0) {
@@ -416,8 +417,9 @@ export function useCanvasRenderer({
       const h = canvas.value.height - (shadowPadding + skewPadY) * 2;
       const rotatedW = w * cos + h * sin;
       const rotatedH = w * sin + h * cos;
-      rotPadX = Math.ceil((rotatedW - w) / 2);
-      rotPadY = Math.ceil((rotatedH - h) / 2);
+      const scale = Math.min(w / rotatedW, h / rotatedH);
+      rotPadX = Math.ceil((w * (1 - scale)) / 2);
+      rotPadY = Math.ceil((h * (1 - scale)) / 2);
     }
 
     // Berechne Bildbereich mit Padding (Shadow + Skew + Rotation)
@@ -900,6 +902,7 @@ export function useCanvasRenderer({
     }
 
     // Berechne Rotations-Padding damit das rotierte Bild nicht abgeschnitten wird
+    // Einheitlicher Skalierungsfaktor bewahrt das Seitenverhältnis (auch bei Rechtecken)
     let rotPadX = 0;
     let rotPadY = 0;
     if (transform.transforms.value.rotation !== 0) {
@@ -910,8 +913,9 @@ export function useCanvasRenderer({
       const h = canvas.value.height - (shadowPadding + skewPadY) * 2;
       const rotatedW = w * cos + h * sin;
       const rotatedH = w * sin + h * cos;
-      rotPadX = Math.ceil((rotatedW - w) / 2);
-      rotPadY = Math.ceil((rotatedH - h) / 2);
+      const scale = Math.min(w / rotatedW, h / rotatedH);
+      rotPadX = Math.ceil((w * (1 - scale)) / 2);
+      rotPadY = Math.ceil((h * (1 - scale)) / 2);
     }
 
     // Berechne Bildbereich mit Padding (Shadow + Skew + Rotation)
