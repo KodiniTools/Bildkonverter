@@ -2372,20 +2372,24 @@ function handleKeyup(e) {
     }
   }
 
-  // Non-collapsible sections (Format, Background, etc.)
+  // Non-collapsible sections (Format, Background, Resize, Presets)
   &:not(.collapsible) {
     padding: 0.75rem 1rem;
+    padding-top: 0;
 
     h3 {
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.03em;
-      margin-bottom: 0.75rem;
-      color: var(--color-text-light);
+      // Negativer Margin damit h3 randlos über die Section-Breite geht
+      margin: 0 -1rem 0.75rem -1rem;
+      padding: 0.75rem 1rem;
+      color: var(--color-text);
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      border-bottom: 1px solid var(--color-border);
     }
   }
 }
