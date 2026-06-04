@@ -10,17 +10,17 @@
         <div class="text-history-controls">
           <button
             class="btn-icon-small"
-            @click="$emit('undo-text')"
             :disabled="!canUndoText"
             :title="$t('textPanel.undo', 'Rückgängig')"
+            @click="$emit('undo-text')"
           >
             <i class="fas fa-undo"></i>
           </button>
           <button
             class="btn-icon-small"
-            @click="$emit('redo-text')"
             :disabled="!canRedoText"
             :title="$t('textPanel.redo', 'Wiederherstellen')"
+            @click="$emit('redo-text')"
           >
             <i class="fas fa-redo"></i>
           </button>
@@ -36,11 +36,11 @@
         <input
           type="text"
           :value="selectedText.content || selectedText.txt"
-          @input="$emit('update:text-content', $event.target.value)"
-          @change="$emit('save-text-history')"
           class="text-input"
           :placeholder="$t('textPanel.placeholder', 'Text eingeben...')"
-        >
+          @input="$emit('update:text-content', $event.target.value)"
+          @change="$emit('save-text-history')"
+        />
       </div>
 
       <!-- Schriftgröße -->
@@ -55,10 +55,10 @@
           min="8"
           max="200"
           :value="selectedText.fontSize || selectedText.size || 32"
+          class="slider"
           @input="$emit('update:text-font-size', Number($event.target.value))"
           @change="$emit('save-text-history')"
-          class="slider"
-        >
+        />
       </div>
 
       <!-- Schriftart -->
@@ -69,8 +69,8 @@
         </label>
         <select
           :value="selectedText.fontFamily || 'Satoshi Regular'"
-          @change="$emit('update:text-font-family', $event.target.value)"
           class="font-select"
+          @change="$emit('update:text-font-family', $event.target.value)"
         >
           <optgroup :label="$t('textPanel.customFonts', 'Benutzerdefinierte Schriften')">
             <option
@@ -105,19 +105,19 @@
           <input
             type="color"
             :value="selectedText.color || '#000000'"
-            @input="$emit('update:text-color', $event.target.value)"
-            @change="$emit('save-text-history')"
             class="color-input"
             :style="{ backgroundColor: selectedText.color || '#000000' }"
-          >
+            @input="$emit('update:text-color', $event.target.value)"
+            @change="$emit('save-text-history')"
+          />
           <input
             type="text"
             :value="selectedText.color || '#000000'"
-            @input="$emit('update:text-color', $event.target.value)"
-            @change="$emit('save-text-history')"
             class="color-text"
             maxlength="7"
-          >
+            @input="$emit('update:text-color', $event.target.value)"
+            @change="$emit('save-text-history')"
+          />
         </div>
       </div>
 
@@ -133,27 +133,27 @@
           min="0"
           max="50"
           :value="selectedText.strokeWidth || 0"
+          class="slider"
           @input="$emit('update:text-stroke-width', Number($event.target.value))"
           @change="$emit('save-text-history')"
-          class="slider"
-        >
+        />
         <div v-if="(selectedText.strokeWidth || 0) > 0" class="color-picker-row mt-2">
           <input
             type="color"
             :value="selectedText.strokeColor || '#000000'"
-            @input="$emit('update:text-stroke-color', $event.target.value)"
-            @change="$emit('save-text-history')"
             class="color-input"
             :style="{ backgroundColor: selectedText.strokeColor || '#000000' }"
-          >
+            @input="$emit('update:text-stroke-color', $event.target.value)"
+            @change="$emit('save-text-history')"
+          />
           <input
             type="text"
             :value="selectedText.strokeColor || '#000000'"
-            @input="$emit('update:text-stroke-color', $event.target.value)"
-            @change="$emit('save-text-history')"
             class="color-text"
             maxlength="7"
-          >
+            @input="$emit('update:text-stroke-color', $event.target.value)"
+            @change="$emit('save-text-history')"
+          />
         </div>
       </div>
 
@@ -169,10 +169,10 @@
           min="0"
           max="20"
           :value="selectedText.shadowBlur || 0"
+          class="slider"
           @input="$emit('update:text-shadow-blur', Number($event.target.value))"
           @change="$emit('save-text-history')"
-          class="slider"
-        >
+        />
         <div v-if="(selectedText.shadowBlur || 0) > 0" class="shadow-controls">
           <div class="shadow-offset-row">
             <div class="mini-control">
@@ -182,10 +182,10 @@
                 min="-50"
                 max="50"
                 :value="selectedText.shadowOffsetX ?? 2"
+                class="mini-input"
                 @input="$emit('update:text-shadow-offset-x', Number($event.target.value))"
                 @change="$emit('save-text-history')"
-                class="mini-input"
-              >
+              />
             </div>
             <div class="mini-control">
               <label>Y</label>
@@ -194,29 +194,29 @@
                 min="-50"
                 max="50"
                 :value="selectedText.shadowOffsetY ?? 2"
+                class="mini-input"
                 @input="$emit('update:text-shadow-offset-y', Number($event.target.value))"
                 @change="$emit('save-text-history')"
-                class="mini-input"
-              >
+              />
             </div>
           </div>
           <div class="color-picker-row mt-2">
             <input
               type="color"
               :value="selectedText.shadowColor || '#000000'"
-              @input="$emit('update:text-shadow-color', $event.target.value)"
-              @change="$emit('save-text-history')"
               class="color-input"
               :style="{ backgroundColor: selectedText.shadowColor || '#000000' }"
-            >
+              @input="$emit('update:text-shadow-color', $event.target.value)"
+              @change="$emit('save-text-history')"
+            />
             <input
               type="text"
               :value="selectedText.shadowColor || '#000000'"
-              @input="$emit('update:text-shadow-color', $event.target.value)"
-              @change="$emit('save-text-history')"
               class="color-text"
               maxlength="7"
-            >
+              @input="$emit('update:text-shadow-color', $event.target.value)"
+              @change="$emit('save-text-history')"
+            />
           </div>
         </div>
       </div>
@@ -233,10 +233,10 @@
           min="-180"
           max="180"
           :value="selectedText.rotation || 0"
+          class="slider"
           @input="$emit('update:text-rotation', Number($event.target.value))"
           @change="$emit('save-text-history')"
-          class="slider"
-        >
+        />
       </div>
 
       <!-- Text-Deckkraft -->
@@ -244,33 +244,29 @@
         <label>
           <i class="fas fa-adjust"></i>
           {{ $t('textPanel.opacity', 'Opacity') }}
-          <span class="value">{{ selectedText.opacity !== undefined ? selectedText.opacity : 100 }}%</span>
+          <span class="value"
+            >{{ selectedText.opacity !== undefined ? selectedText.opacity : 100 }}%</span
+          >
         </label>
         <input
           type="range"
           min="0"
           max="100"
           :value="selectedText.opacity !== undefined ? selectedText.opacity : 100"
+          class="slider"
           @input="$emit('update:text-opacity', Number($event.target.value))"
           @change="$emit('save-text-history')"
-          class="slider"
-        >
+        />
       </div>
 
       <!-- Text löschen -->
-      <button
-        class="transform-btn delete-btn"
-        @click="$emit('delete-text')"
-      >
+      <button class="transform-btn delete-btn" @click="$emit('delete-text')">
         <i class="fas fa-trash"></i>
         <span>{{ $t('textPanel.delete', 'Text löschen') }}</span>
       </button>
 
       <!-- Auswahl aufheben -->
-      <button
-        class="transform-btn"
-        @click="$emit('deselect-text')"
-      >
+      <button class="transform-btn" @click="$emit('deselect-text')">
         <i class="fas fa-times"></i>
         <span>{{ $t('textPanel.deselect', 'Auswahl aufheben') }}</span>
       </button>
@@ -291,11 +287,7 @@
         {{ $t('transform.crop.title') }}
       </h3>
 
-      <button
-        class="transform-btn"
-        :class="{ 'active': cropMode }"
-        @click="$emit('toggle-crop')"
-      >
+      <button class="transform-btn" :class="{ active: cropMode }" @click="$emit('toggle-crop')">
         <i :class="cropMode ? 'fas fa-check' : 'fas fa-crop'"></i>
         <span>{{ cropMode ? $t('transform.crop.confirm') : $t('transform.crop.button') }}</span>
       </button>
@@ -311,9 +303,9 @@
             v-for="preset in aspectRatioPresets"
             :key="preset.id"
             class="aspect-btn"
-            :class="{ 'active': selectedAspectRatio === preset.id }"
-            @click="$emit('set-aspect-ratio', preset.id)"
+            :class="{ active: selectedAspectRatio === preset.id }"
             :title="getPresetLabel(preset)"
+            @click="$emit('set-aspect-ratio', preset.id)"
           >
             <i :class="'fas ' + preset.icon"></i>
             <span>{{ getPresetLabel(preset) }}</span>
@@ -321,11 +313,7 @@
         </div>
       </div>
 
-      <button
-        v-if="hasCropped"
-        class="transform-btn undo-btn"
-        @click="$emit('undo-crop')"
-      >
+      <button v-if="hasCropped" class="transform-btn undo-btn" @click="$emit('undo-crop')">
         <i class="fas fa-undo"></i>
         <span>{{ $t('transform.crop.undo') }}</span>
       </button>
@@ -341,17 +329,17 @@
         <div class="transform-history-controls">
           <button
             class="btn-icon-small"
-            @click="$emit('undo-transform')"
             :disabled="!canUndoTransform"
             :title="$t('transform.undo', 'Rückgängig')"
+            @click="$emit('undo-transform')"
           >
             <i class="fas fa-undo"></i>
           </button>
           <button
             class="btn-icon-small"
-            @click="$emit('redo-transform')"
             :disabled="!canRedoTransform"
             :title="$t('transform.redo', 'Wiederherstellen')"
+            @click="$emit('redo-transform')"
           >
             <i class="fas fa-redo"></i>
           </button>
@@ -372,20 +360,22 @@
             min="0"
             max="100"
             :value="transforms.opacity"
+            class="slider"
             @input="$emit('update:opacity', Number($event.target.value))"
             @change="$emit('commit-transform')"
-            class="slider"
-          >
+          />
           <div class="number-input-wrapper">
             <input
               type="number"
               min="0"
               max="100"
               :value="transforms.opacity"
-              @input="$emit('update:opacity', Math.min(100, Math.max(0, Number($event.target.value))))"
-              @change="$emit('commit-transform')"
               class="number-input"
-            >
+              @input="
+                $emit('update:opacity', Math.min(100, Math.max(0, Number($event.target.value))))
+              "
+              @change="$emit('commit-transform')"
+            />
             <span class="unit">%</span>
           </div>
         </div>
@@ -405,20 +395,22 @@
             min="-180"
             max="180"
             :value="transforms.rotation"
+            class="slider"
             @input="$emit('update:rotation', Number($event.target.value))"
             @change="$emit('commit-transform')"
-            class="slider"
-          >
+          />
           <div class="number-input-wrapper">
             <input
               type="number"
               min="-180"
               max="180"
               :value="transforms.rotation"
-              @input="$emit('update:rotation', Math.min(180, Math.max(-180, Number($event.target.value))))"
-              @change="$emit('commit-transform')"
               class="number-input"
-            >
+              @input="
+                $emit('update:rotation', Math.min(180, Math.max(-180, Number($event.target.value))))
+              "
+              @change="$emit('commit-transform')"
+            />
             <span class="unit">°</span>
           </div>
         </div>
@@ -426,26 +418,26 @@
 
       <!-- Schnell-Rotation Buttons -->
       <div class="button-group">
-        <button 
+        <button
           class="quick-btn"
-          @click="$emit('rotate-90-counter')"
           :title="$t('transform.rotationTooltip.counterClockwise')"
+          @click="$emit('rotate-90-counter')"
         >
           <i class="fas fa-undo"></i>
           90°
         </button>
-        <button 
+        <button
           class="quick-btn"
-          @click="$emit('rotate-180')"
           :title="$t('transform.rotationTooltip.rotate180')"
+          @click="$emit('rotate-180')"
         >
           <i class="fas fa-sync"></i>
           180°
         </button>
-        <button 
+        <button
           class="quick-btn"
-          @click="$emit('rotate-90')"
           :title="$t('transform.rotationTooltip.clockwise')"
+          @click="$emit('rotate-90')"
         >
           <i class="fas fa-redo"></i>
           90°
@@ -456,18 +448,18 @@
       <div class="button-group">
         <button
           class="quick-btn"
-          :class="{ 'active': transforms.flipHorizontal }"
-          @click="$emit('flip-horizontal')"
+          :class="{ active: transforms.flipHorizontal }"
           :title="$t('transform.flip.horizontalTooltip')"
+          @click="$emit('flip-horizontal')"
         >
           <i class="fas fa-arrows-alt-h"></i>
           {{ $t('transform.flip.horizontal') }}
         </button>
         <button
           class="quick-btn"
-          :class="{ 'active': transforms.flipVertical }"
-          @click="$emit('flip-vertical')"
+          :class="{ active: transforms.flipVertical }"
           :title="$t('transform.flip.verticalTooltip')"
+          @click="$emit('flip-vertical')"
         >
           <i class="fas fa-arrows-alt-v"></i>
           {{ $t('transform.flip.vertical') }}
@@ -495,20 +487,22 @@
               min="-45"
               max="45"
               :value="transforms.skewX"
+              class="slider"
               @input="$emit('update:skew-x', Number($event.target.value))"
               @change="$emit('commit-transform')"
-              class="slider"
-            >
+            />
             <div class="number-input-wrapper">
               <input
                 type="number"
                 min="-45"
                 max="45"
                 :value="transforms.skewX"
-                @input="$emit('update:skew-x', Math.min(45, Math.max(-45, Number($event.target.value))))"
-                @change="$emit('commit-transform')"
                 class="number-input"
-              >
+                @input="
+                  $emit('update:skew-x', Math.min(45, Math.max(-45, Number($event.target.value))))
+                "
+                @change="$emit('commit-transform')"
+              />
               <span class="unit">°</span>
             </div>
           </div>
@@ -526,20 +520,22 @@
               min="-45"
               max="45"
               :value="transforms.skewY"
+              class="slider"
               @input="$emit('update:skew-y', Number($event.target.value))"
               @change="$emit('commit-transform')"
-              class="slider"
-            >
+            />
             <div class="number-input-wrapper">
               <input
                 type="number"
                 min="-45"
                 max="45"
                 :value="transforms.skewY"
-                @input="$emit('update:skew-y', Math.min(45, Math.max(-45, Number($event.target.value))))"
-                @change="$emit('commit-transform')"
                 class="number-input"
-              >
+                @input="
+                  $emit('update:skew-y', Math.min(45, Math.max(-45, Number($event.target.value))))
+                "
+                @change="$emit('commit-transform')"
+              />
               <span class="unit">°</span>
             </div>
           </div>
@@ -560,20 +556,22 @@
             min="10"
             max="200"
             :value="transforms.scale"
+            class="slider"
             @input="$emit('update:scale', Number($event.target.value))"
             @change="$emit('commit-transform')"
-            class="slider"
-          >
+          />
           <div class="number-input-wrapper">
             <input
               type="number"
               min="10"
               max="200"
               :value="transforms.scale"
-              @input="$emit('update:scale', Math.min(200, Math.max(10, Number($event.target.value))))"
-              @change="$emit('commit-transform')"
               class="number-input"
-            >
+              @input="
+                $emit('update:scale', Math.min(200, Math.max(10, Number($event.target.value))))
+              "
+              @change="$emit('commit-transform')"
+            />
             <span class="unit">%</span>
           </div>
         </div>
@@ -585,11 +583,7 @@
           <i class="fas fa-hand-paper"></i>
           {{ $t('transform.panHint', 'Leertaste + Ziehen oder Mausrad-Klick zum Verschieben') }}
         </p>
-        <button
-          v-if="hasPan"
-          class="transform-btn pan-reset-btn"
-          @click="$emit('reset-pan')"
-        >
+        <button v-if="hasPan" class="transform-btn pan-reset-btn" @click="$emit('reset-pan')">
           <i class="fas fa-compress-arrows-alt"></i>
           <span>{{ $t('transform.resetPan', 'Ansicht zentrieren') }}</span>
         </button>
@@ -609,24 +603,31 @@
             min="0"
             max="50"
             :value="transforms.borderRadius"
+            class="slider"
             @input="$emit('update:border-radius', Number($event.target.value))"
             @change="$emit('commit-transform')"
-            class="slider"
-          >
+          />
           <div class="number-input-wrapper">
             <input
               type="number"
               min="0"
               max="50"
               :value="transforms.borderRadius"
-              @input="$emit('update:border-radius', Math.min(50, Math.max(0, Number($event.target.value))))"
-              @change="$emit('commit-transform')"
               class="number-input"
-            >
+              @input="
+                $emit(
+                  'update:border-radius',
+                  Math.min(50, Math.max(0, Number($event.target.value)))
+                )
+              "
+              @change="$emit('commit-transform')"
+            />
             <span class="unit">%</span>
           </div>
         </div>
-        <p class="control-hint">{{ $t('transform.borderRadiusHint', '50% = vollständiger Kreis') }}</p>
+        <p class="control-hint">
+          {{ $t('transform.borderRadiusHint', '50% = vollständiger Kreis') }}
+        </p>
       </div>
 
       <!-- Rahmen -->
@@ -643,20 +644,22 @@
             min="0"
             max="20"
             :value="transforms.borderWidth"
+            class="slider"
             @input="$emit('update:border-width', Number($event.target.value))"
             @change="$emit('commit-transform')"
-            class="slider"
-          >
+          />
           <div class="number-input-wrapper">
             <input
               type="number"
               min="0"
               max="20"
               :value="transforms.borderWidth"
-              @input="$emit('update:border-width', Math.min(20, Math.max(0, Number($event.target.value))))"
-              @change="$emit('commit-transform')"
               class="number-input"
-            >
+              @input="
+                $emit('update:border-width', Math.min(20, Math.max(0, Number($event.target.value))))
+              "
+              @change="$emit('commit-transform')"
+            />
             <span class="unit">px</span>
           </div>
         </div>
@@ -665,10 +668,10 @@
           <input
             type="color"
             :value="transforms.borderColor"
+            class="color-input"
             @input="$emit('update:border-color', $event.target.value)"
             @change="$emit('commit-transform')"
-            class="color-input"
-          >
+          />
           <span class="color-label">{{ $t('transform.borderColor') }}</span>
         </div>
       </div>
@@ -682,7 +685,7 @@
           </span>
           <button
             class="toggle-btn"
-            :class="{ 'active': transforms.shadowEnabled }"
+            :class="{ active: transforms.shadowEnabled }"
             @click="$emit('update:shadow-enabled', !transforms.shadowEnabled)"
           >
             <span class="toggle-slider"></span>
@@ -703,20 +706,25 @@
                 min="-50"
                 max="50"
                 :value="transforms.shadowOffsetX"
+                class="slider"
                 @input="$emit('update:shadow-offset-x', Number($event.target.value))"
                 @change="$emit('commit-transform')"
-                class="slider"
-              >
+              />
               <div class="number-input-wrapper">
                 <input
                   type="number"
                   min="-50"
                   max="50"
                   :value="transforms.shadowOffsetX"
-                  @input="$emit('update:shadow-offset-x', Math.min(50, Math.max(-50, Number($event.target.value))))"
-                  @change="$emit('commit-transform')"
                   class="number-input"
-                >
+                  @input="
+                    $emit(
+                      'update:shadow-offset-x',
+                      Math.min(50, Math.max(-50, Number($event.target.value)))
+                    )
+                  "
+                  @change="$emit('commit-transform')"
+                />
                 <span class="unit">px</span>
               </div>
             </div>
@@ -734,20 +742,25 @@
                 min="-50"
                 max="50"
                 :value="transforms.shadowOffsetY"
+                class="slider"
                 @input="$emit('update:shadow-offset-y', Number($event.target.value))"
                 @change="$emit('commit-transform')"
-                class="slider"
-              >
+              />
               <div class="number-input-wrapper">
                 <input
                   type="number"
                   min="-50"
                   max="50"
                   :value="transforms.shadowOffsetY"
-                  @input="$emit('update:shadow-offset-y', Math.min(50, Math.max(-50, Number($event.target.value))))"
-                  @change="$emit('commit-transform')"
                   class="number-input"
-                >
+                  @input="
+                    $emit(
+                      'update:shadow-offset-y',
+                      Math.min(50, Math.max(-50, Number($event.target.value)))
+                    )
+                  "
+                  @change="$emit('commit-transform')"
+                />
                 <span class="unit">px</span>
               </div>
             </div>
@@ -765,20 +778,25 @@
                 min="0"
                 max="100"
                 :value="transforms.shadowBlur"
+                class="slider"
                 @input="$emit('update:shadow-blur', Number($event.target.value))"
                 @change="$emit('commit-transform')"
-                class="slider"
-              >
+              />
               <div class="number-input-wrapper">
                 <input
                   type="number"
                   min="0"
                   max="100"
                   :value="transforms.shadowBlur"
-                  @input="$emit('update:shadow-blur', Math.min(100, Math.max(0, Number($event.target.value))))"
-                  @change="$emit('commit-transform')"
                   class="number-input"
-                >
+                  @input="
+                    $emit(
+                      'update:shadow-blur',
+                      Math.min(100, Math.max(0, Number($event.target.value)))
+                    )
+                  "
+                  @change="$emit('commit-transform')"
+                />
                 <span class="unit">px</span>
               </div>
             </div>
@@ -796,20 +814,25 @@
                 min="0"
                 max="100"
                 :value="transforms.shadowOpacity"
+                class="slider"
                 @input="$emit('update:shadow-opacity', Number($event.target.value))"
                 @change="$emit('commit-transform')"
-                class="slider"
-              >
+              />
               <div class="number-input-wrapper">
                 <input
                   type="number"
                   min="0"
                   max="100"
                   :value="transforms.shadowOpacity"
-                  @input="$emit('update:shadow-opacity', Math.min(100, Math.max(0, Number($event.target.value))))"
-                  @change="$emit('commit-transform')"
                   class="number-input"
-                >
+                  @input="
+                    $emit(
+                      'update:shadow-opacity',
+                      Math.min(100, Math.max(0, Number($event.target.value)))
+                    )
+                  "
+                  @change="$emit('commit-transform')"
+                />
                 <span class="unit">%</span>
               </div>
             </div>
@@ -825,19 +848,19 @@
               <input
                 type="color"
                 :value="transforms.shadowColor"
-                @input="$emit('update:shadow-color', $event.target.value)"
-                @change="$emit('commit-transform')"
                 class="color-input"
                 :style="{ backgroundColor: transforms.shadowColor }"
-              >
+                @input="$emit('update:shadow-color', $event.target.value)"
+                @change="$emit('commit-transform')"
+              />
               <input
                 type="text"
                 :value="transforms.shadowColor"
-                @input="$emit('update:shadow-color', $event.target.value)"
-                @change="$emit('commit-transform')"
                 class="color-text"
                 maxlength="7"
-              >
+                @input="$emit('update:shadow-color', $event.target.value)"
+                @change="$emit('commit-transform')"
+              />
             </div>
           </div>
         </div>
@@ -847,87 +870,80 @@
 </template>
 
 <script setup>
-import { useI18n } from 'vue-i18n'
-import { availableFonts } from '@/assets/fonts/fontList.js'
+import { useI18n } from 'vue-i18n';
+import { availableFonts } from '@/assets/fonts/fontList.js';
 
-const { t } = useI18n({ useScope: 'global' })
+const { t } = useI18n({ useScope: 'global' });
 
 // System-Schriftarten als Fallback
-const systemFonts = [
-  'Arial',
-  'Helvetica',
-  'Times New Roman',
-  'Georgia',
-  'Verdana',
-  'Courier New'
-]
+const systemFonts = ['Arial', 'Helvetica', 'Times New Roman', 'Georgia', 'Verdana', 'Courier New'];
 
 // Alle Schriften kombinieren (benutzerdefiniert zuerst, dann System)
-const allFonts = [...availableFonts, ...systemFonts]
+const allFonts = [...availableFonts, ...systemFonts];
 
 // Hilfsfunktion für Preset-Labels mit Übersetzung
 function getPresetLabel(preset) {
   // Verwende Übersetzung für 'free' und 'circle', sonst das Label
   if (preset.id === 'free' || preset.id === 'circle') {
-    return t(`transform.crop.presets.${preset.id}`)
+    return t(`transform.crop.presets.${preset.id}`);
   }
-  return preset.label
+  return preset.label;
 }
 
 defineProps({
   cropMode: {
     type: Boolean,
-    required: true
+    required: true,
   },
   hasCropped: {
     type: Boolean,
-    required: true
+    required: true,
   },
   selectedAspectRatio: {
     type: String,
-    default: 'free'
+    default: 'free',
   },
   aspectRatioPresets: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   transforms: {
     type: Object,
-    required: true
+    required: true,
   },
   canPan: {
     type: Boolean,
-    default: false
+    default: false,
   },
   hasPan: {
     type: Boolean,
-    default: false
+    default: false,
   },
   selectedText: {
     type: Object,
-    default: null
+    default: null,
   },
   hasTexts: {
     type: Boolean,
-    default: false
+    default: false,
   },
   canUndoText: {
     type: Boolean,
-    default: false
+    default: false,
   },
   canRedoText: {
     type: Boolean,
-    default: false
+    default: false,
   },
   canUndoTransform: {
     type: Boolean,
-    default: false
+    default: false,
   },
   canRedoTransform: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
 defineEmits([
   'toggle-crop',
@@ -974,8 +990,8 @@ defineEmits([
   'undo-text',
   'redo-text',
   'delete-text',
-  'deselect-text'
-])
+  'deselect-text',
+]);
 </script>
 
 <style scoped>
@@ -1094,7 +1110,7 @@ defineEmits([
 
   &.apply-btn {
     background: linear-gradient(135deg, #014f99, #003971);
-    color: #F5F4D6;
+    color: #f5f4d6;
     border-color: #003971;
     box-shadow: 0 2px 8px rgba(1, 79, 153, 0.3);
 
@@ -1215,7 +1231,7 @@ defineEmits([
 }
 
 /* Dark Mode für number-input */
-:root[data-theme="dark"] .number-input-wrapper {
+:root[data-theme='dark'] .number-input-wrapper {
   background: var(--color-card-bg, var(--color-bg));
   border-color: var(--color-border);
 
@@ -1411,15 +1427,15 @@ defineEmits([
   }
 }
 
-:root[data-theme="dark"] .aspect-ratio-section {
+:root[data-theme='dark'] .aspect-ratio-section {
   border-top-color: var(--color-border);
 }
 
-:root[data-theme="dark"] .aspect-label {
+:root[data-theme='dark'] .aspect-label {
   color: var(--color-text-light);
 }
 
-:root[data-theme="dark"] .aspect-btn {
+:root[data-theme='dark'] .aspect-btn {
   background: var(--color-card-bg, var(--color-bg));
   border-color: var(--color-border);
   color: var(--color-text);
@@ -1482,12 +1498,12 @@ defineEmits([
 }
 
 /* Dark Mode - angeglichen an linke Sidebar */
-:root[data-theme="dark"] .transform-panel {
+:root[data-theme='dark'] .transform-panel {
   background: var(--color-bg-secondary);
   border-left-color: var(--color-border);
 }
 
-:root[data-theme="dark"] .panel-section {
+:root[data-theme='dark'] .panel-section {
   background: var(--color-bg);
   border-color: var(--color-border);
 
@@ -1496,11 +1512,11 @@ defineEmits([
   }
 }
 
-:root[data-theme="dark"] .panel-section h3 {
+:root[data-theme='dark'] .panel-section h3 {
   color: var(--color-text-light);
 }
 
-:root[data-theme="dark"] .transform-btn {
+:root[data-theme='dark'] .transform-btn {
   background: var(--color-card-bg, var(--color-bg));
   border-color: var(--color-border);
   color: var(--color-text);
@@ -1511,7 +1527,7 @@ defineEmits([
   }
 }
 
-:root[data-theme="dark"] .quick-btn {
+:root[data-theme='dark'] .quick-btn {
   background: var(--color-card-bg, var(--color-bg));
   border-color: var(--color-border);
   color: var(--color-text);
@@ -1522,7 +1538,7 @@ defineEmits([
   }
 }
 
-:root[data-theme="dark"] .control-group label {
+:root[data-theme='dark'] .control-group label {
   color: var(--color-text);
 
   .value {
@@ -1531,7 +1547,7 @@ defineEmits([
   }
 }
 
-:root[data-theme="dark"] .slider {
+:root[data-theme='dark'] .slider {
   background: var(--color-border);
 
   &::-webkit-slider-thumb {
@@ -1543,7 +1559,7 @@ defineEmits([
   }
 }
 
-:root[data-theme="dark"] .color-input {
+:root[data-theme='dark'] .color-input {
   border-color: var(--color-border);
 }
 
@@ -1607,7 +1623,7 @@ defineEmits([
   }
 }
 
-:root[data-theme="dark"] .btn-icon-small {
+:root[data-theme='dark'] .btn-icon-small {
   background: var(--color-card-bg, var(--color-bg));
   border-color: var(--color-border);
   color: var(--color-text);
@@ -1746,7 +1762,7 @@ defineEmits([
   }
 }
 
-:root[data-theme="dark"] .mini-control .mini-input {
+:root[data-theme='dark'] .mini-control .mini-input {
   background: var(--color-card-bg, var(--color-bg));
   border-color: var(--color-border);
   color: var(--color-text);
@@ -1786,25 +1802,25 @@ defineEmits([
 }
 
 /* Dark Mode Text Section */
-:root[data-theme="dark"] .text-section {
+:root[data-theme='dark'] .text-section {
   background: rgba(1, 79, 153, 0.1);
   border-color: rgba(1, 79, 153, 0.3);
 }
 
-:root[data-theme="dark"] .text-input,
-:root[data-theme="dark"] .font-select {
+:root[data-theme='dark'] .text-input,
+:root[data-theme='dark'] .font-select {
   background: var(--color-card-bg, var(--color-bg));
   border-color: var(--color-border);
   color: var(--color-text);
 }
 
-:root[data-theme="dark"] .color-picker-row .color-text {
+:root[data-theme='dark'] .color-picker-row .color-text {
   background: var(--color-card-bg, var(--color-bg));
   border-color: var(--color-border);
   color: var(--color-text);
 }
 
-:root[data-theme="dark"] .text-hint {
+:root[data-theme='dark'] .text-hint {
   background: rgba(1, 79, 153, 0.1);
   border-color: rgba(1, 79, 153, 0.3);
 }
@@ -1845,12 +1861,12 @@ defineEmits([
   }
 }
 
-:root[data-theme="dark"] .pan-info {
+:root[data-theme='dark'] .pan-info {
   background: rgba(74, 222, 128, 0.15);
   border-color: rgba(74, 222, 128, 0.3);
 }
 
-:root[data-theme="dark"] .pan-hint {
+:root[data-theme='dark'] .pan-hint {
   color: var(--color-text-light);
 }
 
@@ -1954,11 +1970,11 @@ defineEmits([
 }
 
 /* Dark Mode Shadow Styles */
-:root[data-theme="dark"] .shadow-section {
+:root[data-theme='dark'] .shadow-section {
   border-top-color: var(--color-border);
 }
 
-:root[data-theme="dark"] .toggle-btn {
+:root[data-theme='dark'] .toggle-btn {
   background: var(--color-border);
 
   &.active {
@@ -1966,12 +1982,12 @@ defineEmits([
   }
 }
 
-:root[data-theme="dark"] .shadow-controls-panel {
+:root[data-theme='dark'] .shadow-controls-panel {
   background: rgba(1, 79, 153, 0.1);
   border-color: rgba(1, 79, 153, 0.25);
 }
 
-:root[data-theme="dark"] .mini-label {
+:root[data-theme='dark'] .mini-label {
   color: var(--color-text-light);
 }
 
@@ -1990,7 +2006,7 @@ defineEmits([
   }
 }
 
-:root[data-theme="dark"] .skew-section {
+:root[data-theme='dark'] .skew-section {
   border-top-color: var(--color-border);
 }
 

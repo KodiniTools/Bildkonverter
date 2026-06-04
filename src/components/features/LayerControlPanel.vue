@@ -10,11 +10,7 @@
         <i class="fas fa-layer-group"></i>
         {{ $t('layerPanel.tabs.layers') }}
       </button>
-      <button
-        class="tab-btn"
-        :class="{ active: activeTab === 'text' }"
-        @click="activeTab = 'text'"
-      >
+      <button class="tab-btn" :class="{ active: activeTab === 'text' }" @click="activeTab = 'text'">
         <i class="fas fa-font"></i>
         {{ $t('layerPanel.tabs.text') }}
       </button>
@@ -26,8 +22,8 @@
         class="history-btn"
         :class="{ disabled: !imageStore.canUndo }"
         :disabled="!imageStore.canUndo"
-        @click="handleUndo"
         :title="$t('layerPanel.history.undo')"
+        @click="handleUndo"
       >
         <i class="fas fa-undo"></i>
       </button>
@@ -35,19 +31,19 @@
         class="history-btn"
         :class="{ disabled: !imageStore.canRedo }"
         :disabled="!imageStore.canRedo"
-        @click="handleRedo"
         :title="$t('layerPanel.history.redo')"
+        @click="handleRedo"
       >
         <i class="fas fa-redo"></i>
       </button>
       <button
         class="history-btn preview-btn"
-        @click="handlePreview"
         :title="$t('layerPanel.history.preview')"
+        @click="handlePreview"
       >
         <i class="fas fa-eye"></i>
       </button>
-      <span class="history-info" v-if="historyInfo">
+      <span v-if="historyInfo" class="history-info">
         <i class="fas fa-history"></i>
         {{ historyInfo }}
       </span>
@@ -75,20 +71,22 @@
             </div>
             <div class="layer-info">
               <span class="layer-name">{{ layer.name }}</span>
-              <span class="layer-size">{{ Math.round(layer.width) }} × {{ Math.round(layer.height) }}</span>
+              <span class="layer-size"
+                >{{ Math.round(layer.width) }} × {{ Math.round(layer.height) }}</span
+              >
             </div>
             <div class="layer-actions">
               <button
                 class="icon-btn"
-                @click.stop="toggleVisibility(layer)"
                 :title="layer.visible ? $t('layerPanel.layers.hide') : $t('layerPanel.layers.show')"
+                @click.stop="toggleVisibility(layer)"
               >
                 <i class="fas" :class="layer.visible ? 'fa-eye' : 'fa-eye-slash'"></i>
               </button>
               <button
                 class="icon-btn"
-                @click.stop="deleteLayer(layer.id)"
                 :title="$t('layerPanel.layers.delete')"
+                @click.stop="deleteLayer(layer.id)"
               >
                 <i class="fas fa-trash"></i>
               </button>
@@ -97,14 +95,26 @@
         </div>
 
         <!-- Layer Reihenfolge -->
-        <div class="layer-order-buttons" v-if="selectedLayer">
-          <button class="btn btn-sm" @click="moveLayer('up')" :title="$t('layerPanel.layers.moveUp')">
+        <div v-if="selectedLayer" class="layer-order-buttons">
+          <button
+            class="btn btn-sm"
+            :title="$t('layerPanel.layers.moveUp')"
+            @click="moveLayer('up')"
+          >
             <i class="fas fa-arrow-up"></i>
           </button>
-          <button class="btn btn-sm" @click="moveLayer('down')" :title="$t('layerPanel.layers.moveDown')">
+          <button
+            class="btn btn-sm"
+            :title="$t('layerPanel.layers.moveDown')"
+            @click="moveLayer('down')"
+          >
             <i class="fas fa-arrow-down"></i>
           </button>
-          <button class="btn btn-sm" @click="duplicateLayer" :title="$t('layerPanel.layers.duplicate')">
+          <button
+            class="btn btn-sm"
+            :title="$t('layerPanel.layers.duplicate')"
+            @click="duplicateLayer"
+          >
             <i class="fas fa-copy"></i>
           </button>
         </div>
@@ -115,7 +125,10 @@
         <h3 class="section-title collapsible" @click="toggleSection('canvas')">
           <i class="fas fa-fill-drip"></i>
           {{ $t('layerPanel.background.title') }}
-          <i class="fas toggle-icon" :class="openSections.canvas ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+          <i
+            class="fas toggle-icon"
+            :class="openSections.canvas ? 'fa-chevron-up' : 'fa-chevron-down'"
+          ></i>
         </h3>
 
         <div v-show="openSections.canvas" class="section-content">
@@ -125,21 +138,21 @@
               <input
                 type="color"
                 :value="imageStore.canvasBackgroundColor"
-                @input="updateBackgroundColor($event.target.value)"
                 class="color-input"
+                @input="updateBackgroundColor($event.target.value)"
               />
               <input
                 type="text"
                 :value="imageStore.canvasBackgroundColor"
-                @input="updateBackgroundColor($event.target.value)"
                 class="color-text-input"
                 maxlength="7"
+                @input="updateBackgroundColor($event.target.value)"
               />
               <button
                 class="icon-btn"
                 :class="{ active: imageStore.canvasBackgroundColor === 'transparent' }"
-                @click="updateBackgroundColor('transparent')"
                 :title="$t('layerPanel.background.transparent')"
+                @click="updateBackgroundColor('transparent')"
               >
                 <i class="fas fa-chess-board"></i>
               </button>
@@ -150,10 +163,13 @@
               v-for="color in quickColors"
               :key="color.value"
               class="color-swatch"
-              :class="{ active: imageStore.canvasBackgroundColor === color.value, transparent: color.value === 'transparent' }"
+              :class="{
+                active: imageStore.canvasBackgroundColor === color.value,
+                transparent: color.value === 'transparent',
+              }"
               :style="color.value !== 'transparent' ? { backgroundColor: color.value } : {}"
-              @click="updateBackgroundColor(color.value)"
               :title="color.label"
+              @click="updateBackgroundColor(color.value)"
             >
               <i v-if="color.value === 'transparent'" class="fas fa-chess-board"></i>
             </button>
@@ -162,11 +178,14 @@
       </div>
 
       <!-- Ausgewählter Layer Eigenschaften -->
-      <div class="panel-section" v-if="selectedLayer">
+      <div v-if="selectedLayer" class="panel-section">
         <h3 class="section-title collapsible" @click="toggleSection('transform')">
           <i class="fas fa-arrows-alt"></i>
           {{ $t('layerPanel.transform.title') }}
-          <i class="fas toggle-icon" :class="openSections.transform ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+          <i
+            class="fas toggle-icon"
+            :class="openSections.transform ? 'fa-chevron-up' : 'fa-chevron-down'"
+          ></i>
         </h3>
 
         <div v-show="openSections.transform" class="section-content">
@@ -216,8 +235,8 @@
               <button
                 class="icon-btn"
                 :class="{ active: maintainAspectRatio }"
-                @click="maintainAspectRatio = !maintainAspectRatio"
                 :title="$t('layerPanel.transform.maintainAspect')"
+                @click="maintainAspectRatio = !maintainAspectRatio"
               >
                 <i class="fas fa-link"></i>
               </button>
@@ -248,8 +267,8 @@
               <button
                 class="btn btn-sm"
                 :class="{ active: selectedLayer.flipX }"
-                @click="toggleFlip('flipX')"
                 :title="$t('layerPanel.transform.flipHorizontal')"
+                @click="toggleFlip('flipX')"
               >
                 <i class="fas fa-arrows-alt-h"></i>
                 {{ $t('layerPanel.transform.horizontal') }}
@@ -257,8 +276,8 @@
               <button
                 class="btn btn-sm"
                 :class="{ active: selectedLayer.flipY }"
-                @click="toggleFlip('flipY')"
                 :title="$t('layerPanel.transform.flipVertical')"
+                @click="toggleFlip('flipY')"
               >
                 <i class="fas fa-arrows-alt-v"></i>
                 {{ $t('layerPanel.transform.vertical') }}
@@ -281,16 +300,22 @@
       </div>
 
       <!-- Filter Section -->
-      <div class="panel-section" v-if="selectedLayer">
+      <div v-if="selectedLayer" class="panel-section">
         <h3 class="section-title collapsible" @click="toggleSection('filters')">
           <i class="fas fa-sliders-h"></i>
           {{ $t('layerPanel.filters.title') }}
-          <i class="fas toggle-icon" :class="openSections.filters ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+          <i
+            class="fas toggle-icon"
+            :class="openSections.filters ? 'fa-chevron-up' : 'fa-chevron-down'"
+          ></i>
         </h3>
 
         <div v-show="openSections.filters" class="section-content">
           <div class="control-group">
-            <label>{{ $t('layerPanel.filters.brightness') }}: {{ selectedLayer.filters.brightness }}%</label>
+            <label
+              >{{ $t('layerPanel.filters.brightness') }}:
+              {{ selectedLayer.filters.brightness }}%</label
+            >
             <input
               type="range"
               min="0"
@@ -301,7 +326,9 @@
           </div>
 
           <div class="control-group">
-            <label>{{ $t('layerPanel.filters.contrast') }}: {{ selectedLayer.filters.contrast }}%</label>
+            <label
+              >{{ $t('layerPanel.filters.contrast') }}: {{ selectedLayer.filters.contrast }}%</label
+            >
             <input
               type="range"
               min="0"
@@ -312,7 +339,10 @@
           </div>
 
           <div class="control-group">
-            <label>{{ $t('layerPanel.filters.saturation') }}: {{ selectedLayer.filters.saturation }}%</label>
+            <label
+              >{{ $t('layerPanel.filters.saturation') }}:
+              {{ selectedLayer.filters.saturation }}%</label
+            >
             <input
               type="range"
               min="0"
@@ -323,7 +353,10 @@
           </div>
 
           <div class="control-group">
-            <label>{{ $t('layerPanel.filters.grayscale') }}: {{ selectedLayer.filters.grayscale }}%</label>
+            <label
+              >{{ $t('layerPanel.filters.grayscale') }}:
+              {{ selectedLayer.filters.grayscale }}%</label
+            >
             <input
               type="range"
               min="0"
@@ -341,11 +374,14 @@
       </div>
 
       <!-- Border/Umrandung Section -->
-      <div class="panel-section" v-if="selectedLayer">
+      <div v-if="selectedLayer" class="panel-section">
         <h3 class="section-title collapsible" @click="toggleSection('border')">
           <i class="fas fa-border-style"></i>
           {{ $t('layerPanel.border.title') }}
-          <i class="fas toggle-icon" :class="openSections.border ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+          <i
+            class="fas toggle-icon"
+            :class="openSections.border ? 'fa-chevron-up' : 'fa-chevron-down'"
+          ></i>
         </h3>
 
         <div v-show="openSections.border" class="section-content">
@@ -366,15 +402,15 @@
               <input
                 type="color"
                 :value="layerBorder.color"
-                @input="updateBorder('color', $event.target.value)"
                 class="color-input"
+                @input="updateBorder('color', $event.target.value)"
               />
               <input
                 type="text"
                 :value="layerBorder.color"
-                @input="updateBorder('color', $event.target.value)"
                 class="color-text-input"
                 maxlength="7"
+                @input="updateBorder('color', $event.target.value)"
               />
             </div>
           </div>
@@ -393,11 +429,14 @@
       </div>
 
       <!-- Shadow/Schatten Section -->
-      <div class="panel-section" v-if="selectedLayer">
+      <div v-if="selectedLayer" class="panel-section">
         <h3 class="section-title collapsible" @click="toggleSection('shadow')">
           <i class="fas fa-clone"></i>
           {{ $t('layerPanel.shadow.title') }}
-          <i class="fas toggle-icon" :class="openSections.shadow ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+          <i
+            class="fas toggle-icon"
+            :class="openSections.shadow ? 'fa-chevron-up' : 'fa-chevron-down'"
+          ></i>
         </h3>
 
         <div v-show="openSections.shadow" class="section-content">
@@ -452,15 +491,15 @@
                 <input
                   type="color"
                   :value="layerShadow.color"
-                  @input="updateShadow('color', $event.target.value)"
                   class="color-input"
+                  @input="updateShadow('color', $event.target.value)"
                 />
                 <input
                   type="text"
                   :value="layerShadow.color"
-                  @input="updateShadow('color', $event.target.value)"
                   class="color-text-input"
                   maxlength="7"
+                  @input="updateShadow('color', $event.target.value)"
                 />
               </div>
             </div>
@@ -480,7 +519,7 @@
       </div>
 
       <!-- Keine Auswahl -->
-      <div class="panel-section" v-if="!selectedLayer">
+      <div v-if="!selectedLayer" class="panel-section">
         <p class="hint-text">
           <i class="fas fa-mouse-pointer"></i>
           {{ $t('layerPanel.hints.selectLayer') }}
@@ -499,7 +538,7 @@
       </div>
 
       <!-- Text Liste -->
-      <div class="panel-section" v-if="imageStore.texts && imageStore.texts.length > 0">
+      <div v-if="imageStore.texts && imageStore.texts.length > 0" class="panel-section">
         <h3 class="section-title">
           <i class="fas fa-list"></i>
           {{ $t('layerPanel.text.listTitle') }} ({{ imageStore.texts.length }})
@@ -522,8 +561,8 @@
             </div>
             <button
               class="icon-btn"
-              @click.stop="deleteText(text.id)"
               :title="$t('layerPanel.layers.delete')"
+              @click.stop="deleteText(text.id)"
             >
               <i class="fas fa-trash"></i>
             </button>
@@ -532,7 +571,7 @@
       </div>
 
       <!-- Ausgewählter Text Eigenschaften -->
-      <div class="panel-section" v-if="selectedText">
+      <div v-if="selectedText" class="panel-section">
         <h3 class="section-title">
           <i class="fas fa-edit"></i>
           {{ $t('layerPanel.text.editTitle') }}
@@ -543,8 +582,8 @@
           <input
             type="text"
             :value="selectedText.content || selectedText.txt"
-            @input="updateTextProperty('content', $event.target.value)"
             class="text-input"
+            @input="updateTextProperty('content', $event.target.value)"
           />
         </div>
 
@@ -563,8 +602,8 @@
           <label>{{ $t('layerPanel.text.fontFamily') }}</label>
           <select
             :value="selectedText.fontFamily || 'Arial'"
-            @change="updateTextProperty('fontFamily', $event.target.value)"
             class="form-select font-select"
+            @change="updateTextProperty('fontFamily', $event.target.value)"
           >
             <optgroup :label="$t('layerPanel.text.customFonts')">
               <option
@@ -595,15 +634,15 @@
             <input
               type="color"
               :value="selectedText.color || '#000000'"
-              @input="updateTextProperty('color', $event.target.value)"
               class="color-input"
+              @input="updateTextProperty('color', $event.target.value)"
             />
             <input
               type="text"
               :value="selectedText.color || '#000000'"
-              @input="updateTextProperty('color', $event.target.value)"
               class="color-text-input"
               maxlength="7"
+              @input="updateTextProperty('color', $event.target.value)"
             />
           </div>
         </div>
@@ -633,7 +672,9 @@
         <!-- Text Kontur -->
         <h4 class="subsection-title">{{ $t('layerPanel.text.stroke') }}</h4>
         <div class="control-group">
-          <label>{{ $t('layerPanel.text.strokeWidth') }}: {{ selectedText.strokeWidth || 0 }}px</label>
+          <label
+            >{{ $t('layerPanel.text.strokeWidth') }}: {{ selectedText.strokeWidth || 0 }}px</label
+          >
           <input
             type="range"
             min="0"
@@ -643,21 +684,21 @@
           />
         </div>
 
-        <div class="control-group" v-if="(selectedText.strokeWidth || 0) > 0">
+        <div v-if="(selectedText.strokeWidth || 0) > 0" class="control-group">
           <label>{{ $t('layerPanel.text.strokeColor') }}</label>
           <div class="color-picker-row">
             <input
               type="color"
               :value="selectedText.strokeColor || '#ffffff'"
-              @input="updateTextProperty('strokeColor', $event.target.value)"
               class="color-input"
+              @input="updateTextProperty('strokeColor', $event.target.value)"
             />
             <input
               type="text"
               :value="selectedText.strokeColor || '#ffffff'"
-              @input="updateTextProperty('strokeColor', $event.target.value)"
               class="color-text-input"
               maxlength="7"
+              @input="updateTextProperty('strokeColor', $event.target.value)"
             />
           </div>
         </div>
@@ -665,7 +706,9 @@
         <!-- Text Schatten -->
         <h4 class="subsection-title">{{ $t('layerPanel.text.textShadow') }}</h4>
         <div class="control-group">
-          <label>{{ $t('layerPanel.text.shadowBlur') }}: {{ selectedText.shadowBlur || 0 }}px</label>
+          <label
+            >{{ $t('layerPanel.text.shadowBlur') }}: {{ selectedText.shadowBlur || 0 }}px</label
+          >
           <input
             type="range"
             min="0"
@@ -677,7 +720,9 @@
 
         <template v-if="(selectedText.shadowBlur || 0) > 0">
           <div class="control-group">
-            <label>{{ $t('layerPanel.text.shadowX') }}: {{ selectedText.shadowOffsetX || 2 }}px</label>
+            <label
+              >{{ $t('layerPanel.text.shadowX') }}: {{ selectedText.shadowOffsetX || 2 }}px</label
+            >
             <input
               type="range"
               min="-20"
@@ -688,7 +733,9 @@
           </div>
 
           <div class="control-group">
-            <label>{{ $t('layerPanel.text.shadowY') }}: {{ selectedText.shadowOffsetY || 2 }}px</label>
+            <label
+              >{{ $t('layerPanel.text.shadowY') }}: {{ selectedText.shadowOffsetY || 2 }}px</label
+            >
             <input
               type="range"
               min="-20"
@@ -704,15 +751,15 @@
               <input
                 type="color"
                 :value="selectedText.shadowColor || '#000000'"
-                @input="updateTextProperty('shadowColor', $event.target.value)"
                 class="color-input"
+                @input="updateTextProperty('shadowColor', $event.target.value)"
               />
               <input
                 type="text"
                 :value="selectedText.shadowColor || '#000000'"
-                @input="updateTextProperty('shadowColor', $event.target.value)"
                 class="color-text-input"
                 maxlength="7"
+                @input="updateTextProperty('shadowColor', $event.target.value)"
               />
             </div>
           </div>
@@ -725,7 +772,7 @@
       </div>
 
       <!-- Keine Texte -->
-      <div class="panel-section" v-if="!imageStore.texts || imageStore.texts.length === 0">
+      <div v-if="!imageStore.texts || imageStore.texts.length === 0" class="panel-section">
         <p class="hint-text">
           <i class="fas fa-font"></i>
           {{ $t('layerPanel.hints.addText') }}
@@ -736,81 +783,87 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, watch, onMounted, onUnmounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useImageStore } from '@/stores/imageStore'
-import { availableFonts } from '@/assets/fonts/fontList.js'
+import { ref, computed, reactive, watch, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useImageStore } from '@/stores/imageStore';
+import { availableFonts } from '@/assets/fonts/fontList.js';
 
-const { t } = useI18n()
+const { t } = useI18n();
 
 const props = defineProps({
   canvasSelectedTextId: {
     type: String,
-    default: null
-  }
-})
+    default: null,
+  },
+});
 
-const emit = defineEmits(['render', 'add-text', 'select-text', 'preview'])
+const emit = defineEmits(['render', 'add-text', 'select-text', 'preview']);
 
-const imageStore = useImageStore()
-const maintainAspectRatio = ref(true)
-const activeTab = ref('layers')
-const selectedTextId = ref(null)
+const imageStore = useImageStore();
+const maintainAspectRatio = ref(true);
+const activeTab = ref('layers');
+const selectedTextId = ref(null);
 
 // Debounce Timer für History-Speicherung
-let saveStateTimer = null
+let saveStateTimer = null;
 
 // Debounced saveState - speichert erst nach 500ms Inaktivität
 function debouncedSaveState(description, type = 'layer') {
   if (saveStateTimer) {
-    clearTimeout(saveStateTimer)
+    clearTimeout(saveStateTimer);
   }
   saveStateTimer = setTimeout(() => {
-    imageStore.saveState(description, type)
-    saveStateTimer = null
-  }, 500)
+    imageStore.saveState(description, type);
+    saveStateTimer = null;
+  }, 500);
 }
 
 // Sofortige State-Speicherung ohne Debounce
 function saveStateNow(description, type = 'layer') {
   if (saveStateTimer) {
-    clearTimeout(saveStateTimer)
-    saveStateTimer = null
+    clearTimeout(saveStateTimer);
+    saveStateTimer = null;
   }
-  imageStore.saveState(description, type)
+  imageStore.saveState(description, type);
 }
 
 // Wenn Text auf Canvas ausgewählt wird, zu Text-Tab wechseln und Text auswählen
-watch(() => props.canvasSelectedTextId, (newTextId) => {
-  if (newTextId) {
-    selectedTextId.value = newTextId
-    activeTab.value = 'text'
-    // Layer-Auswahl aufheben
-    imageStore.selectImageLayer(null)
-  } else {
-    // Text wurde abgewählt - wenn ein Layer ausgewählt ist, zu Layers-Tab wechseln
-    if (imageStore.selectedLayerId) {
-      activeTab.value = 'layers'
-      selectedTextId.value = null
+watch(
+  () => props.canvasSelectedTextId,
+  (newTextId) => {
+    if (newTextId) {
+      selectedTextId.value = newTextId;
+      activeTab.value = 'text';
+      // Layer-Auswahl aufheben
+      imageStore.selectImageLayer(null);
+    } else {
+      // Text wurde abgewählt - wenn ein Layer ausgewählt ist, zu Layers-Tab wechseln
+      if (imageStore.selectedLayerId) {
+        activeTab.value = 'layers';
+        selectedTextId.value = null;
+      }
     }
   }
-})
+);
 
 // Wenn ein Layer ausgewählt wird, zu Layers-Tab wechseln
-watch(() => imageStore.selectedLayerId, (newLayerId) => {
-  if (newLayerId) {
-    activeTab.value = 'layers'
-    selectedTextId.value = null
+watch(
+  () => imageStore.selectedLayerId,
+  (newLayerId) => {
+    if (newLayerId) {
+      activeTab.value = 'layers';
+      selectedTextId.value = null;
+    }
   }
-})
+);
 
 const openSections = reactive({
   canvas: true,
   transform: true,
   filters: false,
   border: false,
-  shadow: false
-})
+  shadow: false,
+});
 
 // Schnellfarben für Hintergrund
 const quickColors = computed(() => [
@@ -821,8 +874,8 @@ const quickColors = computed(() => [
   { value: '#808080', label: t('layerPanel.background.gray') },
   { value: '#ff0000', label: t('layerPanel.background.red') },
   { value: '#00ff00', label: t('layerPanel.background.green') },
-  { value: '#0000ff', label: t('layerPanel.background.blue') }
-])
+  { value: '#0000ff', label: t('layerPanel.background.blue') },
+]);
 
 // System-Fonts als Fallback
 const systemFonts = [
@@ -834,34 +887,34 @@ const systemFonts = [
   'Courier New',
   'Impact',
   'Tahoma',
-  'Trebuchet MS'
-]
+  'Trebuchet MS',
+];
 
-const selectedLayer = computed(() => imageStore.selectedImageLayer)
+const selectedLayer = computed(() => imageStore.selectedImageLayer);
 
 const reversedLayers = computed(() => {
-  return [...imageStore.imageLayers].reverse()
-})
+  return [...imageStore.imageLayers].reverse();
+});
 
 const selectedText = computed(() => {
-  if (!selectedTextId.value || !imageStore.texts) return null
-  return imageStore.texts.find(t => t.id === selectedTextId.value)
-})
+  if (!selectedTextId.value || !imageStore.texts) return null;
+  return imageStore.texts.find((t) => t.id === selectedTextId.value);
+});
 
 // History Info Computed
 const historyInfo = computed(() => {
-  const current = imageStore.historyIndex + 1
-  const total = imageStore.history.length
-  if (total === 0) return ''
-  return `${current}/${total}`
-})
+  const current = imageStore.historyIndex + 1;
+  const total = imageStore.history.length;
+  if (total === 0) return '';
+  return `${current}/${total}`;
+});
 
 // Default Werte für Layer Border
 const layerBorder = computed(() => ({
   width: selectedLayer.value?.border?.width || 0,
   color: selectedLayer.value?.border?.color || '#000000',
-  radius: selectedLayer.value?.border?.radius || 0
-}))
+  radius: selectedLayer.value?.border?.radius || 0,
+}));
 
 // Default Werte für Layer Shadow
 const layerShadow = computed(() => ({
@@ -870,116 +923,116 @@ const layerShadow = computed(() => ({
   offsetY: selectedLayer.value?.shadow?.offsetY || 5,
   blur: selectedLayer.value?.shadow?.blur || 10,
   color: selectedLayer.value?.shadow?.color || '#000000',
-  opacity: selectedLayer.value?.shadow?.opacity || 50
-}))
+  opacity: selectedLayer.value?.shadow?.opacity || 50,
+}));
 
 function toggleSection(section) {
-  openSections[section] = !openSections[section]
+  openSections[section] = !openSections[section];
 }
 
 function updateBackgroundColor(color) {
-  imageStore.canvasBackgroundColor = color
-  emit('render')
-  debouncedSaveState('Hintergrundfarbe geändert', 'layer')
+  imageStore.canvasBackgroundColor = color;
+  emit('render');
+  debouncedSaveState('Hintergrundfarbe geändert', 'layer');
 }
 
 function selectLayer(layerId) {
-  imageStore.selectImageLayer(layerId)
-  emit('render')
+  imageStore.selectImageLayer(layerId);
+  emit('render');
 }
 
 function toggleVisibility(layer) {
-  imageStore.updateImageLayer(layer.id, { visible: !layer.visible })
-  emit('render')
-  saveStateNow(layer.visible ? 'Layer ausgeblendet' : 'Layer eingeblendet', 'layer')
+  imageStore.updateImageLayer(layer.id, { visible: !layer.visible });
+  emit('render');
+  saveStateNow(layer.visible ? 'Layer ausgeblendet' : 'Layer eingeblendet', 'layer');
 }
 
 function deleteLayer(layerId) {
   if (confirm(t('layerPanel.layers.confirmDelete'))) {
-    imageStore.deleteImageLayer(layerId)
-    emit('render')
+    imageStore.deleteImageLayer(layerId);
+    emit('render');
   }
 }
 
 function moveLayer(direction) {
   if (selectedLayer.value) {
-    imageStore.moveImageLayerOrder(selectedLayer.value.id, direction)
-    emit('render')
+    imageStore.moveImageLayerOrder(selectedLayer.value.id, direction);
+    emit('render');
   }
 }
 
 function duplicateLayer() {
   if (selectedLayer.value) {
-    imageStore.duplicateImageLayer(selectedLayer.value.id)
-    emit('render')
+    imageStore.duplicateImageLayer(selectedLayer.value.id);
+    emit('render');
   }
 }
 
 function updateLayerProperty(property, value) {
   if (selectedLayer.value) {
-    imageStore.updateImageLayer(selectedLayer.value.id, { [property]: value })
-    emit('render')
-    debouncedSaveState(`Layer ${property} geändert`, 'layer')
+    imageStore.updateImageLayer(selectedLayer.value.id, { [property]: value });
+    emit('render');
+    debouncedSaveState(`Layer ${property} geändert`, 'layer');
   }
 }
 
 function updateSize(property, value) {
-  if (!selectedLayer.value) return
+  if (!selectedLayer.value) return;
 
-  const layer = selectedLayer.value
-  const aspectRatio = layer.originalWidth / layer.originalHeight
+  const layer = selectedLayer.value;
+  const aspectRatio = layer.originalWidth / layer.originalHeight;
 
   if (maintainAspectRatio.value) {
     if (property === 'width') {
       imageStore.updateImageLayer(layer.id, {
         width: value,
-        height: value / aspectRatio
-      })
+        height: value / aspectRatio,
+      });
     } else {
       imageStore.updateImageLayer(layer.id, {
         width: value * aspectRatio,
-        height: value
-      })
+        height: value,
+      });
     }
   } else {
-    imageStore.updateImageLayer(layer.id, { [property]: value })
+    imageStore.updateImageLayer(layer.id, { [property]: value });
   }
-  emit('render')
-  debouncedSaveState('Layer-Größe geändert', 'layer')
+  emit('render');
+  debouncedSaveState('Layer-Größe geändert', 'layer');
 }
 
 function rotateBy(degrees) {
   if (selectedLayer.value) {
-    const newRotation = (selectedLayer.value.rotation + degrees) % 360
-    updateLayerProperty('rotation', newRotation)
+    const newRotation = (selectedLayer.value.rotation + degrees) % 360;
+    updateLayerProperty('rotation', newRotation);
   }
 }
 
 function toggleFlip(direction) {
   if (selectedLayer.value) {
-    const currentValue = selectedLayer.value[direction] || false
-    imageStore.updateImageLayer(selectedLayer.value.id, { [direction]: !currentValue })
-    emit('render')
-    saveStateNow(direction === 'flipX' ? 'Horizontal gespiegelt' : 'Vertikal gespiegelt', 'layer')
+    const currentValue = selectedLayer.value[direction] || false;
+    imageStore.updateImageLayer(selectedLayer.value.id, { [direction]: !currentValue });
+    emit('render');
+    saveStateNow(direction === 'flipX' ? 'Horizontal gespiegelt' : 'Vertikal gespiegelt', 'layer');
   }
 }
 
 function updateFilter(filterName, value) {
   if (selectedLayer.value) {
-    const newFilters = { ...selectedLayer.value.filters, [filterName]: value }
-    imageStore.updateImageLayer(selectedLayer.value.id, { filters: newFilters })
-    emit('render')
-    debouncedSaveState(`Layer-Filter ${filterName} geändert`, 'layer')
+    const newFilters = { ...selectedLayer.value.filters, [filterName]: value };
+    imageStore.updateImageLayer(selectedLayer.value.id, { filters: newFilters });
+    emit('render');
+    debouncedSaveState(`Layer-Filter ${filterName} geändert`, 'layer');
   }
 }
 
 function updateBorder(property, value) {
   if (selectedLayer.value) {
-    const currentBorder = selectedLayer.value.border || { width: 0, color: '#000000', radius: 0 }
-    const newBorder = { ...currentBorder, [property]: value }
-    imageStore.updateImageLayer(selectedLayer.value.id, { border: newBorder })
-    emit('render')
-    debouncedSaveState('Layer-Umrandung geändert', 'layer')
+    const currentBorder = selectedLayer.value.border || { width: 0, color: '#000000', radius: 0 };
+    const newBorder = { ...currentBorder, [property]: value };
+    imageStore.updateImageLayer(selectedLayer.value.id, { border: newBorder });
+    emit('render');
+    debouncedSaveState('Layer-Umrandung geändert', 'layer');
   }
 }
 
@@ -991,12 +1044,12 @@ function updateShadow(property, value) {
       offsetY: 5,
       blur: 10,
       color: '#000000',
-      opacity: 50
-    }
-    const newShadow = { ...currentShadow, [property]: value }
-    imageStore.updateImageLayer(selectedLayer.value.id, { shadow: newShadow })
-    emit('render')
-    debouncedSaveState('Layer-Schatten geändert', 'layer')
+      opacity: 50,
+    };
+    const newShadow = { ...currentShadow, [property]: value };
+    imageStore.updateImageLayer(selectedLayer.value.id, { shadow: newShadow });
+    emit('render');
+    debouncedSaveState('Layer-Schatten geändert', 'layer');
   }
 }
 
@@ -1010,15 +1063,15 @@ function resetLayerFilters() {
         grayscale: 0,
         sepia: 0,
         blur: 0,
-        hue: 0
+        hue: 0,
       },
       rotation: 0,
       opacity: 100,
       border: { width: 0, color: '#000000', radius: 0 },
-      shadow: { enabled: false, offsetX: 5, offsetY: 5, blur: 10, color: '#000000', opacity: 50 }
-    })
-    emit('render')
-    saveStateNow('Layer-Filter zurückgesetzt', 'layer')
+      shadow: { enabled: false, offsetX: 5, offsetY: 5, blur: 10, color: '#000000', opacity: 50 },
+    });
+    emit('render');
+    saveStateNow('Layer-Filter zurückgesetzt', 'layer');
   }
 }
 
@@ -1039,48 +1092,48 @@ function addText() {
     shadowBlur: 0,
     shadowOffsetX: 2,
     shadowOffsetY: 2,
-    shadowColor: '#000000'
-  }
+    shadowColor: '#000000',
+  };
 
   if (!imageStore.texts) {
-    imageStore.texts = []
+    imageStore.texts = [];
   }
-  imageStore.texts.push(newText)
-  selectedTextId.value = newText.id
-  emit('render')
+  imageStore.texts.push(newText);
+  selectedTextId.value = newText.id;
+  emit('render');
 }
 
 function selectText(textId) {
-  selectedTextId.value = textId
+  selectedTextId.value = textId;
   // Layer-Auswahl aufheben
-  imageStore.selectImageLayer(null)
-  emit('select-text', textId)
-  emit('render')
+  imageStore.selectImageLayer(null);
+  emit('select-text', textId);
+  emit('render');
 }
 
 function deleteText(textId) {
   if (confirm(t('layerPanel.text.confirmDelete'))) {
-    const index = imageStore.texts.findIndex(txt => txt.id === textId)
+    const index = imageStore.texts.findIndex((txt) => txt.id === textId);
     if (index !== -1) {
-      imageStore.texts.splice(index, 1)
+      imageStore.texts.splice(index, 1);
       if (selectedTextId.value === textId) {
-        selectedTextId.value = null
+        selectedTextId.value = null;
       }
-      emit('render')
+      emit('render');
     }
   }
 }
 
 function updateTextProperty(property, value) {
   if (selectedText.value) {
-    const index = imageStore.texts.findIndex(t => t.id === selectedText.value.id)
+    const index = imageStore.texts.findIndex((t) => t.id === selectedText.value.id);
     if (index !== -1) {
-      imageStore.texts[index][property] = value
+      imageStore.texts[index][property] = value;
       // Für ältere Text-Struktur auch 'txt' aktualisieren
       if (property === 'content') {
-        imageStore.texts[index].txt = value
+        imageStore.texts[index].txt = value;
       }
-      emit('render')
+      emit('render');
     }
   }
 }
@@ -1088,43 +1141,46 @@ function updateTextProperty(property, value) {
 // Undo/Redo Funktionen
 function handleUndo() {
   if (imageStore.canUndo) {
-    imageStore.undo()
-    emit('render')
+    imageStore.undo();
+    emit('render');
   }
 }
 
 function handleRedo() {
   if (imageStore.canRedo) {
-    imageStore.redo()
-    emit('render')
+    imageStore.redo();
+    emit('render');
   }
 }
 
 // Preview Funktion
 function handlePreview() {
-  emit('render')
-  emit('preview')
+  emit('render');
+  emit('preview');
 }
 
 // Keyboard Shortcuts für Undo/Redo
 function handleKeyDown(event) {
   if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === 'z') {
-    event.preventDefault()
-    handleUndo()
-  } else if ((event.ctrlKey || event.metaKey) && (event.shiftKey && event.key === 'z' || event.key === 'y')) {
-    event.preventDefault()
-    handleRedo()
+    event.preventDefault();
+    handleUndo();
+  } else if (
+    (event.ctrlKey || event.metaKey) &&
+    ((event.shiftKey && event.key === 'z') || event.key === 'y')
+  ) {
+    event.preventDefault();
+    handleRedo();
   }
 }
 
 // Event Listener für Keyboard Shortcuts
 onMounted(() => {
-  document.addEventListener('keydown', handleKeyDown)
-})
+  document.addEventListener('keydown', handleKeyDown);
+});
 
 onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeyDown)
-})
+  document.removeEventListener('keydown', handleKeyDown);
+});
 </script>
 
 <style lang="scss" scoped>
@@ -1181,7 +1237,7 @@ onUnmounted(() => {
 .history-btn.preview-btn {
   margin-left: auto;
   background: var(--color-primary);
-  color: #F5F4D6;
+  color: #f5f4d6;
 
   &:hover {
     background: var(--color-primary-dark, #003971);
@@ -1312,11 +1368,18 @@ onUnmounted(() => {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.layer-list, .text-list {
+.layer-list,
+.text-list {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -1344,7 +1407,8 @@ onUnmounted(() => {
   }
 }
 
-.layer-item, .text-item {
+.layer-item,
+.text-item {
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -1367,7 +1431,8 @@ onUnmounted(() => {
   }
 }
 
-.layer-preview, .text-preview {
+.layer-preview,
+.text-preview {
   width: 52px;
   height: 52px;
   min-width: 52px;
@@ -1394,13 +1459,15 @@ onUnmounted(() => {
   }
 }
 
-.layer-info, .text-info {
+.layer-info,
+.text-info {
   flex: 1;
   min-width: 0;
   max-width: calc(100% - 120px);
   overflow: hidden;
 
-  .layer-name, .text-content {
+  .layer-name,
+  .text-content {
     display: block;
     font-size: 0.85rem;
     font-weight: 500;
@@ -1411,7 +1478,8 @@ onUnmounted(() => {
     margin-bottom: 2px;
   }
 
-  .layer-size, .text-meta {
+  .layer-size,
+  .text-meta {
     display: block;
     font-size: 0.75rem;
     color: var(--color-text-secondary);
@@ -1465,7 +1533,7 @@ onUnmounted(() => {
     margin-bottom: 0.4rem;
   }
 
-  input[type="range"] {
+  input[type='range'] {
     width: 100%;
     height: 5px;
     border-radius: 3px;
@@ -1483,7 +1551,9 @@ onUnmounted(() => {
     }
   }
 
-  input[type="number"], input[type="text"], .text-input {
+  input[type='number'],
+  input[type='text'],
+  .text-input {
     width: 100%;
     padding: 0.35rem;
     border: 1px solid var(--color-border);
@@ -1527,7 +1597,7 @@ onUnmounted(() => {
   gap: 0.5rem;
   cursor: pointer;
 
-  input[type="checkbox"] {
+  input[type='checkbox'] {
     width: 16px;
     height: 16px;
     cursor: pointer;
@@ -1583,12 +1653,17 @@ onUnmounted(() => {
   }
 
   &.transparent {
-    background: linear-gradient(45deg, #ccc 25%, transparent 25%),
-                linear-gradient(-45deg, #ccc 25%, transparent 25%),
-                linear-gradient(45deg, transparent 75%, #ccc 75%),
-                linear-gradient(-45deg, transparent 75%, #ccc 75%);
+    background:
+      linear-gradient(45deg, #ccc 25%, transparent 25%),
+      linear-gradient(-45deg, #ccc 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #ccc 75%),
+      linear-gradient(-45deg, transparent 75%, #ccc 75%);
     background-size: 8px 8px;
-    background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+    background-position:
+      0 0,
+      0 4px,
+      4px -4px,
+      -4px 0;
 
     i {
       font-size: 0.7rem;
@@ -1666,7 +1741,7 @@ onUnmounted(() => {
 
   &.btn-primary {
     background: var(--color-primary);
-    color: #F5F4D6;
+    color: #f5f4d6;
 
     &:hover {
       background: var(--color-primary-dark, #003971);
@@ -1740,7 +1815,8 @@ onUnmounted(() => {
     height: 36px;
   }
 
-  .layer-list, .text-list {
+  .layer-list,
+  .text-list {
     max-height: 160px;
   }
 }

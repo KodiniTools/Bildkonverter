@@ -35,7 +35,7 @@
 
     <section class="features-section">
       <h2>{{ $t('about.features.title') }}</h2>
-      
+
       <div class="features-list">
         <div class="feature-item">
           <i class="fas fa-check-circle"></i>
@@ -73,7 +73,7 @@
 
     <section class="tech-stack-section">
       <h2>{{ $t('about.techStack.title') }}</h2>
-      
+
       <div class="tech-grid">
         <div class="tech-card">
           <i class="fab fa-vuejs"></i>
@@ -117,8 +117,15 @@
       <div class="version-info">
         <h3>{{ $t('about.version.title') }}</h3>
         <p class="version-number">v3.0.0</p>
-        <p class="version-date">{{ $t('about.version.releaseDate') }}: {{ new Date().toLocaleDateString() }}</p>
-        <a href="https://kodinitools.com/" target="_blank" rel="noopener noreferrer" class="website-link">
+        <p class="version-date">
+          {{ $t('about.version.releaseDate') }}: {{ new Date().toLocaleDateString() }}
+        </p>
+        <a
+          href="https://kodinitools.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="website-link"
+        >
           kodinitools.com
         </a>
       </div>
@@ -127,9 +134,9 @@
 </template>
 
 <script setup>
-import { useI18n } from 'vue-i18n'
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n({ useScope: 'global' })
+const { t } = useI18n({ useScope: 'global' });
 </script>
 
 <style lang="scss" scoped>
@@ -140,18 +147,23 @@ const { t } = useI18n({ useScope: 'global' })
 .hero-section {
   text-align: center;
   padding: var(--spacing-3xl) var(--spacing-xl);
-  background: linear-gradient(135deg, var(--color-accent-lighter) 0%, var(--color-bg-gradient) 50%, var(--color-bg) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-accent-lighter) 0%,
+    var(--color-bg-gradient) 50%,
+    var(--color-bg) 100%
+  );
   margin-bottom: 5rem;
-  
+
   h1 {
     font-size: 3rem;
     margin-bottom: var(--spacing-md);
-    
+
     @media (max-width: 768px) {
       font-size: 2rem;
     }
   }
-  
+
   .subtitle {
     font-size: 1.2rem;
     color: var(--color-text-secondary);
@@ -164,7 +176,7 @@ const { t } = useI18n({ useScope: 'global' })
   padding: var(--spacing-3xl) var(--spacing-xl);
   margin-bottom: 4rem;
   background: var(--color-bg-primary);
-  
+
   @media (max-width: 768px) {
     margin-bottom: 3rem;
   }
@@ -184,13 +196,15 @@ const { t } = useI18n({ useScope: 'global' })
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-md);
   text-align: center;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+
   &:hover {
     transform: translateY(-5px);
     box-shadow: var(--shadow-lg);
   }
-  
+
   .card-icon {
     width: 80px;
     height: 80px;
@@ -200,18 +214,18 @@ const { t } = useI18n({ useScope: 'global' })
     align-items: center;
     justify-content: center;
     margin: 0 auto var(--spacing-lg);
-    
+
     i {
       font-size: 2.5rem;
       color: var(--color-primary);
     }
   }
-  
+
   h2 {
     font-size: 1.5rem;
     margin-bottom: var(--spacing-md);
   }
-  
+
   p {
     color: var(--color-text-secondary);
     line-height: 1.6;
@@ -222,11 +236,11 @@ const { t } = useI18n({ useScope: 'global' })
   padding: var(--spacing-3xl) var(--spacing-xl);
   margin-bottom: 4rem;
   background: var(--color-bg-secondary);
-  
+
   @media (max-width: 768px) {
     margin-bottom: 3rem;
   }
-  
+
   h2 {
     text-align: center;
     font-size: 2.5rem;
@@ -252,32 +266,32 @@ const { t } = useI18n({ useScope: 'global' })
   border-radius: var(--border-radius-lg);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
-  
+
   &:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   }
-  
+
   &:last-child {
     margin-bottom: 3rem;
-    
+
     @media (max-width: 768px) {
       margin-bottom: 2rem;
     }
   }
-  
+
   > i {
     font-size: 2.5rem;
     color: var(--color-success);
     margin-bottom: var(--spacing-md);
   }
-  
+
   h3 {
     font-size: 1.4rem;
     margin-bottom: var(--spacing-sm);
     font-weight: 600;
   }
-  
+
   p {
     color: var(--color-text-secondary);
     line-height: 1.6;
@@ -289,11 +303,11 @@ const { t } = useI18n({ useScope: 'global' })
   padding: var(--spacing-3xl) var(--spacing-xl);
   margin-bottom: 4rem;
   background: var(--color-bg-primary);
-  
+
   @media (max-width: 768px) {
     margin-bottom: 3rem;
   }
-  
+
   h2 {
     text-align: center;
     font-size: 2.5rem;
@@ -307,11 +321,11 @@ const { t } = useI18n({ useScope: 'global' })
   gap: var(--spacing-lg);
   max-width: 1200px;
   margin: 0 auto;
-  
+
   @media (max-width: 992px) {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   @media (max-width: 576px) {
     grid-template-columns: 1fr;
   }
@@ -324,23 +338,23 @@ const { t } = useI18n({ useScope: 'global' })
   text-align: center;
   box-shadow: var(--shadow-sm);
   transition: all 0.3s ease;
-  
+
   &:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow-md);
   }
-  
+
   i {
     font-size: 3rem;
     color: var(--color-primary);
     margin-bottom: var(--spacing-md);
   }
-  
+
   h3 {
     font-size: 1.2rem;
     margin-bottom: var(--spacing-sm);
   }
-  
+
   p {
     font-size: var(--font-size-sm);
     color: var(--color-text-secondary);
@@ -353,34 +367,34 @@ const { t } = useI18n({ useScope: 'global' })
   padding-left: var(--spacing-xl);
   padding-right: var(--spacing-xl);
   background: linear-gradient(135deg, var(--color-primary) 0%, #003971 100%);
-  color: #F5F4D6;
+  color: #f5f4d6;
   text-align: center;
-  
+
   @media (max-width: 768px) {
     padding-top: 3.5rem;
     padding-bottom: 3.5rem;
   }
-  
+
   .version-info {
     h3 {
       font-size: 1.5rem;
       margin-bottom: var(--spacing-sm);
     }
-    
+
     .version-number {
       font-size: 3rem;
       font-weight: 700;
       margin-bottom: var(--spacing-xs);
     }
-    
+
     .version-date {
       opacity: 0.9;
       margin-bottom: var(--spacing-md);
     }
-    
+
     .website-link {
       display: inline-block;
-      color: #F5F4D6;
+      color: #f5f4d6;
       text-decoration: none;
       font-size: 1.1rem;
       font-weight: 500;
@@ -389,7 +403,7 @@ const { t } = useI18n({ useScope: 'global' })
       border-radius: var(--border-radius-md);
       transition: all 0.3s ease;
       margin-top: var(--spacing-sm);
-      
+
       &:hover {
         background: rgba(255, 255, 255, 0.25);
         transform: translateY(-2px);

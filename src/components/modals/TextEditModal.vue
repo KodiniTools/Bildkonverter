@@ -5,18 +5,18 @@
         <h3>{{ modalMode === 'edit' ? $t('textModal.editTitle') : $t('textModal.addTitle') }}</h3>
         <div class="history-controls">
           <button
-            @click.prevent="undo"
             class="btn-icon"
             :disabled="!canUndo"
             :title="$t('textModal.undo')"
+            @click.prevent="undo"
           >
             <i class="fas fa-undo"></i>
           </button>
           <button
-            @click.prevent="redo"
             class="btn-icon"
             :disabled="!canRedo"
             :title="$t('textModal.redo')"
+            @click.prevent="redo"
           >
             <i class="fas fa-redo"></i>
           </button>
@@ -46,20 +46,12 @@
 
       <div class="form-group">
         <label>{{ $t('textModal.color') }}:</label>
-        <input
-          v-model="localText.color"
-          type="color"
-          @change="saveToHistory"
-        />
+        <input v-model="localText.color" type="color" @change="saveToHistory" />
       </div>
 
       <div class="form-group">
         <label>{{ $t('textModal.fontFamily') }}:</label>
-        <select
-          v-model="localText.fontFamily"
-          class="font-select"
-          @change="saveToHistory"
-        >
+        <select v-model="localText.fontFamily" class="font-select" @change="saveToHistory">
           <option
             v-for="font in availableFonts"
             :key="font"
@@ -72,18 +64,14 @@
       </div>
 
       <div class="modal-actions">
-        <button
-          v-if="modalMode === 'edit'"
-          @click.prevent="handleDelete"
-          class="btn-danger"
-        >
+        <button v-if="modalMode === 'edit'" class="btn-danger" @click.prevent="handleDelete">
           {{ $t('textModal.delete') }}
         </button>
         <div class="spacer"></div>
-        <button @click.prevent="save" class="btn-primary">
+        <button class="btn-primary" @click.prevent="save">
           {{ modalMode === 'edit' ? $t('textModal.update') : $t('textModal.add') }}
         </button>
-        <button @click.prevent="close" class="btn-secondary">
+        <button class="btn-secondary" @click.prevent="close">
           {{ $t('textModal.cancel') }}
         </button>
       </div>
@@ -92,19 +80,19 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue'
-import { availableFonts } from '@/assets/fonts/fontList.js'
-import { useTextModal } from '@/composables/useTextModal'
+import { ref, watch, computed } from 'vue';
+import { availableFonts } from '@/assets/fonts/fontList.js';
+import { useTextModal } from '@/composables/useTextModal';
 
-const { editingText, modalMode, saveText, deleteText, closeModal } = useTextModal()
+const { editingText, modalMode, saveText, deleteText, closeModal } = useTextModal();
 
 // Maximum history steps
-const MAX_HISTORY_SIZE = 50
+const MAX_HISTORY_SIZE = 50;
 
 // History state
-const history = ref([])
-const historyIndex = ref(-1)
-const isUndoRedoAction = ref(false)
+const history = ref([]);
+const historyIndex = ref(-1);
+const isUndoRedoAction = ref(false);
 
 // Local text state
 const localText = ref({
@@ -113,12 +101,12 @@ const localText = ref({
   color: '#000000',
   fontFamily: 'Arial',
   x: 50,
-  y: 50
-})
+  y: 50,
+});
 
 // Computed properties for undo/redo availability
-const canUndo = computed(() => historyIndex.value > 0)
-const canRedo = computed(() => historyIndex.value < history.value.length - 1)
+const canUndo = computed(() => historyIndex.value > 0);
+const canRedo = computed(() => historyIndex.value < history.value.length - 1);
 
 // Create a snapshot of current text state
 function createSnapshot() {
@@ -126,100 +114,104 @@ function createSnapshot() {
     content: localText.value.content,
     fontSize: localText.value.fontSize,
     color: localText.value.color,
-    fontFamily: localText.value.fontFamily
-  }
+    fontFamily: localText.value.fontFamily,
+  };
 }
 
 // Save current state to history
 function saveToHistory() {
-  if (isUndoRedoAction.value) return
+  if (isUndoRedoAction.value) return;
 
-  const snapshot = createSnapshot()
+  const snapshot = createSnapshot();
 
   // Remove any redo states if we're not at the end
   if (historyIndex.value < history.value.length - 1) {
-    history.value = history.value.slice(0, historyIndex.value + 1)
+    history.value = history.value.slice(0, historyIndex.value + 1);
   }
 
   // Add new state
-  history.value.push(snapshot)
+  history.value.push(snapshot);
 
   // Limit history size
   if (history.value.length > MAX_HISTORY_SIZE) {
-    history.value.shift()
+    history.value.shift();
   } else {
-    historyIndex.value++
+    historyIndex.value++;
   }
 }
 
 // Initialize history with current state
 function initHistory() {
-  history.value = [createSnapshot()]
-  historyIndex.value = 0
+  history.value = [createSnapshot()];
+  historyIndex.value = 0;
 }
 
 // Undo action
 function undo() {
-  if (!canUndo.value) return
+  if (!canUndo.value) return;
 
-  isUndoRedoAction.value = true
-  historyIndex.value--
+  isUndoRedoAction.value = true;
+  historyIndex.value--;
 
-  const snapshot = history.value[historyIndex.value]
-  localText.value.content = snapshot.content
-  localText.value.fontSize = snapshot.fontSize
-  localText.value.color = snapshot.color
-  localText.value.fontFamily = snapshot.fontFamily
+  const snapshot = history.value[historyIndex.value];
+  localText.value.content = snapshot.content;
+  localText.value.fontSize = snapshot.fontSize;
+  localText.value.color = snapshot.color;
+  localText.value.fontFamily = snapshot.fontFamily;
 
   // Use nextTick to reset flag after Vue updates
   setTimeout(() => {
-    isUndoRedoAction.value = false
-  }, 0)
+    isUndoRedoAction.value = false;
+  }, 0);
 }
 
 // Redo action
 function redo() {
-  if (!canRedo.value) return
+  if (!canRedo.value) return;
 
-  isUndoRedoAction.value = true
-  historyIndex.value++
+  isUndoRedoAction.value = true;
+  historyIndex.value++;
 
-  const snapshot = history.value[historyIndex.value]
-  localText.value.content = snapshot.content
-  localText.value.fontSize = snapshot.fontSize
-  localText.value.color = snapshot.color
-  localText.value.fontFamily = snapshot.fontFamily
+  const snapshot = history.value[historyIndex.value];
+  localText.value.content = snapshot.content;
+  localText.value.fontSize = snapshot.fontSize;
+  localText.value.color = snapshot.color;
+  localText.value.fontFamily = snapshot.fontFamily;
 
   // Use nextTick to reset flag after Vue updates
   setTimeout(() => {
-    isUndoRedoAction.value = false
-  }, 0)
+    isUndoRedoAction.value = false;
+  }, 0);
 }
 
-watch(editingText, (newText) => {
-  if (newText) {
-    localText.value = {
-      content: newText.content || '',
-      fontSize: newText.fontSize || 32,
-      color: newText.color || '#000000',
-      fontFamily: newText.fontFamily || 'Arial',
-      x: newText.x || 50,
-      y: newText.y || 50,
-      id: newText.id
+watch(
+  editingText,
+  (newText) => {
+    if (newText) {
+      localText.value = {
+        content: newText.content || '',
+        fontSize: newText.fontSize || 32,
+        color: newText.color || '#000000',
+        fontFamily: newText.fontFamily || 'Arial',
+        x: newText.x || 50,
+        y: newText.y || 50,
+        id: newText.id,
+      };
+    } else {
+      localText.value = {
+        content: '',
+        fontSize: 32,
+        color: '#000000',
+        fontFamily: 'Arial',
+        x: 50,
+        y: 50,
+      };
     }
-  } else {
-    localText.value = {
-      content: '',
-      fontSize: 32,
-      color: '#000000',
-      fontFamily: 'Arial',
-      x: 50,
-      y: 50
-    }
-  }
-  // Initialize history when modal opens
-  initHistory()
-}, { immediate: true })
+    // Initialize history when modal opens
+    initHistory();
+  },
+  { immediate: true }
+);
 
 function save() {
   const dataToSave = {
@@ -228,21 +220,21 @@ function save() {
     color: localText.value.color,
     fontFamily: localText.value.fontFamily,
     x: localText.value.x,
-    y: localText.value.y
-  }
+    y: localText.value.y,
+  };
 
   // Direkt useTextModal.saveText() verwenden - KEIN Event emittieren!
-  saveText(dataToSave)
+  saveText(dataToSave);
 }
 
 function handleDelete() {
   if (localText.value.id) {
-    deleteText(localText.value.id)
+    deleteText(localText.value.id);
   }
 }
 
 function close() {
-  closeModal()
+  closeModal();
 }
 </script>
 
@@ -333,7 +325,7 @@ function close() {
   color: var(--color-text-primary, #333);
 }
 
-.form-group input[type="color"] {
+.form-group input[type='color'] {
   height: 40px;
   padding: 4px;
   cursor: pointer;
@@ -425,7 +417,7 @@ function close() {
     font-size: 16px;
   }
 
-  .form-group input[type="color"] {
+  .form-group input[type='color'] {
     height: 44px;
   }
 

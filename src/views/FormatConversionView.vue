@@ -22,8 +22,8 @@
             ref="fileInput"
             type="file"
             accept="image/*,.tiff,.tif,.heic,.heif"
-            @change="handleFileSelect"
             style="display: none"
+            @change="handleFileSelect"
           />
           <i class="fas fa-cloud-upload-alt"></i>
           <h3>{{ $t(`conversion.${pair}.cta`) }}</h3>
@@ -164,39 +164,39 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { formatConversions } from '@/router/index.js'
-import { FORMAT_INFO } from '@/utils/exportUtils'
-import { ApiClient } from '@/api/api'
+import { ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { formatConversions } from '@/router/index.js';
+import { FORMAT_INFO } from '@/utils/exportUtils';
+import { ApiClient } from '@/api/api';
 
-const { t } = useI18n({ useScope: 'global' })
+const { t } = useI18n({ useScope: 'global' });
 
 const props = defineProps({
   pair: {
     type: String,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
 const conversionData = computed(() => {
-  return formatConversions.find(f => f.pair === props.pair) || { from: '', to: '' }
-})
+  return formatConversions.find((f) => f.pair === props.pair) || { from: '', to: '' };
+});
 
 const otherConversions = computed(() => {
-  return formatConversions.filter(f => f.pair !== props.pair).slice(0, 6)
-})
+  return formatConversions.filter((f) => f.pair !== props.pair).slice(0, 6);
+});
 
 // Converter widget state
-const fileInput = ref(null)
-const isDragging = ref(false)
-const sourceFile = ref(null)
-const sourcePreview = ref(null)
-const isConverting = ref(false)
-const conversionError = ref(null)
-const convertedUrl = ref(null)
-const convertedBlob = ref(null)
-const convertedSize = ref(0)
+const fileInput = ref(null);
+const isDragging = ref(false);
+const sourceFile = ref(null);
+const sourcePreview = ref(null);
+const isConverting = ref(false);
+const conversionError = ref(null);
+const convertedUrl = ref(null);
+const convertedBlob = ref(null);
+const convertedSize = ref(0);
 
 // Map format names to export keys
 const FORMAT_MAP = {
@@ -211,119 +211,133 @@ const FORMAT_MAP = {
   HEIC: 'heic',
   HEIF: 'heif',
   SVG: 'svg',
-  PDF: 'pdf'
-}
+  PDF: 'pdf',
+};
 
 const outputFormat = computed(() => {
-  return FORMAT_MAP[conversionData.value.to] || 'png'
-})
+  return FORMAT_MAP[conversionData.value.to] || 'png';
+});
 
 // Extension map for special formats not in FORMAT_INFO
-const EXT_MAP = { jpg: 'jpg', png: 'png', webp: 'webp', bmp: 'bmp', tiff: 'tiff', gif: 'gif', heic: 'heic', heif: 'heif', pdf: 'pdf', svg: 'svg' }
+const EXT_MAP = {
+  jpg: 'jpg',
+  png: 'png',
+  webp: 'webp',
+  bmp: 'bmp',
+  tiff: 'tiff',
+  gif: 'gif',
+  heic: 'heic',
+  heif: 'heif',
+  pdf: 'pdf',
+  svg: 'svg',
+};
 
 const outputFilename = computed(() => {
-  if (!sourceFile.value) return ''
-  const baseName = sourceFile.value.name.replace(/\.[^.]+$/, '')
-  const fmt = outputFormat.value
-  const ext = FORMAT_INFO[fmt]?.extension || EXT_MAP[fmt] || fmt
-  return `${baseName}.${ext}`
-})
+  if (!sourceFile.value) return '';
+  const baseName = sourceFile.value.name.replace(/\.[^.]+$/, '');
+  const fmt = outputFormat.value;
+  const ext = FORMAT_INFO[fmt]?.extension || EXT_MAP[fmt] || fmt;
+  return `${baseName}.${ext}`;
+});
 
 // Reset when pair changes (navigation between conversion pages)
-watch(() => props.pair, () => {
-  resetConverter()
-})
+watch(
+  () => props.pair,
+  () => {
+    resetConverter();
+  }
+);
 
 function triggerFileInput() {
-  fileInput.value?.click()
+  fileInput.value?.click();
 }
 
 function handleFileSelect(event) {
-  const file = event.target.files[0]
-  if (file) startConversion(file)
+  const file = event.target.files[0];
+  if (file) startConversion(file);
 }
 
 function isImageFile(file) {
-  if (file.type.startsWith('image/')) return true
+  if (file.type.startsWith('image/')) return true;
   // Fallback: check extension when MIME type is missing (common for TIFF/HEIC)
-  return /\.(jpe?g|png|gif|webp|bmp|svg|tiff?|heic|heif)$/i.test(file.name)
+  return /\.(jpe?g|png|gif|webp|bmp|svg|tiff?|heic|heif)$/i.test(file.name);
 }
 
 function handleDrop(event) {
-  event.preventDefault()
-  isDragging.value = false
-  const file = event.dataTransfer.files[0]
+  event.preventDefault();
+  isDragging.value = false;
+  const file = event.dataTransfer.files[0];
   if (file && isImageFile(file)) {
-    startConversion(file)
+    startConversion(file);
   } else if (file) {
-    window.$toast?.warning(t('toast.batch.noImages'))
+    window.$toast?.warning(t('toast.batch.noImages'));
   }
 }
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.onload = () => resolve(img)
-    img.onerror = () => reject(new Error('Bild konnte nicht geladen werden'))
-    img.src = src
-  })
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('Bild konnte nicht geladen werden'));
+    img.src = src;
+  });
 }
 
 function canvasToBlob(canvas, mimeType, quality) {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
-      blob => {
-        if (blob) resolve(blob)
-        else reject(new Error('Konvertierung fehlgeschlagen'))
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error('Konvertierung fehlgeschlagen'));
       },
       mimeType,
       quality
-    )
-  })
+    );
+  });
 }
 
 function readFileAsDataURL(file) {
   return new Promise((resolve) => {
-    const reader = new FileReader()
-    reader.onload = (e) => resolve(e.target.result)
-    reader.readAsDataURL(file)
-  })
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.readAsDataURL(file);
+  });
 }
 
 /**
  * Converts an image to PDF using jsPDF (dynamic import)
  */
 async function convertToPDF(canvas, img) {
-  const { jsPDF } = await import('jspdf')
-  const aspectRatio = canvas.width / canvas.height
-  const a4Width = 210
-  const a4Height = 297
-  let orientation, width, height, x, y
+  const { jsPDF } = await import('jspdf');
+  const aspectRatio = canvas.width / canvas.height;
+  const a4Width = 210;
+  const a4Height = 297;
+  let orientation, width, height, x, y;
 
   if (aspectRatio > 1) {
-    orientation = 'landscape'
-    width = a4Height - 20
-    height = width / aspectRatio
-    x = 10
-    y = (a4Width - height) / 2
+    orientation = 'landscape';
+    width = a4Height - 20;
+    height = width / aspectRatio;
+    x = 10;
+    y = (a4Width - height) / 2;
   } else {
-    orientation = 'portrait'
-    width = a4Width - 20
-    height = width / aspectRatio
-    x = 10
-    y = (a4Height - height) / 2
+    orientation = 'portrait';
+    width = a4Width - 20;
+    height = width / aspectRatio;
+    x = 10;
+    y = (a4Height - height) / 2;
     if (height > a4Height - 20) {
-      height = a4Height - 20
-      width = height * aspectRatio
-      x = (a4Width - width) / 2
-      y = 10
+      height = a4Height - 20;
+      width = height * aspectRatio;
+      x = (a4Width - width) / 2;
+      y = 10;
     }
   }
 
-  const pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4', compress: true })
-  const imgData = canvas.toDataURL('image/jpeg', 0.92)
-  pdf.addImage(imgData, 'JPEG', x, y, width, height, undefined, 'FAST')
-  return pdf.output('blob')
+  const pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4', compress: true });
+  const imgData = canvas.toDataURL('image/jpeg', 0.92);
+  pdf.addImage(imgData, 'JPEG', x, y, width, height, undefined, 'FAST');
+  return pdf.output('blob');
 }
 
 /**
@@ -334,158 +348,168 @@ async function convertToPDF(canvas, img) {
 async function convertToSVG(canvas, filename) {
   // Try backend vectorization first
   try {
-    const sourceBlob = await canvasToBlob(canvas, 'image/png', 1)
-    const svgBlob = await ApiClient.convertImage(sourceBlob, 'svg', filename, {})
+    const sourceBlob = await canvasToBlob(canvas, 'image/png', 1);
+    const svgBlob = await ApiClient.convertImage(sourceBlob, 'svg', filename, {});
     // Verify we got valid SVG back
     if (svgBlob && svgBlob.size > 0) {
-      return svgBlob
+      return svgBlob;
     }
   } catch (error) {
-    console.warn('Backend-SVG nicht verfügbar, verwende Client-Fallback:', error.message)
+    console.warn('Backend-SVG nicht verfügbar, verwende Client-Fallback:', error.message);
   }
 
   // Fallback: SVG wrapper with embedded raster
-  const dataURL = canvas.toDataURL('image/png')
+  const dataURL = canvas.toDataURL('image/png');
   const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
      width="${canvas.width}" height="${canvas.height}"
      viewBox="0 0 ${canvas.width} ${canvas.height}">
   <image width="${canvas.width}" height="${canvas.height}" xlink:href="${dataURL}"/>
-</svg>`
-  return new Blob([svgContent], { type: 'image/svg+xml' })
+</svg>`;
+  return new Blob([svgContent], { type: 'image/svg+xml' });
 }
 
 /**
  * Checks if a file format cannot be displayed natively in the browser
  */
 function needsBackendPreview(file) {
-  const unsupportedTypes = ['image/tiff', 'image/heic', 'image/heif']
-  if (unsupportedTypes.includes(file.type)) return true
+  const unsupportedTypes = ['image/tiff', 'image/heic', 'image/heif'];
+  if (unsupportedTypes.includes(file.type)) return true;
   // Fallback: check extension (some OS don't set MIME correctly)
-  return /\.(tiff?|heic|heif)$/i.test(file.name)
+  return /\.(tiff?|heic|heif)$/i.test(file.name);
 }
 
 async function startConversion(file) {
-  sourceFile.value = file
-  isConverting.value = true
-  conversionError.value = null
-  convertedUrl.value = null
-  convertedBlob.value = null
+  sourceFile.value = file;
+  isConverting.value = true;
+  conversionError.value = null;
+  convertedUrl.value = null;
+  convertedBlob.value = null;
 
-  window.$toast?.info(t('toast.conversion.uploadReceived'))
+  window.$toast?.info(t('toast.conversion.uploadReceived'));
 
   try {
-    let previewUrl
+    let previewUrl;
 
     if (needsBackendPreview(file)) {
       // Browser can't display TIFF/HEIC natively – convert to PNG via backend
-      const pngBlob = await ApiClient.convertImage(file, 'png', file.name, {})
-      previewUrl = URL.createObjectURL(pngBlob)
+      const pngBlob = await ApiClient.convertImage(file, 'png', file.name, {});
+      previewUrl = URL.createObjectURL(pngBlob);
     } else {
-      previewUrl = await readFileAsDataURL(file)
+      previewUrl = await readFileAsDataURL(file);
     }
 
-    sourcePreview.value = previewUrl
+    sourcePreview.value = previewUrl;
 
     // Load image onto canvas
-    const img = await loadImage(previewUrl)
+    const img = await loadImage(previewUrl);
 
-    const canvas = document.createElement('canvas')
-    canvas.width = img.width
-    canvas.height = img.height
-    const ctx = canvas.getContext('2d')
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
 
-    const format = outputFormat.value
+    const format = outputFormat.value;
 
     // White background for formats without transparency
     if (format === 'jpg' || format === 'bmp' || format === 'pdf') {
-      ctx.fillStyle = '#FFFFFF'
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    ctx.drawImage(img, 0, 0)
+    ctx.drawImage(img, 0, 0);
 
-    const formatInfo = FORMAT_INFO[format]
+    const formatInfo = FORMAT_INFO[format];
 
     if (format === 'pdf') {
       // PDF conversion via jsPDF
-      const blob = await convertToPDF(canvas, img)
-      convertedBlob.value = blob
-      convertedSize.value = blob.size
-      convertedUrl.value = URL.createObjectURL(blob)
+      const blob = await convertToPDF(canvas, img);
+      convertedBlob.value = blob;
+      convertedSize.value = blob.size;
+      convertedUrl.value = URL.createObjectURL(blob);
     } else if (format === 'svg') {
       // SVG conversion (backend vectorization with client fallback)
-      const blob = await convertToSVG(canvas, file.name)
-      convertedBlob.value = blob
-      convertedSize.value = blob.size
-      convertedUrl.value = URL.createObjectURL(blob)
+      const blob = await convertToSVG(canvas, file.name);
+      convertedBlob.value = blob;
+      convertedSize.value = blob.size;
+      convertedUrl.value = URL.createObjectURL(blob);
     } else if (formatInfo && formatInfo.requiresBackend) {
       // Backend conversion (TIFF, GIF, HEIF)
-      const sourceBlob = await canvasToBlob(canvas, 'image/png', 1)
-      const resultBlob = await ApiClient.convertImage(sourceBlob, format, file.name, { quality: 0.92 })
-      convertedBlob.value = resultBlob
-      convertedSize.value = resultBlob.size
-      convertedUrl.value = URL.createObjectURL(resultBlob)
+      const sourceBlob = await canvasToBlob(canvas, 'image/png', 1);
+      const resultBlob = await ApiClient.convertImage(sourceBlob, format, file.name, {
+        quality: 0.92,
+      });
+      convertedBlob.value = resultBlob;
+      convertedSize.value = resultBlob.size;
+      convertedUrl.value = URL.createObjectURL(resultBlob);
     } else {
       // Client-side raster conversion (PNG, JPG, WebP, BMP)
-      let mimeType = 'image/png'
-      let quality = undefined
-      if (format === 'jpg') { mimeType = 'image/jpeg'; quality = 0.92 }
-      else if (format === 'webp') { mimeType = 'image/webp'; quality = 0.85 }
-      else if (format === 'bmp') { mimeType = 'image/bmp' }
+      let mimeType = 'image/png';
+      let quality = undefined;
+      if (format === 'jpg') {
+        mimeType = 'image/jpeg';
+        quality = 0.92;
+      } else if (format === 'webp') {
+        mimeType = 'image/webp';
+        quality = 0.85;
+      } else if (format === 'bmp') {
+        mimeType = 'image/bmp';
+      }
 
-      const blob = await canvasToBlob(canvas, mimeType, quality)
-      convertedBlob.value = blob
-      convertedSize.value = blob.size
-      convertedUrl.value = URL.createObjectURL(blob)
+      const blob = await canvasToBlob(canvas, mimeType, quality);
+      convertedBlob.value = blob;
+      convertedSize.value = blob.size;
+      convertedUrl.value = URL.createObjectURL(blob);
     }
 
-    window.$toast?.success(t('toast.conversion.success', {
-      from: conversionData.value.from,
-      to: conversionData.value.to
-    }))
+    window.$toast?.success(
+      t('toast.conversion.success', {
+        from: conversionData.value.from,
+        to: conversionData.value.to,
+      })
+    );
   } catch (error) {
-    conversionError.value = error.message || t('conversion.widget.converting')
-    window.$toast?.error(t('toast.conversion.error', { error: error.message }))
+    conversionError.value = error.message || t('conversion.widget.converting');
+    window.$toast?.error(t('toast.conversion.error', { error: error.message }));
   } finally {
-    isConverting.value = false
+    isConverting.value = false;
   }
 }
 
 function downloadResult() {
-  if (!convertedBlob.value) return
-  const url = URL.createObjectURL(convertedBlob.value)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = outputFilename.value
-  link.style.display = 'none'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
+  if (!convertedBlob.value) return;
+  const url = URL.createObjectURL(convertedBlob.value);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = outputFilename.value;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 
-  window.$toast?.success(t('toast.conversion.downloadStarted', { filename: outputFilename.value }))
+  window.$toast?.success(t('toast.conversion.downloadStarted', { filename: outputFilename.value }));
 }
 
 function resetConverter() {
   if (convertedUrl.value && convertedUrl.value.startsWith('blob:')) {
-    URL.revokeObjectURL(convertedUrl.value)
+    URL.revokeObjectURL(convertedUrl.value);
   }
-  sourceFile.value = null
-  sourcePreview.value = null
-  isConverting.value = false
-  conversionError.value = null
-  convertedUrl.value = null
-  convertedBlob.value = null
-  convertedSize.value = 0
-  if (fileInput.value) fileInput.value.value = ''
+  sourceFile.value = null;
+  sourcePreview.value = null;
+  isConverting.value = false;
+  conversionError.value = null;
+  convertedUrl.value = null;
+  convertedBlob.value = null;
+  convertedSize.value = 0;
+  if (fileInput.value) fileInput.value.value = '';
 }
 
 function formatSize(bytes) {
-  if (!bytes) return '0 B'
-  const sizes = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(1024))
-  return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i]
+  if (!bytes) return '0 B';
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i];
 }
 </script>
 
@@ -600,7 +624,9 @@ function formatSize(bytes) {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .error-state {
@@ -751,7 +777,9 @@ function formatSize(bytes) {
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-sm);
   text-align: center;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 
   &:hover {
     transform: translateY(-4px);

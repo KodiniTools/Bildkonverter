@@ -34,13 +34,18 @@
             <i class="fas fa-play-circle"></i>
           </div>
           <h2>{{ $t('guide.quickStart.title') }}</h2>
-          <p class="section-description">{{ $t('guide.quickStart.subtitle') || 'In nur drei einfachen Schritten zum perfekten Bild' }}</p>
+          <p class="section-description">
+            {{
+              $t('guide.quickStart.subtitle') ||
+              'In nur drei einfachen Schritten zum perfekten Bild'
+            }}
+          </p>
         </div>
         <div class="steps-container">
-          <div class="step-card" v-for="(step, index) in 3" :key="index">
+          <div v-for="(step, index) in 3" :key="index" class="step-card">
             <div class="step-number-wrapper">
               <div class="step-number">{{ index + 1 }}</div>
-              <div class="step-line" v-if="index < 2"></div>
+              <div v-if="index < 2" class="step-line"></div>
             </div>
             <div class="step-content">
               <h3>{{ $t(`guide.quickStart.step${index + 1}.title`) }}</h3>
@@ -61,7 +66,12 @@
                 <i class="fas fa-cloud-upload-alt"></i>
               </div>
               <div class="format-badges-circle">
-                <span class="format-badge" v-for="format in ['PNG', 'JPEG', 'WebP', 'GIF', 'TIFF', 'HEIF']" :key="format">{{ format }}</span>
+                <span
+                  v-for="format in ['PNG', 'JPEG', 'WebP', 'GIF', 'TIFF', 'HEIF']"
+                  :key="format"
+                  class="format-badge"
+                  >{{ format }}</span
+                >
               </div>
             </div>
           </div>
@@ -74,7 +84,7 @@
             </div>
             <p class="section-intro">{{ $t('guide.upload.description') }}</p>
             <div class="feature-cards">
-              <div class="feature-card" v-for="(method, key) in uploadMethods" :key="key">
+              <div v-for="(method, key) in uploadMethods" :key="key" class="feature-card">
                 <div class="feature-card-icon">
                   <i :class="method.icon"></i>
                 </div>
@@ -97,7 +107,7 @@
           <p class="section-description">{{ $t('guide.filters.description') }}</p>
         </div>
         <div class="filters-grid">
-          <div class="filter-card" v-for="filter in filters" :key="filter.key">
+          <div v-for="filter in filters" :key="filter.key" class="filter-card">
             <div class="filter-icon">
               <i :class="filter.icon"></i>
             </div>
@@ -119,7 +129,7 @@
           <p class="section-description">{{ $t('guide.presets.description') }}</p>
         </div>
         <div class="presets-showcase">
-          <div class="preset-card" v-for="preset in presets" :key="preset">
+          <div v-for="preset in presets" :key="preset" class="preset-card">
             <div class="preset-icon">{{ getPresetIcon(preset) }}</div>
             <span class="preset-name">{{ $t(`guide.presets.list.${preset}`) }}</span>
           </div>
@@ -179,7 +189,7 @@
           <p class="section-description">{{ $t('guide.transform.description') }}</p>
         </div>
         <div class="transform-grid">
-          <div class="transform-card" v-for="transform in transforms" :key="transform.key">
+          <div v-for="transform in transforms" :key="transform.key" class="transform-card">
             <div class="transform-icon">
               <i :class="transform.icon"></i>
             </div>
@@ -215,7 +225,7 @@
             </div>
             <p class="section-intro">{{ $t('guide.text.description') }}</p>
             <div class="feature-list-grid">
-              <div class="feature-list-item" v-for="feature in textFeatures" :key="feature.key">
+              <div v-for="feature in textFeatures" :key="feature.key" class="feature-list-item">
                 <i :class="feature.icon"></i>
                 <span>{{ $t(`guide.text.features.${feature.key}`) }}</span>
               </div>
@@ -244,7 +254,7 @@
             </div>
             <p class="section-intro">{{ $t('guide.resize.description') }}</p>
             <div class="feature-cards feature-cards-column">
-              <div class="feature-card" v-for="feature in resizeFeatures" :key="feature.key">
+              <div v-for="feature in resizeFeatures" :key="feature.key" class="feature-card">
                 <div class="feature-card-icon">
                   <i :class="feature.icon"></i>
                 </div>
@@ -277,7 +287,7 @@
         </div>
         <div class="export-content">
           <div class="export-steps">
-            <div class="export-step" v-for="step in 3" :key="step">
+            <div v-for="step in 3" :key="step" class="export-step">
               <div class="export-step-number">{{ step }}</div>
               <p>{{ $t(`guide.export.steps.step${step}`) }}</p>
             </div>
@@ -285,7 +295,11 @@
           <div class="export-formats">
             <h4>{{ $t('guide.export.formatsTitle') }}</h4>
             <div class="format-badges-row">
-              <span class="format-badge format-badge-large" v-for="format in ['PNG', 'JPEG', 'WebP', 'GIF', 'TIFF', 'PDF']" :key="format">
+              <span
+                v-for="format in ['PNG', 'JPEG', 'WebP', 'GIF', 'TIFF', 'PDF']"
+                :key="format"
+                class="format-badge format-badge-large"
+              >
                 <i class="fas fa-file-image"></i>
                 {{ format }}
               </span>
@@ -302,7 +316,7 @@
           <div class="section-visual">
             <div class="visual-card visual-card-gallery">
               <div class="gallery-preview">
-                <div class="gallery-item" v-for="n in 4" :key="n"></div>
+                <div v-for="n in 4" :key="n" class="gallery-item"></div>
               </div>
             </div>
           </div>
@@ -315,7 +329,7 @@
             </div>
             <p class="section-intro">{{ $t('guide.gallery.description') }}</p>
             <div class="feature-list-grid">
-              <div class="feature-list-item" v-for="feature in galleryFeatures" :key="feature.key">
+              <div v-for="feature in galleryFeatures" :key="feature.key" class="feature-list-item">
                 <i :class="feature.icon"></i>
                 <span>{{ $t(`guide.gallery.features.${feature.key}`) }}</span>
               </div>
@@ -404,18 +418,27 @@
 </template>
 
 <script setup>
-import { useI18n } from 'vue-i18n'
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n({ useScope: 'global' })
+const { t } = useI18n({ useScope: 'global' });
 
-const presets = ['original', 'vibrant', 'vintage', 'blackWhite', 'dramatic', 'soft', 'warm', 'cool']
+const presets = [
+  'original',
+  'vibrant',
+  'vintage',
+  'blackWhite',
+  'dramatic',
+  'soft',
+  'warm',
+  'cool',
+];
 
 const uploadMethods = {
   dragDrop: { icon: 'fas fa-mouse-pointer' },
   fileSelect: { icon: 'fas fa-folder-open' },
   url: { icon: 'fas fa-link' },
-  demo: { icon: 'fas fa-image' }
-}
+  demo: { icon: 'fas fa-image' },
+};
 
 const filters = [
   { key: 'brightness', icon: 'fas fa-sun' },
@@ -423,15 +446,15 @@ const filters = [
   { key: 'saturation', icon: 'fas fa-palette' },
   { key: 'grayscale', icon: 'fas fa-circle-half-stroke' },
   { key: 'sepia', icon: 'fas fa-coffee' },
-  { key: 'sharpness', icon: 'fas fa-compress-arrows-alt' }
-]
+  { key: 'sharpness', icon: 'fas fa-compress-arrows-alt' },
+];
 
 const transforms = [
   { key: 'rotate', icon: 'fas fa-redo' },
   { key: 'flip', icon: 'fas fa-arrows-alt-h' },
   { key: 'zoom', icon: 'fas fa-search-plus' },
-  { key: 'border', icon: 'fas fa-border-style' }
-]
+  { key: 'border', icon: 'fas fa-border-style' },
+];
 
 const textFeatures = [
   { key: 'fontSize', icon: 'fas fa-text-height' },
@@ -440,22 +463,22 @@ const textFeatures = [
   { key: 'rotation', icon: 'fas fa-undo' },
   { key: 'opacity', icon: 'fas fa-eye-dropper' },
   { key: 'stroke', icon: 'fas fa-border-all' },
-  { key: 'shadow', icon: 'fas fa-cloud' }
-]
+  { key: 'shadow', icon: 'fas fa-cloud' },
+];
 
 const resizeFeatures = [
   { key: 'custom', icon: 'fas fa-ruler-combined' },
   { key: 'aspectRatio', icon: 'fas fa-link' },
-  { key: 'presets', icon: 'fas fa-th-list' }
-]
+  { key: 'presets', icon: 'fas fa-th-list' },
+];
 
 const galleryFeatures = [
   { key: 'upload', icon: 'fas fa-plus-circle' },
   { key: 'preview', icon: 'fas fa-eye' },
   { key: 'openEditor', icon: 'fas fa-edit' },
   { key: 'download', icon: 'fas fa-download' },
-  { key: 'delete', icon: 'fas fa-trash-alt' }
-]
+  { key: 'delete', icon: 'fas fa-trash-alt' },
+];
 
 function getPresetIcon(preset) {
   const icons = {
@@ -466,9 +489,9 @@ function getPresetIcon(preset) {
     dramatic: '🎭',
     soft: '☁️',
     warm: '🔥',
-    cool: '❄️'
-  }
-  return icons[preset] || '✨'
+    cool: '❄️',
+  };
+  return icons[preset] || '✨';
 }
 </script>
 
@@ -504,18 +527,15 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     .hero-gradient {
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg,
-        var(--color-primary) 0%,
-        #003971 50%,
-        #c9984d 100%
-      );
+      background: linear-gradient(135deg, var(--color-primary) 0%, #003971 50%, #c9984d 100%);
     }
 
     .hero-pattern {
       position: absolute;
       inset: 0;
-      background-image: radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-                        radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+      background-image:
+        radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
       opacity: 0.6;
     }
   }
@@ -525,7 +545,7 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1;
     text-align: center;
     max-width: 700px;
-    color: #F5F4D6;
+    color: #f5f4d6;
   }
 
   .hero-badge {
@@ -597,7 +617,7 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
   .btn-hero-secondary {
     background: rgba(255, 255, 255, 0.15);
-    color: #F5F4D6;
+    color: #f5f4d6;
     border: 2px solid rgba(255, 255, 255, 0.3);
     backdrop-filter: blur(10px);
 
@@ -647,7 +667,8 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   &.section-header-light {
-    h2, p {
+    h2,
+    p {
       color: white;
     }
   }
@@ -673,7 +694,7 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
   i {
     font-size: 1.4rem;
-    color: #F5F4D6;
+    color: #f5f4d6;
   }
 
   &.section-icon-small {
@@ -766,7 +787,7 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
     i {
       font-size: 2rem;
-      color: #F5F4D6;
+      color: #f5f4d6;
     }
   }
 }
@@ -782,7 +803,7 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 .format-badge {
   padding: 0.4rem 0.85rem;
   background: var(--color-primary);
-  color: #F5F4D6;
+  color: #f5f4d6;
   border-radius: 50px;
   font-size: 0.75rem;
   font-weight: 600;
@@ -817,7 +838,7 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, var(--color-primary) 0%, #003971 100%);
-  color: #F5F4D6;
+  color: #f5f4d6;
   font-size: 1.2rem;
   font-weight: 700;
   border-radius: 50%;
@@ -1040,7 +1061,7 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
     i {
       font-size: 0.9rem;
-      color: #F5F4D6;
+      color: #f5f4d6;
     }
   }
 
@@ -1092,7 +1113,7 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       align-items: center;
       justify-content: center;
       background: var(--color-primary);
-      color: #F5F4D6;
+      color: #f5f4d6;
       font-size: 0.85rem;
       font-weight: 600;
       border-radius: 50%;
@@ -1146,7 +1167,7 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
     i {
       font-size: 1.2rem;
-      color: #F5F4D6;
+      color: #f5f4d6;
     }
   }
 
@@ -1231,10 +1252,22 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     background: var(--color-primary);
     border-radius: 2px;
 
-    &-tl { top: -6px; left: -6px; }
-    &-tr { top: -6px; right: -6px; }
-    &-bl { bottom: -6px; left: -6px; }
-    &-br { bottom: -6px; right: -6px; }
+    &-tl {
+      top: -6px;
+      left: -6px;
+    }
+    &-tr {
+      top: -6px;
+      right: -6px;
+    }
+    &-bl {
+      bottom: -6px;
+      left: -6px;
+    }
+    &-br {
+      bottom: -6px;
+      right: -6px;
+    }
   }
 }
 
@@ -1316,7 +1349,11 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
     .gallery-item {
       aspect-ratio: 1;
-      background: linear-gradient(135deg, var(--color-light-blue) 0%, var(--color-medium-blue) 100%);
+      background: linear-gradient(
+        135deg,
+        var(--color-light-blue) 0%,
+        var(--color-medium-blue) 100%
+      );
       border-radius: 12px;
       border: 2px solid var(--color-border);
     }
@@ -1354,7 +1391,7 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     align-items: center;
     justify-content: center;
     background: linear-gradient(135deg, var(--color-primary) 0%, #003971 100%);
-    color: #F5F4D6;
+    color: #f5f4d6;
     font-size: 0.9rem;
     font-weight: 700;
     border-radius: 50%;
@@ -1520,18 +1557,15 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     .cta-gradient {
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg,
-        var(--color-primary) 0%,
-        #003971 50%,
-        #c9984d 100%
-      );
+      background: linear-gradient(135deg, var(--color-primary) 0%, #003971 50%, #c9984d 100%);
     }
 
     .cta-pattern {
       position: absolute;
       inset: 0;
-      background-image: radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+      background-image:
+        radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
     }
   }
 
@@ -1541,7 +1575,7 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     text-align: center;
     max-width: 600px;
     margin: 0 auto;
-    color: #F5F4D6;
+    color: #f5f4d6;
 
     h2 {
       font-size: clamp(1.4rem, 3vw, 1.9rem);
@@ -1580,7 +1614,8 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
 // ===== ANIMATIONS =====
 @keyframes pulse-border {
-  0%, 100% {
+  0%,
+  100% {
     border-color: var(--color-primary);
   }
   50% {
@@ -1589,7 +1624,7 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 // ===== DARK MODE ADJUSTMENTS =====
-:root[data-theme="dark"] {
+:root[data-theme='dark'] {
   .visual-card {
     background: linear-gradient(135deg, var(--color-bg-secondary) 0%, #1a1a2e 100%);
   }

@@ -2,7 +2,7 @@
  * useResizeManager Composable
  * Verwaltet Bildgrößen-Änderungen mit Seitenverhältnis-Beibehaltung
  */
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch } from 'vue';
 
 /**
  * Composable für Resize-Management
@@ -12,32 +12,33 @@ import { ref, computed, watch } from 'vue'
  * @returns {Object} Resize-State und Methoden
  */
 export function useResizeManager(options = {}) {
-  const { getCurrentDimensions, onResize } = options
+  const { getCurrentDimensions, onResize } = options;
 
   // Reaktive State
-  const resizeWidth = ref(0)
-  const resizeHeight = ref(0)
-  const maintainAspectRatio = ref(true)
-  const originalWidth = ref(0)
-  const originalHeight = ref(0)
+  const resizeWidth = ref(0);
+  const resizeHeight = ref(0);
+  const maintainAspectRatio = ref(true);
+  const originalWidth = ref(0);
+  const originalHeight = ref(0);
 
   // Computed
   const aspectRatio = computed(() => {
-    if (originalHeight.value === 0) return 1
-    return originalWidth.value / originalHeight.value
-  })
+    if (originalHeight.value === 0) return 1;
+    return originalWidth.value / originalHeight.value;
+  });
 
   const hasChanges = computed(() => {
-    return resizeWidth.value !== originalWidth.value ||
-           resizeHeight.value !== originalHeight.value
-  })
+    return resizeWidth.value !== originalWidth.value || resizeHeight.value !== originalHeight.value;
+  });
 
   const isValidSize = computed(() => {
-    return resizeWidth.value > 0 &&
-           resizeHeight.value > 0 &&
-           resizeWidth.value <= 10000 &&
-           resizeHeight.value <= 10000
-  })
+    return (
+      resizeWidth.value > 0 &&
+      resizeHeight.value > 0 &&
+      resizeWidth.value <= 10000 &&
+      resizeHeight.value <= 10000
+    );
+  });
 
   /**
    * Initialisiert die Resize-Werte mit aktuellen Dimensionen
@@ -45,10 +46,10 @@ export function useResizeManager(options = {}) {
    * @param {number} height - Aktuelle Höhe
    */
   function initFromDimensions(width, height) {
-    originalWidth.value = width
-    originalHeight.value = height
-    resizeWidth.value = width
-    resizeHeight.value = height
+    originalWidth.value = width;
+    originalHeight.value = height;
+    resizeWidth.value = width;
+    resizeHeight.value = height;
   }
 
   /**
@@ -57,8 +58,8 @@ export function useResizeManager(options = {}) {
    */
   function syncWithCurrent() {
     if (getCurrentDimensions) {
-      const { width, height } = getCurrentDimensions()
-      initFromDimensions(width, height)
+      const { width, height } = getCurrentDimensions();
+      initFromDimensions(width, height);
     }
   }
 
@@ -67,10 +68,10 @@ export function useResizeManager(options = {}) {
    * @param {number} newWidth - Neue Breite
    */
   function onWidthChange(newWidth) {
-    resizeWidth.value = Math.max(1, Math.round(newWidth))
+    resizeWidth.value = Math.max(1, Math.round(newWidth));
 
     if (maintainAspectRatio.value && aspectRatio.value > 0) {
-      resizeHeight.value = Math.max(1, Math.round(resizeWidth.value / aspectRatio.value))
+      resizeHeight.value = Math.max(1, Math.round(resizeWidth.value / aspectRatio.value));
     }
   }
 
@@ -79,10 +80,10 @@ export function useResizeManager(options = {}) {
    * @param {number} newHeight - Neue Höhe
    */
   function onHeightChange(newHeight) {
-    resizeHeight.value = Math.max(1, Math.round(newHeight))
+    resizeHeight.value = Math.max(1, Math.round(newHeight));
 
     if (maintainAspectRatio.value && aspectRatio.value > 0) {
-      resizeWidth.value = Math.max(1, Math.round(resizeHeight.value * aspectRatio.value))
+      resizeWidth.value = Math.max(1, Math.round(resizeHeight.value * aspectRatio.value));
     }
   }
 
@@ -92,9 +93,9 @@ export function useResizeManager(options = {}) {
    */
   function onDimensionChange(dimension) {
     if (dimension === 'width') {
-      onWidthChange(resizeWidth.value)
+      onWidthChange(resizeWidth.value);
     } else {
-      onHeightChange(resizeHeight.value)
+      onHeightChange(resizeHeight.value);
     }
   }
 
@@ -103,17 +104,17 @@ export function useResizeManager(options = {}) {
    * @param {number} percent - Prozentsatz (z.B. 50 für 50%)
    */
   function scaleByPercent(percent) {
-    const factor = percent / 100
-    resizeWidth.value = Math.max(1, Math.round(originalWidth.value * factor))
-    resizeHeight.value = Math.max(1, Math.round(originalHeight.value * factor))
+    const factor = percent / 100;
+    resizeWidth.value = Math.max(1, Math.round(originalWidth.value * factor));
+    resizeHeight.value = Math.max(1, Math.round(originalHeight.value * factor));
   }
 
   /**
    * Setzt auf Originalgrößen zurück
    */
   function resetToOriginal() {
-    resizeWidth.value = originalWidth.value
-    resizeHeight.value = originalHeight.value
+    resizeWidth.value = originalWidth.value;
+    resizeHeight.value = originalHeight.value;
   }
 
   /**
@@ -122,23 +123,23 @@ export function useResizeManager(options = {}) {
    */
   function applyResize() {
     if (!isValidSize.value) {
-      return null
+      return null;
     }
 
     const newDimensions = {
       width: resizeWidth.value,
-      height: resizeHeight.value
-    }
+      height: resizeHeight.value,
+    };
 
     if (onResize) {
-      onResize(newDimensions)
+      onResize(newDimensions);
     }
 
     // Aktualisiere Original-Werte nach erfolgreichem Resize
-    originalWidth.value = resizeWidth.value
-    originalHeight.value = resizeHeight.value
+    originalWidth.value = resizeWidth.value;
+    originalHeight.value = resizeHeight.value;
 
-    return newDimensions
+    return newDimensions;
   }
 
   /**
@@ -148,24 +149,24 @@ export function useResizeManager(options = {}) {
    * @returns {Object} Berechnete Dimensionen
    */
   function fitToBounds(maxWidth, maxHeight) {
-    let newWidth = originalWidth.value
-    let newHeight = originalHeight.value
+    let newWidth = originalWidth.value;
+    let newHeight = originalHeight.value;
 
     // Skaliere herunter wenn nötig
     if (newWidth > maxWidth) {
-      newWidth = maxWidth
-      newHeight = Math.round(newWidth / aspectRatio.value)
+      newWidth = maxWidth;
+      newHeight = Math.round(newWidth / aspectRatio.value);
     }
 
     if (newHeight > maxHeight) {
-      newHeight = maxHeight
-      newWidth = Math.round(newHeight * aspectRatio.value)
+      newHeight = maxHeight;
+      newWidth = Math.round(newHeight * aspectRatio.value);
     }
 
-    resizeWidth.value = newWidth
-    resizeHeight.value = newHeight
+    resizeWidth.value = newWidth;
+    resizeHeight.value = newHeight;
 
-    return { width: newWidth, height: newHeight }
+    return { width: newWidth, height: newHeight };
   }
 
   /**
@@ -178,18 +179,18 @@ export function useResizeManager(options = {}) {
     twitter: { width: 1200, height: 675, name: 'Twitter Post' },
     youtube: { width: 1280, height: 720, name: 'YouTube Thumbnail' },
     hd: { width: 1920, height: 1080, name: 'Full HD' },
-    '4k': { width: 3840, height: 2160, name: '4K UHD' }
-  }
+    '4k': { width: 3840, height: 2160, name: '4K UHD' },
+  };
 
   /**
    * Wendet Preset-Größe an
    * @param {string} presetName - Name des Presets
    */
   function applyPreset(presetName) {
-    const preset = presetSizes[presetName]
+    const preset = presetSizes[presetName];
     if (preset) {
-      resizeWidth.value = preset.width
-      resizeHeight.value = preset.height
+      resizeWidth.value = preset.width;
+      resizeHeight.value = preset.height;
     }
   }
 
@@ -219,8 +220,8 @@ export function useResizeManager(options = {}) {
     applyPreset,
 
     // Konstanten
-    presetSizes
-  }
+    presetSizes,
+  };
 }
 
-export default useResizeManager
+export default useResizeManager;

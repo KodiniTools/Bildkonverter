@@ -3,14 +3,14 @@
     <canvas
       ref="canvasRef"
       class="image-canvas"
-      :class="{ 'interacting': isInteracting }"
+      :class="{ interacting: isInteracting }"
       @mousedown="onMouseDown"
       @mousemove="onMouseMove"
       @mouseup="onMouseUp"
       @mouseleave="onMouseUp"
       @dblclick="onDoubleClick"
     />
-    
+
     <!-- Text-Bearbeitung Modal -->
     <TextEditModal
       v-if="showTextModal"
@@ -22,115 +22,105 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { useImageStore } from '@/stores/imageStore'
-import { useTextInteraction } from '@/composables/useTextInteraction'
-import TextEditModal from './TextEditModal.vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { useImageStore } from '@/stores/imageStore';
+import { useTextInteraction } from '@/composables/useTextInteraction';
+import TextEditModal from './TextEditModal.vue';
 
 // Stores
-const imageStore = useImageStore()
+const imageStore = useImageStore();
 
 // Composables
-const {
-  isInteracting,
-  handleMouseDown,
-  handleMouseMove,
-  handleMouseUp,
-  handleKeyDown
-} = useTextInteraction(imageStore)
+const { isInteracting, handleMouseDown, handleMouseMove, handleMouseUp, handleKeyDown } =
+  useTextInteraction(imageStore);
 
 // Refs
-const canvasRef = ref(null)
-const showTextModal = ref(false)
-const editingText = ref(null)
+const canvasRef = ref(null);
+const showTextModal = ref(false);
+const editingText = ref(null);
 
 // Canvas Position berechnen
 function getCanvasPosition(event) {
-  const rect = canvasRef.value.getBoundingClientRect()
-  const scaleX = imageStore.imageWidth / rect.width
-  const scaleY = imageStore.imageHeight / rect.height
-  
+  const rect = canvasRef.value.getBoundingClientRect();
+  const scaleX = imageStore.imageWidth / rect.width;
+  const scaleY = imageStore.imageHeight / rect.height;
+
   return {
     x: (event.clientX - rect.left) * scaleX,
-    y: (event.clientY - rect.top) * scaleY
-  }
+    y: (event.clientY - rect.top) * scaleY,
+  };
 }
 
 // Event Handlers
 function onMouseDown(event) {
-  const pos = getCanvasPosition(event)
-  const result = handleMouseDown(pos.x, pos.y)
-  
+  const pos = getCanvasPosition(event);
+  const result = handleMouseDown(pos.x, pos.y);
+
   // Wenn Doppelklick erkannt wurde
   if (result && result.action === 'edit') {
-    editingText.value = imageStore.texts[result.textIndex]
-    showTextModal.value = true
+    editingText.value = imageStore.texts[result.textIndex];
+    showTextModal.value = true;
   }
 }
 
 function onMouseMove(event) {
-  const pos = getCanvasPosition(event)
-  handleMouseMove(pos.x, pos.y)
+  const pos = getCanvasPosition(event);
+  handleMouseMove(pos.x, pos.y);
 }
 
 function onMouseUp() {
-  handleMouseUp()
+  handleMouseUp();
 }
 
 function onDoubleClick(event) {
-  const pos = getCanvasPosition(event)
+  const pos = getCanvasPosition(event);
   // Doppelklick wird bereits in handleMouseDown behandelt
-  console.log('Double click at:', pos)
+  console.log('Double click at:', pos);
 }
 
 function onKeyDown(event) {
-  handleKeyDown(event)
+  handleKeyDown(event);
 }
 
 // Text Modal
 function saveTextEdit(updatedText) {
   if (editingText.value) {
-    imageStore.updateText(editingText.value.id, updatedText)
-    imageStore.saveState('Text bearbeitet', 'text')
+    imageStore.updateText(editingText.value.id, updatedText);
+    imageStore.saveState('Text bearbeitet', 'text');
   }
-  closeTextModal()
+  closeTextModal();
 }
 
 function closeTextModal() {
-  showTextModal.value = false
-  editingText.value = null
+  showTextModal.value = false;
+  editingText.value = null;
 }
 
 // Lifecycle
 onMounted(() => {
   // Canvas initialisieren
   if (canvasRef.value) {
-    imageStore.initCanvas(canvasRef.value)
+    imageStore.initCanvas(canvasRef.value);
   }
-  
+
   // Keyboard Listener
-  window.addEventListener('keydown', onKeyDown)
-})
+  window.addEventListener('keydown', onKeyDown);
+});
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', onKeyDown)
-})
+  window.removeEventListener('keydown', onKeyDown);
+});
 
 // Canvas neu zeichnen wenn sich Daten ändern
 watch(
-  () => [
-    imageStore.workingUrl,
-    imageStore.filters,
-    imageStore.texts,
-    imageStore.selectedTextId
-  ],
+  () => [imageStore.workingUrl, imageStore.filters, imageStore.texts, imageStore.selectedTextId],
   () => {
     if (imageStore.hasImage) {
-      imageStore.draw()
+      imageStore.draw();
     }
   },
   { deep: true }
-)
+);
 </script>
 
 <style scoped>

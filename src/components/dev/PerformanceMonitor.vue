@@ -6,10 +6,14 @@
         Performance Monitor
       </h4>
       <div class="monitor-actions">
-        <button @click="toggleMinimize" class="btn-icon" :title="isMinimized ? 'Expand' : 'Minimize'">
+        <button
+          class="btn-icon"
+          :title="isMinimized ? 'Expand' : 'Minimize'"
+          @click="toggleMinimize"
+        >
           <i :class="isMinimized ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
         </button>
-        <button @click="isVisible = false" class="btn-icon" title="Close">
+        <button class="btn-icon" title="Close" @click="isVisible = false">
           <i class="fas fa-times"></i>
         </button>
       </div>
@@ -46,110 +50,110 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 
-const isDevelopment = import.meta.env.DEV
-const isVisible = ref(true)
-const isMinimized = ref(false)
-const fps = ref(60)
-const memoryUsage = ref(0)
-const componentCount = ref(0)
-const renderTime = ref(0)
-const fpsCanvas = ref(null)
+const isDevelopment = import.meta.env.DEV;
+const isVisible = ref(true);
+const isMinimized = ref(false);
+const fps = ref(60);
+const memoryUsage = ref(0);
+const componentCount = ref(0);
+const renderTime = ref(0);
+const fpsCanvas = ref(null);
 
-let fpsHistory = []
-let lastTime = performance.now()
-let frameCount = 0
-let animationId = null
+let fpsHistory = [];
+let lastTime = performance.now();
+let frameCount = 0;
+let animationId = null;
 
 function toggleMinimize() {
-  isMinimized.value = !isMinimized.value
+  isMinimized.value = !isMinimized.value;
 }
 
 function getFpsClass(fpsValue) {
-  if (fpsValue >= 55) return 'stat-good'
-  if (fpsValue >= 30) return 'stat-warning'
-  return 'stat-bad'
+  if (fpsValue >= 55) return 'stat-good';
+  if (fpsValue >= 30) return 'stat-warning';
+  return 'stat-bad';
 }
 
 function updateFps() {
-  frameCount++
-  const currentTime = performance.now()
-  const elapsed = currentTime - lastTime
+  frameCount++;
+  const currentTime = performance.now();
+  const elapsed = currentTime - lastTime;
 
   if (elapsed >= 1000) {
-    fps.value = Math.round((frameCount * 1000) / elapsed)
-    frameCount = 0
-    lastTime = currentTime
+    fps.value = Math.round((frameCount * 1000) / elapsed);
+    frameCount = 0;
+    lastTime = currentTime;
 
-    fpsHistory.push(fps.value)
+    fpsHistory.push(fps.value);
     if (fpsHistory.length > 60) {
-      fpsHistory.shift()
+      fpsHistory.shift();
     }
 
-    drawGraph()
-    updateMemory()
+    drawGraph();
+    updateMemory();
   }
 
-  animationId = requestAnimationFrame(updateFps)
+  animationId = requestAnimationFrame(updateFps);
 }
 
 function updateMemory() {
   if (performance.memory) {
-    memoryUsage.value = Math.round(performance.memory.usedJSHeapSize / 1048576)
+    memoryUsage.value = Math.round(performance.memory.usedJSHeapSize / 1048576);
   }
 }
 
 function drawGraph() {
-  if (!fpsCanvas.value) return
+  if (!fpsCanvas.value) return;
 
-  const ctx = fpsCanvas.value.getContext('2d')
-  const width = fpsCanvas.value.width
-  const height = fpsCanvas.value.height
+  const ctx = fpsCanvas.value.getContext('2d');
+  const width = fpsCanvas.value.width;
+  const height = fpsCanvas.value.height;
 
-  ctx.clearRect(0, 0, width, height)
+  ctx.clearRect(0, 0, width, height);
 
   // Draw grid
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)'
-  ctx.lineWidth = 1
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+  ctx.lineWidth = 1;
   for (let i = 0; i <= 60; i += 15) {
-    const y = height - (i / 60) * height
-    ctx.beginPath()
-    ctx.moveTo(0, y)
-    ctx.lineTo(width, y)
-    ctx.stroke()
+    const y = height - (i / 60) * height;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(width, y);
+    ctx.stroke();
   }
 
   // Draw FPS line
-  ctx.strokeStyle = '#007bff'
-  ctx.lineWidth = 2
-  ctx.beginPath()
+  ctx.strokeStyle = '#007bff';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
 
   fpsHistory.forEach((value, index) => {
-    const x = (index / 60) * width
-    const y = height - (value / 60) * height
-    
-    if (index === 0) {
-      ctx.moveTo(x, y)
-    } else {
-      ctx.lineTo(x, y)
-    }
-  })
+    const x = (index / 60) * width;
+    const y = height - (value / 60) * height;
 
-  ctx.stroke()
+    if (index === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  });
+
+  ctx.stroke();
 }
 
 onMounted(() => {
   if (isDevelopment) {
-    updateFps()
+    updateFps();
   }
-})
+});
 
 onUnmounted(() => {
   if (animationId) {
-    cancelAnimationFrame(animationId)
+    cancelAnimationFrame(animationId);
   }
-})
+});
 </script>
 
 <style lang="scss" scoped>
@@ -235,15 +239,15 @@ onUnmounted(() => {
   .stat-value {
     font-size: 1.2rem;
     font-weight: 600;
-    
+
     &.stat-good {
       color: #28a745;
     }
-    
+
     &.stat-warning {
       color: #ffc107;
     }
-    
+
     &.stat-bad {
       color: #dc3545;
     }

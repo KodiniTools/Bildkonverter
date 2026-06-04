@@ -2,7 +2,7 @@
  * useImageHistory Composable
  * Verwaltet Undo/Redo-Funktionalität für Bildbearbeitung
  */
-import { ref, computed } from 'vue'
+import { ref, computed } from 'vue';
 
 /**
  * Composable für Image-History Management
@@ -12,22 +12,22 @@ import { ref, computed } from 'vue'
  * @returns {Object} History-State und Methoden
  */
 export function useImageHistory(options = {}) {
-  const { maxHistorySize = 50, onRestore } = options
+  const { maxHistorySize = 50, onRestore } = options;
 
   // Reaktive State
-  const history = ref([])
-  const historyIndex = ref(-1)
+  const history = ref([]);
+  const historyIndex = ref(-1);
 
   // Computed
-  const canUndo = computed(() => historyIndex.value > 0)
-  const canRedo = computed(() => historyIndex.value < history.value.length - 1)
+  const canUndo = computed(() => historyIndex.value > 0);
+  const canRedo = computed(() => historyIndex.value < history.value.length - 1);
   const currentState = computed(() => {
     if (historyIndex.value >= 0 && historyIndex.value < history.value.length) {
-      return history.value[historyIndex.value]
+      return history.value[historyIndex.value];
     }
-    return null
-  })
-  const historyLength = computed(() => history.value.length)
+    return null;
+  });
+  const historyLength = computed(() => history.value.length);
 
   /**
    * Speichert einen neuen State in der History
@@ -42,22 +42,22 @@ export function useImageHistory(options = {}) {
   function saveState(state) {
     // Entferne alle States nach dem aktuellen Index (Redo-History löschen)
     if (historyIndex.value < history.value.length - 1) {
-      history.value = history.value.slice(0, historyIndex.value + 1)
+      history.value = history.value.slice(0, historyIndex.value + 1);
     }
 
     // Füge neuen State hinzu
     history.value.push({
       ...state,
-      timestamp: Date.now()
-    })
+      timestamp: Date.now(),
+    });
 
     // Begrenze History-Größe
     if (history.value.length > maxHistorySize) {
-      history.value = history.value.slice(-maxHistorySize)
+      history.value = history.value.slice(-maxHistorySize);
     }
 
     // Setze Index auf letzten Eintrag
-    historyIndex.value = history.value.length - 1
+    historyIndex.value = history.value.length - 1;
   }
 
   /**
@@ -66,17 +66,17 @@ export function useImageHistory(options = {}) {
    */
   function undo() {
     if (!canUndo.value) {
-      return null
+      return null;
     }
 
-    historyIndex.value--
-    const state = history.value[historyIndex.value]
+    historyIndex.value--;
+    const state = history.value[historyIndex.value];
 
     if (onRestore && state) {
-      onRestore(state)
+      onRestore(state);
     }
 
-    return state
+    return state;
   }
 
   /**
@@ -85,17 +85,17 @@ export function useImageHistory(options = {}) {
    */
   function redo() {
     if (!canRedo.value) {
-      return null
+      return null;
     }
 
-    historyIndex.value++
-    const state = history.value[historyIndex.value]
+    historyIndex.value++;
+    const state = history.value[historyIndex.value];
 
     if (onRestore && state) {
-      onRestore(state)
+      onRestore(state);
     }
 
-    return state
+    return state;
   }
 
   /**
@@ -105,25 +105,25 @@ export function useImageHistory(options = {}) {
    */
   function goToIndex(index) {
     if (index < 0 || index >= history.value.length) {
-      return null
+      return null;
     }
 
-    historyIndex.value = index
-    const state = history.value[index]
+    historyIndex.value = index;
+    const state = history.value[index];
 
     if (onRestore && state) {
-      onRestore(state)
+      onRestore(state);
     }
 
-    return state
+    return state;
   }
 
   /**
    * Löscht die gesamte History
    */
   function clearHistory() {
-    history.value = []
-    historyIndex.value = -1
+    history.value = [];
+    historyIndex.value = -1;
   }
 
   /**
@@ -134,8 +134,8 @@ export function useImageHistory(options = {}) {
     if (historyIndex.value >= 0 && historyIndex.value < history.value.length) {
       history.value[historyIndex.value] = {
         ...state,
-        timestamp: Date.now()
-      }
+        timestamp: Date.now(),
+      };
     }
   }
 
@@ -147,8 +147,8 @@ export function useImageHistory(options = {}) {
     return history.value.map((state, index) => ({
       index,
       timestamp: state.timestamp,
-      isCurrent: index === historyIndex.value
-    }))
+      isCurrent: index === historyIndex.value,
+    }));
   }
 
   return {
@@ -169,8 +169,8 @@ export function useImageHistory(options = {}) {
     goToIndex,
     clearHistory,
     replaceCurrentState,
-    getHistoryList
-  }
+    getHistoryList,
+  };
 }
 
-export default useImageHistory
+export default useImageHistory;

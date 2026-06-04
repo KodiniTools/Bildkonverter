@@ -2,8 +2,8 @@
  * useGalleryIntegration Composable
  * Verwaltet das Laden von Bildern aus der Galerie in den Editor
  */
-import { ref, watch, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, watch, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 
 /**
  * Composable für Gallery-Integration
@@ -13,14 +13,14 @@ import { useRoute } from 'vue-router'
  * @returns {Object} Gallery-Integration State und Methoden
  */
 export function useGalleryIntegration(options = {}) {
-  const { onImageLoad, onError } = options
+  const { onImageLoad, onError } = options;
 
-  const route = useRoute()
+  const route = useRoute();
 
   // Reaktive State
-  const isLoadingFromGallery = ref(false)
-  const lastLoadedImageId = ref(null)
-  const galleryStore = ref(null)
+  const isLoadingFromGallery = ref(false);
+  const lastLoadedImageId = ref(null);
+  const galleryStore = ref(null);
 
   /**
    * Lädt den Gallery Store dynamisch (um zirkuläre Abhängigkeiten zu vermeiden)
@@ -28,10 +28,10 @@ export function useGalleryIntegration(options = {}) {
    */
   async function getGalleryStore() {
     if (!galleryStore.value) {
-      const { useGalleryStore } = await import('@/stores/galleryStore')
-      galleryStore.value = useGalleryStore()
+      const { useGalleryStore } = await import('@/stores/galleryStore');
+      galleryStore.value = useGalleryStore();
     }
-    return galleryStore.value
+    return galleryStore.value;
   }
 
   /**
@@ -41,20 +41,20 @@ export function useGalleryIntegration(options = {}) {
    */
   async function loadImageById(imageId) {
     if (!imageId || isLoadingFromGallery.value) {
-      return null
+      return null;
     }
 
-    isLoadingFromGallery.value = true
+    isLoadingFromGallery.value = true;
 
     try {
-      const store = await getGalleryStore()
-      const image = store.images.find(img => img.id === imageId)
+      const store = await getGalleryStore();
+      const image = store.images.find((img) => img.id === imageId);
 
       if (!image) {
-        throw new Error(`Bild mit ID ${imageId} nicht gefunden`)
+        throw new Error(`Bild mit ID ${imageId} nicht gefunden`);
       }
 
-      lastLoadedImageId.value = imageId
+      lastLoadedImageId.value = imageId;
 
       const imageData = {
         url: image.url || image.dataUrl,
@@ -63,36 +63,34 @@ export function useGalleryIntegration(options = {}) {
         id: imageId,
         metadata: {
           uploadedAt: image.uploadedAt,
-          size: image.size
-        }
-      }
+          size: image.size,
+        },
+      };
 
       if (onImageLoad) {
-        await onImageLoad(imageData)
+        await onImageLoad(imageData);
       }
 
       // Toast-Benachrichtigung
       if (window.$toast) {
-        window.$toast.success('Bild aus Galerie geladen')
+        window.$toast.success('Bild aus Galerie geladen');
       }
 
-      return imageData
-
+      return imageData;
     } catch (error) {
-      console.error('Fehler beim Laden aus Galerie:', error)
+      console.error('Fehler beim Laden aus Galerie:', error);
 
       if (onError) {
-        onError(error)
+        onError(error);
       }
 
       if (window.$toast) {
-        window.$toast.error('Fehler beim Laden aus Galerie', error.message)
+        window.$toast.error('Fehler beim Laden aus Galerie', error.message);
       }
 
-      return null
-
+      return null;
     } finally {
-      isLoadingFromGallery.value = false
+      isLoadingFromGallery.value = false;
     }
   }
 
@@ -100,10 +98,10 @@ export function useGalleryIntegration(options = {}) {
    * Prüft Route-Query und lädt Bild wenn galleryImageId vorhanden
    */
   async function checkRouteAndLoad() {
-    const imageId = route.query?.galleryImageId
+    const imageId = route.query?.galleryImageId;
 
     if (imageId && imageId !== lastLoadedImageId.value) {
-      await loadImageById(imageId)
+      await loadImageById(imageId);
     }
   }
 
@@ -113,25 +111,24 @@ export function useGalleryIntegration(options = {}) {
    */
   async function loadLastEdited() {
     try {
-      const store = await getGalleryStore()
-      const images = store.images
+      const store = await getGalleryStore();
+      const images = store.images;
 
       if (!images || images.length === 0) {
-        return null
+        return null;
       }
 
       // Sortiere nach Bearbeitungsdatum (neueste zuerst)
       const sorted = [...images].sort((a, b) => {
-        const dateA = a.editedAt || a.uploadedAt || 0
-        const dateB = b.editedAt || b.uploadedAt || 0
-        return dateB - dateA
-      })
+        const dateA = a.editedAt || a.uploadedAt || 0;
+        const dateB = b.editedAt || b.uploadedAt || 0;
+        return dateB - dateA;
+      });
 
-      return await loadImageById(sorted[0].id)
-
+      return await loadImageById(sorted[0].id);
     } catch (error) {
-      console.error('Fehler beim Laden des letzten Bildes:', error)
-      return null
+      console.error('Fehler beim Laden des letzten Bildes:', error);
+      return null;
     }
   }
 
@@ -141,11 +138,11 @@ export function useGalleryIntegration(options = {}) {
    */
   async function getAvailableImages() {
     try {
-      const store = await getGalleryStore()
-      return store.images || []
+      const store = await getGalleryStore();
+      return store.images || [];
     } catch (error) {
-      console.error('Fehler beim Abrufen der Galerie-Bilder:', error)
-      return []
+      console.error('Fehler beim Abrufen der Galerie-Bilder:', error);
+      return [];
     }
   }
 
@@ -154,15 +151,15 @@ export function useGalleryIntegration(options = {}) {
     () => route.query?.galleryImageId,
     async (newId) => {
       if (newId) {
-        await loadImageById(newId)
+        await loadImageById(newId);
       }
     }
-  )
+  );
 
   // Initialisierung beim Mounten
   onMounted(() => {
-    checkRouteAndLoad()
-  })
+    checkRouteAndLoad();
+  });
 
   return {
     // State
@@ -173,8 +170,8 @@ export function useGalleryIntegration(options = {}) {
     loadImageById,
     loadLastEdited,
     getAvailableImages,
-    checkRouteAndLoad
-  }
+    checkRouteAndLoad,
+  };
 }
 
-export default useGalleryIntegration
+export default useGalleryIntegration;

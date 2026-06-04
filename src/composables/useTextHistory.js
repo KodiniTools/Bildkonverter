@@ -4,9 +4,9 @@
  * Verwaltet eine separate History für Textänderungen mit bis zu 50 Schritten
  */
 
-import { ref, computed } from 'vue'
+import { ref, computed } from 'vue';
 
-const MAX_HISTORY_SIZE = 50
+const MAX_HISTORY_SIZE = 50;
 
 /**
  * Composable für Text-History
@@ -17,51 +17,51 @@ const MAX_HISTORY_SIZE = 50
  * @param {Function} options.setSelectedTextId - Funktion zum Setzen der ausgewählten Text-ID
  */
 export function useTextHistory(options) {
-  const { getTexts, setTexts, getSelectedTextId, setSelectedTextId } = options
+  const { getTexts, setTexts, getSelectedTextId, setSelectedTextId } = options;
 
   // History state
-  const history = ref([])
-  const historyIndex = ref(-1)
-  const isUndoRedoAction = ref(false)
+  const history = ref([]);
+  const historyIndex = ref(-1);
+  const isUndoRedoAction = ref(false);
 
   // Computed properties
-  const canUndoText = computed(() => historyIndex.value > 0)
-  const canRedoText = computed(() => historyIndex.value < history.value.length - 1)
+  const canUndoText = computed(() => historyIndex.value > 0);
+  const canRedoText = computed(() => historyIndex.value < history.value.length - 1);
 
   /**
    * Erstellt einen Snapshot des aktuellen Text-Zustands
    */
   function createSnapshot() {
-    const texts = getTexts()
-    const selectedId = getSelectedTextId()
+    const texts = getTexts();
+    const selectedId = getSelectedTextId();
 
     return {
       texts: JSON.parse(JSON.stringify(texts || [])),
-      selectedTextId: selectedId
-    }
+      selectedTextId: selectedId,
+    };
   }
 
   /**
    * Speichert den aktuellen Zustand in der History
    */
   function saveTextHistory() {
-    if (isUndoRedoAction.value) return
+    if (isUndoRedoAction.value) return;
 
-    const snapshot = createSnapshot()
+    const snapshot = createSnapshot();
 
     // Entferne alle Redo-States wenn wir nicht am Ende sind
     if (historyIndex.value < history.value.length - 1) {
-      history.value = history.value.slice(0, historyIndex.value + 1)
+      history.value = history.value.slice(0, historyIndex.value + 1);
     }
 
     // Füge neuen State hinzu
-    history.value.push(snapshot)
+    history.value.push(snapshot);
 
     // Begrenze die History-Größe
     if (history.value.length > MAX_HISTORY_SIZE) {
-      history.value.shift()
+      history.value.shift();
     } else {
-      historyIndex.value++
+      historyIndex.value++;
     }
   }
 
@@ -69,58 +69,58 @@ export function useTextHistory(options) {
    * Initialisiert die History mit dem aktuellen Zustand
    */
   function initTextHistory() {
-    history.value = [createSnapshot()]
-    historyIndex.value = 0
+    history.value = [createSnapshot()];
+    historyIndex.value = 0;
   }
 
   /**
    * Macht die letzte Textänderung rückgängig
    */
   function undoText() {
-    if (!canUndoText.value) return
+    if (!canUndoText.value) return;
 
-    isUndoRedoAction.value = true
-    historyIndex.value--
+    isUndoRedoAction.value = true;
+    historyIndex.value--;
 
-    const snapshot = history.value[historyIndex.value]
+    const snapshot = history.value[historyIndex.value];
 
     // Stelle den Zustand wieder her
-    setTexts(JSON.parse(JSON.stringify(snapshot.texts)))
-    setSelectedTextId(snapshot.selectedTextId)
+    setTexts(JSON.parse(JSON.stringify(snapshot.texts)));
+    setSelectedTextId(snapshot.selectedTextId);
 
     // Flag zurücksetzen
     setTimeout(() => {
-      isUndoRedoAction.value = false
-    }, 0)
+      isUndoRedoAction.value = false;
+    }, 0);
   }
 
   /**
    * Stellt die letzte rückgängig gemachte Änderung wieder her
    */
   function redoText() {
-    if (!canRedoText.value) return
+    if (!canRedoText.value) return;
 
-    isUndoRedoAction.value = true
-    historyIndex.value++
+    isUndoRedoAction.value = true;
+    historyIndex.value++;
 
-    const snapshot = history.value[historyIndex.value]
+    const snapshot = history.value[historyIndex.value];
 
     // Stelle den Zustand wieder her
-    setTexts(JSON.parse(JSON.stringify(snapshot.texts)))
-    setSelectedTextId(snapshot.selectedTextId)
+    setTexts(JSON.parse(JSON.stringify(snapshot.texts)));
+    setSelectedTextId(snapshot.selectedTextId);
 
     // Flag zurücksetzen
     setTimeout(() => {
-      isUndoRedoAction.value = false
-    }, 0)
+      isUndoRedoAction.value = false;
+    }, 0);
   }
 
   /**
    * Löscht die gesamte History
    */
   function clearTextHistory() {
-    history.value = []
-    historyIndex.value = -1
+    history.value = [];
+    historyIndex.value = -1;
   }
 
   return {
@@ -135,6 +135,6 @@ export function useTextHistory(options) {
     initTextHistory,
     undoText,
     redoText,
-    clearTextHistory
-  }
+    clearTextHistory,
+  };
 }

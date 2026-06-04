@@ -8,15 +8,13 @@
 
         <div class="handoff-text">
           <strong>{{ $t('handoff.title', { count: handoffPayload.images.length }) }}</strong>
-          <span class="handoff-source">{{ $t('handoff.from', { tool: handoffPayload.source }) }}</span>
+          <span class="handoff-source">{{
+            $t('handoff.from', { tool: handoffPayload.source })
+          }}</span>
         </div>
 
         <div class="handoff-preview">
-          <div
-            v-for="(img, index) in previewImages"
-            :key="index"
-            class="handoff-thumb"
-          >
+          <div v-for="(img, index) in previewImages" :key="index" class="handoff-thumb">
             <img :src="img.dataUrl" :alt="img.name" />
           </div>
           <span v-if="handoffPayload.images.length > 4" class="handoff-more">
@@ -40,37 +38,37 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-import { checkHandoff, consumeHandoff, dismissHandoff } from '@/lib/core/handoff'
+import { ref, computed, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import { checkHandoff, consumeHandoff, dismissHandoff } from '@/lib/core/handoff';
 
-const emit = defineEmits(['accept', 'dismiss'])
-const route = useRoute()
+const emit = defineEmits(['accept', 'dismiss']);
+const route = useRoute();
 
-const handoffPayload = ref(null)
+const handoffPayload = ref(null);
 
 const previewImages = computed(() => {
-  if (!handoffPayload.value) return []
-  return handoffPayload.value.images.slice(0, 4)
-})
+  if (!handoffPayload.value) return [];
+  return handoffPayload.value.images.slice(0, 4);
+});
 
 onMounted(() => {
   // Prüfe localStorage direkt — kein URL-Parameter nötig
-  handoffPayload.value = checkHandoff()
-})
+  handoffPayload.value = checkHandoff();
+});
 
 function acceptHandoff() {
-  const images = consumeHandoff()
+  const images = consumeHandoff();
   if (images) {
-    emit('accept', images)
+    emit('accept', images);
   }
-  handoffPayload.value = null
+  handoffPayload.value = null;
 }
 
 function dismissHandoffAction() {
-  dismissHandoff()
-  emit('dismiss')
-  handoffPayload.value = null
+  dismissHandoff();
+  emit('dismiss');
+  handoffPayload.value = null;
 }
 </script>
 

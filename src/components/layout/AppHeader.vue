@@ -3,8 +3,8 @@
     <div class="header-container">
       <!-- Navigation -->
       <nav class="header-nav">
-        <router-link 
-          v-for="route in routes" 
+        <router-link
+          v-for="route in routes"
           :key="route.path"
           :to="route.path"
           class="nav-link"
@@ -19,9 +19,9 @@
       <div class="header-actions">
         <!-- Mobile Menu Toggle -->
         <button
-          @click="toggleMobileMenu"
           class="btn-icon mobile-menu-toggle"
           :class="{ active: isMobileMenuOpen }"
+          @click="toggleMobileMenu"
         >
           <i :class="isMobileMenuOpen ? 'fas fa-times' : 'fas fa-bars'"></i>
         </button>
@@ -31,8 +31,8 @@
     <!-- Mobile Navigation -->
     <transition name="slide-down">
       <nav v-if="isMobileMenuOpen" class="mobile-nav">
-        <router-link 
-          v-for="route in routes" 
+        <router-link
+          v-for="route in routes"
           :key="route.path"
           :to="route.path"
           class="mobile-nav-link"
@@ -48,13 +48,13 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref } from 'vue';
+import { useRoute } from 'vue-router';
 
-const route = useRoute()
+const route = useRoute();
 
 // State
-const isMobileMenuOpen = ref(false)
+const isMobileMenuOpen = ref(false);
 
 // Navigation Routes
 const routes = [
@@ -63,20 +63,20 @@ const routes = [
   { path: '/gallery', icon: 'fas fa-images', label: 'nav.gallery' },
   { path: '/guide', icon: 'fas fa-book-open', label: 'nav.guide' },
   { path: '/faq', icon: 'fas fa-question-circle', label: 'nav.faq' },
-  { path: '/about', icon: 'fas fa-info-circle', label: 'nav.about' }
-]
+  { path: '/about', icon: 'fas fa-info-circle', label: 'nav.about' },
+];
 
 // Methods
 function isActiveRoute(path) {
-  return route.path === path
+  return route.path === path;
 }
 
 function toggleMobileMenu() {
-  isMobileMenuOpen.value = !isMobileMenuOpen.value
+  isMobileMenuOpen.value = !isMobileMenuOpen.value;
 }
 
 function closeMobileMenu() {
-  isMobileMenuOpen.value = false
+  isMobileMenuOpen.value = false;
 }
 </script>
 
@@ -109,7 +109,7 @@ function closeMobileMenu() {
 .header-nav {
   display: flex;
   gap: var(--spacing-xs);
-  
+
   @media (max-width: 768px) {
     display: none;
   }
@@ -125,19 +125,19 @@ function closeMobileMenu() {
   font-weight: 500;
   border-radius: var(--border-radius-md);
   transition: all 0.2s ease;
-  
+
   i {
     font-size: 1rem;
   }
-  
+
   &:hover {
     background: var(--color-light-blue);
     color: var(--color-primary);
   }
-  
+
   &.active {
     background: var(--color-primary);
-    color: #F5F4D6;
+    color: #f5f4d6;
   }
 }
 
@@ -165,12 +165,12 @@ function closeMobileMenu() {
   border-radius: var(--border-radius-md);
   cursor: pointer;
   transition: all 0.2s ease;
-  
+
   &:hover {
     background: var(--color-light-blue);
     color: var(--color-primary);
   }
-  
+
   i {
     font-size: 1.1rem;
   }
@@ -178,11 +178,11 @@ function closeMobileMenu() {
 
 .mobile-menu-toggle {
   display: none;
-  
+
   @media (max-width: 768px) {
     display: flex;
   }
-  
+
   &.active {
     background: var(--color-light-blue);
     color: var(--color-primary);
@@ -195,7 +195,7 @@ function closeMobileMenu() {
   padding: var(--spacing-md);
   border-top: 1px solid var(--color-border);
   background: var(--color-bg-secondary);
-  
+
   @media (min-width: 769px) {
     display: none;
   }
@@ -211,20 +211,20 @@ function closeMobileMenu() {
   font-weight: 500;
   border-radius: var(--border-radius-md);
   transition: all 0.2s ease;
-  
+
   i {
     font-size: 1.2rem;
     width: 24px;
   }
-  
+
   &:hover {
     background: var(--color-light-blue);
     color: var(--color-primary);
   }
-  
+
   &.active {
     background: var(--color-primary);
-    color: #F5F4D6;
+    color: #f5f4d6;
   }
 }
 
