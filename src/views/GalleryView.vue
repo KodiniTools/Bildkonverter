@@ -25,7 +25,7 @@
         />
         <button class="btn btn-secondary" @click="triggerFolderInput">
           <i class="fas fa-folder-open"></i>
-          {{ $t('gallery.buttons.uploadFolder', 'Ordner hochladen') }}
+          {{ $t('gallery.buttons.uploadFolder') }}
         </button>
         <input
           ref="folderInput"

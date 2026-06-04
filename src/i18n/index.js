@@ -539,6 +539,7 @@ const de = {
     listView: 'Listenansicht',
     buttons: {
       upload: 'Bilder hochladen',
+      uploadFolder: 'Ordner hochladen',
       deleteAll: 'Alle Bilder löschen',
       addToEditor: 'Zum Editor hinzufügen',
       delete: 'Löschen',
@@ -1687,6 +1688,7 @@ const en = {
     listView: 'List View',
     buttons: {
       upload: 'Upload Images',
+      uploadFolder: 'Upload Folder',
       deleteAll: 'Delete All Images',
       addToEditor: 'Add to Editor',
       delete: 'Delete',
