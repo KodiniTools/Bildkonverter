@@ -2,7 +2,7 @@
   <div id="app" :class="{ 'dark-mode': settings.isDarkMode, 'debug-mode': settings.debugMode }">
     <!-- Header -->
     <AppHeader />
-    
+
     <!-- Main Content -->
     <main class="main-content">
       <div class="container">
@@ -13,16 +13,16 @@
         </router-view>
       </div>
     </main>
-    
+
     <!-- Toast Container -->
     <ToastContainer />
-    
+
     <!-- Keyboard Shortcuts Listener -->
     <KeyboardShortcuts v-if="settings.shortcutsEnabled" />
-    
+
     <!-- Performance Monitor (nur im Debug-Modus) -->
     <PerformanceMonitor v-if="settings.showPerformanceMetrics" />
-    
+
     <!-- Global Text Edit Modal -->
     <!-- Das Modal ist global verfügbar und kann von überall geöffnet werden -->
     <TextEditModal
@@ -36,82 +36,82 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, watch } from 'vue'
-import { useSettingsStore } from '@/stores/settingsStore'
-import { useTextModal } from '@/composables/useTextModal'
-import { i18n } from '@/i18n'
-import AppHeader from '@/components/layout/AppHeader.vue'
-import ToastContainer from '@/components/ui/ToastContainer.vue'
-import KeyboardShortcuts from '@/components/features/KeyboardShortcuts.vue'
-import PerformanceMonitor from '@/components/dev/PerformanceMonitor.vue'
-import TextEditModal from '@/components/modals/TextEditModal.vue'
+import { onMounted, onUnmounted, watch } from 'vue';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { useTextModal } from '@/composables/useTextModal';
+import { i18n } from '@/i18n';
+import AppHeader from '@/components/layout/AppHeader.vue';
+import ToastContainer from '@/components/ui/ToastContainer.vue';
+import KeyboardShortcuts from '@/components/features/KeyboardShortcuts.vue';
+import PerformanceMonitor from '@/components/dev/PerformanceMonitor.vue';
+import TextEditModal from '@/components/modals/TextEditModal.vue';
 
 // Stores & Composables
-const settings = useSettingsStore()
-const textModal = useTextModal()
+const settings = useSettingsStore();
+const textModal = useTextModal();
 
 // Observer für externe Navigation
-let externalNavObserver = null
-let domMutationObserver = null
+let externalNavObserver = null;
+let domMutationObserver = null;
 
 // ─── Übersetzungen für die externe SSI-Navigation ───
 // Muss mit nav.html synchron gehalten werden
 const navTranslations = {
   de: {
-    'nav.audioTools':        'Audiotools',
-    'nav.imageTools':        'Bildtools',
-    'nav.tools':             'Tools',
-    'nav.contact':           'Kontakt',
-    'nav.mp3Converter':      'MP3 Konverter',
-    'nav.audioEqualizer':    'Interaktiver Audio Equalizer',
-    'nav.modernPlayer':      'Moderner Musikplayer',
-    'nav.ultimatePlayer':    'Ultimativer Musikplayer',
+    'nav.audioTools': 'Audiotools',
+    'nav.imageTools': 'Bildtools',
+    'nav.tools': 'Tools',
+    'nav.contact': 'Kontakt',
+    'nav.mp3Converter': 'MP3 Konverter',
+    'nav.audioEqualizer': 'Interaktiver Audio Equalizer',
+    'nav.modernPlayer': 'Moderner Musikplayer',
+    'nav.ultimatePlayer': 'Ultimativer Musikplayer',
     'nav.playlistGenerator': 'Audioplaylist Generator',
     'nav.playlistConverter': 'Playlist zu WebM Konverter',
-    'nav.alarmTool':         'Alarmtool',
-    'nav.audioNormalizer':   'Audio Normalizer',
-    'nav.visualizer':        'Visualizer',
-    'nav.equalizer19':       '19-Band Equalizer',
-    'nav.audioConverter':    'Audio Konverter',
-    'nav.imageConverter':    'Bildkonverter',
-    'nav.batchImageEditor':  'Bildserie bearbeiten',
-    'nav.photoCollage':      'Fotocollage',
-    'nav.colorExtractor':    'Kodini Farbextraktor',
-    'nav.videoConverter':    'Videokonverter',
-    'aria.toggleTheme':      'Theme wechseln',
-    'aria.selectLanguage':   'Sprache wählen',
-    'aria.menuOpen':         'Menü öffnen',
-    'aria.menuClose':        'Menü schliessen',
-    'aria.mainNav':          'Hauptnavigation'
+    'nav.alarmTool': 'Alarmtool',
+    'nav.audioNormalizer': 'Audio Normalizer',
+    'nav.visualizer': 'Visualizer',
+    'nav.equalizer19': '19-Band Equalizer',
+    'nav.audioConverter': 'Audio Konverter',
+    'nav.imageConverter': 'Bildkonverter',
+    'nav.batchImageEditor': 'Bildserie bearbeiten',
+    'nav.photoCollage': 'Fotocollage',
+    'nav.colorExtractor': 'Kodini Farbextraktor',
+    'nav.videoConverter': 'Videokonverter',
+    'aria.toggleTheme': 'Theme wechseln',
+    'aria.selectLanguage': 'Sprache wählen',
+    'aria.menuOpen': 'Menü öffnen',
+    'aria.menuClose': 'Menü schliessen',
+    'aria.mainNav': 'Hauptnavigation',
   },
   en: {
-    'nav.audioTools':        'Audio Tools',
-    'nav.imageTools':        'Image Tools',
-    'nav.tools':             'Tools',
-    'nav.contact':           'Contact',
-    'nav.mp3Converter':      'MP3 Converter',
-    'nav.audioEqualizer':    'Interactive Audio Equalizer',
-    'nav.modernPlayer':      'Modern Music Player',
-    'nav.ultimatePlayer':    'Ultimate Music Player',
+    'nav.audioTools': 'Audio Tools',
+    'nav.imageTools': 'Image Tools',
+    'nav.tools': 'Tools',
+    'nav.contact': 'Contact',
+    'nav.mp3Converter': 'MP3 Converter',
+    'nav.audioEqualizer': 'Interactive Audio Equalizer',
+    'nav.modernPlayer': 'Modern Music Player',
+    'nav.ultimatePlayer': 'Ultimate Music Player',
     'nav.playlistGenerator': 'Audio Playlist Generator',
     'nav.playlistConverter': 'Playlist to WebM Converter',
-    'nav.alarmTool':         'Alarm Tool',
-    'nav.audioNormalizer':   'Audio Normalizer',
-    'nav.visualizer':        'Visualizer',
-    'nav.equalizer19':       '19-Band Equalizer',
-    'nav.audioConverter':    'Audio Converter',
-    'nav.imageConverter':    'Image Converter',
-    'nav.batchImageEditor':  'Batch Image Editor',
-    'nav.photoCollage':      'Photo Collage',
-    'nav.colorExtractor':    'Kodini Color Extractor',
-    'nav.videoConverter':    'Video Converter',
-    'aria.toggleTheme':      'Toggle theme',
-    'aria.selectLanguage':   'Select language',
-    'aria.menuOpen':         'Open menu',
-    'aria.menuClose':        'Close menu',
-    'aria.mainNav':          'Main navigation'
-  }
-}
+    'nav.alarmTool': 'Alarm Tool',
+    'nav.audioNormalizer': 'Audio Normalizer',
+    'nav.visualizer': 'Visualizer',
+    'nav.equalizer19': '19-Band Equalizer',
+    'nav.audioConverter': 'Audio Converter',
+    'nav.imageConverter': 'Image Converter',
+    'nav.batchImageEditor': 'Batch Image Editor',
+    'nav.photoCollage': 'Photo Collage',
+    'nav.colorExtractor': 'Kodini Color Extractor',
+    'nav.videoConverter': 'Video Converter',
+    'aria.toggleTheme': 'Toggle theme',
+    'aria.selectLanguage': 'Select language',
+    'aria.menuOpen': 'Open menu',
+    'aria.menuClose': 'Close menu',
+    'aria.mainNav': 'Main navigation',
+  },
+};
 
 /**
  * Dispatcht das 'language-changed' Event und aktualisiert SSI-Elemente
@@ -123,24 +123,24 @@ const navTranslations = {
 function dispatchLanguageChanged(lang) {
   // MutationObserver temporär disconnecten, da SSI-Partials auf das Event
   // reagieren und DOM-Änderungen auslösen können → sonst Endlosschleife
-  if (domMutationObserver) domMutationObserver.disconnect()
+  if (domMutationObserver) domMutationObserver.disconnect();
 
   // Custom-Events auf window für SSI-Partials (Footer, Cookie-Banner)
   // 'locale-changed' ist das Event das nav.html normalerweise dispatcht
   // 'language-changed' ist das Legacy-Event für Abwärtskompatibilität
-  window.dispatchEvent(new CustomEvent('locale-changed', { detail: { locale: lang } }))
-  window.dispatchEvent(new CustomEvent('language-changed', { detail: { lang } }))
+  window.dispatchEvent(new CustomEvent('locale-changed', { detail: { locale: lang } }));
+  window.dispatchEvent(new CustomEvent('language-changed', { detail: { lang } }));
 
   // data-lang-* Attribut-Wert → textContent
-  const attr = `data-lang-${lang}`
-  document.querySelectorAll(`[${attr}]`).forEach(el => {
-    const text = el.getAttribute(attr)
-    if (text) el.textContent = text
-  })
+  const attr = `data-lang-${lang}`;
+  document.querySelectorAll(`[${attr}]`).forEach((el) => {
+    const text = el.getAttribute(attr);
+    if (text) el.textContent = text;
+  });
 
   // MutationObserver wieder aktivieren
   if (domMutationObserver) {
-    domMutationObserver.observe(document.body, { childList: true, subtree: true })
+    domMutationObserver.observe(document.body, { childList: true, subtree: true });
   }
 }
 
@@ -150,32 +150,32 @@ function dispatchLanguageChanged(lang) {
  * muss die Vue-App die Übersetzung der Nav-Elemente selbst übernehmen.
  */
 function translateExternalNav(lang) {
-  const t = navTranslations[lang] || navTranslations['de']
-  const nav = document.querySelector('.global-nav')
-  if (!nav) return
+  const t = navTranslations[lang] || navTranslations['de'];
+  const nav = document.querySelector('.global-nav');
+  if (!nav) return;
 
   // MutationObserver temporär disconnecten, da textContent-Änderungen
   // childList-Mutationen erzeugen und sonst eine Endlosschleife entsteht
-  if (domMutationObserver) domMutationObserver.disconnect()
+  if (domMutationObserver) domMutationObserver.disconnect();
 
-  nav.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n')
-    if (t[key]) el.textContent = t[key]
-  })
+  nav.querySelectorAll('[data-i18n]').forEach((el) => {
+    const key = el.getAttribute('data-i18n');
+    if (t[key]) el.textContent = t[key];
+  });
 
-  nav.querySelectorAll('[data-i18n-aria]').forEach(el => {
-    const key = el.getAttribute('data-i18n-aria')
-    if (t[key]) el.setAttribute('aria-label', t[key])
-  })
+  nav.querySelectorAll('[data-i18n-aria]').forEach((el) => {
+    const key = el.getAttribute('data-i18n-aria');
+    if (t[key]) el.setAttribute('aria-label', t[key]);
+  });
 
-  nav.querySelectorAll('[data-i18n-title]').forEach(el => {
-    const key = el.getAttribute('data-i18n-title')
-    if (t[key]) el.setAttribute('title', t[key])
-  })
+  nav.querySelectorAll('[data-i18n-title]').forEach((el) => {
+    const key = el.getAttribute('data-i18n-title');
+    if (t[key]) el.setAttribute('title', t[key]);
+  });
 
   // MutationObserver wieder aktivieren
   if (domMutationObserver) {
-    domMutationObserver.observe(document.body, { childList: true, subtree: true })
+    domMutationObserver.observe(document.body, { childList: true, subtree: true });
   }
 }
 
@@ -186,81 +186,92 @@ function translateExternalNav(lang) {
 function updateExternalNavHeight() {
   // Versuche verschiedene Selektoren für die externe Navigation
   // Priorität: external-nav-wrapper > kodini-nav Varianten > generische nav/header
-  const externalNav = document.querySelector('.external-nav-wrapper')
-    || document.querySelector('.kodini-nav, .kodinitools-nav, #kodini-nav, header.external-nav')
-    || document.querySelector('body > nav:first-child')
-    || document.querySelector('body > header:first-child')
+  const externalNav =
+    document.querySelector('.external-nav-wrapper') ||
+    document.querySelector('.kodini-nav, .kodinitools-nav, #kodini-nav, header.external-nav') ||
+    document.querySelector('body > nav:first-child') ||
+    document.querySelector('body > header:first-child');
 
   if (externalNav && !document.getElementById('app').contains(externalNav)) {
     // Messe das erste Kind-Element (nav/header) falls vorhanden, sonst den Wrapper selbst
-    const navElement = externalNav.querySelector('nav, header') || externalNav
-    const height = navElement.getBoundingClientRect().height
+    const navElement = externalNav.querySelector('nav, header') || externalNav;
+    const height = navElement.getBoundingClientRect().height;
 
     // Setze die CSS-Variable für die Höhe (wird von AppHeader für sticky top verwendet)
-    document.documentElement.style.setProperty('--external-nav-height', `${height}px`)
+    document.documentElement.style.setProperty('--external-nav-height', `${height}px`);
 
     // Setup ResizeObserver falls noch nicht vorhanden
     if (!externalNavObserver) {
       externalNavObserver = new ResizeObserver((entries) => {
         for (const entry of entries) {
-          const newHeight = entry.contentRect.height
-          document.documentElement.style.setProperty('--external-nav-height', `${newHeight}px`)
+          const newHeight = entry.contentRect.height;
+          document.documentElement.style.setProperty('--external-nav-height', `${newHeight}px`);
         }
-      })
-      externalNavObserver.observe(navElement)
+      });
+      externalNavObserver.observe(navElement);
     }
   }
 }
 
 // Watchers - settings.locale ist die einzige Quelle der Wahrheit
 // Direkter Zugriff auf die globale i18n-Instanz für zuverlässige Synchronisierung
-watch(() => settings.locale, (newLocale) => {
-  i18n.global.locale.value = newLocale
-  document.documentElement.setAttribute('lang', newLocale)
-  // SSI-Nav Buttons synchronisieren
-  syncExternalLangButtons(newLocale)
-  // SSI-Nav Texte übersetzen (da stopImmediatePropagation den nav.html-Handler blockiert)
-  translateExternalNav(newLocale)
-  // SSI-Partials über Sprachwechsel informieren (cookie-banner, footer etc.)
-  dispatchLanguageChanged(newLocale)
-  console.log('🌍 i18n locale geändert:', newLocale)
-}, { immediate: true })
+watch(
+  () => settings.locale,
+  (newLocale) => {
+    i18n.global.locale.value = newLocale;
+    document.documentElement.setAttribute('lang', newLocale);
+    // SSI-Nav Buttons synchronisieren
+    syncExternalLangButtons(newLocale);
+    // SSI-Nav Texte übersetzen (da stopImmediatePropagation den nav.html-Handler blockiert)
+    translateExternalNav(newLocale);
+    // SSI-Partials über Sprachwechsel informieren (cookie-banner, footer etc.)
+    dispatchLanguageChanged(newLocale);
+    console.log('🌍 i18n locale geändert:', newLocale);
+  },
+  { immediate: true }
+);
 
-watch(() => settings.theme, (newTheme) => {
-  const theme = newTheme === 'auto' 
-    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-    : newTheme
-  document.documentElement.setAttribute('data-theme', theme)
-})
+watch(
+  () => settings.theme,
+  (newTheme) => {
+    const theme =
+      newTheme === 'auto'
+        ? window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light'
+        : newTheme;
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+);
 
 // Event Handlers
 function handleTextSave(textData) {
   try {
-    textModal.saveText(textData)
-    console.log('✅ Text gespeichert:', textData)
+    textModal.saveText(textData);
+    console.log('✅ Text gespeichert:', textData);
   } catch (error) {
-    console.error('❌ Fehler beim Speichern:', error)
-    alert('Fehler beim Speichern des Textes: ' + error.message)
+    console.error('❌ Fehler beim Speichern:', error);
+    alert('Fehler beim Speichern des Textes: ' + error.message);
   }
 }
 
 function handleTextDelete() {
   try {
     if (textModal.editingText.value?.id) {
-      textModal.deleteText(textModal.editingText.value.id)
-      console.log('✅ Text gelöscht')
+      textModal.deleteText(textModal.editingText.value.id);
+      console.log('✅ Text gelöscht');
     }
   } catch (error) {
-    console.error('❌ Fehler beim Löschen:', error)
-    alert('Fehler beim Löschen des Textes: ' + error.message)
+    console.error('❌ Fehler beim Löschen:', error);
+    alert('Fehler beim Löschen des Textes: ' + error.message);
   }
 }
 
 // Listener für Theme-Wechsel über globale Navigation (SSI include)
 function handleGlobalThemeChange(e) {
-  const newTheme = e.detail?.theme
+  const newTheme = e.detail?.theme;
   if (newTheme && newTheme !== settings.theme) {
-    settings.setTheme(newTheme)
+    settings.setTheme(newTheme);
   }
 }
 
@@ -268,133 +279,139 @@ function handleGlobalThemeChange(e) {
  * Fängt Klicks auf die Sprach-Buttons der externen SSI-Navigation ab,
  * verhindert den Reload und steuert die Sprache über den Vue-Store.
  */
-const langBtnAbortController = new AbortController()
-const interceptedLangBtns = new WeakSet()
+const langBtnAbortController = new AbortController();
+const interceptedLangBtns = new WeakSet();
 
 function interceptExternalLangSwitcher() {
-  const langBtns = document.querySelectorAll('.global-nav-lang-btn')
-  if (!langBtns.length) return
+  const langBtns = document.querySelectorAll('.global-nav-lang-btn');
+  if (!langBtns.length) return;
 
-  langBtns.forEach(btn => {
-    if (interceptedLangBtns.has(btn)) return
-    interceptedLangBtns.add(btn)
+  langBtns.forEach((btn) => {
+    if (interceptedLangBtns.has(btn)) return;
+    interceptedLangBtns.add(btn);
 
-    btn.addEventListener('click', (e) => {
-      // Reload der SSI-Navigation verhindern
-      e.preventDefault()
-      e.stopImmediatePropagation()
+    btn.addEventListener(
+      'click',
+      (e) => {
+        // Reload der SSI-Navigation verhindern
+        e.preventDefault();
+        e.stopImmediatePropagation();
 
-      const targetLang = btn.getAttribute('data-lang')
-      if (!targetLang || targetLang === settings.locale) return
+        const targetLang = btn.getAttribute('data-lang');
+        if (!targetLang || targetLang === settings.locale) return;
 
-      // Sprachänderung über den Vue-Store (aktualisiert i18n reaktiv)
-      settings.setLocale(targetLang)
+        // Sprachänderung über den Vue-Store (aktualisiert i18n reaktiv)
+        settings.setLocale(targetLang);
 
-      // Button-Active-States in der SSI-Nav synchronisieren
-      syncExternalLangButtons(targetLang)
-    }, { capture: true, signal: langBtnAbortController.signal })
-  })
+        // Button-Active-States in der SSI-Nav synchronisieren
+        syncExternalLangButtons(targetLang);
+      },
+      { capture: true, signal: langBtnAbortController.signal }
+    );
+  });
 
   // Initialen Active-State setzen
-  syncExternalLangButtons(settings.locale)
+  syncExternalLangButtons(settings.locale);
 }
 
 function syncExternalLangButtons(activeLang) {
-  const langBtns = document.querySelectorAll('.global-nav-lang-btn')
-  langBtns.forEach(btn => {
-    const btnLang = btn.getAttribute('data-lang')
-    btn.classList.toggle('active', btnLang === activeLang)
-  })
+  const langBtns = document.querySelectorAll('.global-nav-lang-btn');
+  langBtns.forEach((btn) => {
+    const btnLang = btn.getAttribute('data-lang');
+    btn.classList.toggle('active', btnLang === activeLang);
+  });
 }
 
 // Lifecycle
 onMounted(() => {
-  console.log('🚀 Vue Bildkonverter Pro gestartet')
+  console.log('🚀 Vue Bildkonverter Pro gestartet');
 
   // Initiale Sprache setzen (redundant durch immediate: true im Watcher, aber sicherheitshalber)
-  i18n.global.locale.value = settings.locale
-  document.documentElement.setAttribute('lang', settings.locale)
+  i18n.global.locale.value = settings.locale;
+  document.documentElement.setAttribute('lang', settings.locale);
 
   // Auf Theme-Wechsel der globalen Navigation hören
-  window.addEventListener('theme-changed', handleGlobalThemeChange)
+  window.addEventListener('theme-changed', handleGlobalThemeChange);
 
   // Sprach-Buttons der SSI-Navigation abfangen (Reload verhindern)
-  interceptExternalLangSwitcher()
+  interceptExternalLangSwitcher();
 
   // Externe Navigation messen und CSS-Variable setzen
-  updateExternalNavHeight()
+  updateExternalNavHeight();
   // Erneut nach kurzer Verzögerung prüfen (falls externe Navigation verzögert lädt)
-  setTimeout(updateExternalNavHeight, 100)
-  setTimeout(updateExternalNavHeight, 500)
+  setTimeout(updateExternalNavHeight, 100);
+  setTimeout(updateExternalNavHeight, 500);
 
   // MutationObserver für dynamisch geladene externe Navigation
   domMutationObserver = new MutationObserver((mutations) => {
     // Prüfe ob relevante Nodes hinzugefügt wurden (nicht nur Text-Änderungen)
-    const hasRelevantChanges = mutations.some(m =>
-      m.type === 'childList' && m.addedNodes.length > 0 &&
-      Array.from(m.addedNodes).some(n => n.nodeType === Node.ELEMENT_NODE)
-    )
-    if (!hasRelevantChanges) return
+    const hasRelevantChanges = mutations.some(
+      (m) =>
+        m.type === 'childList' &&
+        m.addedNodes.length > 0 &&
+        Array.from(m.addedNodes).some((n) => n.nodeType === Node.ELEMENT_NODE)
+    );
+    if (!hasRelevantChanges) return;
 
     // Observer pausieren um Endlos-Schleifen zu verhindern:
     // translateExternalNav und dispatchLanguageChanged modifizieren DOM-Nodes,
     // was ohne Pause den Observer erneut triggern würde.
-    domMutationObserver.disconnect()
+    domMutationObserver.disconnect();
 
-    updateExternalNavHeight()
-    interceptExternalLangSwitcher()
-    translateExternalNav(settings.locale)
-    dispatchLanguageChanged(settings.locale)
+    updateExternalNavHeight();
+    interceptExternalLangSwitcher();
+    translateExternalNav(settings.locale);
+    dispatchLanguageChanged(settings.locale);
 
     // Observer nach kurzem Delay wieder aktivieren (nach DOM-Settle)
     requestAnimationFrame(() => {
       if (domMutationObserver) {
-        domMutationObserver.observe(document.body, { childList: true, subtree: true })
+        domMutationObserver.observe(document.body, { childList: true, subtree: true });
       }
-    })
-  })
-  domMutationObserver.observe(document.body, { childList: true, subtree: true })
+    });
+  });
+  domMutationObserver.observe(document.body, { childList: true, subtree: true });
 
   // Online/Offline Events
-  window.addEventListener('online', handleOnline)
-  window.addEventListener('offline', handleOffline)
+  window.addEventListener('online', handleOnline);
+  window.addEventListener('offline', handleOffline);
 
   // Debug-Info
   if (settings.debugMode) {
-    console.log('📊 Debug-Modus aktiv')
-    console.log('🎨 Theme:', settings.theme)
-    console.log('🌐 Locale:', settings.locale)
+    console.log('📊 Debug-Modus aktiv');
+    console.log('🎨 Theme:', settings.theme);
+    console.log('🌐 Locale:', settings.locale);
   }
-})
+});
 
 onUnmounted(() => {
   // ResizeObserver aufräumen
   if (externalNavObserver) {
-    externalNavObserver.disconnect()
-    externalNavObserver = null
+    externalNavObserver.disconnect();
+    externalNavObserver = null;
   }
 
   // MutationObserver aufräumen
   if (domMutationObserver) {
-    domMutationObserver.disconnect()
-    domMutationObserver = null
+    domMutationObserver.disconnect();
+    domMutationObserver = null;
   }
 
   // Event Listeners entfernen
-  window.removeEventListener('theme-changed', handleGlobalThemeChange)
-  window.removeEventListener('online', handleOnline)
-  window.removeEventListener('offline', handleOffline)
+  window.removeEventListener('theme-changed', handleGlobalThemeChange);
+  window.removeEventListener('online', handleOnline);
+  window.removeEventListener('offline', handleOffline);
 
   // SSI-Nav Interception aufräumen
-  langBtnAbortController.abort()
-})
+  langBtnAbortController.abort();
+});
 
 function handleOnline() {
-  console.log('🌐 Online')
+  console.log('🌐 Online');
 }
 
 function handleOffline() {
-  console.log('📴 Offline')
+  console.log('📴 Offline');
 }
 </script>
 
@@ -411,7 +428,9 @@ function handleOffline() {
   background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-gradient) 100%);
   background-attachment: fixed;
   color: var(--color-text);
-  transition: background 0.3s ease, color 0.3s ease;
+  transition:
+    background 0.3s ease,
+    color 0.3s ease;
 }
 
 .main-content {

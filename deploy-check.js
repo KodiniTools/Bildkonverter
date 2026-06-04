@@ -27,7 +27,7 @@ console.log(`${YELLOW}[1/7] Prüfe Build-Verzeichnis...${RESET}`);
 if (fs.existsSync('./dist')) {
   const distFiles = fs.readdirSync('./dist');
   console.log(`${GREEN}✓ dist/ existiert (${distFiles.length} Dateien)${RESET}`);
-  
+
   // Check index.html
   if (fs.existsSync('./dist/index.html')) {
     console.log(`${GREEN}✓ index.html gefunden${RESET}`);
@@ -35,7 +35,7 @@ if (fs.existsSync('./dist')) {
     console.log(`${RED}✗ index.html fehlt!${RESET}`);
     hasErrors = true;
   }
-  
+
   // Check assets
   if (fs.existsSync('./dist/assets')) {
     const assetsCount = fs.readdirSync('./dist/assets').length;
@@ -54,7 +54,7 @@ console.log('');
 console.log(`${YELLOW}[2/7] Prüfe Vite-Konfiguration...${RESET}`);
 if (fs.existsSync('./vite.config.ts')) {
   const viteConfig = fs.readFileSync('./vite.config.ts', 'utf-8');
-  
+
   if (viteConfig.includes("base: '/bilderseriebearbeiten/'")) {
     console.log(`${GREEN}✓ Korrekter base-path gesetzt${RESET}`);
   } else {
@@ -72,24 +72,24 @@ console.log('');
 console.log(`${YELLOW}[3/7] Prüfe package.json...${RESET}`);
 if (fs.existsSync('./package.json')) {
   const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf-8'));
-  
+
   if (pkg.scripts && pkg.scripts.build) {
     console.log(`${GREEN}✓ Build-Script gefunden${RESET}`);
   } else {
     console.log(`${RED}✗ Build-Script fehlt!${RESET}`);
     hasErrors = true;
   }
-  
+
   // Check wichtige Dependencies
   const requiredDeps = ['vue', 'vite', '@vitejs/plugin-vue'];
   let missingDeps = [];
-  
-  requiredDeps.forEach(dep => {
+
+  requiredDeps.forEach((dep) => {
     if (!pkg.dependencies?.[dep] && !pkg.devDependencies?.[dep]) {
       missingDeps.push(dep);
     }
   });
-  
+
   if (missingDeps.length === 0) {
     console.log(`${GREEN}✓ Alle wichtigen Dependencies vorhanden${RESET}`);
   } else {
@@ -128,7 +128,7 @@ if (fs.existsSync('./.git')) {
   try {
     const { execSync } = require('child_process');
     const gitStatus = execSync('git status --porcelain', { encoding: 'utf-8' });
-    
+
     if (gitStatus.trim()) {
       console.log(`${YELLOW}⚠ Uncommitted changes vorhanden${RESET}`);
       hasWarnings = true;
@@ -149,26 +149,26 @@ if (fs.existsSync('./dist')) {
   function getDirectorySize(dirPath) {
     let size = 0;
     const files = fs.readdirSync(dirPath);
-    
-    files.forEach(file => {
+
+    files.forEach((file) => {
       const filePath = path.join(dirPath, file);
       const stats = fs.statSync(filePath);
-      
+
       if (stats.isDirectory()) {
         size += getDirectorySize(filePath);
       } else {
         size += stats.size;
       }
     });
-    
+
     return size;
   }
-  
+
   const sizeBytes = getDirectorySize('./dist');
   const sizeMB = (sizeBytes / 1024 / 1024).toFixed(2);
-  
+
   console.log(`${GREEN}✓ Build-Größe: ${sizeMB} MB${RESET}`);
-  
+
   if (sizeMB > 10) {
     console.log(`${YELLOW}⚠ Build ist größer als 10 MB - Optimierung empfohlen${RESET}`);
     hasWarnings = true;

@@ -2,8 +2,8 @@
   <Teleport to="body">
     <div class="toast-container">
       <TransitionGroup name="toast">
-        <div 
-          v-for="toast in toasts" 
+        <div
+          v-for="toast in toasts"
           :key="toast.id"
           :class="['toast', `toast-${toast.type}`]"
           @click="removeToast(toast.id)"
@@ -11,16 +11,16 @@
           <div class="toast-icon">
             <i :class="getIcon(toast.type)"></i>
           </div>
-          
+
           <div class="toast-content">
             <div v-if="toast.title" class="toast-title">{{ toast.title }}</div>
             <div class="toast-message">{{ toast.message }}</div>
           </div>
-          
+
           <button class="toast-close" @click.stop="removeToast(toast.id)">
             <i class="fas fa-times"></i>
           </button>
-          
+
           <div class="toast-progress" :style="{ animationDuration: toast.duration + 'ms' }"></div>
         </div>
       </TransitionGroup>
@@ -29,36 +29,36 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted } from 'vue';
 
 // State
-const toasts = ref([])
+const toasts = ref([]);
 
 // Methods
 function addToast(toast) {
-  const id = Date.now() + Math.random()
-  const duration = toast.duration || 3000
-  
+  const id = Date.now() + Math.random();
+  const duration = toast.duration || 3000;
+
   const newToast = {
     id,
     type: toast.type || 'info',
     title: toast.title,
     message: toast.message,
-    duration
-  }
-  
-  toasts.value.push(newToast)
-  
+    duration,
+  };
+
+  toasts.value.push(newToast);
+
   // Auto remove
   setTimeout(() => {
-    removeToast(id)
-  }, duration)
+    removeToast(id);
+  }, duration);
 }
 
 function removeToast(id) {
-  const index = toasts.value.findIndex(t => t.id === id)
+  const index = toasts.value.findIndex((t) => t.id === id);
   if (index !== -1) {
-    toasts.value.splice(index, 1)
+    toasts.value.splice(index, 1);
   }
 }
 
@@ -67,15 +67,15 @@ function getIcon(type) {
     success: 'fas fa-check-circle',
     error: 'fas fa-exclamation-circle',
     warning: 'fas fa-exclamation-triangle',
-    info: 'fas fa-info-circle'
-  }
-  return icons[type] || icons.info
+    info: 'fas fa-info-circle',
+  };
+  return icons[type] || icons.info;
 }
 
 // Expose methods for global usage
 defineExpose({
-  addToast
-})
+  addToast,
+});
 
 // Global toast function
 onMounted(() => {
@@ -83,20 +83,20 @@ onMounted(() => {
   if (typeof window !== 'undefined') {
     window.$toast = {
       success: (message, title = null, duration = 3000) => {
-        addToast({ type: 'success', message, title, duration })
+        addToast({ type: 'success', message, title, duration });
       },
       error: (message, title = null, duration = 4000) => {
-        addToast({ type: 'error', message, title, duration })
+        addToast({ type: 'error', message, title, duration });
       },
       warning: (message, title = null, duration = 3500) => {
-        addToast({ type: 'warning', message, title, duration })
+        addToast({ type: 'warning', message, title, duration });
       },
       info: (message, title = null, duration = 3000) => {
-        addToast({ type: 'info', message, title, duration })
-      }
-    }
+        addToast({ type: 'info', message, title, duration });
+      },
+    };
   }
-})
+});
 </script>
 
 <style lang="scss" scoped>
@@ -109,7 +109,7 @@ onMounted(() => {
   flex-direction: column;
   gap: var(--spacing-md);
   pointer-events: none;
-  
+
   @media (max-width: 768px) {
     top: var(--spacing-md);
     right: var(--spacing-md);
@@ -131,12 +131,12 @@ onMounted(() => {
   pointer-events: all;
   cursor: pointer;
   overflow: hidden;
-  
+
   @media (max-width: 768px) {
     min-width: auto;
     max-width: none;
   }
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -145,42 +145,42 @@ onMounted(() => {
     bottom: 0;
     width: 4px;
   }
-  
+
   &-success {
     &::before {
       background: var(--color-success);
     }
-    
+
     .toast-icon {
       color: var(--color-success);
     }
   }
-  
+
   &-error {
     &::before {
       background: var(--color-danger);
     }
-    
+
     .toast-icon {
       color: var(--color-danger);
     }
   }
-  
+
   &-warning {
     &::before {
       background: var(--color-warning);
     }
-    
+
     .toast-icon {
       color: var(--color-warning);
     }
   }
-  
+
   &-info {
     &::before {
       background: var(--color-info);
     }
-    
+
     .toast-icon {
       color: var(--color-info);
     }
@@ -195,13 +195,13 @@ onMounted(() => {
 
 .toast-content {
   flex: 1;
-  
+
   .toast-title {
     font-weight: 600;
     margin-bottom: var(--spacing-xs);
     color: var(--color-text-primary);
   }
-  
+
   .toast-message {
     font-size: var(--font-size-sm);
     color: var(--color-text-secondary);
@@ -219,7 +219,7 @@ onMounted(() => {
   border-radius: var(--border-radius-sm);
   cursor: pointer;
   transition: all 0.2s ease;
-  
+
   &:hover {
     background: var(--color-light-blue);
     color: var(--color-primary);

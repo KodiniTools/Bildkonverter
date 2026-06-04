@@ -17,11 +17,11 @@
  *   - Handoff expires after 5 minutes
  */
 
-const STORAGE_KEY = 'kodinitools-handoff'
-const MAX_IMAGES = 20
-const MAX_DIMENSION = 1200
-const JPEG_QUALITY = 0.7
-const EXPIRY_MS = 5 * 60 * 1000 // 5 minutes
+const STORAGE_KEY = 'kodinitools-handoff';
+const MAX_IMAGES = 20;
+const MAX_DIMENSION = 1200;
+const JPEG_QUALITY = 0.7;
+const EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 
 /**
  * @typedef {Object} HandoffImage
@@ -42,10 +42,10 @@ const EXPIRY_MS = 5 * 60 * 1000 // 5 minutes
 
 /** @type {Record<string, string>} */
 const TARGET_URLS = {
-  'bildkonverter': '/bildkonverter/gallery',
-  'collagemaker': '/collagemaker/editor',
-  'color-extractor': '/kodini-color-extractor/app'
-}
+  bildkonverter: '/bildkonverter/gallery',
+  collagemaker: '/collagemaker/editor',
+  'color-extractor': '/kodini-color-extractor/app',
+};
 
 /**
  * Downscale a canvas to fit within MAX_DIMENSION and return a compressed dataUrl.
@@ -53,25 +53,25 @@ const TARGET_URLS = {
  * @returns {{ dataUrl: string, width: number, height: number }}
  */
 function compressCanvas(canvas) {
-  let { width, height } = canvas
+  let { width, height } = canvas;
 
   if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
-    const scale = MAX_DIMENSION / Math.max(width, height)
-    width = Math.round(width * scale)
-    height = Math.round(height * scale)
+    const scale = MAX_DIMENSION / Math.max(width, height);
+    width = Math.round(width * scale);
+    height = Math.round(height * scale);
   }
 
-  const tmp = document.createElement('canvas')
-  tmp.width = width
-  tmp.height = height
-  const ctx = tmp.getContext('2d')
-  ctx.drawImage(canvas, 0, 0, width, height)
+  const tmp = document.createElement('canvas');
+  tmp.width = width;
+  tmp.height = height;
+  const ctx = tmp.getContext('2d');
+  ctx.drawImage(canvas, 0, 0, width, height);
 
   return {
     dataUrl: tmp.toDataURL('image/jpeg', JPEG_QUALITY),
     width,
-    height
-  }
+    height,
+  };
 }
 
 /**
@@ -83,47 +83,47 @@ function compressCanvas(canvas) {
  * @returns {string|null} The full URL to navigate to, or null if handoff failed
  */
 export function prepareHandoff(canvases, target, source = 'unknown') {
-  const limited = canvases.slice(0, MAX_IMAGES)
+  const limited = canvases.slice(0, MAX_IMAGES);
 
   const images = limited.map(({ name, canvas }) => {
-    const { dataUrl, width, height } = compressCanvas(canvas)
-    return { name, dataUrl, width, height }
-  })
+    const { dataUrl, width, height } = compressCanvas(canvas);
+    return { name, dataUrl, width, height };
+  });
 
   const payload = {
     id: `hoff_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     source,
     target,
     timestamp: Date.now(),
-    images
-  }
+    images,
+  };
 
   try {
-    let json = JSON.stringify(payload)
+    let json = JSON.stringify(payload);
 
     // Safety check: warn if payload is huge (> 4 MB)
     if (json.length > 4 * 1024 * 1024) {
-      console.warn('[Handoff] Payload too large, reducing image count')
-      payload.images = images.slice(0, Math.max(1, Math.floor(images.length / 2)))
-      json = JSON.stringify(payload)
+      console.warn('[Handoff] Payload too large, reducing image count');
+      payload.images = images.slice(0, Math.max(1, Math.floor(images.length / 2)));
+      json = JSON.stringify(payload);
     }
 
-    localStorage.setItem(STORAGE_KEY, json)
+    localStorage.setItem(STORAGE_KEY, json);
 
-    const targetPath = TARGET_URLS[target]
+    const targetPath = TARGET_URLS[target];
     if (!targetPath) {
-      console.error(`[Handoff] Unknown target: ${target}`)
-      localStorage.removeItem(STORAGE_KEY)
-      return null
+      console.error(`[Handoff] Unknown target: ${target}`);
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
     }
 
-    const url = new URL(targetPath, window.location.origin)
-    url.searchParams.set('handoff', 'kodinitools')
-    return url.toString()
+    const url = new URL(targetPath, window.location.origin);
+    url.searchParams.set('handoff', 'kodinitools');
+    return url.toString();
   } catch (e) {
-    console.error('[Handoff] Failed to store payload:', e)
-    localStorage.removeItem(STORAGE_KEY)
-    return null
+    console.error('[Handoff] Failed to store payload:', e);
+    localStorage.removeItem(STORAGE_KEY);
+    return null;
   }
 }
 
@@ -136,27 +136,27 @@ export function prepareHandoff(canvases, target, source = 'unknown') {
  */
 export function checkHandoff() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return null
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
 
-    const payload = JSON.parse(raw)
+    const payload = JSON.parse(raw);
 
     // Check expiry
     if (Date.now() - payload.timestamp > EXPIRY_MS) {
-      localStorage.removeItem(STORAGE_KEY)
-      return null
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
     }
 
     // Validate structure
     if (!payload.images || !Array.isArray(payload.images) || payload.images.length === 0) {
-      localStorage.removeItem(STORAGE_KEY)
-      return null
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
     }
 
-    return payload
+    return payload;
   } catch {
-    localStorage.removeItem(STORAGE_KEY)
-    return null
+    localStorage.removeItem(STORAGE_KEY);
+    return null;
   }
 }
 
@@ -166,17 +166,17 @@ export function checkHandoff() {
  */
 export function consumeHandoff() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return null
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
 
-    const payload = JSON.parse(raw)
-    localStorage.removeItem(STORAGE_KEY)
-    cleanHandoffUrl()
+    const payload = JSON.parse(raw);
+    localStorage.removeItem(STORAGE_KEY);
+    cleanHandoffUrl();
 
-    return payload.images
+    return payload.images;
   } catch {
-    localStorage.removeItem(STORAGE_KEY)
-    return null
+    localStorage.removeItem(STORAGE_KEY);
+    return null;
   }
 }
 
@@ -184,8 +184,8 @@ export function consumeHandoff() {
  * RECEIVER: Dismiss the handoff without importing.
  */
 export function dismissHandoff() {
-  localStorage.removeItem(STORAGE_KEY)
-  cleanHandoffUrl()
+  localStorage.removeItem(STORAGE_KEY);
+  cleanHandoffUrl();
 }
 
 /**
@@ -193,10 +193,10 @@ export function dismissHandoff() {
  */
 function cleanHandoffUrl() {
   try {
-    const url = new URL(window.location.href)
+    const url = new URL(window.location.href);
     if (url.searchParams.has('handoff')) {
-      url.searchParams.delete('handoff')
-      window.history.replaceState({}, '', url.toString())
+      url.searchParams.delete('handoff');
+      window.history.replaceState({}, '', url.toString());
     }
   } catch {
     // Ignore URL cleanup errors
@@ -210,17 +210,17 @@ function cleanHandoffUrl() {
  */
 export function handoffImageToCanvas(img) {
   return new Promise((resolve, reject) => {
-    const image = new Image()
+    const image = new Image();
     image.onload = () => {
-      const canvas = document.createElement('canvas')
-      canvas.width = image.naturalWidth
-      canvas.height = image.naturalHeight
-      const ctx = canvas.getContext('2d')
-      if (!ctx) return reject(new Error('Canvas context not available'))
-      ctx.drawImage(image, 0, 0)
-      resolve(canvas)
-    }
-    image.onerror = () => reject(new Error(`Failed to load image: ${img.name}`))
-    image.src = img.dataUrl
-  })
+      const canvas = document.createElement('canvas');
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return reject(new Error('Canvas context not available'));
+      ctx.drawImage(image, 0, 0);
+      resolve(canvas);
+    };
+    image.onerror = () => reject(new Error(`Failed to load image: ${img.name}`));
+    image.src = img.dataUrl;
+  });
 }

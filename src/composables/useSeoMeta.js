@@ -7,35 +7,35 @@
  * bleiben die statischen Werte aus index.html bestehen.
  */
 
-const BASE_URL = 'https://www.kodinitools.com/bildkonverter'
-const SITE_NAME = 'KodiniTools'
-const DEFAULT_TITLE_SUFFIX = 'Bildkonverter Pro'
+const BASE_URL = 'https://www.kodinitools.com/bildkonverter';
+const SITE_NAME = 'KodiniTools';
+const DEFAULT_TITLE_SUFFIX = 'Bildkonverter Pro';
 
 /**
  * Setzt oder aktualisiert ein <meta>-Tag im <head>
  */
 function setMetaTag(attribute, key, content) {
-  if (!content) return
-  let element = document.querySelector(`meta[${attribute}="${key}"]`)
+  if (!content) return;
+  let element = document.querySelector(`meta[${attribute}="${key}"]`);
   if (!element) {
-    element = document.createElement('meta')
-    element.setAttribute(attribute, key)
-    document.head.appendChild(element)
+    element = document.createElement('meta');
+    element.setAttribute(attribute, key);
+    document.head.appendChild(element);
   }
-  element.setAttribute('content', content)
+  element.setAttribute('content', content);
 }
 
 /**
  * Setzt oder aktualisiert <link rel="canonical">
  */
 function setCanonical(url) {
-  let link = document.querySelector('link[rel="canonical"]')
+  let link = document.querySelector('link[rel="canonical"]');
   if (!link) {
-    link = document.createElement('link')
-    link.setAttribute('rel', 'canonical')
-    document.head.appendChild(link)
+    link = document.createElement('link');
+    link.setAttribute('rel', 'canonical');
+    document.head.appendChild(link);
   }
-  link.setAttribute('href', url)
+  link.setAttribute('href', url);
 }
 
 /**
@@ -47,34 +47,34 @@ function setCanonical(url) {
  * @param {string} meta.path - URL-Pfad der Route (z.B. '/editor')
  */
 export function updateSeoMeta(meta) {
-  const { title, description, path = '' } = meta
+  const { title, description, path = '' } = meta;
 
   // Title
   const fullTitle = title
     ? `${title} - ${DEFAULT_TITLE_SUFFIX} | ${SITE_NAME}`
-    : `${DEFAULT_TITLE_SUFFIX} | ${SITE_NAME}`
-  document.title = fullTitle
+    : `${DEFAULT_TITLE_SUFFIX} | ${SITE_NAME}`;
+  document.title = fullTitle;
 
   // Canonical URL
-  const canonicalUrl = `${BASE_URL}${path}`
-  setCanonical(canonicalUrl)
+  const canonicalUrl = `${BASE_URL}${path}`;
+  setCanonical(canonicalUrl);
 
   // Meta Description
   if (description) {
-    setMetaTag('name', 'description', description)
+    setMetaTag('name', 'description', description);
   }
 
   // Open Graph
-  setMetaTag('property', 'og:title', fullTitle)
-  setMetaTag('property', 'og:url', canonicalUrl)
+  setMetaTag('property', 'og:title', fullTitle);
+  setMetaTag('property', 'og:url', canonicalUrl);
   if (description) {
-    setMetaTag('property', 'og:description', description)
+    setMetaTag('property', 'og:description', description);
   }
 
   // Twitter Card
-  setMetaTag('name', 'twitter:title', fullTitle)
+  setMetaTag('name', 'twitter:title', fullTitle);
   if (description) {
-    setMetaTag('name', 'twitter:description', description)
+    setMetaTag('name', 'twitter:description', description);
   }
 }
 
@@ -82,6 +82,6 @@ export function updateSeoMeta(meta) {
  * Setzt die hreflang-Tags basierend auf der aktuellen Sprache
  */
 export function updateHreflang(locale) {
-  setMetaTag('property', 'og:locale', locale === 'en' ? 'en_US' : 'de_DE')
-  document.documentElement.setAttribute('lang', locale)
+  setMetaTag('property', 'og:locale', locale === 'en' ? 'en_US' : 'de_DE');
+  document.documentElement.setAttribute('lang', locale);
 }

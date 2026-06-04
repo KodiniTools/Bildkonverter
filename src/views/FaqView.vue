@@ -11,14 +11,14 @@
           v-for="(faq, index) in faqs"
           :key="index"
           class="faq-item"
-          :class="{ 'active': activeFaq === index }"
+          :class="{ active: activeFaq === index }"
           @click="toggleFaq(index)"
         >
           <div class="faq-question">
             <h3>{{ $t(`faq.items.${faq.key}.question`) }}</h3>
             <i class="fas" :class="activeFaq === index ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
           </div>
-          <div class="faq-answer" v-show="activeFaq === index">
+          <div v-show="activeFaq === index" class="faq-answer">
             <p>{{ $t(`faq.items.${faq.key}.answer`) }}</p>
           </div>
         </div>
@@ -28,12 +28,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-const { t, locale } = useI18n({ useScope: 'global' })
+const { t, locale } = useI18n({ useScope: 'global' });
 
-const activeFaq = ref(null)
+const activeFaq = ref(null);
 
 const faqs = [
   { key: 'formats' },
@@ -41,46 +41,46 @@ const faqs = [
   { key: 'filters' },
   { key: 'crop' },
   { key: 'resize' },
-  { key: 'download' }
-]
+  { key: 'download' },
+];
 
 const toggleFaq = (index) => {
-  activeFaq.value = activeFaq.value === index ? null : index
-}
+  activeFaq.value = activeFaq.value === index ? null : index;
+};
 
 // FAQ JSON-LD Structured Data
 const faqJsonLd = computed(() => ({
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
-  'mainEntity': faqs.map(faq => ({
+  mainEntity: faqs.map((faq) => ({
     '@type': 'Question',
-    'name': t(`faq.items.${faq.key}.question`),
-    'acceptedAnswer': {
+    name: t(`faq.items.${faq.key}.question`),
+    acceptedAnswer: {
       '@type': 'Answer',
-      'text': t(`faq.items.${faq.key}.answer`)
-    }
-  }))
-}))
+      text: t(`faq.items.${faq.key}.answer`),
+    },
+  })),
+}));
 
 function updateFaqSchema() {
-  let script = document.getElementById('faq-jsonld')
+  let script = document.getElementById('faq-jsonld');
   if (!script) {
-    script = document.createElement('script')
-    script.id = 'faq-jsonld'
-    script.type = 'application/ld+json'
-    document.head.appendChild(script)
+    script = document.createElement('script');
+    script.id = 'faq-jsonld';
+    script.type = 'application/ld+json';
+    document.head.appendChild(script);
   }
-  script.textContent = JSON.stringify(faqJsonLd.value)
+  script.textContent = JSON.stringify(faqJsonLd.value);
 }
 
 function removeFaqSchema() {
-  const script = document.getElementById('faq-jsonld')
-  if (script) script.remove()
+  const script = document.getElementById('faq-jsonld');
+  if (script) script.remove();
 }
 
-onMounted(updateFaqSchema)
-onUnmounted(removeFaqSchema)
-watch(locale, updateFaqSchema)
+onMounted(updateFaqSchema);
+onUnmounted(removeFaqSchema);
+watch(locale, updateFaqSchema);
 </script>
 
 <style lang="scss" scoped>
@@ -91,7 +91,12 @@ watch(locale, updateFaqSchema)
 .hero-section {
   text-align: center;
   padding: 4rem 2rem 2rem;
-  background: linear-gradient(135deg, var(--color-accent-lighter) 0%, var(--color-bg-gradient) 50%, var(--color-bg) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-accent-lighter) 0%,
+    var(--color-bg-gradient) 50%,
+    var(--color-bg) 100%
+  );
 
   h1 {
     font-size: 2.5rem;

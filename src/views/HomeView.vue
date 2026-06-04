@@ -111,7 +111,12 @@
       <p class="more-tools-subtitle">{{ $t('home.moreTools.subtitle') }}</p>
 
       <div class="tools-grid">
-        <a href="https://kodinitools.com/bilderseriebearbeiten/" class="tool-card" target="_blank" rel="noopener">
+        <a
+          href="https://kodinitools.com/bilderseriebearbeiten/"
+          class="tool-card"
+          target="_blank"
+          rel="noopener"
+        >
           <div class="tool-icon">
             <i class="fas fa-layer-group"></i>
           </div>
@@ -120,7 +125,12 @@
           <span class="tool-cta">{{ $t('home.moreTools.cta') }} &rarr;</span>
         </a>
 
-        <a href="https://kodinitools.com/collagemaker/" class="tool-card" target="_blank" rel="noopener">
+        <a
+          href="https://kodinitools.com/collagemaker/"
+          class="tool-card"
+          target="_blank"
+          rel="noopener"
+        >
           <div class="tool-icon">
             <i class="fas fa-th-large"></i>
           </div>
@@ -129,7 +139,12 @@
           <span class="tool-cta">{{ $t('home.moreTools.cta') }} &rarr;</span>
         </a>
 
-        <a href="https://kodinitools.com/kodini-color-extractor/" class="tool-card" target="_blank" rel="noopener">
+        <a
+          href="https://kodinitools.com/kodini-color-extractor/"
+          class="tool-card"
+          target="_blank"
+          rel="noopener"
+        >
           <div class="tool-icon">
             <i class="fas fa-palette"></i>
           </div>
@@ -147,18 +162,20 @@
         <div>
           <h3>{{ $t('home.webpPromo.title') }}</h3>
           <p>{{ $t('home.webpPromo.description') }}</p>
-          <router-link :to="{ name: 'format-conversion', params: { pair: 'png-zu-webp' } }" class="webp-link">
+          <router-link
+            :to="{ name: 'format-conversion', params: { pair: 'png-zu-webp' } }"
+            class="webp-link"
+          >
             {{ $t('home.webpPromo.cta') }} &rarr;
           </router-link>
         </div>
       </div>
     </section>
-
   </div>
 </template>
 
 <script setup>
-import heroImage from '@/assets/foto/foto1.jpg'
+import heroImage from '@/assets/foto/foto1.jpg';
 
 // Beliebte Konvertierungs-Paare (Long-Tail SEO)
 const popularConversions = [
@@ -173,8 +190,8 @@ const popularConversions = [
   { pair: 'jpg-zu-png', from: 'JPG', to: 'PNG' },
   { pair: 'png-zu-jpg', from: 'PNG', to: 'JPG' },
   { pair: 'gif-zu-webp', from: 'GIF', to: 'WebP' },
-  { pair: 'heic-zu-png', from: 'HEIC', to: 'PNG' }
-]
+  { pair: 'heic-zu-png', from: 'HEIC', to: 'PNG' },
+];
 </script>
 
 <style lang="scss" scoped>
@@ -191,7 +208,12 @@ const popularConversions = [
   min-height: 60vh;
   max-width: 1400px;
   margin: 0 auto;
-  background: linear-gradient(135deg, var(--color-accent-lighter) 0%, var(--color-bg-gradient) 50%, var(--color-bg) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-accent-lighter) 0%,
+    var(--color-bg-gradient) 50%,
+    var(--color-bg) 100%
+  );
 
   @media (max-width: 1024px) {
     padding: 3rem 3rem;
@@ -285,7 +307,7 @@ const popularConversions = [
 .action-buttons {
   display: flex;
   gap: var(--spacing-md);
-  
+
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: stretch;
@@ -306,15 +328,17 @@ const popularConversions = [
   position: relative;
   box-shadow: 0 0 20px rgba(1, 79, 153, 0.3);
   animation: pulse-glow 2s ease-in-out infinite;
-  color: #F5F4D6;
+  color: #f5f4d6;
   font-weight: 600;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 
   &:hover {
     background: #003971;
-    box-shadow: 0 0 30px rgba(1, 79, 153, 0.5), 0 0 60px rgba(1, 79, 153, 0.3);
+    box-shadow:
+      0 0 30px rgba(1, 79, 153, 0.5),
+      0 0 60px rgba(1, 79, 153, 0.3);
     transform: translateY(-3px) scale(1.02);
-    color: #F5F4D6;
+    color: #f5f4d6;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   }
 
@@ -325,11 +349,14 @@ const popularConversions = [
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(1, 79, 153, 0.3);
   }
   50% {
-    box-shadow: 0 0 30px rgba(1, 79, 153, 0.5), 0 0 50px rgba(1, 79, 153, 0.2);
+    box-shadow:
+      0 0 30px rgba(1, 79, 153, 0.5),
+      0 0 50px rgba(1, 79, 153, 0.2);
   }
 }
 
@@ -337,7 +364,7 @@ const popularConversions = [
   display: flex;
   align-items: center;
   justify-content: center;
-  
+
   @media (max-width: 768px) {
     display: none;
   }
@@ -350,7 +377,9 @@ const popularConversions = [
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-lg);
   object-fit: cover;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 
   &.floating {
     animation: floating 3s ease-in-out infinite;
@@ -363,7 +392,8 @@ const popularConversions = [
 }
 
 @keyframes floating {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -407,7 +437,10 @@ const popularConversions = [
   background: var(--color-bg-secondary);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-md);
-  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    background 0.3s ease;
 
   // Gestaffelte Einblendung
   opacity: 0;
@@ -416,7 +449,9 @@ const popularConversions = [
 
   &:hover {
     transform: translateY(-8px) scale(1.02);
-    box-shadow: var(--shadow-lg), 0 20px 40px rgba(1, 79, 153, 0.1);
+    box-shadow:
+      var(--shadow-lg),
+      0 20px 40px rgba(1, 79, 153, 0.1);
 
     .feature-icon {
       transform: scale(1.1) rotate(5deg);
@@ -436,7 +471,9 @@ const popularConversions = [
     align-items: center;
     justify-content: center;
     margin-bottom: var(--spacing-md);
-    transition: transform 0.3s ease, background 0.3s ease;
+    transition:
+      transform 0.3s ease,
+      background 0.3s ease;
 
     i {
       font-size: 1.8rem;
@@ -468,7 +505,8 @@ const popularConversions = [
 }
 
 @keyframes iconBounce {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -713,7 +751,9 @@ const popularConversions = [
 
   &:hover {
     border-color: var(--color-primary);
-    box-shadow: var(--shadow-lg), 0 10px 30px rgba(1, 79, 153, 0.1);
+    box-shadow:
+      var(--shadow-lg),
+      0 10px 30px rgba(1, 79, 153, 0.1);
     transform: translateY(-6px);
 
     .tool-icon {
@@ -766,7 +806,6 @@ const popularConversions = [
     transition: gap 0.2s ease;
   }
 }
-
 
 @media (max-width: 768px) {
   .features-grid {
@@ -824,6 +863,5 @@ const popularConversions = [
       font-size: 1.1rem;
     }
   }
-
 }
 </style>

@@ -20,39 +20,60 @@
           type="file"
           accept="image/*"
           multiple
-          @change="handleFileSelect"
           style="display: none"
-        >
+          @change="handleFileSelect"
+        />
         <button
           v-if="galleryStore.images.length > 0"
           class="btn btn-danger-outline"
-          @click="deleteAllImages"
           :title="$t('gallery.tooltips.deleteAll')"
+          @click="deleteAllImages"
         >
           <i class="fas fa-trash-alt"></i>
           {{ $t('gallery.buttons.deleteAll') }}
         </button>
         <span v-if="galleryStore.images.length > 0" class="image-count">
-          {{ galleryStore.images.length }} {{ galleryStore.images.length === 1 ? $t('gallery.imageCount.single') : $t('gallery.imageCount.plural') }}
+          {{ galleryStore.images.length }}
+          {{
+            galleryStore.images.length === 1
+              ? $t('gallery.imageCount.single')
+              : $t('gallery.imageCount.plural')
+          }}
         </span>
       </div>
 
       <!-- Multi-Select Collage Actions -->
-      <div class="center-actions" v-if="galleryStore.images.length > 1">
-        <button
-          class="btn btn-secondary-outline"
-          @click="toggleMultiSelectMode"
-        >
+      <div v-if="galleryStore.images.length > 1" class="center-actions">
+        <button class="btn btn-secondary-outline" @click="toggleMultiSelectMode">
           <i class="fas" :class="isMultiSelectMode ? 'fa-times' : 'fa-object-group'"></i>
-          {{ isMultiSelectMode ? $t('gallery.buttons.cancelSelection', 'Abbrechen') : $t('gallery.buttons.selectMultiple', 'Mehrfachauswahl') }}
+          {{
+            isMultiSelectMode
+              ? $t('gallery.buttons.cancelSelection', 'Abbrechen')
+              : $t('gallery.buttons.selectMultiple', 'Mehrfachauswahl')
+          }}
         </button>
         <template v-if="isMultiSelectMode">
           <button
             class="btn btn-secondary-outline"
-            @click="galleryStore.selectedImageIds.length === galleryStore.images.length ? galleryStore.deselectAllImages() : galleryStore.selectAllImages()"
+            @click="
+              galleryStore.selectedImageIds.length === galleryStore.images.length
+                ? galleryStore.deselectAllImages()
+                : galleryStore.selectAllImages()
+            "
           >
-            <i class="fas" :class="galleryStore.selectedImageIds.length === galleryStore.images.length ? 'fa-square' : 'fa-check-square'"></i>
-            {{ galleryStore.selectedImageIds.length === galleryStore.images.length ? $t('gallery.buttons.deselectAll', 'Alle abwählen') : $t('gallery.buttons.selectAll', 'Alle auswählen') }}
+            <i
+              class="fas"
+              :class="
+                galleryStore.selectedImageIds.length === galleryStore.images.length
+                  ? 'fa-square'
+                  : 'fa-check-square'
+              "
+            ></i>
+            {{
+              galleryStore.selectedImageIds.length === galleryStore.images.length
+                ? $t('gallery.buttons.deselectAll', 'Alle abwählen')
+                : $t('gallery.buttons.selectAll', 'Alle auswählen')
+            }}
           </button>
           <button
             v-if="galleryStore.hasMultipleSelected"
@@ -60,12 +81,14 @@
             @click="createCollage"
           >
             <i class="fas fa-layer-group"></i>
-            {{ $t('gallery.buttons.createCollage', 'Collage erstellen') }} ({{ galleryStore.selectedImageIds.length }})
+            {{ $t('gallery.buttons.createCollage', 'Collage erstellen') }} ({{
+              galleryStore.selectedImageIds.length
+            }})
           </button>
         </template>
       </div>
 
-      <div class="right-actions" v-if="galleryStore.selectedImage() && !isMultiSelectMode">
+      <div v-if="galleryStore.selectedImage() && !isMultiSelectMode" class="right-actions">
         <button class="btn btn-success" @click="openInEditor">
           <i class="fas fa-edit"></i>
           {{ $t('gallery.buttons.addToEditor') }}
@@ -92,7 +115,7 @@
         class="gallery-item"
         :class="{
           selected: !isMultiSelectMode && galleryStore.selectedImageId === image.id,
-          'multi-selected': isMultiSelectMode && galleryStore.isImageSelected(image.id)
+          'multi-selected': isMultiSelectMode && galleryStore.isImageSelected(image.id),
         }"
         @click="handleImageClick(image.id)"
       >
@@ -106,19 +129,25 @@
             class="multi-select-checkbox"
             @click.stop="galleryStore.toggleImageSelection(image.id)"
           >
-            <i class="fas" :class="galleryStore.isImageSelected(image.id) ? 'fa-check-square' : 'fa-square'"></i>
+            <i
+              class="fas"
+              :class="galleryStore.isImageSelected(image.id) ? 'fa-check-square' : 'fa-square'"
+            ></i>
           </div>
 
           <!-- Single Selection Indicator (nur wenn nicht im Multi-Select Modus) -->
           <div v-else class="selection-indicator">
-            <i class="fas" :class="galleryStore.selectedImageId === image.id ? 'fa-check-circle' : 'fa-circle'"></i>
+            <i
+              class="fas"
+              :class="galleryStore.selectedImageId === image.id ? 'fa-check-circle' : 'fa-circle'"
+            ></i>
           </div>
 
           <!-- Preview Button -->
           <button
             class="preview-btn"
-            @click.stop="openPreview(image)"
             :title="$t('gallery.buttons.preview')"
+            @click.stop="openPreview(image)"
           >
             <i class="fas fa-search-plus"></i>
           </button>
@@ -151,7 +180,10 @@
           <div class="preview-info">
             <h3>{{ previewImage.name }}</h3>
             <div class="preview-meta">
-              <span><i class="fas fa-ruler-combined"></i> {{ previewImage.width }} × {{ previewImage.height }}px</span>
+              <span
+                ><i class="fas fa-ruler-combined"></i> {{ previewImage.width }} ×
+                {{ previewImage.height }}px</span
+              >
               <span><i class="fas fa-file"></i> {{ formatSize(previewImage.size) }}</span>
               <span><i class="fas fa-calendar"></i> {{ formatDate(previewImage.uploadedAt) }}</span>
             </div>
@@ -174,30 +206,30 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { useGalleryStore } from '@/stores/galleryStore'
-import { useImageStore } from '@/stores/imageStore'
-import HandoffReceiver from '@/components/features/HandoffReceiver.vue'
-import { handoffImageToCanvas } from '@/lib/core/handoff'
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { useGalleryStore } from '@/stores/galleryStore';
+import { useImageStore } from '@/stores/imageStore';
+import HandoffReceiver from '@/components/features/HandoffReceiver.vue';
+import { handoffImageToCanvas } from '@/lib/core/handoff';
 
-const { t } = useI18n({ useScope: 'global' })
-const router = useRouter()
-const galleryStore = useGalleryStore()
-const imageStore = useImageStore()
+const { t } = useI18n({ useScope: 'global' });
+const router = useRouter();
+const galleryStore = useGalleryStore();
+const imageStore = useImageStore();
 
 // Refs
-const fileInput = ref(null)
-const previewImage = ref(null)
-const isMultiSelectMode = ref(false)
+const fileInput = ref(null);
+const previewImage = ref(null);
+const isMultiSelectMode = ref(false);
 
 // Handoff handlers
 async function handleHandoffAccept(images) {
   for (const img of images) {
     try {
-      const canvas = await handoffImageToCanvas(img)
-      const thumbnailUrl = createThumbnail(canvas, 300, 300)
+      const canvas = await handoffImageToCanvas(img);
+      const thumbnailUrl = createThumbnail(canvas, 300, 300);
 
       const imageEntry = {
         id: Date.now() + Math.random(),
@@ -208,67 +240,67 @@ async function handleHandoffAccept(images) {
         height: img.height,
         size: Math.round(img.dataUrl.length * 0.75), // estimate from base64
         uploadedAt: new Date(),
-        file: null
-      }
+        file: null,
+      };
 
-      galleryStore.addImage(imageEntry)
+      galleryStore.addImage(imageEntry);
     } catch (error) {
-      console.error(`[Handoff] Fehler beim Import von ${img.name}:`, error)
+      console.error(`[Handoff] Fehler beim Import von ${img.name}:`, error);
     }
   }
-  console.log(`[Handoff] ${images.length} Bild(er) in Galerie importiert`)
+  console.log(`[Handoff] ${images.length} Bild(er) in Galerie importiert`);
 }
 
 function handleHandoffDismiss() {
-  console.log('[Handoff] Verworfen')
+  console.log('[Handoff] Verworfen');
 }
 
 // Methods
 function triggerFileInput() {
-  fileInput.value?.click()
+  fileInput.value?.click();
 }
 
 async function handleFileSelect(event) {
-  const files = Array.from(event.target.files)
-  if (files.length === 0) return
+  const files = Array.from(event.target.files);
+  if (files.length === 0) return;
 
-  console.log(`Lade ${files.length} Datei(en) hoch...`)
+  console.log(`Lade ${files.length} Datei(en) hoch...`);
 
   for (const file of files) {
     try {
-      await addImageToGallery(file)
+      await addImageToGallery(file);
     } catch (error) {
-      console.error(`Fehler beim Laden von ${file.name}:`, error)
-      alert(t('gallery.uploadError', { name: file.name }) + ': ' + error.message)
+      console.error(`Fehler beim Laden von ${file.name}:`, error);
+      alert(t('gallery.uploadError', { name: file.name }) + ': ' + error.message);
     }
   }
 
   // Reset input
-  event.target.value = ''
+  event.target.value = '';
 }
 
 async function addImageToGallery(file) {
   return new Promise((resolve, reject) => {
     // Validierung
     if (!file.type.startsWith('image/')) {
-      reject(new Error('Datei ist kein Bild'))
-      return
+      reject(new Error('Datei ist kein Bild'));
+      return;
     }
 
     if (file.size > 50 * 1024 * 1024) {
-      reject(new Error('Datei zu groß (max. 50MB)'))
-      return
+      reject(new Error('Datei zu groß (max. 50MB)'));
+      return;
     }
 
-    const reader = new FileReader()
-    
+    const reader = new FileReader();
+
     reader.onload = (e) => {
-      const img = new Image()
-      
+      const img = new Image();
+
       img.onload = () => {
         // Erstelle Thumbnail
-        const thumbnailUrl = createThumbnail(img, 300, 300)
-        
+        const thumbnailUrl = createThumbnail(img, 300, 300);
+
         // Erstelle Galerie-Eintrag
         const imageEntry = {
           id: Date.now() + Math.random(),
@@ -279,143 +311,144 @@ async function addImageToGallery(file) {
           height: img.height,
           size: file.size,
           uploadedAt: new Date(),
-          file: file
-        }
+          file: file,
+        };
 
-        galleryStore.addImage(imageEntry)
-        resolve(imageEntry)
-      }
+        galleryStore.addImage(imageEntry);
+        resolve(imageEntry);
+      };
 
       img.onerror = () => {
-        reject(new Error('Fehler beim Laden des Bildes'))
-      }
+        reject(new Error('Fehler beim Laden des Bildes'));
+      };
 
-      img.src = e.target.result
-    }
+      img.src = e.target.result;
+    };
 
     reader.onerror = () => {
-      reject(new Error('Fehler beim Lesen der Datei'))
-    }
+      reject(new Error('Fehler beim Lesen der Datei'));
+    };
 
-    reader.readAsDataURL(file)
-  })
+    reader.readAsDataURL(file);
+  });
 }
 
 function createThumbnail(img, maxWidth, maxHeight) {
-  const canvas = document.createElement('canvas')
-  const ctx = canvas.getContext('2d')
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
 
-  let width = img.width
-  let height = img.height
+  let width = img.width;
+  let height = img.height;
 
   // Berechne neue Dimensionen
-  const ratio = Math.min(maxWidth / width, maxHeight / height)
-  width *= ratio
-  height *= ratio
+  const ratio = Math.min(maxWidth / width, maxHeight / height);
+  width *= ratio;
+  height *= ratio;
 
-  canvas.width = width
-  canvas.height = height
+  canvas.width = width;
+  canvas.height = height;
 
   // Zeichne Bild
-  ctx.drawImage(img, 0, 0, width, height)
+  ctx.drawImage(img, 0, 0, width, height);
 
-  return canvas.toDataURL('image/jpeg', 0.8)
+  return canvas.toDataURL('image/jpeg', 0.8);
 }
 
 function openPreview(image) {
-  previewImage.value = image
+  previewImage.value = image;
 }
 
 function closePreview() {
-  previewImage.value = null
+  previewImage.value = null;
 }
 
 async function openInEditor() {
-  const selected = galleryStore.selectedImage()
-  if (!selected) return
+  const selected = galleryStore.selectedImage();
+  if (!selected) return;
 
   try {
     // Navigiere zum Editor und übergebe die Bild-ID via Route-Parameter
     await router.push({
       path: '/editor',
-      query: { galleryImageId: selected.id }
-    })
-    
-    console.log('✅ Navigation zum Editor')
+      query: { galleryImageId: selected.id },
+    });
+
+    console.log('✅ Navigation zum Editor');
   } catch (error) {
-    console.error('Fehler beim Öffnen im Editor:', error)
-    alert('Fehler beim Öffnen im Editor: ' + error.message)
+    console.error('Fehler beim Öffnen im Editor:', error);
+    alert('Fehler beim Öffnen im Editor: ' + error.message);
   }
 }
 
 async function openPreviewInEditor() {
-  if (!previewImage.value) return
+  if (!previewImage.value) return;
 
   try {
     await router.push({
       path: '/editor',
-      query: { galleryImageId: previewImage.value.id }
-    })
-    closePreview()
+      query: { galleryImageId: previewImage.value.id },
+    });
+    closePreview();
   } catch (error) {
-    console.error('Fehler beim Öffnen im Editor:', error)
-    alert('Fehler beim Öffnen im Editor: ' + error.message)
+    console.error('Fehler beim Öffnen im Editor:', error);
+    alert('Fehler beim Öffnen im Editor: ' + error.message);
   }
 }
 
 function deleteSelected() {
-  const selected = galleryStore.selectedImage()
-  if (!selected) return
+  const selected = galleryStore.selectedImage();
+  if (!selected) return;
 
-  const confirmDelete = confirm(t('gallery.confirmDelete', { name: selected.name }))
-  if (!confirmDelete) return
+  const confirmDelete = confirm(t('gallery.confirmDelete', { name: selected.name }));
+  if (!confirmDelete) return;
 
-  galleryStore.removeImage(selected.id)
+  galleryStore.removeImage(selected.id);
 }
 
 function deleteAllImages() {
-  const imageCount = galleryStore.images.length
-  if (imageCount === 0) return
+  const imageCount = galleryStore.images.length;
+  if (imageCount === 0) return;
 
   // i18n für Bestätigungsdialog
-  const imageWord = imageCount === 1 
-    ? t('gallery.imageCount.single') 
-    : t('gallery.imageCount.plural')
-  
+  const imageWord =
+    imageCount === 1 ? t('gallery.imageCount.single') : t('gallery.imageCount.plural');
+
   const confirmMessage = t('gallery.confirmDeleteAll', {
     count: imageCount,
-    images: imageWord
-  })
-  
-  const confirmDelete = confirm(confirmMessage)
-  if (!confirmDelete) return
+    images: imageWord,
+  });
+
+  const confirmDelete = confirm(confirmMessage);
+  if (!confirmDelete) return;
 
   // Lösche alle Bilder durch Iteration (rückwärts um Index-Probleme zu vermeiden)
-  const imageIds = galleryStore.images.map(img => img.id)
-  imageIds.forEach(id => {
-    galleryStore.removeImage(id)
-  })
+  const imageIds = galleryStore.images.map((img) => img.id);
+  imageIds.forEach((id) => {
+    galleryStore.removeImage(id);
+  });
 
   // Erfolgs-Log mit i18n
-  console.log(t('gallery.deleteSuccess', {
-    count: imageCount,
-    images: imageWord
-  }))
+  console.log(
+    t('gallery.deleteSuccess', {
+      count: imageCount,
+      images: imageWord,
+    })
+  );
 }
 
 function downloadImage(image) {
-  const link = document.createElement('a')
-  link.href = image.url
-  link.download = image.name
-  link.click()
+  const link = document.createElement('a');
+  link.href = image.url;
+  link.download = image.name;
+  link.click();
 }
 
 function formatSize(bytes) {
-  if (bytes === 0) return '0 Bytes'
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 }
 
 function formatDate(date) {
@@ -424,51 +457,53 @@ function formatDate(date) {
     month: '2-digit',
     year: 'numeric',
     hour: '2-digit',
-    minute: '2-digit'
-  }).format(date)
+    minute: '2-digit',
+  }).format(date);
 }
 
 // Multi-Select Funktionen
 function toggleMultiSelectMode() {
-  isMultiSelectMode.value = !isMultiSelectMode.value
+  isMultiSelectMode.value = !isMultiSelectMode.value;
   if (!isMultiSelectMode.value) {
-    galleryStore.deselectAllImages()
+    galleryStore.deselectAllImages();
   }
 }
 
 function handleImageClick(imageId) {
   if (isMultiSelectMode.value) {
-    galleryStore.toggleImageSelection(imageId)
+    galleryStore.toggleImageSelection(imageId);
   } else {
-    galleryStore.selectImage(imageId)
+    galleryStore.selectImage(imageId);
   }
 }
 
 async function createCollage() {
-  const selectedImages = galleryStore.selectedImages
+  const selectedImages = galleryStore.selectedImages;
   if (selectedImages.length < 2) {
-    alert(t('gallery.errors.minTwoImages', 'Bitte wählen Sie mindestens 2 Bilder aus'))
-    return
+    alert(t('gallery.errors.minTwoImages', 'Bitte wählen Sie mindestens 2 Bilder aus'));
+    return;
   }
 
   try {
     // Füge alle ausgewählten Bilder als Layer zum ImageStore hinzu
-    await imageStore.addImageLayersFromGallery(selectedImages)
+    await imageStore.addImageLayersFromGallery(selectedImages);
 
     // Multi-Select-Modus beenden und Auswahl löschen
-    isMultiSelectMode.value = false
-    galleryStore.deselectAllImages()
+    isMultiSelectMode.value = false;
+    galleryStore.deselectAllImages();
 
     // Navigiere zum Editor
     await router.push({
       path: '/editor',
-      query: { collageMode: 'true' }
-    })
+      query: { collageMode: 'true' },
+    });
 
-    console.log(`✅ Collage mit ${selectedImages.length} Bildern erstellt`)
+    console.log(`✅ Collage mit ${selectedImages.length} Bildern erstellt`);
   } catch (error) {
-    console.error('Fehler beim Erstellen der Collage:', error)
-    alert(t('gallery.errors.collageError', 'Fehler beim Erstellen der Collage') + ': ' + error.message)
+    console.error('Fehler beim Erstellen der Collage:', error);
+    alert(
+      t('gallery.errors.collageError', 'Fehler beim Erstellen der Collage') + ': ' + error.message
+    );
   }
 }
 </script>
@@ -482,12 +517,12 @@ async function createCollage() {
 .gallery-header {
   text-align: center;
   margin-bottom: 2rem;
-  
+
   h1 {
     font-size: 2.5rem;
     margin-bottom: 0.5rem;
   }
-  
+
   .gallery-subtitle {
     color: var(--color-text-secondary);
     font-size: 1.1rem;
@@ -557,19 +592,19 @@ async function createCollage() {
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
-  
+
   i {
     font-size: 5rem;
     color: var(--color-primary);
     opacity: 0.3;
     margin-bottom: 1.5rem;
   }
-  
+
   h3 {
     font-size: 1.5rem;
     margin-bottom: 0.5rem;
   }
-  
+
   p {
     color: var(--color-text-secondary);
     margin-bottom: 0;
@@ -583,27 +618,27 @@ async function createCollage() {
   max-height: 640px;
   overflow-y: auto;
   padding-right: 0.5rem;
-  
+
   /* Schöne Scrollbar */
   &::-webkit-scrollbar {
     width: 10px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: var(--color-bg-secondary);
     border-radius: 10px;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: var(--color-primary);
     border-radius: 10px;
     transition: background 0.3s ease;
-    
+
     &:hover {
       background: var(--color-primary-dark, #003971);
     }
   }
-  
+
   /* Firefox Scrollbar */
   scrollbar-width: thin;
   scrollbar-color: var(--color-primary) var(--color-bg-secondary);

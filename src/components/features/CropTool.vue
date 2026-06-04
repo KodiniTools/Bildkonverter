@@ -2,21 +2,17 @@
   <aside class="right-sidebar">
     <div class="sidebar-section">
       <h3>Transformationen</h3>
-      
-      <button 
-        class="transform-btn"
-        :class="{ 'active': cropMode }"
-        @click="$emit('toggle-crop')"
-      >
+
+      <button class="transform-btn" :class="{ active: cropMode }" @click="$emit('toggle-crop')">
         <i :class="cropMode ? 'fas fa-check' : 'fas fa-crop'"></i>
         <span>{{ cropMode ? 'Crop bestätigen' : 'Zuschneiden' }}</span>
       </button>
-      
-      <button 
+
+      <button
         v-if="hasCropped"
         class="transform-btn undo-btn"
-        @click="$emit('undo-crop')"
         title="Zuschnitt rückgängig machen und Original wiederherstellen"
+        @click="$emit('undo-crop')"
       >
         <i class="fas fa-undo"></i>
         <span>Zuschnitt rückgängig</span>
@@ -29,15 +25,15 @@
 defineProps({
   cropMode: {
     type: Boolean,
-    required: true
+    required: true,
   },
   hasCropped: {
     type: Boolean,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
-defineEmits(['toggle-crop', 'undo-crop'])
+defineEmits(['toggle-crop', 'undo-crop']);
 </script>
 
 <style scoped>
@@ -113,18 +109,18 @@ defineEmits(['toggle-crop', 'undo-crop'])
 }
 
 /* Dark Mode Support */
-:root[data-theme="dark"] .right-sidebar {
+:root[data-theme='dark'] .right-sidebar {
   background: var(--color-bg-secondary);
   border-left-color: var(--color-border);
 }
 
-:root[data-theme="dark"] .transform-btn {
+:root[data-theme='dark'] .transform-btn {
   background: var(--color-card-bg, var(--color-bg));
   border-color: var(--color-border);
   color: var(--color-text);
 }
 
-:root[data-theme="dark"] .transform-btn:hover {
+:root[data-theme='dark'] .transform-btn:hover {
   background: var(--color-bg-secondary);
 }
 </style>

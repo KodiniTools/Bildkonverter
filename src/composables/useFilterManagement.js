@@ -2,7 +2,7 @@
  * useFilterManagement Composable
  * Verwaltet Filter-State, Hintergrund-Einstellungen und Sidebar-Sektionen
  */
-import { ref, computed } from 'vue'
+import { ref, computed } from 'vue';
 
 // Standard-Filterwerte
 export const DEFAULT_FILTERS = {
@@ -18,14 +18,14 @@ export const DEFAULT_FILTERS = {
   highlights: 0,
   shadows: 0,
   sharpness: 0,
-  vignette: 0
-}
+  vignette: 0,
+};
 
 // Standard-Hintergrund
 export const DEFAULT_BACKGROUND = {
   color: '#ffffff',
-  opacity: 100
-}
+  opacity: 100,
+};
 
 /**
  * Composable für Filter-Management
@@ -34,41 +34,39 @@ export const DEFAULT_BACKGROUND = {
  * @returns {Object} Filter-State und Methoden
  */
 export function useFilterManagement(options = {}) {
-  const { onFilterChange } = options
+  const { onFilterChange } = options;
 
   // Reaktive State
-  const filters = ref({ ...DEFAULT_FILTERS })
-  const background = ref({ ...DEFAULT_BACKGROUND })
-  const currentPreset = ref(null)
+  const filters = ref({ ...DEFAULT_FILTERS });
+  const background = ref({ ...DEFAULT_BACKGROUND });
+  const currentPreset = ref(null);
 
   // Sidebar-Sektionen (collapsible)
   const sectionsOpen = ref({
     adjustments: true,
     lightColor: false,
-    effects: false
-  })
+    effects: false,
+  });
 
   // Computed: Prüft ob Filter vom Standard abweichen
   const hasActiveFilters = computed(() => {
-    return Object.keys(DEFAULT_FILTERS).some(
-      key => filters.value[key] !== DEFAULT_FILTERS[key]
-    )
-  })
+    return Object.keys(DEFAULT_FILTERS).some((key) => filters.value[key] !== DEFAULT_FILTERS[key]);
+  });
 
   // Computed: Prüft ob Hintergrund aktiv ist
   const hasActiveBackground = computed(() => {
-    return background.value.opacity > 0
-  })
+    return background.value.opacity > 0;
+  });
 
   /**
    * Setzt alle Filter auf Standardwerte zurück
    */
   function resetFilters() {
-    filters.value = { ...DEFAULT_FILTERS }
-    currentPreset.value = null
+    filters.value = { ...DEFAULT_FILTERS };
+    currentPreset.value = null;
 
     if (onFilterChange) {
-      onFilterChange()
+      onFilterChange();
     }
   }
 
@@ -76,10 +74,10 @@ export function useFilterManagement(options = {}) {
    * Setzt Hintergrund auf Standardwerte zurück
    */
   function resetBackground() {
-    background.value = { ...DEFAULT_BACKGROUND }
+    background.value = { ...DEFAULT_BACKGROUND };
 
     if (onFilterChange) {
-      onFilterChange()
+      onFilterChange();
     }
   }
 
@@ -87,8 +85,8 @@ export function useFilterManagement(options = {}) {
    * Setzt alles zurück (Filter + Hintergrund)
    */
   function resetAll() {
-    resetFilters()
-    resetBackground()
+    resetFilters();
+    resetBackground();
   }
 
   /**
@@ -97,11 +95,11 @@ export function useFilterManagement(options = {}) {
    */
   function applyPreset(preset) {
     // Kombiniere Standard-Werte mit Preset-Werten
-    filters.value = { ...DEFAULT_FILTERS, ...preset.filters }
-    currentPreset.value = preset.id
+    filters.value = { ...DEFAULT_FILTERS, ...preset.filters };
+    currentPreset.value = preset.id;
 
     if (onFilterChange) {
-      onFilterChange()
+      onFilterChange();
     }
   }
 
@@ -112,11 +110,11 @@ export function useFilterManagement(options = {}) {
    */
   function updateFilter(filterName, value) {
     if (filterName in filters.value) {
-      filters.value[filterName] = value
-      currentPreset.value = null // Preset wird ungültig bei manueller Änderung
+      filters.value[filterName] = value;
+      currentPreset.value = null; // Preset wird ungültig bei manueller Änderung
 
       if (onFilterChange) {
-        onFilterChange()
+        onFilterChange();
       }
     }
   }
@@ -128,10 +126,10 @@ export function useFilterManagement(options = {}) {
    */
   function updateBackground(property, value) {
     if (property in background.value) {
-      background.value[property] = value
+      background.value[property] = value;
 
       if (onFilterChange) {
-        onFilterChange()
+        onFilterChange();
       }
     }
   }
@@ -142,7 +140,7 @@ export function useFilterManagement(options = {}) {
    */
   function toggleSection(sectionName) {
     if (sectionName in sectionsOpen.value) {
-      sectionsOpen.value[sectionName] = !sectionsOpen.value[sectionName]
+      sectionsOpen.value[sectionName] = !sectionsOpen.value[sectionName];
     }
   }
 
@@ -151,10 +149,10 @@ export function useFilterManagement(options = {}) {
    * @returns {string} CSS-Filter-String
    */
   function getFilterString() {
-    const f = filters.value
-    const exposureAdjust = 100 + f.exposure
-    const highlightsAdjust = 100 + (f.highlights * 0.5)
-    const shadowsAdjust = 100 + (f.shadows * 0.3)
+    const f = filters.value;
+    const exposureAdjust = 100 + f.exposure;
+    const highlightsAdjust = 100 + f.highlights * 0.5;
+    const shadowsAdjust = 100 + f.shadows * 0.3;
 
     return `
       brightness(${f.brightness * (exposureAdjust / 100) * (highlightsAdjust / 100)}%)
@@ -165,7 +163,7 @@ export function useFilterManagement(options = {}) {
       sepia(${f.sepia}%)
       grayscale(${f.grayscale}%)
       invert(${f.invert}%)
-    `.trim()
+    `.trim();
   }
 
   /**
@@ -176,8 +174,8 @@ export function useFilterManagement(options = {}) {
     return {
       filters: { ...filters.value },
       background: { ...background.value },
-      currentPreset: currentPreset.value
-    }
+      currentPreset: currentPreset.value,
+    };
   }
 
   /**
@@ -186,13 +184,13 @@ export function useFilterManagement(options = {}) {
    */
   function importState(state) {
     if (state.filters) {
-      filters.value = { ...DEFAULT_FILTERS, ...state.filters }
+      filters.value = { ...DEFAULT_FILTERS, ...state.filters };
     }
     if (state.background) {
-      background.value = { ...DEFAULT_BACKGROUND, ...state.background }
+      background.value = { ...DEFAULT_BACKGROUND, ...state.background };
     }
     if ('currentPreset' in state) {
-      currentPreset.value = state.currentPreset
+      currentPreset.value = state.currentPreset;
     }
   }
 
@@ -221,8 +219,8 @@ export function useFilterManagement(options = {}) {
 
     // Konstanten
     DEFAULT_FILTERS,
-    DEFAULT_BACKGROUND
-  }
+    DEFAULT_BACKGROUND,
+  };
 }
 
-export default useFilterManagement
+export default useFilterManagement;
