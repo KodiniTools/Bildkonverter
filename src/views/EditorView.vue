@@ -2311,7 +2311,9 @@ function handleKeyup(e) {
     pointer-events: none;
   }
 }
+</style>
 
+<style lang="scss">
 /* Collapsible Sidebar Sections */
 .sidebar-section {
   margin-bottom: 0.5rem;
