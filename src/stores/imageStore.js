@@ -374,7 +374,7 @@ export const useImageStore = defineStore('image', () => {
    * Setzt einen Filter-Wert
    */
   function setFilter(filterName, value) {
-    if (filters.hasOwnProperty(filterName)) {
+    if (Object.prototype.hasOwnProperty.call(filters, filterName)) {
       const validation = ValidationUtils.validateFilterValue(filterName, value);
       if (validation.isValid) {
         filters[filterName] = validation.value;
@@ -388,7 +388,7 @@ export const useImageStore = defineStore('image', () => {
    */
   function applyPreset(preset) {
     Object.entries(preset.filters).forEach(([key, value]) => {
-      if (filters.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(filters, key)) {
         filters[key] = value;
       }
     });
