@@ -210,7 +210,7 @@ function showError(message) {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
+@use '@/styles/variables' as *;
 
 .image-upload {
   max-width: 600px;

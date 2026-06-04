@@ -1007,6 +1007,8 @@ function formatSize(bytes) {
 </script>
 
 <style lang="scss" scoped>
+@use 'sass:color';
+
 .batch-view {
   padding: var(--spacing-xl);
   min-height: 100vh;
@@ -1472,7 +1474,7 @@ function formatSize(bytes) {
   cursor: pointer;
 
   &:hover {
-    background: darken(#dc3545, 10%);
+    background: color.adjust(#dc3545, $lightness: -10%);
   }
 }
 
