@@ -288,6 +288,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useImageStore } from '@/stores/imageStore';
@@ -322,6 +323,7 @@ import { ApiClient } from '@/api/api';
 const { t } = useI18n({ useScope: 'global' });
 const route = useRoute();
 const imageStore = useImageStore();
+const { texts: storeTexts } = storeToRefs(imageStore);
 const textModal = useTextModal();
 
 // ===== CORE REFS =====
@@ -1619,13 +1621,9 @@ function onCanvasDoubleClick(e) {
 }
 
 // Watch texts
-watch(
-  () => imageStore.texts,
-  () => {
-    renderImage();
-  },
-  { deep: true }
-);
+watch(storeTexts, () => {
+  renderImage();
+}, { deep: true });
 
 // ===== PREVIEW FUNCTIONS =====
 
