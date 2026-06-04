@@ -13,7 +13,7 @@ import {
   getHandleAtPosition,
   calculateResizedText,
   normalizeText,
-} from './textUtils';
+} from '@/utils/textUtils';
 
 export function useTextInteraction(imageStore) {
   // ===== STATE =====
