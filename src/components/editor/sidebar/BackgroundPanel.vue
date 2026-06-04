@@ -3,7 +3,9 @@
     <h3>{{ $t('editor.sidebar.background', 'Hintergrund') }}</h3>
 
     <div class="filter-control">
-      <label>{{ $t('editor.background.color', 'Farbe') }}</label>
+      <label>
+        <span class="filter-label">{{ $t('editor.background.color', 'Farbe') }}</span>
+      </label>
       <div class="color-picker-row">
         <input
           v-model="background.color"
@@ -24,16 +26,21 @@
     </div>
 
     <div class="filter-control">
-      <label>{{ $t('editor.background.opacity', 'Deckkraft') }}</label>
-      <input
-        v-model.number="background.opacity"
-        type="range"
-        min="0"
-        max="100"
-        :disabled="disabled"
-        @input="$emit('render')"
-      />
-      <span>{{ background.opacity }}%</span>
+      <label>
+        <span class="filter-label">{{ $t('editor.background.opacity', 'Deckkraft') }}</span>
+        <span class="filter-value">{{ background.opacity }}%</span>
+      </label>
+      <div class="slider-track">
+        <input
+          v-model.number="background.opacity"
+          type="range"
+          min="0"
+          max="100"
+          class="modern-slider"
+          :disabled="disabled"
+          @input="$emit('render')"
+        />
+      </div>
     </div>
 
     <p v-if="disabled" class="hint-text">
