@@ -1867,7 +1867,7 @@ function handleKeyup(e) {
   background: var(--color-bg-secondary);
   border-right: 1px solid var(--color-border);
   overflow-y: auto;
-  padding: 0.75rem;
+  padding: 1rem;
 
   /* Sticky Sidebar - bleibt im Sichtfeld während Canvas scrollt */
   position: sticky;
@@ -1998,16 +1998,17 @@ function handleKeyup(e) {
 <style lang="scss">
 /* Collapsible Sidebar Sections */
 .sidebar-section {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   background: var(--color-bg);
-  border-radius: 8px;
+  border-radius: 10px;
   border: 1px solid var(--color-border);
   overflow: hidden;
   transition: all 0.2s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 
   &:hover {
-    border-color: var(--color-primary);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border-color: rgba(1, 79, 153, 0.35);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
   }
 
   &.collapsible {
@@ -2016,16 +2017,16 @@ function handleKeyup(e) {
       user-select: none;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.75rem 1rem;
+      gap: 0.6rem;
+      padding: 0.875rem 1rem;
       margin: 0;
-      font-size: 0.75rem;
-      font-weight: 600;
+      font-size: 0.7rem;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.06em;
       color: var(--color-text);
       background: transparent;
-      transition: all 0.2s ease;
+      transition: background 0.15s ease;
 
       &:hover {
         background: var(--color-bg-secondary);
@@ -2034,19 +2035,18 @@ function handleKeyup(e) {
       .section-icon {
         font-size: 0.85rem;
         color: var(--color-primary);
-        opacity: 0.8;
       }
 
       .toggle-icon {
         margin-left: auto;
         font-size: 0.65rem;
-        opacity: 0.5;
+        opacity: 0.4;
         transition: transform 0.2s ease;
       }
     }
 
     .section-content {
-      padding: 0 1rem 1rem 1rem;
+      padding: 0.25rem 1rem 1.125rem 1rem;
     }
 
     &.collapsed {
@@ -2058,21 +2058,20 @@ function handleKeyup(e) {
 
   // Non-collapsible sections (Format, Background, Resize, Presets)
   &:not(.collapsible) {
-    padding: 0.75rem 1rem;
+    padding: 0.875rem 1rem;
     padding-top: 0;
 
     h3 {
-      font-size: 0.75rem;
-      font-weight: 600;
+      font-size: 0.7rem;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.03em;
-      // Negativer Margin damit h3 randlos über die Section-Breite geht
-      margin: 0 -1rem 0.75rem -1rem;
-      padding: 0.75rem 1rem;
+      letter-spacing: 0.06em;
+      margin: 0 -1rem 0.875rem -1rem;
+      padding: 0.875rem 1rem;
       color: var(--color-text);
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.6rem;
       border-bottom: 1px solid var(--color-border);
     }
   }
@@ -2829,10 +2828,12 @@ function handleKeyup(e) {
   .sidebar-section {
     background: rgba(255, 255, 255, 0.03);
     border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 
     &:hover {
-      border-color: var(--color-primary);
+      border-color: rgba(1, 79, 153, 0.5);
       background: rgba(255, 255, 255, 0.05);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
     }
 
     &.collapsible .section-header {
