@@ -147,6 +147,9 @@
               <i class="fas fa-file-upload"></i>
               {{ $t('editor.canvas.empty.button') }}
             </button>
+            <p class="paste-hint">
+              <kbd>Ctrl</kbd> + <kbd>V</kbd> {{ $t('editor.canvas.empty.pasteHint', 'oder Bild aus Zwischenablage einfügen') }}
+            </p>
           </div>
 
           <div v-else class="canvas-container">
@@ -1878,6 +1881,7 @@ onMounted(async () => {
   // Keyboard shortcuts
   window.addEventListener('keydown', handleKeydown);
   window.addEventListener('keyup', handleKeyup);
+  window.addEventListener('paste', handlePaste);
   // Global mouse events für Drag/Resize außerhalb des Canvas
   window.addEventListener('mousemove', handleGlobalMouseMove);
   window.addEventListener('mouseup', handleGlobalMouseUp);
@@ -1945,6 +1949,7 @@ watch(
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown);
   window.removeEventListener('keyup', handleKeyup);
+  window.removeEventListener('paste', handlePaste);
   window.removeEventListener('mousemove', handleGlobalMouseMove);
   window.removeEventListener('mouseup', handleGlobalMouseUp);
   // Layer-Interaktion Listener entfernen
@@ -2083,6 +2088,32 @@ function handleKeyup(e) {
     isPanning.value = false;
     if (canvas.value) {
       canvas.value.style.cursor = 'default';
+    }
+  }
+}
+
+function handlePaste(e) {
+  // Ignoriere Paste wenn ein Textfeld fokussiert ist
+  const isInputFocused =
+    document.activeElement?.tagName === 'INPUT' ||
+    document.activeElement?.tagName === 'TEXTAREA' ||
+    document.activeElement?.isContentEditable;
+
+  if (isInputFocused) return;
+
+  const items = e.clipboardData?.items;
+  if (!items) return;
+
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      const file = item.getAsFile();
+      if (file) {
+        loadFileIntoEditor(file).catch((err) =>
+          console.error('Fehler beim Einfügen aus Zwischenablage:', err)
+        );
+      }
+      break;
     }
   }
 }
@@ -2923,6 +2954,25 @@ function handleKeyup(e) {
   .btn-large {
     padding: 1rem 2rem;
     font-size: 1.1rem;
+  }
+
+  .paste-hint {
+    margin-top: 1rem;
+    margin-bottom: 0;
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #888);
+
+    kbd {
+      display: inline-block;
+      padding: 0.15em 0.45em;
+      font-size: 0.8em;
+      font-family: inherit;
+      background: var(--color-bg-secondary);
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      box-shadow: 0 1px 0 var(--color-border);
+      line-height: 1.4;
+    }
   }
 }
 
