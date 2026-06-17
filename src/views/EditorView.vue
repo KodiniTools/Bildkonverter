@@ -315,57 +315,32 @@
     </div>
 
     <!-- Preview Modal -->
-    <Teleport to="body">
-      <div v-if="showPreviewModal" class="preview-modal-overlay" @click="closePreview">
-        <div class="preview-modal-content" @click.stop>
-          <button class="preview-close-btn" @click="closePreview">
-            <i class="fas fa-times"></i>
-          </button>
-
-          <div class="preview-comparison">
-            <div class="preview-item">
-              <h3>{{ $t('editor.preview.before', 'Before (Original)') }}</h3>
-              <img v-if="originalPreviewSrc" :src="originalPreviewSrc" alt="Original" />
-              <div v-else class="preview-placeholder">
-                {{ $t('editor.preview.noOriginal', 'No original available') }}
-              </div>
-            </div>
-
-            <div class="preview-divider"></div>
-
-            <div class="preview-item">
-              <h3>{{ $t('editor.preview.after', 'After (Edited)') }}</h3>
-              <img v-if="editedPreviewSrc" :src="editedPreviewSrc" alt="Edited" />
-              <div v-else class="preview-placeholder">
-                {{ $t('editor.preview.noEdited', 'No edits available') }}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+    <PreviewModal
+      :show="showPreviewModal"
+      :original-src="originalPreviewSrc"
+      :edited-src="editedPreviewSrc"
+      @close="closePreview"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
-import { storeToRefs } from 'pinia';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useImageStore } from '@/stores/imageStore';
 import { useTextModal } from '@/composables/useTextModal';
 import { useCrop, ASPECT_RATIO_PRESETS } from '@/composables/useCrop';
 import { useTransform } from '@/composables/useTransform';
-import {
-  useFilterManagement,
-  DEFAULT_FILTERS,
-  DEFAULT_BACKGROUND,
-} from '@/composables/useFilterManagement';
+import { useFilterManagement } from '@/composables/useFilterManagement';
 import { useImageHistory } from '@/composables/useImageHistory';
 import { useTextHistory } from '@/composables/useTextHistory';
 import { useResizeManager } from '@/composables/useResizeManager';
-
 import { useImageLayerInteraction } from '@/composables/useImageLayerInteraction';
+import { useCanvasRenderer } from '@/composables/useCanvasRenderer';
+import { useImageLoader } from '@/composables/useImageLoader';
+import { exportImage, FORMAT_INFO, SUPPORTED_FORMATS, getFormatInfo } from '@/utils/exportUtils';
+
 import TransformPanel from '@/components/features/TransformPanel.vue';
 import LayerControlPanel from '@/components/features/LayerControlPanel.vue';
 import FilterPresets from '@/components/editor/FilterPresets.vue';
@@ -375,17 +350,12 @@ import AdjustmentsPanel from '@/components/editor/sidebar/AdjustmentsPanel.vue';
 import LightColorPanel from '@/components/editor/sidebar/LightColorPanel.vue';
 import EffectsPanel from '@/components/editor/sidebar/EffectsPanel.vue';
 import ResizePanel from '@/components/editor/sidebar/ResizePanel.vue';
-import { useCanvasRenderer } from '@/composables/useCanvasRenderer';
-
-// ===== NEU: Export Utils Import =====
-import { exportImage, FORMAT_INFO, SUPPORTED_FORMATS, getFormatInfo } from '@/utils/exportUtils';
-import { ApiClient } from '@/api/api';
+import PreviewModal from '@/components/editor/PreviewModal.vue';
 
 const { t } = useI18n({ useScope: 'global' });
 const route = useRoute();
 const router = useRouter();
 const imageStore = useImageStore();
-const { texts: storeTexts } = storeToRefs(imageStore);
 const textModal = useTextModal();
 
 // ===== CORE REFS =====
@@ -416,7 +386,6 @@ const isSpacePressed = ref(false);
 const showPreviewModal = ref(false);
 const originalPreviewSrc = ref('');
 const editedPreviewSrc = ref('');
-const previewUpdateTrigger = ref(0);
 
 // ===== COLLAGE MODE STATE =====
 const isCollageMode = ref(false);
@@ -496,7 +465,24 @@ function renderImage() {
   updateImageDimensions();
 }
 
-// ===== NEU: Verwende SUPPORTED_FORMATS aus exportUtils =====
+// Image Loader Composable
+const {
+  loadFileIntoEditor,
+  handleFileSelect,
+  handleDragLeave,
+  handleFileDrop,
+  handlePaste,
+  loadGalleryImage,
+  reloadImageLayers,
+} = useImageLoader({
+  currentImageFormat,
+  originalImageDataUrl,
+  originalImage,
+  isDraggingFile,
+  imageStore,
+  onImageReady: (img) => loadImage(img),
+});
+
 const formats = SUPPORTED_FORMATS;
 
 // Computed (canUndo, canRedo kommen jetzt vom imageHistory Composable)
@@ -599,98 +585,6 @@ function triggerFileInput() {
   fileInput.value?.click();
 }
 
-/**
- * Checks if a file needs backend conversion for browser display (TIFF/HEIC)
- */
-function needsBackendPreview(file) {
-  const unsupportedTypes = ['image/tiff', 'image/heic', 'image/heif'];
-  if (unsupportedTypes.includes(file.type)) return true;
-  return /\.(tiff?|heic|heif)$/i.test(file.name);
-}
-
-/**
- * Loads a file into the editor canvas, converting via backend if needed
- */
-async function loadFileIntoEditor(file) {
-  const fileType = file.type ? file.type.split('/')[1] : file.name.split('.').pop().toLowerCase();
-  currentImageFormat.value = fileType === 'jpeg' ? 'jpg' : fileType;
-
-  let imageUrl;
-  if (needsBackendPreview(file)) {
-    // Browser can't display TIFF/HEIC – convert to PNG via backend
-    const pngBlob = await ApiClient.convertImage(file, 'png', file.name, {});
-    imageUrl = URL.createObjectURL(pngBlob);
-  } else {
-    imageUrl = await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.readAsDataURL(file);
-    });
-  }
-
-  const img = await new Promise((resolve, reject) => {
-    const i = new Image();
-    i.onload = () => resolve(i);
-    i.onerror = () => reject(new Error('Bild konnte nicht geladen werden'));
-    i.src = imageUrl;
-  });
-
-  originalImageDataUrl.value = imageUrl;
-  originalImage.value = img;
-  await loadImage(img);
-
-  // Also save in store for persistence
-  try {
-    await imageStore.loadImageFromFile(file);
-  } catch (err) {
-    console.warn('Store save failed:', err);
-  }
-}
-
-function handleFileSelect(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  loadFileIntoEditor(file).catch((err) => console.error('Fehler beim Laden:', err));
-}
-
-/**
- * Handles drag leave events to properly reset drag state
- * Only resets when actually leaving the canvas-area (not child elements)
- */
-function handleDragLeave(event) {
-  // Check if we're actually leaving the canvas-area
-  const canvasArea = event.currentTarget;
-  const relatedTarget = event.relatedTarget;
-
-  // Only reset if we're leaving to an element outside the canvas-area
-  if (!canvasArea.contains(relatedTarget)) {
-    isDraggingFile.value = false;
-  }
-}
-
-/**
- * Handles file drop on the canvas area
- * Validates that the dropped item is an image file before loading
- */
-function handleFileDrop(event) {
-  isDraggingFile.value = false;
-
-  const files = event.dataTransfer?.files;
-  if (!files || files.length === 0) return;
-
-  const file = files[0];
-
-  // Validate that it's an image file (also check extension for TIFF/HEIC where MIME may be empty)
-  const isImage =
-    file.type.startsWith('image/') ||
-    /\.(jpe?g|png|gif|webp|bmp|svg|tiff?|heic|heif)$/i.test(file.name);
-  if (!isImage) {
-    console.warn('Dropped file is not an image:', file.type);
-    return;
-  }
-
-  loadFileIntoEditor(file).catch((err) => console.error('Fehler beim Laden:', err));
-}
 
 async function loadImage(img) {
   currentImage.value = img;
@@ -1118,163 +1012,54 @@ function handleSetAspectRatio(ratioId) {
 
 // ===== TRANSFORM FUNCTIONS =====
 
-// Wrapper für Regler (mit Live-Vorschau)
-function handleOpacityUpdate(value) {
-  transform.setOpacity(value);
-  renderImage();
+function makeHandler(setter) {
+  return (value) => { setter(value); renderImage(); };
+}
+function makeActionHandler(action, toastKey) {
+  return () => { action(); renderImage(); if (toastKey && window.$toast) window.$toast.success(t(toastKey)); };
 }
 
-function handleRotationUpdate(value) {
-  transform.setRotation(value);
-  renderImage();
-}
+const handleOpacityUpdate = makeHandler((v) => transform.setOpacity(v));
+const handleRotationUpdate = makeHandler((v) => transform.setRotation(v));
+const handleScaleUpdate = makeHandler((v) => transform.setScale(v));
+const handleBorderRadiusUpdate = makeHandler((v) => transform.setBorderRadius(v));
+const handleBorderWidthUpdate = makeHandler((v) => transform.setBorderWidth(v));
+const handleBorderColorUpdate = makeHandler((v) => transform.setBorderColor(v));
+const handleShadowEnabledUpdate = makeHandler((v) => transform.setShadowEnabled(v));
+const handleShadowOffsetXUpdate = makeHandler((v) => transform.setShadowOffsetX(v));
+const handleShadowOffsetYUpdate = makeHandler((v) => transform.setShadowOffsetY(v));
+const handleShadowBlurUpdate = makeHandler((v) => transform.setShadowBlur(v));
+const handleShadowColorUpdate = makeHandler((v) => transform.setShadowColor(v));
+const handleShadowOpacityUpdate = makeHandler((v) => transform.setShadowOpacity(v));
+const handleSkewXUpdate = makeHandler((v) => transform.setSkewX(v));
+const handleSkewYUpdate = makeHandler((v) => transform.setSkewY(v));
+const handleRotate90 = makeActionHandler(() => transform.rotate90(), 'toast.transform.rotated90');
+const handleRotate90Counter = makeActionHandler(() => transform.rotate90Counter(), 'toast.transform.rotated90');
+const handleRotate180 = makeActionHandler(() => transform.rotate180(), 'toast.transform.rotated180');
+const handleFlipHorizontal = makeActionHandler(() => transform.flipHorizontal(), 'toast.transform.flippedHorizontal');
+const handleFlipVertical = makeActionHandler(() => transform.flipVertical(), 'toast.transform.flippedVertical');
+const handleResetPan = makeActionHandler(() => transform.resetPan(), 'toast.transform.panReset');
 
-function handleScaleUpdate(value) {
-  transform.setScale(value);
-  renderImage();
-}
-
-function handleBorderRadiusUpdate(value) {
-  transform.setBorderRadius(value);
-  renderImage();
-}
-
-function handleBorderWidthUpdate(value) {
-  transform.setBorderWidth(value);
-  renderImage();
-}
-
-function handleBorderColorUpdate(color) {
-  transform.setBorderColor(color);
-  renderImage();
-}
-
-// Shadow-Handler
-function handleShadowEnabledUpdate(enabled) {
-  transform.setShadowEnabled(enabled);
-  renderImage();
-}
-
-function handleShadowOffsetXUpdate(value) {
-  transform.setShadowOffsetX(value);
-  renderImage();
-}
-
-function handleShadowOffsetYUpdate(value) {
-  transform.setShadowOffsetY(value);
-  renderImage();
-}
-
-function handleShadowBlurUpdate(value) {
-  transform.setShadowBlur(value);
-  renderImage();
-}
-
-function handleShadowColorUpdate(color) {
-  transform.setShadowColor(color);
-  renderImage();
-}
-
-function handleShadowOpacityUpdate(value) {
-  transform.setShadowOpacity(value);
-  renderImage();
-}
-
-// Skew-Handler
-function handleSkewXUpdate(value) {
-  transform.setSkewX(value);
-  renderImage();
-}
-
-function handleSkewYUpdate(value) {
-  transform.setSkewY(value);
-  renderImage();
-}
-
-// Button-Handler
-function handleRotate90() {
-  transform.rotate90();
-  renderImage();
-
-  if (window.$toast) {
-    window.$toast.success(t('toast.transform.rotated90'));
-  }
-}
-
-function handleRotate90Counter() {
-  transform.rotate90Counter();
-  renderImage();
-
-  if (window.$toast) {
-    window.$toast.success(t('toast.transform.rotated90'));
-  }
-}
-
-function handleRotate180() {
-  transform.rotate180();
-  renderImage();
-
-  if (window.$toast) {
-    window.$toast.success(t('toast.transform.rotated180'));
-  }
-}
-
-function handleFlipHorizontal() {
-  transform.flipHorizontal();
-  renderImage();
-
-  if (window.$toast) {
-    window.$toast.success(t('toast.transform.flippedHorizontal'));
-  }
-}
-
-function handleFlipVertical() {
-  transform.flipVertical();
-  renderImage();
-
-  if (window.$toast) {
-    window.$toast.success(t('toast.transform.flippedVertical'));
-  }
-}
-
-// Transform Undo/Redo Handler
 function handleUndoTransform() {
   if (transform.undoTransform()) {
     renderImage();
-    if (window.$toast) {
-      window.$toast.info(t('toast.transform.undo', 'Transformation rückgängig'));
-    }
+    if (window.$toast) window.$toast.info(t('toast.transform.undo', 'Transformation rückgängig'));
   }
 }
 
 function handleRedoTransform() {
   if (transform.redoTransform()) {
     renderImage();
-    if (window.$toast) {
-      window.$toast.info(t('toast.transform.redo', 'Transformation wiederhergestellt'));
-    }
+    if (window.$toast) window.$toast.info(t('toast.transform.redo', 'Transformation wiederhergestellt'));
   }
 }
 
-function handleCommitTransform() {
-  transform.commitTransform();
-}
-
-function handleResetPan() {
-  transform.resetPan();
-  renderImage();
-
-  if (window.$toast) {
-    window.$toast.info(t('toast.transform.panReset', 'Ansicht zurückgesetzt'));
-  }
-}
+function handleCommitTransform() { transform.commitTransform(); }
 
 // ===== TEXT FUNCTIONS =====
 
 function addText() {
   if (!currentImage.value) return;
-
-  // Direkt neuen Text hinzufügen (ohne Modal)
   const newText = {
     id: Date.now(),
     content: 'Neuer Text',
@@ -1292,129 +1077,48 @@ function addText() {
     shadowOffsetY: 2,
     shadowColor: '#000000',
   };
-
   imageStore.texts.push(newText);
   selectedTextId.value = newText.id;
   renderImage();
   saveHistory();
 }
 
-// ===== Text Event Handler =====
-function handleTextContentUpdate(content) {
+function updateSelectedText(updates) {
   if (!selectedTextId.value) return;
   const text = imageStore.texts.find((t) => t.id === selectedTextId.value);
-  if (text) {
-    text.content = content;
-    text.txt = content;
-    renderImage();
-  }
+  if (!text) return;
+  Object.assign(text, updates);
+  renderImage();
 }
 
-function handleTextFontSizeUpdate(fontSize) {
-  if (!selectedTextId.value) return;
-  const text = imageStore.texts.find((t) => t.id === selectedTextId.value);
-  if (text) {
-    text.fontSize = fontSize;
-    text.size = fontSize;
-    renderImage();
-  }
-}
+const handleTextContentUpdate = (content) => updateSelectedText({ content, txt: content });
+const handleTextFontSizeUpdate = (fontSize) => updateSelectedText({ fontSize, size: fontSize });
+const handleTextColorUpdate = (color) => updateSelectedText({ color });
+const handleTextRotationUpdate = (rotation) => updateSelectedText({ rotation });
+const handleTextOpacityUpdate = (opacity) => updateSelectedText({ opacity });
+const handleTextStrokeWidthUpdate = (strokeWidth) => updateSelectedText({ strokeWidth });
+const handleTextStrokeColorUpdate = (strokeColor) => updateSelectedText({ strokeColor });
+const handleTextShadowOffsetXUpdate = (shadowOffsetX) => updateSelectedText({ shadowOffsetX });
+const handleTextShadowOffsetYUpdate = (shadowOffsetY) => updateSelectedText({ shadowOffsetY });
+const handleTextShadowColorUpdate = (shadowColor) => updateSelectedText({ shadowColor });
 
 function handleTextFontFamilyUpdate(fontFamily) {
-  if (!selectedTextId.value) return;
-  const text = imageStore.texts.find((t) => t.id === selectedTextId.value);
-  if (text) {
-    text.fontFamily = fontFamily;
-    renderImage();
-    saveHistory();
-  }
-}
-
-function handleTextColorUpdate(color) {
-  if (!selectedTextId.value) return;
-  const text = imageStore.texts.find((t) => t.id === selectedTextId.value);
-  if (text) {
-    text.color = color;
-    renderImage();
-  }
-}
-
-function handleTextRotationUpdate(rotation) {
-  if (!selectedTextId.value) return;
-  const text = imageStore.texts.find((t) => t.id === selectedTextId.value);
-  if (text) {
-    text.rotation = rotation;
-    renderImage();
-  }
-}
-
-function handleTextOpacityUpdate(opacity) {
-  if (!selectedTextId.value) return;
-  const text = imageStore.texts.find((t) => t.id === selectedTextId.value);
-  if (text) {
-    text.opacity = opacity;
-    renderImage();
-  }
-}
-
-function handleTextStrokeWidthUpdate(strokeWidth) {
-  if (!selectedTextId.value) return;
-  const text = imageStore.texts.find((t) => t.id === selectedTextId.value);
-  if (text) {
-    text.strokeWidth = strokeWidth;
-    renderImage();
-  }
-}
-
-function handleTextStrokeColorUpdate(strokeColor) {
-  if (!selectedTextId.value) return;
-  const text = imageStore.texts.find((t) => t.id === selectedTextId.value);
-  if (text) {
-    text.strokeColor = strokeColor;
-    renderImage();
-  }
+  updateSelectedText({ fontFamily });
+  saveHistory();
 }
 
 function handleTextShadowBlurUpdate(shadowBlur) {
   if (!selectedTextId.value) return;
   const text = imageStore.texts.find((t) => t.id === selectedTextId.value);
-  if (text) {
-    text.shadowBlur = shadowBlur;
-    // Setze Standard-Offset wenn Schatten aktiviert wird
-    if (shadowBlur > 0 && !text.shadowOffsetX) {
-      text.shadowOffsetX = 2;
-      text.shadowOffsetY = 2;
-      text.shadowColor = text.shadowColor || '#000000';
-    }
-    renderImage();
+  if (!text) return;
+  const updates = { shadowBlur };
+  if (shadowBlur > 0 && !text.shadowOffsetX) {
+    updates.shadowOffsetX = 2;
+    updates.shadowOffsetY = 2;
+    updates.shadowColor = text.shadowColor || '#000000';
   }
-}
-
-function handleTextShadowOffsetXUpdate(shadowOffsetX) {
-  if (!selectedTextId.value) return;
-  const text = imageStore.texts.find((t) => t.id === selectedTextId.value);
-  if (text) {
-    text.shadowOffsetX = shadowOffsetX;
-    renderImage();
-  }
-}
-
-function handleTextShadowOffsetYUpdate(shadowOffsetY) {
-  if (!selectedTextId.value) return;
-  const text = imageStore.texts.find((t) => t.id === selectedTextId.value);
-  if (text) {
-    text.shadowOffsetY = shadowOffsetY;
-    renderImage();
-  }
-}
-
-function handleTextShadowColorUpdate(shadowColor) {
-  if (!selectedTextId.value) return;
-  const text = imageStore.texts.find((t) => t.id === selectedTextId.value);
-  if (text) {
-    text.shadowColor = shadowColor;
-    renderImage();
-  }
+  Object.assign(text, updates);
+  renderImage();
 }
 
 function handleDeleteText() {
@@ -1428,25 +1132,11 @@ function handleDeleteText() {
   }
 }
 
-function handleDeselectText() {
-  selectedTextId.value = null;
-  renderImage();
-}
+function handleDeselectText() { selectedTextId.value = null; renderImage(); }
 
-// ===== TEXT HISTORY HANDLERS =====
-function handleSaveTextHistory() {
-  saveTextHistory();
-}
-
-function handleUndoText() {
-  undoText();
-  renderImage();
-}
-
-function handleRedoText() {
-  redoText();
-  renderImage();
-}
+const handleSaveTextHistory = () => saveTextHistory();
+const handleUndoText = () => { undoText(); renderImage(); };
+const handleRedoText = () => { redoText(); renderImage(); };
 
 function getMousePos(e) {
   const rect = canvas.value.getBoundingClientRect();
@@ -1690,7 +1380,7 @@ function onCanvasDoubleClick(e) {
 }
 
 // Watch texts
-watch(storeTexts, () => {
+watch(() => imageStore.texts, () => {
   renderImage();
 }, { deep: true });
 
@@ -1712,17 +1402,8 @@ function openPreview() {
       editedPreviewSrc.value = canvas.value.toDataURL('image/png');
     }
 
-    // Trigger Update
-    previewUpdateTrigger.value++;
-
     // Öffne das Modal
     showPreviewModal.value = true;
-
-    console.log('🖼️ Preview aktualisiert:', {
-      hasOriginal: !!originalPreviewSrc.value,
-      hasEdited: !!editedPreviewSrc.value,
-      trigger: previewUpdateTrigger.value,
-    });
   }, 100);
 }
 
@@ -1751,8 +1432,6 @@ function handleLayerPreview() {
       editedPreviewSrc.value = canvas.value.toDataURL('image/png');
     }
 
-    // Trigger Update und öffne Modal
-    previewUpdateTrigger.value++;
     showPreviewModal.value = true;
   }, 100);
 }
@@ -1761,94 +1440,6 @@ function handleLayerPreview() {
 
 // Lifecycle
 // Keyboard shortcuts und Initial Load
-
-// ===== COLLAGE IMAGE LAYER RELOAD =====
-
-/**
- * Lädt alle Bilder in den Layern neu
- * Wird benötigt da Image-Objekte beim Navigieren verloren gehen können
- */
-async function reloadImageLayers() {
-  const layers = imageStore.imageLayers;
-  if (!layers || layers.length === 0) return;
-
-  console.log(`🔄 Lade ${layers.length} Layer-Bilder neu...`);
-
-  const loadPromises = layers.map((layer) => {
-    return new Promise((resolve) => {
-      // Prüfe ob das Bild bereits geladen ist
-      if (layer.image && layer.image.complete && layer.image.naturalWidth > 0) {
-        console.log(`✓ Layer "${layer.name}" bereits geladen`);
-        resolve();
-        return;
-      }
-
-      // Bild neu laden
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-
-      img.onload = () => {
-        layer.image = img;
-        console.log(`✓ Layer "${layer.name}" neu geladen`);
-        resolve();
-      };
-
-      img.onerror = () => {
-        console.error(`✗ Fehler beim Laden von Layer "${layer.name}"`);
-        resolve(); // Trotzdem resolve um andere Bilder nicht zu blockieren
-      };
-
-      img.src = layer.url;
-    });
-  });
-
-  await Promise.all(loadPromises);
-  console.log('✅ Alle Layer-Bilder geladen');
-}
-
-// ===== GALLERY IMAGE LOADING =====
-
-async function loadGalleryImage(galleryImageId) {
-  if (!galleryImageId) return false;
-
-  try {
-    const { useGalleryStore } = await import('@/stores/galleryStore');
-    const galleryStore = useGalleryStore();
-    const galleryImage = galleryStore.getImage(Number(galleryImageId));
-
-    if (galleryImage) {
-      console.log('Lade Bild aus Galerie:', galleryImage.name);
-      const img = new Image();
-      img.onload = async () => {
-        // ✨ FIX: Speichere das Original-Bild für die Vorschau-Vergleichsfunktion
-        originalImageDataUrl.value = galleryImage.url;
-        originalImage.value = img;
-
-        // Erkenne Format des Bildes
-        const formatMatch = galleryImage.name.match(/\.(\w+)$/);
-        if (formatMatch) {
-          const ext = formatMatch[1].toLowerCase();
-          currentImageFormat.value = ext === 'jpeg' ? 'jpg' : ext;
-        }
-
-        await loadImage(img);
-        console.log('✅ Bild aus Galerie geladen (inkl. Original für Vorschau)');
-        if (window.$toast) {
-          window.$toast.success(t('toast.editor.galleryLoaded'));
-        }
-      };
-      img.src = galleryImage.url;
-      return true;
-    }
-  } catch (error) {
-    console.error('Fehler beim Laden aus Galerie:', error);
-    if (window.$toast) {
-      window.$toast.error(t('toast.editor.galleryError'), error.message);
-    }
-  }
-
-  return false;
-}
 
 // ===== LIFECYCLE HOOKS =====
 
@@ -1970,7 +1561,7 @@ onMounted(async () => {
   }
 
   // Prüfe ob Bild aus Galerie geladen werden soll
-  const loaded = await loadGalleryImage(route.query.galleryImageId);
+  const loaded = await loadGalleryImage(route.query.galleryImageId, t);
 
   // Wenn kein Galerie-Bild geladen wurde und ein Bild im Store ist, lade es
   if (!loaded && imageStore.hasImage && imageStore.originalImage) {
@@ -1989,7 +1580,7 @@ watch(
     // Nur laden wenn sich die ID geändert hat und eine neue ID vorhanden ist
     if (newId && newId !== oldId) {
       console.log('🔄 Galerie-Bild-ID geändert:', newId);
-      await loadGalleryImage(newId);
+      await loadGalleryImage(newId, t);
     }
   }
 );
@@ -2140,31 +1731,6 @@ function handleKeyup(e) {
   }
 }
 
-function handlePaste(e) {
-  // Ignoriere Paste wenn ein Textfeld fokussiert ist
-  const isInputFocused =
-    document.activeElement?.tagName === 'INPUT' ||
-    document.activeElement?.tagName === 'TEXTAREA' ||
-    document.activeElement?.isContentEditable;
-
-  if (isInputFocused) return;
-
-  const items = e.clipboardData?.items;
-  if (!items) return;
-
-  for (const item of items) {
-    if (item.type.startsWith('image/')) {
-      e.preventDefault();
-      const file = item.getAsFile();
-      if (file) {
-        loadFileIntoEditor(file).catch((err) =>
-          console.error('Fehler beim Einfügen aus Zwischenablage:', err)
-        );
-      }
-      break;
-    }
-  }
-}
 </script>
 
 <style lang="scss" scoped>
@@ -3209,106 +2775,6 @@ function handlePaste(e) {
     padding: 0.375rem 0.5rem;
     font-size: 0.8rem;
     min-height: 40px;
-  }
-}
-
-// Preview Modal Styles
-.preview-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10000;
-  padding: 2rem;
-}
-
-.preview-modal-content {
-  position: relative;
-  background: var(--color-bg-secondary);
-  border-radius: 12px;
-  padding: 2rem;
-  max-width: 95vw;
-  max-height: 90vh;
-  overflow: auto;
-}
-
-.preview-close-btn {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: 40px;
-  height: 40px;
-  border: none;
-  background: var(--color-danger);
-  color: white;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  z-index: 10;
-
-  &:hover {
-    background: #c82333;
-    transform: scale(1.1);
-  }
-}
-
-.preview-comparison {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 2rem;
-  align-items: center;
-
-  @media (max-width: 1024px) {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-
-    .preview-divider {
-      display: none;
-    }
-  }
-}
-
-.preview-item {
-  text-align: center;
-
-  h3 {
-    margin-bottom: 1rem;
-    color: var(--color-text-secondary);
-    font-size: 1.1rem;
-  }
-
-  img {
-    max-width: 100%;
-    max-height: 60vh;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    object-fit: contain;
-  }
-
-  .preview-placeholder {
-    padding: 3rem;
-    background: var(--color-bg);
-    border-radius: 8px;
-    color: var(--color-text-secondary);
-    font-style: italic;
-  }
-}
-
-.preview-divider {
-  width: 2px;
-  height: 400px;
-  background: var(--color-border);
-
-  @media (max-width: 1024px) {
-    display: none;
   }
 }
 
