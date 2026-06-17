@@ -3137,16 +3137,16 @@ function handlePaste(e) {
   /* Drag & Drop — passiv */
   &--drag {
     .upload-card__icon {
-      background: rgba(99, 102, 241, 0.1);
-      i { color: #6366f1; }
+      background: var(--color-light-gold, rgba(201, 152, 77, 0.15));
+      i { color: var(--color-accent, #c9984d); }
     }
   }
 
   /* Paste — passiv */
   &--paste {
     .upload-card__icon {
-      background: rgba(20, 184, 166, 0.1);
-      i { color: #14b8a6; }
+      background: rgba(80, 227, 194, 0.15);
+      i { color: var(--color-success, #50e3c2); }
     }
   }
 }
