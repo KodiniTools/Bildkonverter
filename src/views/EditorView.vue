@@ -3,9 +3,10 @@
     <div class="editor-container">
       <!-- Toolbar -->
       <div class="toolbar">
-        <div class="toolbar-section">
-          <button class="btn btn-primary" @click="triggerFileInput">
-            <i class="fas fa-file-upload"></i>
+        <!-- Links: Upload -->
+        <div class="toolbar-group">
+          <button class="tb-btn tb-btn--primary" @click="triggerFileInput">
+            <i class="fas fa-upload"></i>
             {{ $t('editor.toolbar.upload') }}
           </button>
           <input
@@ -17,70 +18,85 @@
           />
         </div>
 
-        <div class="toolbar-section">
-          <!-- Undo/Redo Buttons -->
+        <!-- Mitte: Bearbeitungsaktionen -->
+        <div class="toolbar-center">
+          <!-- History -->
+          <div class="toolbar-group">
+            <button
+              class="tb-btn tb-btn--icon"
+              :disabled="!canUndo"
+              :title="$t('editor.toolbar.undo', 'Rückgängig (Ctrl+Z)')"
+              @click="undo"
+            >
+              <i class="fas fa-undo"></i>
+            </button>
+            <button
+              class="tb-btn tb-btn--icon"
+              :disabled="!canRedo"
+              :title="$t('editor.toolbar.redo', 'Wiederholen (Ctrl+Y)')"
+              @click="redo"
+            >
+              <i class="fas fa-redo"></i>
+            </button>
+          </div>
+
+          <!-- Collage beenden -->
+          <div v-if="isCollageMode" class="toolbar-group">
+            <button
+              class="tb-btn tb-btn--icon"
+              :title="$t('editor.toolbar.exitCollage', 'Collage-Modus beenden')"
+              @click="exitCollageMode"
+            >
+              <i class="fas fa-th"></i>
+              {{ $t('editor.toolbar.exitCollage', 'Collage beenden') }}
+            </button>
+          </div>
+
+          <!-- Werkzeuge -->
+          <div class="toolbar-group">
+            <button
+              class="tb-btn tb-btn--icon"
+              :disabled="!currentImage && !isCollageMode"
+              :title="$t('editor.toolbar.addText', 'Text hinzufügen (T)')"
+              @click="addText"
+            >
+              <i class="fas fa-font"></i>
+            </button>
+            <button
+              class="tb-btn tb-btn--icon"
+              :disabled="!currentImage && !isCollageMode"
+              :title="$t('editor.toolbar.preview', 'Vorschau')"
+              @click="openPreview"
+            >
+              <i class="fas fa-eye"></i>
+            </button>
+            <button
+              class="tb-btn tb-btn--icon"
+              :disabled="!currentImage && !isCollageMode"
+              :title="$t('editor.toolbar.reset', 'Zurücksetzen')"
+              @click="resetFilters"
+            >
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
+
+          <!-- Löschen -->
+          <div class="toolbar-group">
+            <button
+              class="tb-btn tb-btn--icon tb-btn--danger"
+              :disabled="!currentImage && !isCollageMode"
+              :title="$t('editor.toolbar.clearImage', 'Bild entfernen')"
+              @click="clearImage"
+            >
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Rechts: Download -->
+        <div class="toolbar-group">
           <button
-            class="btn btn-secondary"
-            :disabled="!canUndo"
-            :title="$t('editor.toolbar.undo', 'Rückgängig')"
-            @click="undo"
-          >
-            <i class="fas fa-undo"></i>
-          </button>
-          <button
-            class="btn btn-secondary"
-            :disabled="!canRedo"
-            :title="$t('editor.toolbar.redo', 'Wiederholen')"
-            @click="redo"
-          >
-            <i class="fas fa-redo"></i>
-          </button>
-          <span class="toolbar-divider"></span>
-          <button
-            v-if="isCollageMode"
-            class="btn btn-secondary"
-            :title="$t('editor.toolbar.exitCollage', 'Collage-Modus beenden')"
-            @click="exitCollageMode"
-          >
-            <i class="fas fa-th"></i>
-            {{ $t('editor.toolbar.exitCollage', 'Collage beenden') }}
-          </button>
-          <span v-if="isCollageMode" class="toolbar-divider"></span>
-          <button
-            class="btn btn-secondary"
-            :disabled="!currentImage && !isCollageMode"
-            @click="addText"
-          >
-            <i class="fas fa-font"></i>
-            Text
-          </button>
-          <button
-            class="btn btn-secondary"
-            :disabled="!currentImage && !isCollageMode"
-            @click="openPreview"
-          >
-            <i class="fas fa-eye"></i>
-            {{ $t('editor.toolbar.preview', 'Vorschau') }}
-          </button>
-          <button
-            class="btn btn-secondary"
-            :disabled="!currentImage && !isCollageMode"
-            @click="resetFilters"
-          >
-            <i class="fas fa-sync-alt"></i>
-            {{ $t('editor.toolbar.reset') }}
-          </button>
-          <button
-            class="btn btn-danger"
-            :disabled="!currentImage && !isCollageMode"
-            :title="$t('editor.toolbar.clearImage', 'Bild entfernen')"
-            @click="clearImage"
-          >
-            <i class="fas fa-trash"></i>
-            {{ $t('editor.toolbar.clearImage', 'Löschen') }}
-          </button>
-          <button
-            class="btn btn-success"
+            class="tb-btn tb-btn--success"
             :disabled="(!currentImage && !isCollageMode) || isExporting"
             @click="downloadImage"
           >
@@ -140,16 +156,48 @@
           @drop.prevent="handleFileDrop"
         >
           <div v-if="!currentImage && !isCollageMode" class="empty-canvas">
-            <i class="fas fa-image"></i>
-            <h2>{{ $t('editor.canvas.empty.title') }}</h2>
-            <p>{{ $t('editor.canvas.empty.description') }}</p>
-            <button class="btn btn-primary btn-large" @click="triggerFileInput">
-              <i class="fas fa-file-upload"></i>
-              {{ $t('editor.canvas.empty.button') }}
-            </button>
-            <p class="paste-hint">
-              <kbd>Ctrl</kbd> + <kbd>V</kbd> {{ $t('editor.canvas.empty.pasteHint', 'oder Bild aus Zwischenablage einfügen') }}
-            </p>
+            <div class="empty-canvas__header">
+              <div class="empty-canvas__icon-wrap">
+                <i class="fas fa-image"></i>
+              </div>
+              <h2>{{ $t('editor.canvas.empty.title') }}</h2>
+              <p>{{ $t('editor.canvas.empty.description') }}</p>
+            </div>
+
+            <div class="upload-cards">
+              <!-- Datei wählen -->
+              <div class="upload-card upload-card--file" role="button" tabindex="0" @click="triggerFileInput" @keyup.enter="triggerFileInput">
+                <div class="upload-card__icon">
+                  <i class="fas fa-folder-open"></i>
+                </div>
+                <div class="upload-card__body">
+                  <strong>{{ $t('editor.canvas.empty.button') }}</strong>
+                  <span>JPG, PNG, WebP, HEIC &amp; mehr</span>
+                </div>
+              </div>
+
+              <!-- Drag & Drop -->
+              <div class="upload-card upload-card--drag">
+                <div class="upload-card__icon">
+                  <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <div class="upload-card__body">
+                  <strong>Drag &amp; Drop</strong>
+                  <span>Bild direkt hineinziehen</span>
+                </div>
+              </div>
+
+              <!-- Einfügen -->
+              <div class="upload-card upload-card--paste">
+                <div class="upload-card__icon">
+                  <i class="fas fa-clipboard"></i>
+                </div>
+                <div class="upload-card__body">
+                  <strong>Aus Zwischenablage</strong>
+                  <span><kbd>Ctrl</kbd> + <kbd>V</kbd></span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div v-else class="canvas-container">
@@ -2138,86 +2186,107 @@ function handlePaste(e) {
 
 .toolbar {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
+  padding: 0.6rem 1rem;
   background: var(--color-bg-secondary);
   border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
 }
 
-.toolbar-section {
+.toolbar-center {
   display: flex;
-  gap: 0.5rem;
   align-items: center;
+  gap: 0.375rem;
+  flex-wrap: wrap;
 }
 
-.toolbar-divider {
-  width: 1px;
-  height: 24px;
-  background: var(--color-border);
-  margin: 0 0.25rem;
-}
-
-.btn {
-  padding: 0.4rem 0.75rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+/* Visuelle Gruppen-Container */
+.toolbar-group {
   display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--color-bg, #fff);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 3px;
+}
+
+/* Basis-Button in der Toolbar */
+.tb-btn {
+  display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
   font-weight: 500;
-  font-size: 0.85rem;
-  transition: all 0.2s ease;
+  font-size: 0.82rem;
+  line-height: 1;
+  padding: 0.45rem 0.65rem;
+  transition: background 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  white-space: nowrap;
+  color: var(--color-text);
+  background: transparent;
+
+  i {
+    font-size: 0.85rem;
+  }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.38;
     cursor: not-allowed;
   }
 
   &:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: var(--color-bg-secondary);
   }
 
-  i {
-    font-size: 0.9rem;
+  &:active:not(:disabled) {
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.12);
   }
 }
 
-.btn-primary {
+/* Icon-only: feste Breite für gleichmäßiges Raster */
+.tb-btn--icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  justify-content: center;
+}
+
+/* Primär: Upload */
+.tb-btn--primary {
   background: var(--color-primary);
-  color: #f5f4d6;
+  color: #fff;
+  padding: 0.45rem 0.9rem;
 
   &:hover:not(:disabled) {
-    background: rgba(1, 79, 153, 0.9);
+    background: color-mix(in srgb, var(--color-primary) 88%, #000);
+    box-shadow: 0 2px 6px rgba(1, 79, 153, 0.3);
   }
 }
 
-.btn-secondary {
-  background: var(--color-secondary, #6c757d);
-  color: white;
+/* Erfolg: Download */
+.tb-btn--success {
+  background: var(--color-success, #22c55e);
+  color: #fff;
+  padding: 0.45rem 0.9rem;
 
   &:hover:not(:disabled) {
-    background: rgba(108, 117, 125, 0.9);
+    background: color-mix(in srgb, var(--color-success, #22c55e) 88%, #000);
+    box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
   }
 }
 
-.btn-success {
-  background: var(--color-success);
-  color: white;
+/* Gefahr: Löschen */
+.tb-btn--danger {
+  color: var(--color-danger, #dc3545);
 
   &:hover:not(:disabled) {
-    background: rgba(34, 197, 94, 0.9);
-  }
-}
-
-.btn-danger {
-  background: var(--color-danger, #dc3545);
-  color: white;
-
-  &:hover:not(:disabled) {
-    background: rgba(220, 53, 69, 0.9);
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--color-danger, #dc3545);
   }
 }
 
@@ -2933,45 +3002,151 @@ function handlePaste(e) {
 }
 
 .empty-canvas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 2rem 1rem;
+  max-width: 640px;
+  width: 100%;
+}
+
+.empty-canvas__header {
   text-align: center;
   color: var(--color-text-secondary);
 
-  i {
-    font-size: 5rem;
-    opacity: 0.3;
-    margin-bottom: 1rem;
-  }
-
   h2 {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0.75rem 0 0.35rem;
+    color: var(--color-text);
   }
 
   p {
-    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    margin: 0;
+    color: var(--color-text-secondary);
+  }
+}
+
+.empty-canvas__icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  background: var(--color-light-blue, rgba(1, 79, 153, 0.08));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+
+  i {
+    font-size: 2rem;
+    color: var(--color-primary);
+    opacity: 0.7;
+  }
+}
+
+/* Upload-Karten */
+.upload-cards {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+
+  @media (max-width: 560px) {
+    flex-direction: column;
+  }
+}
+
+.upload-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.25rem 1rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-bg-secondary);
+  text-align: center;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+
+  &__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    i {
+      font-size: 1.25rem;
+    }
   }
 
-  .btn-large {
-    padding: 1rem 2rem;
-    font-size: 1.1rem;
-  }
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
 
-  .paste-hint {
-    margin-top: 1rem;
-    margin-bottom: 0;
-    font-size: 0.85rem;
-    color: var(--color-text-muted, #888);
+    strong {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    span {
+      font-size: 0.78rem;
+      color: var(--color-text-secondary);
+      line-height: 1.4;
+    }
 
     kbd {
       display: inline-block;
-      padding: 0.15em 0.45em;
-      font-size: 0.8em;
+      padding: 0.1em 0.4em;
+      font-size: 0.75em;
       font-family: inherit;
-      background: var(--color-bg-secondary);
+      background: var(--color-bg);
       border: 1px solid var(--color-border);
       border-radius: 4px;
       box-shadow: 0 1px 0 var(--color-border);
-      line-height: 1.4;
+    }
+  }
+
+  /* Datei hochladen — klickbar */
+  &--file {
+    cursor: pointer;
+    border-color: var(--color-primary);
+
+    .upload-card__icon {
+      background: rgba(1, 79, 153, 0.1);
+      i { color: var(--color-primary); }
+    }
+
+    &:hover {
+      border-color: var(--color-primary);
+      box-shadow: 0 4px 16px rgba(1, 79, 153, 0.15);
+      transform: translateY(-2px);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+  }
+
+  /* Drag & Drop — passiv */
+  &--drag {
+    .upload-card__icon {
+      background: var(--color-light-gold, rgba(201, 152, 77, 0.15));
+      i { color: var(--color-accent, #c9984d); }
+    }
+  }
+
+  /* Paste — passiv */
+  &--paste {
+    .upload-card__icon {
+      background: rgba(80, 227, 194, 0.15);
+      i { color: var(--color-success, #50e3c2); }
     }
   }
 }
