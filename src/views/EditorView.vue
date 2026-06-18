@@ -605,23 +605,13 @@ async function loadImage(img) {
     return;
   }
 
-  // Set canvas size
-  const maxWidth = 1200;
-  const maxHeight = 800;
-  let width = img.width;
-  let height = img.height;
-
-  if (width > maxWidth || height > maxHeight) {
-    const ratio = Math.min(maxWidth / width, maxHeight / height);
-    width *= ratio;
-    height *= ratio;
-  }
-
-  canvas.value.width = width;
-  canvas.value.height = height;
+  // Set canvas size to original image resolution
+  // CSS (max-width/max-height) handles display scaling — canvas stores full resolution
+  canvas.value.width = img.width;
+  canvas.value.height = img.height;
 
   // Initialisiere ResizeManager mit korrektem Seitenverhältnis
-  resizeManager.initFromDimensions(width, height);
+  resizeManager.initFromDimensions(img.width, img.height);
 
   renderImage();
   updateImageInfo();
