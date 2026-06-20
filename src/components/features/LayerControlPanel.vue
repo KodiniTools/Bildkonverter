@@ -1297,6 +1297,7 @@ onUnmounted(() => {
 
 /* Sidebar-card treatment for each section */
 .panel-section {
+  flex-shrink: 0;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: 10px;
