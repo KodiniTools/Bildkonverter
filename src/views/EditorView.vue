@@ -182,8 +182,8 @@
                   <i class="fas fa-cloud-upload-alt"></i>
                 </div>
                 <div class="upload-card__body">
-                  <strong>Drag &amp; Drop</strong>
-                  <span>Bild direkt hineinziehen</span>
+                  <strong>{{ $t('editor.canvas.empty.dragDropTitle') }}</strong>
+                  <span>{{ $t('editor.canvas.empty.dragDropDesc') }}</span>
                 </div>
               </div>
 
@@ -193,7 +193,7 @@
                   <i class="fas fa-clipboard"></i>
                 </div>
                 <div class="upload-card__body">
-                  <strong>Aus Zwischenablage</strong>
+                  <strong>{{ $t('editor.canvas.empty.clipboardTitle') }}</strong>
                   <span><kbd>Ctrl</kbd> + <kbd>V</kbd></span>
                 </div>
               </div>
