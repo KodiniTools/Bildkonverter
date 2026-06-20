@@ -71,7 +71,11 @@
               <div class="layer-row">
                 <span class="layer-num">L{{ reversedLayers.indexOf(layer) + 1 }}</span>
                 <div class="layer-preview">
-                  <img :src="layer.thumbnail || layer.url" :alt="layer.name" />
+                  <img
+                    :src="layer.thumbnail || layer.url"
+                    :alt="layer.name"
+                    style="width: 48px; height: 48px; object-fit: cover; display: block; flex-shrink: 0;"
+                  />
                 </div>
                 <div class="layer-info">
                   <span class="layer-name">{{ layer.name.replace(/\.[^.]+$/, '').substring(0, 16) }}</span>
