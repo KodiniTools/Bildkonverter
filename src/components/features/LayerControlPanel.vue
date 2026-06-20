@@ -1377,6 +1377,7 @@ onUnmounted(() => {
   gap: 0.4rem;
   width: 100%;
   padding: 0.25rem;
+}
 
 .layer-item,
 .text-item {
