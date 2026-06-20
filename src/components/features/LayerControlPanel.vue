@@ -1404,6 +1404,7 @@ onUnmounted(() => {
 .text-item {
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
   background: var(--color-bg-secondary);
   border-radius: 6px;
   cursor: pointer;
