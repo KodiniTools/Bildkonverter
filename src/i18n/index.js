@@ -432,6 +432,9 @@ const de = {
         title: 'Kein Bild geladen',
         description: 'Lade ein Bild hoch um zu beginnen',
         button: 'Bild hochladen',
+        dragDropTitle: 'Drag & Drop',
+        dragDropDesc: 'Bild direkt hineinziehen',
+        clipboardTitle: 'Aus Zwischenablage',
       },
     },
     export: {
@@ -1581,6 +1584,9 @@ const en = {
         title: 'No Image Loaded',
         description: 'Upload an image to get started',
         button: 'Upload Image',
+        dragDropTitle: 'Drag & Drop',
+        dragDropDesc: 'Drop image here',
+        clipboardTitle: 'From Clipboard',
       },
     },
     export: {
