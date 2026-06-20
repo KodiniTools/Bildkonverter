@@ -1375,30 +1375,8 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  max-height: 320px;
-  overflow-y: auto;
-  overflow-x: hidden;
   width: 100%;
   padding: 0.25rem;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: var(--color-bg-secondary);
-    border-radius: 3px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: var(--color-border);
-    border-radius: 3px;
-
-    &:hover {
-      background: var(--color-primary);
-    }
-  }
-}
 
 .layer-item,
 .text-item {
@@ -1845,7 +1823,8 @@ onUnmounted(() => {
 
   .layer-list,
   .text-list {
-    max-height: 220px;
+    max-height: 40vh;
+    overflow-y: auto;
   }
 }
 </style>
