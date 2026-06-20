@@ -1375,6 +1375,7 @@ onUnmounted(() => {
   overflow-y: auto;
   overflow-x: hidden;
   width: 100%;
+  padding: 0.25rem;
 
   &::-webkit-scrollbar {
     width: 6px;
@@ -1422,6 +1423,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.4rem 0.5rem;
+  min-height: 56px;
 }
 
 .text-item {
@@ -1457,7 +1459,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
 
-  img {
+  :deep(img) {
     width: 100%;
     height: 100%;
     object-fit: cover;

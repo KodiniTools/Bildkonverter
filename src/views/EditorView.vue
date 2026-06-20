@@ -43,7 +43,7 @@
           <!-- Collage beenden -->
           <div v-if="isCollageMode" class="toolbar-group">
             <button
-              class="tb-btn tb-btn--icon"
+              class="tb-btn"
               :title="$t('editor.toolbar.exitCollage', 'Collage-Modus beenden')"
               @click="exitCollageMode"
             >
