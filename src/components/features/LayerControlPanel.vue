@@ -71,7 +71,7 @@
               <div class="layer-row">
                 <span class="layer-num">L{{ reversedLayers.indexOf(layer) + 1 }}</span>
                 <div class="layer-preview">
-                  <img :src="layer.url" :alt="layer.name" />
+                  <img :src="layer.thumbnail || layer.url" :alt="layer.name" />
                 </div>
                 <div class="layer-info">
                   <span class="layer-name">{{ layer.name.replace(/\.[^.]+$/, '').substring(0, 16) }}</span>
@@ -1371,25 +1371,26 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  max-height: 220px;
+  max-height: 320px;
   overflow-y: auto;
   overflow-x: hidden;
   width: 100%;
 
   &::-webkit-scrollbar {
-    width: 4px;
+    width: 6px;
   }
 
   &::-webkit-scrollbar-track {
-    background: transparent;
+    background: var(--color-bg-secondary);
+    border-radius: 3px;
   }
 
   &::-webkit-scrollbar-thumb {
     background: var(--color-border);
-    border-radius: 2px;
+    border-radius: 3px;
 
     &:hover {
-      background: var(--color-text-light);
+      background: var(--color-primary);
     }
   }
 }
@@ -1443,14 +1444,15 @@ onUnmounted(() => {
 }
 
 .layer-preview {
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
-  min-height: 40px;
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
   border-radius: 4px;
   overflow: hidden;
   flex-shrink: 0;
-  background: var(--color-bg);
+  background: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 10px 10px;
+  border: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1459,6 +1461,7 @@ onUnmounted(() => {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
   }
 }
 
@@ -1835,7 +1838,7 @@ onUnmounted(() => {
 
   .layer-list,
   .text-list {
-    max-height: 160px;
+    max-height: 220px;
   }
 }
 </style>

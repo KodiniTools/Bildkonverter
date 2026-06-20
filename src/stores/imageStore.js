@@ -640,6 +640,21 @@ export const useImageStore = defineStore('image', () => {
           flipY: false,
         };
 
+        // Thumbnail generieren (64x64 canvas data URL)
+        try {
+          const thumbCanvas = document.createElement('canvas');
+          thumbCanvas.width = 64;
+          thumbCanvas.height = 64;
+          const thumbCtx = thumbCanvas.getContext('2d');
+          const scale = Math.min(64 / img.width, 64 / img.height);
+          const tw = img.width * scale;
+          const th = img.height * scale;
+          thumbCtx.drawImage(img, (64 - tw) / 2, (64 - th) / 2, tw, th);
+          layer.thumbnail = thumbCanvas.toDataURL('image/jpeg', 0.7);
+        } catch {
+          layer.thumbnail = imageData.url;
+        }
+
         imageLayers.value.push(layer);
         selectedLayerId.value = layer.id;
 
