@@ -172,7 +172,7 @@
                 </div>
                 <div class="upload-card__body">
                   <strong>{{ $t('editor.canvas.empty.button') }}</strong>
-                  <span>JPG, PNG, WebP, HEIC &amp; mehr</span>
+                  <span>{{ $t('editor.canvas.empty.uploadDesc') }}</span>
                 </div>
               </div>
 
