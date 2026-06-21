@@ -18,7 +18,7 @@
         ref="fileInput"
         type="file"
         multiple
-        accept="image/*,.tiff,.tif,.heic,.heif"
+        accept="image/*,.tiff,.tif,.heic,.heif,.cr2,.cr3,.nef,.arw,.dng,.raf,.orf,.rw2,.pef,.x3f"
         style="display: none"
         @change="handleFileSelect"
       />
@@ -389,12 +389,12 @@ function handleDrop(event) {
 function needsBackendPreview(file) {
   const unsupportedTypes = ['image/tiff', 'image/heic', 'image/heif'];
   if (unsupportedTypes.includes(file.type)) return true;
-  return /\.(tiff?|heic|heif)$/i.test(file.name);
+  return /\.(tiff?|heic|heif|cr2|cr3|nef|arw|dng|raf|orf|rw2|pef|x3f)$/i.test(file.name);
 }
 
 function isImageFile(file) {
   if (file.type.startsWith('image/')) return true;
-  return /\.(jpe?g|png|gif|webp|bmp|svg|tiff?|heic|heif)$/i.test(file.name);
+  return /\.(jpe?g|png|gif|webp|bmp|svg|tiff?|heic|heif|cr2|cr3|nef|arw|dng|raf|orf|rw2|pef|x3f)$/i.test(file.name);
 }
 
 async function addFiles(fileList) {

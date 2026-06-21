@@ -68,14 +68,14 @@ const de = {
         formats: {
           question: 'Welche Bildformate werden unterstützt?',
           answer:
-            'Unser Editor unterstützt PNG, JPEG, WEBP, TIFF, GIF, HAIF und PDF Formate. Sie können Bilder hochladen und in jedes dieser Formate konvertieren.',
+            'Unser Editor unterstützt PNG, JPEG, WEBP, TIFF, HEIC/HEIF, GIF und PDF. Kamera-RAW-Formate (CR2, CR3, NEF, ARW, DNG, RAF, ORF, RW2, PEF) werden ebenfalls unterstützt – die Verarbeitung erfolgt dabei serverseitig.',
         },
         privacy: {
           question: 'Sind meine Bilder sicher und privat?',
           answer:
             'Ja, absolut. Der Schutz Ihrer Daten hat für uns höchste Priorität. Um transparent zu sein, hängt der genaue Prozess vom gewählten Dateiformat ab:\n\n' +
             'Für die meisten Formate: Wenn Sie gängige Formate wie JPG, PNG, WEBP und PDF konvertieren, findet die gesamte Verarbeitung zu 100% lokal in Ihrem Webbrowser statt. Ihre Bilder verlassen Ihr Gerät zu keinem Zeitpunkt. Dies ist die schnellste und privateste Methode, die wir für die Mehrheit unserer Formate anbieten.\n\n' +
-            'Für Spezialformate: Für komplexe Formate wie TIFF, GIF und HAIC ist eine serverseitige Verarbeitung auf unseren Servern nötig, da Browser diese Umwandlung (noch) nicht lokal durchführen können.\n\n' +
+            'Für Spezialformate: Für komplexe Formate wie TIFF, GIF, HEIC und Kamera-RAW (CR2, NEF, ARW, DNG u. a.) ist eine serverseitige Verarbeitung auf unseren Servern nötig, da Browser diese Umwandlung (noch) nicht lokal durchführen können.\n\n' +
             'Unser Datenschutz-Versprechen für diese Server-Verarbeitung:\n' +
             '1. Sicherer Upload: Ihre Datei wird SSL-verschlüsselt auf unseren Server übertragen.\n' +
             '2. Standort Deutschland: Unser Server steht in Deutschland und arbeitet streng nach DSGVO-Richtlinien.\n' +
@@ -150,7 +150,7 @@ const de = {
         answer:
           'Ja, absolut. Der Schutz Ihrer Daten hat für uns höchste Priorität. Um transparent zu sein, hängt der genaue Prozess vom gewählten Dateiformat ab:\n\n' +
           'Für die meisten Formate: Wenn Sie gängige Formate wie JPG, PNG, WEBP und PDF konvertieren, findet die gesamte Verarbeitung zu 100% lokal in Ihrem Webbrowser statt. Ihre Bilder verlassen Ihr Gerät zu keinem Zeitpunkt. Dies ist die schnellste und privateste Methode, die wir für die Mehrheit unserer Formate anbieten.\n\n' +
-          'Für Spezialformate: Für komplexe Formate wie TIFF, GIF und HAIC ist eine serverseitige Verarbeitung auf unseren Servern nötig, da Browser diese Umwandlung (noch) nicht lokal durchführen können.\n\n' +
+          'Für Spezialformate: Für komplexe Formate wie TIFF, GIF, HEIC und Kamera-RAW (CR2, NEF, ARW, DNG u. a.) ist eine serverseitige Verarbeitung auf unseren Servern nötig, da Browser diese Umwandlung (noch) nicht lokal durchführen können.\n\n' +
           'Unser Datenschutz-Versprechen für diese Server-Verarbeitung:\n' +
           '1. Sicherer Upload: Ihre Datei wird SSL-verschlüsselt auf unseren Server übertragen.\n' +
           '2. Standort Deutschland: Unser Server steht in Deutschland und arbeitet streng nach DSGVO-Richtlinien.\n' +
@@ -432,7 +432,7 @@ const de = {
         title: 'Kein Bild geladen',
         description: 'Lade ein Bild hoch um zu beginnen',
         button: 'Bild hochladen',
-        uploadDesc: 'JPG, PNG, WebP, HEIC & mehr',
+        uploadDesc: 'JPG, PNG, WebP, HEIC, RAW & mehr',
         dragDropTitle: 'Drag & Drop',
         dragDropDesc: 'Bild direkt hineinziehen',
         clipboardTitle: 'Aus Zwischenablage',
@@ -631,7 +631,7 @@ const de = {
       },
       formats: {
         title: 'Unterstützte Formate',
-        description: 'PNG, JPEG, WEBP, TIFF, GIF, HAIF und PDF',
+        description: 'PNG, JPEG, WEBP, TIFF, HEIC, RAW, GIF und PDF',
       },
       quality: {
         title: 'Hohe Qualität',
@@ -1104,7 +1104,7 @@ const de = {
     upload: {
       title: 'Bilder hochladen',
       description: 'Ziehen Sie Ihre Bilder hierher oder klicken Sie zum Auswählen',
-      hint: 'JPG, PNG, WebP, GIF, BMP und mehr',
+      hint: 'JPG, PNG, WebP, GIF, BMP, TIFF, HEIC, RAW (CR2, NEF, ARW, DNG …) und mehr',
     },
     settings: {
       title: 'Konvertierungs-Einstellungen',
@@ -1221,14 +1221,14 @@ const en = {
         formats: {
           question: 'Which image formats are supported?',
           answer:
-            'Our editor supports PNG, JPEG, WEBP, TIFF, GIF, HAIF, and PDF formats. You can upload images and convert them to any of these formats.',
+            'Our editor supports PNG, JPEG, WEBP, TIFF, HEIC/HEIF, GIF, and PDF. Camera RAW formats (CR2, CR3, NEF, ARW, DNG, RAF, ORF, RW2, PEF) are also supported – processing is done server-side.',
         },
         privacy: {
           question: 'Are my images safe and private?',
           answer:
             'Yes, absolutely. Protecting your data is our top priority. To be transparent, the exact process depends on the file format you choose:\n\n' +
             'For most formats: When you convert common formats like JPG, PNG, WEBP, and PDF, all processing happens 100% locally in your web browser. Your images never leave your device. This is the fastest and most private method we offer for the majority of our formats.\n\n' +
-            'For specialized formats: For complex formats like TIFF, GIF, and HAIC, server-side processing on our servers is necessary, as browsers cannot (yet) perform these conversions locally.\n\n' +
+            'For specialized formats: For complex formats like TIFF, GIF, HEIC, and camera RAW (CR2, NEF, ARW, DNG, etc.), server-side processing on our servers is necessary, as browsers cannot (yet) perform these conversions locally.\n\n' +
             'Our privacy promise for this server processing:\n' +
             '1. Secure upload: Your file is transferred to our server with SSL encryption.\n' +
             '2. Location Germany: Our server is located in Germany and operates strictly according to GDPR regulations.\n' +
@@ -1296,7 +1296,7 @@ const en = {
       formats: {
         question: 'Which image formats are supported?',
         answer:
-          'Our editor supports PNG, JPEG, WEBP, TIFF, GIF, HAIF, and PDF formats. You can upload images and convert them to any of these formats.',
+          'Our editor supports PNG, JPEG, WEBP, TIFF, HEIC/HEIF, GIF, and PDF. Camera RAW formats (CR2, CR3, NEF, ARW, DNG, RAF, ORF, RW2, PEF) are also supported – processing is done server-side.',
       },
       privacy: {
         question: 'Are my images safe and private?',
@@ -1585,7 +1585,7 @@ const en = {
         title: 'No Image Loaded',
         description: 'Upload an image to get started',
         button: 'Upload Image',
-        uploadDesc: 'JPG, PNG, WebP, HEIC & more',
+        uploadDesc: 'JPG, PNG, WebP, HEIC, RAW & more',
         dragDropTitle: 'Drag & Drop',
         dragDropDesc: 'Drop image here',
         clipboardTitle: 'From Clipboard',
@@ -1783,7 +1783,7 @@ const en = {
       },
       formats: {
         title: 'Supported Formats',
-        description: 'PNG, JPEG, WEBP, TIFF, GIF, HAIF, and PDF',
+        description: 'PNG, JPEG, WEBP, TIFF, HEIC, RAW, GIF, and PDF',
       },
       quality: {
         title: 'High Quality',
@@ -2252,7 +2252,7 @@ const en = {
     upload: {
       title: 'Upload Images',
       description: 'Drag your images here or click to select',
-      hint: 'JPG, PNG, WebP, GIF, BMP and more',
+      hint: 'JPG, PNG, WebP, GIF, BMP, TIFF, HEIC, RAW (CR2, NEF, ARW, DNG …) and more',
     },
     settings: {
       title: 'Conversion Settings',

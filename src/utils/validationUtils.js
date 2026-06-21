@@ -41,11 +41,29 @@ export class ValidationUtils {
       'image/tiff',
       'image/heic',
       'image/heif',
+      // RAW-Formate (MIME-Typen variieren je nach Browser/OS)
+      'image/x-canon-cr2',
+      'image/x-canon-cr3',
+      'image/x-nikon-nef',
+      'image/x-sony-arw',
+      'image/x-adobe-dng',
+      'image/x-fuji-raf',
+      'image/x-olympus-orf',
+      'image/x-panasonic-rw2',
+      'image/x-pentax-pef',
+      'image/x-sigma-x3f',
+      'image/x-raw',
+      'application/octet-stream', // Fallback: viele RAW-Dateien haben keinen spezifischen MIME-Typ
     ];
 
-    if (!allowedTypes.includes(file.type)) {
+    // RAW-Dateiendungen (werden per Extension erkannt, da MIME-Typ oft fehlt)
+    const rawExtensions = ['.cr2', '.cr3', '.nef', '.arw', '.dng', '.raf', '.orf', '.rw2', '.pef', '.x3f'];
+    const extension = file.name.toLowerCase().match(/\.[^.]+$/);
+    const isRawByExtension = extension && rawExtensions.includes(extension[0]);
+
+    if (!allowedTypes.includes(file.type) && !isRawByExtension) {
       errors.push(
-        `Ungültiger Dateityp: ${file.type}. Erlaubt: JPG, PNG, WEBP, GIF, BMP, SVG, TIFF, HEIC`
+        `Ungültiger Dateityp: ${file.type}. Erlaubt: JPG, PNG, WEBP, GIF, BMP, SVG, TIFF, HEIC, RAW (CR2, CR3, NEF, ARW, DNG, RAF, ORF, RW2, PEF)`
       );
     }
 
@@ -62,8 +80,8 @@ export class ValidationUtils {
       '.tif',
       '.heic',
       '.heif',
+      ...rawExtensions,
     ];
-    const extension = file.name.toLowerCase().match(/\.[^.]+$/);
 
     if (!extension || !allowedExtensions.includes(extension[0])) {
       errors.push('Ungültige Dateiendung');

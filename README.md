@@ -164,7 +164,7 @@ Unter `/batch` können mehrere Bilder gleichzeitig in ein Zielformat konvertiert
 
 ### Eingabe
 
-Bilder per Datei-Dialog oder Drag & Drop hinzufügen (JPEG, PNG, WebP, GIF, BMP, SVG, TIFF, HEIC/HEIF).
+Bilder per Datei-Dialog oder Drag & Drop hinzufügen (JPEG, PNG, WebP, GIF, BMP, SVG, TIFF, HEIC/HEIF, RAW: CR2, CR3, NEF, ARW, DNG, RAF, ORF, RW2, PEF).
 
 ### Ausgabeformate
 
@@ -212,6 +212,7 @@ Unter `/konvertieren/:format-paar` (z.B. `/konvertieren/jpg-to-webp`) gibt es de
 | SVG | ✅ | ✅ | ✅ |
 | TIFF | ✅ (API) | ✅ (API) | ✅ (API) |
 | HEIC / HEIF | ✅ (API) | ✅ (API) | – |
+| RAW (CR2, CR3, NEF, ARW, DNG, RAF, ORF, RW2, PEF) | ✅ (API) | ✅ (API) | – |
 
 ### Ausgabe
 
@@ -318,7 +319,7 @@ Für die Verarbeitung von TIFF, HEIC/HEIF, SVG und TIFF-Export wird eine Backend
 - Undo/Redo History-Vorschau
 - KI-gestützte Filter und Bildverbesserungen
 - Progressive Web App (PWA) für Offline-Nutzung
-- RAW-Format-Unterstützung (CR2, NEF, ARW)
+- RAW-Format-Unterstützung (CR2, NEF, ARW) ✅ *(implementiert, erfordert Backend)*
 
 ---
 

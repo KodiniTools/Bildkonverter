@@ -12,7 +12,7 @@
           <input
             ref="fileInput"
             type="file"
-            accept="image/*,.tiff,.tif,.heic,.heif"
+            accept="image/*,.tiff,.tif,.heic,.heif,.cr2,.cr3,.nef,.arw,.dng,.raf,.orf,.rw2,.pef,.x3f"
             style="display: none"
             @change="handleFileSelect"
           />
