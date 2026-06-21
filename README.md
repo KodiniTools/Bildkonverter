@@ -1,439 +1,331 @@
-# 🎨 Bildkonverter Pro - Schnelle Bildbearbeitung im Browser
+# Bildkonverter Pro – Schnelle Bildbearbeitung im Browser
 
-Eine leistungsstarke, moderne Bildbearbeitungs-Anwendung für den Browser. Bearbeiten, optimieren und konvertieren Sie Ihre Bilder direkt im Browser - ohne Installation, ohne Upload zu externen Servern.
+Eine leistungsstarke, moderne Bildbearbeitungs-Anwendung für den Browser. Bearbeiten, optimieren, konvertieren und verwalten Sie Ihre Bilder direkt im Browser – ohne Installation, ohne Upload zu externen Servern.
 
-## 📋 Inhaltsverzeichnis
+## Inhaltsverzeichnis
 
-- [Features](#-features)
-- [Bildbearbeitung](#-bildbearbeitung)
-- [Filter & Effekte](#-filter--effekte)
-- [Presets](#-presets)
-- [Export & Formate](#-export--formate)
-- [Text & Wasserzeichen](#-text--wasserzeichen)
-- [Tastaturkürzel](#-tastaturkürzel)
-- [Installation & Setup](#-installation--setup)
-- [Einstellungen](#-einstellungen)
-- [Technologie](#-technologie)
-
----
-
-## ✨ Features
-
-### 🖼️ Bildverarbeitung
-- **Mehrere Formate**: JPEG, PNG, WebP, AVIF
-- **Keine Dateigröße-Limits**: Verarbeitung läuft komplett im Browser
-- **Keine Cloud-Uploads**: Ihre Bilder bleiben auf Ihrem Gerät
-- **Echtzeit-Vorschau**: Sehen Sie Änderungen sofort
-- **Undo/Redo**: Machen Sie Änderungen rückgängig oder wiederholen Sie sie
-
-### 🎨 Umfangreiche Bearbeitungswerkzeuge
-- **8+ Bildfilter**: Helligkeit, Kontrast, Sättigung, Schärfe und mehr
-- **Professionelle Effekte**: Weichzeichner, Vignette, Schatten
-- **Farbmanipulation**: HSL-Anpassungen, Temperatur, Tint
-- **Bild-Transformationen**: Drehen, Spiegeln, Zuschneiden
-- **Text & Wasserzeichen**: Fügen Sie eigene Texte hinzu
-
-### ⚡ Benutzerfreundlichkeit
-- **Responsive Design**: Funktioniert auf Desktop, Tablet und Smartphone
-- **Zweisprachig**: Deutsch und Englisch
-- **Dark/Light Mode**: Passen Sie das Design Ihren Vorlieben an
-- **Tastaturkürzel**: Schneller Workflow für Power-User
-- **Filter-Presets**: Speichern Sie Ihre Lieblings-Einstellungen
+- [Features](#features)
+- [Editor](#editor)
+- [Galerie](#galerie)
+- [Collage-Modus](#collage-modus)
+- [Stapelverarbeitung](#stapelverarbeitung)
+- [Format-Konvertierung](#format-konvertierung)
+- [Unterstützte Formate](#unterstützte-formate)
+- [Tastaturkürzel](#tastaturkürzel)
+- [Installation & Setup](#installation--setup)
+- [Technologie](#technologie)
+- [Roadmap](#roadmap)
 
 ---
 
-## 🖌️ Bildbearbeitung
+## Features
 
-### Unterstützte Eingabeformate
-- **JPEG/JPG** - Das gängigste Bildformat
-- **PNG** - Mit Transparenz-Unterstützung
-- **WebP** - Modernes, effizientes Format
-- **AVIF** - Neuestes Format mit bester Kompression
-- **GIF** - Animationen (als Einzelbild)
-
-### Basis-Bearbeitung
-Die App bietet alle wichtigen Bildbearbeitungsfunktionen:
-
-#### Belichtung & Farbe
-- **Helligkeit**: Machen Sie Ihr Bild heller oder dunkler (-100 bis +100)
-- **Kontrast**: Verstärken oder verringern Sie den Kontrast (0 bis 200)
-- **Sättigung**: Von Schwarz-Weiß bis zu kräftigen Farben (0 bis 200)
-- **Farbtemperatur**: Wärmere oder kühlere Bildstimmung
-- **Tint**: Grün-/Magenta-Verschiebung für perfekte Farben
-
-#### Schärfe & Details
-- **Schärfe**: Erhöhen Sie die Bildschärfe für klarere Details
-- **Weichzeichner**: Sanfte Unschärfe für künstlerische Effekte
-- **Rauschunterdrückung**: Reduzieren Sie Bildrauschen
-
-#### Transformationen
-- **Drehen**: 90° im oder gegen den Uhrzeigersinn
-- **Spiegeln**: Horizontal oder vertikal
-- **Zuschneiden**: Freie Auswahl oder feste Seitenverhältnisse
-- **Skalieren**: Ändern Sie die Bildgröße in Pixel oder Prozent
+| Funktion | Beschreibung |
+|---|---|
+| Editor | Vollständige Bildbearbeitung mit Filtern, Transformationen, Text |
+| Galerie | Lokale Bildverwaltung mit Multi-Select |
+| Collage-Modus | Mehrere Bilder als Ebenen kombinieren |
+| Stapelverarbeitung | Mehrere Bilder gleichzeitig konvertieren |
+| Format-Konvertierung | Dedizierte Seiten für Format-Paare (z.B. JPG → WebP) |
+| Datenschutz | Alle Bilder bleiben lokal – kein Cloud-Upload |
+| Mehrsprachig | Deutsch und Englisch |
+| Dark/Light Mode | Systemabhängig oder manuell wählbar |
 
 ---
 
-## 🎭 Filter & Effekte
+## Editor
 
-Wenden Sie professionelle Filter mit einem Klick an oder passen Sie einzelne Parameter individuell an.
+Der Editor ist das Herzstück der Anwendung. Bilder können per Datei-Dialog, Drag & Drop oder Zwischenablage (Ctrl+V) geladen werden.
 
-### Vordefinierte Filter
-Die App bietet verschiedene voreingestellte Filter für schnelle Ergebnisse:
+### Eingabeformate
 
-#### 📸 Fotografische Filter
-- **Schwarz-Weiß**: Klassischer monochromer Look
-- **Sepia**: Vintage-Look mit warmem Braunton
-- **Grayscale**: Neutrale Graustufen-Konvertierung
-- **High Contrast**: Dramatische Kontrast-Verstärkung
-- **Soft Focus**: Weicher, traumhafter Effekt
+| Format | Verarbeitung |
+|---|---|
+| JPEG, PNG, WebP, GIF, BMP, SVG | Direkt im Browser |
+| TIFF, HEIC, HEIF | Via Backend-API (serverseitige Konvertierung) |
 
-#### 🌈 Kreative Effekte
-- **Vintage**: Retro-Look mit reduzierten Farben
-- **Cool Tone**: Kühle, bläuliche Farbgebung
-- **Warm Tone**: Warme, orange-rötliche Töne
-- **Vibrant**: Verstärkte Farbsättigung
-- **Faded**: Verblasster, pastelliger Look
+### Filter & Anpassungen
 
-#### ⭐ Spezialeffekte
-- **Vignette**: Dunkle Ecken für Fokus auf die Mitte
-- **Glow**: Sanftes Leuchten
-- **Sharpen**: Erhöhte Schärfe und Klarheit
-- **Blur**: Künstlerische Unschärfe
-- **Noise**: Film-Körnung hinzufügen
+Der Editor bietet 13 unabhängig einstellbare Filter:
 
-### Erweiterte Farbkorrektur
-Für präzise Anpassungen stehen professionelle Werkzeuge zur Verfügung:
-
-- **HSL-Anpassung**: Farbton (Hue), Sättigung (Saturation), Helligkeit (Lightness)
-- **Farbbalance**: Separate Kontrolle für Highlights, Midtones und Shadows
-- **Farbkurven**: Präzise Tonwert-Anpassungen
-- **Weißabgleich**: Korrektur von Farbstichen
-
----
-
-## 🎯 Presets
-
-Presets ermöglichen es Ihnen, Ihre Lieblings-Filtereinstellungen zu speichern und mit einem Klick anzuwenden.
-
-### Standard-Presets
-Die App kommt mit professionellen vordefinierten Presets:
-
-- **Portrait**: Optimiert für Hautfarben und weiche Kontraste
-- **Landschaft**: Verstärkte Farben für Natur und Himmel
-- **Food**: Warme, appetitliche Farbtöne
-- **Architektur**: Hohe Schärfe und klare Kontraste
-- **Nacht**: Optimierung für Low-Light-Aufnahmen
-- **Instagram-Styles**: Beliebte Social-Media-Looks
-
-### Eigene Presets erstellen
-1. Stellen Sie alle gewünschten Filter ein
-2. Klicken Sie auf "Preset speichern"
-3. Geben Sie einen Namen ein
-4. Das Preset erscheint in Ihrer Bibliothek
-
-### Preset-Verwaltung
-- **Speichern**: Unbegrenzt viele eigene Presets
-- **Umbenennen**: Presets jederzeit umbenennen
-- **Löschen**: Nicht mehr benötigte Presets entfernen
-- **Export**: Presets als Datei exportieren
-- **Import**: Presets von anderen Geräten importieren
-- **Teilen**: Presets mit anderen Nutzern teilen
-
----
-
-## 💾 Export & Formate
-
-Exportieren Sie Ihre bearbeiteten Bilder in verschiedenen Formaten und Qualitätsstufen.
-
-### Unterstützte Export-Formate
-
-#### JPEG (.jpg, .jpeg)
-- **Beste Verwendung**: Fotos, Bilder mit vielen Farben
-- **Vorteile**: Kleine Dateigröße, universell unterstützt
-- **Nachteile**: Keine Transparenz, verlustbehaftet
-- **Qualität**: Einstellbar von 0-100%
-
-#### PNG (.png)
-- **Beste Verwendung**: Grafiken, Logos, Bilder mit Transparenz
-- **Vorteile**: Verlustfrei, unterstützt Transparenz
-- **Nachteile**: Größere Dateigröße als JPEG
-- **Qualität**: Verlustfrei
-
-#### WebP (.webp)
-- **Beste Verwendung**: Moderne Websites
-- **Vorteile**: 30% kleinere Dateigröße als JPEG, Transparenz-Unterstützung
-- **Nachteile**: Nicht auf allen älteren Browsern
-- **Qualität**: Einstellbar, verlustfrei oder verlustbehaftet
-
-#### AVIF (.avif)
-- **Beste Verwendung**: Modernste Websites
-- **Vorteile**: 50% kleinere Dateigröße als JPEG bei gleicher Qualität
-- **Nachteile**: Noch eingeschränkte Browser-Unterstützung
-- **Qualität**: Einstellbar
-
-### Export-Einstellungen
-
-#### Qualität
-- **Maximum (100%)**: Beste Qualität, große Dateigröße
-- **Hoch (85-95%)**: Sehr gute Qualität, ausgewogene Größe (empfohlen)
-- **Mittel (70-84%)**: Gute Qualität für Web
-- **Niedrig (50-69%)**: Kleine Dateigröße, sichtbare Qualitätsverluste
-
-#### Größe
-- **Original**: Behält die ursprüngliche Auflösung
-- **Prozentual**: Skaliert um einen Prozentsatz (z.B. 50%, 75%, 150%)
-- **Feste Breite**: Setzt eine feste Breite, Höhe wird proportional angepasst
-- **Feste Höhe**: Setzt eine feste Höhe, Breite wird proportional angepasst
-- **Maximale Abmessungen**: Passt in die angegebenen Abmessungen, behält Seitenverhältnis
-
-#### Metadaten
-- **EXIF-Daten beibehalten**: Original-Kameradaten (Datum, Kameramodell, Einstellungen)
-- **Metadaten entfernen**: Für Datenschutz und kleinere Dateigröße
-
----
-
-## ✍️ Text & Wasserzeichen
-
-Fügen Sie professionelle Texte und Wasserzeichen zu Ihren Bildern hinzu.
-
-### Text-Features
-- **Mehrere Texte**: Fügen Sie beliebig viele Textelemente hinzu
-- **Positionierung**: Freie Platzierung oder vordefinierte Positionen (Ecken, Mitte)
-- **Schriftarten**: Auswahl aus verschiedenen Schriftarten
-- **Schriftgröße**: Flexibel einstellbar
-- **Farben**: Beliebige Textfarben
-- **Transparenz**: Von vollständig durchsichtig bis opak
-
-### Wasserzeichen
-Schützen Sie Ihre Bilder mit Wasserzeichen:
-
-#### Wasserzeichen-Typen
-- **Text-Wasserzeichen**: Copyright-Text, Ihr Name, URL
-- **Logo-Wasserzeichen**: Laden Sie Ihr Logo hoch
-- **Wiederholende Muster**: Wasserzeichen über das ganze Bild
-
-#### Wasserzeichen-Optionen
-- **Position**: 9 vordefinierte Positionen oder frei platzierbar
-- **Größe**: Anpassbare Größe
-- **Transparenz**: Dezentes oder auffälliges Wasserzeichen
-- **Drehung**: Diagonale oder horizontale Platzierung
-- **Abstand**: Vom Bildrand
-
-### Anwendungsfälle
-- **Copyright-Schutz**: Schützen Sie Ihre Fotos vor unerlaubter Nutzung
-- **Branding**: Fügen Sie Ihr Logo zu Produktfotos hinzu
-- **Social Media**: Signieren Sie Ihre Bilder
-- **Portfolio**: Markieren Sie Ihre professionellen Arbeiten
-
----
-
-## ⌨️ Tastaturkürzel
-
-Arbeiten Sie schneller mit praktischen Tastaturkürzeln.
-
-### Allgemeine Shortcuts
-- **Strg + O**: Bild öffnen
-- **Strg + S**: Bild speichern
-- **Strg + Z**: Rückgängig (Undo)
-- **Strg + Y** / **Strg + Shift + Z**: Wiederholen (Redo)
-- **Strg + 0**: Zoom zurücksetzen (100%)
-- **Esc**: Dialog schließen
-
-### Bearbeitung
-- **R**: Um 90° nach rechts drehen
-- **L**: Um 90° nach links drehen
-- **H**: Horizontal spiegeln
-- **V**: Vertikal spiegeln
-- **C**: Zuschneiden aktivieren
-- **F**: Filter-Panel öffnen/schließen
-
-### Ansicht
-- **+** / **=**: Hineinzoomen
-- **-**: Herauszoomen
-- **Leertaste + Maus**: Bild verschieben (Hand-Werkzeug)
-- **F11**: Vollbild-Modus
+| Filter | Bereich | Beschreibung |
+|---|---|---|
+| Helligkeit | 0–200 % | Bild aufhellen oder abdunkeln |
+| Kontrast | 0–200 % | Kontrast verstärken oder abschwächen |
+| Sättigung | 0–200 % | Farbintensität von grau bis kräftig |
+| Belichtung | –100 bis +100 | Globale Belichtungskorrektur |
+| Lichter | –100 bis +100 | Helle Bildbereiche gezielt anpassen |
+| Schatten | –100 bis +100 | Dunkle Bildbereiche gezielt anpassen |
+| Farbton | –180 bis +180° | Gesamten Farbkreis verschieben |
+| Schärfe | 0–100 % | Bilddetails schärfen |
+| Weichzeichner | 0–20 px | Künstlerische Unschärfe |
+| Sepia / Wärme | 0–100 % | Warmton-Effekt |
+| Graustufen | 0–100 % | Teilweise oder vollständige Entsättigung |
+| Invertieren | 0–100 % | Farben umkehren |
+| Vignette | 0–100 % | Dunkle Randabschattung |
 
 ### Presets
-- **1-9**: Preset 1 bis 9 anwenden
-- **Strg + P**: Preset speichern
-- **Alt + P**: Preset-Manager öffnen
+
+Sechs vordefinierte Filter-Presets für schnelle Ergebnisse:
+
+- **Normal** – Alle Filter zurückgesetzt
+- **Vintage** – Retro-Look mit reduzierten Farben
+- **Schwarz/Weiß** – Neutrales Graustufenbild
+- **Lebendig** – Verstärkte Sättigung und Kontrast
+- **Kalt** – Kühle, bläuliche Farbgebung
+- **Warm** – Warme, orange-rötliche Töne
+
+### Transformationen
+
+- **Zuschneiden** – Frei oder mit festem Seitenverhältnis (1:1, 4:3, 16:9, 3:2, Kreis)
+- **Drehen** – 90° links/rechts sowie freie Gradzahl
+- **Spiegeln** – Horizontal oder vertikal
+- **Skalieren** – Breite/Höhe in Pixel mit optionalem Seitenverhältnis-Lock
+
+### Text
+
+- Beliebig viele Textelemente hinzufügen
+- Schriftart, Schriftgröße, Farbe, Deckkraft, Drehung
+- Textkontur (Breite und Farbe)
+- Textschatten (Unschärfe, Versatz, Farbe)
+- Freie Positionierung per Drag auf dem Canvas
+
+### Export (Editor)
+
+Ausgabeformate: **JPEG, PNG, WebP, AVIF**
+
+- Qualität einstellbar (0–100 %)
+- PNG: Transparenter Hintergrund optional
+- Dateiname wird automatisch generiert
 
 ---
 
-## 🚀 Installation & Setup
+## Galerie
+
+Die Galerie ermöglicht die lokale Verwaltung von Bildern innerhalb der Sitzung.
+
+### Funktionen
+
+- Bilder per Datei-Dialog oder Drag & Drop hochladen
+- Vorschau-Thumbnails für alle Bilder
+- Einzelbild in den Editor öffnen (Handoff)
+- **Multi-Select**: Mehrere Bilder gleichzeitig auswählen
+- Ausgewählte Bilder als Collage in den Editor übergeben
+- Bilder einzeln herunterladen oder löschen
+
+> Die Galerie ist sitzungsbasiert – Bilder werden nicht dauerhaft gespeichert.
+
+---
+
+## Collage-Modus
+
+Der Collage-Modus wird aktiviert, wenn aus der Galerie mehrere Bilder ausgewählt und als Collage geöffnet werden.
+
+### Ebenen-Panel (rechte Sidebar)
+
+Jede importierte Bilddatei wird als eigene Ebene geladen:
+
+- **Thumbnail-Vorschau** jeder Ebene mit Name und Abmessungen
+- **Sichtbarkeit** ein-/ausschalten
+- **Ebenen-Reihenfolge** per Auf/Ab-Buttons ändern
+- **Ebene duplizieren**
+- **Ebene löschen**
+
+### Pro Ebene einstellbar
+
+| Eigenschaft | Optionen |
+|---|---|
+| Position | X/Y in Pixel |
+| Größe | Breite/Höhe mit optionalem Seitenverhältnis-Lock |
+| Rotation | –180° bis +180° |
+| Spiegelung | Horizontal, vertikal |
+| Deckkraft | 0–100 % |
+| Filter | Helligkeit, Kontrast, Sättigung, Graustufen |
+| Umrandung | Breite, Farbe, Radius |
+| Schlagschatten | Aktivierbar mit Versatz, Unschärfe, Farbe, Deckkraft |
+
+### Canvas-Hintergrund
+
+Hintergrundfarbe frei wählbar (inkl. Transparenz).
+
+### Text im Collage-Modus
+
+Texte können auch im Collage-Modus hinzugefügt werden (Tab „Text" im Ebenen-Panel).
+
+### Export
+
+Collage wird als flaches Bild exportiert – identisch zum normalen Editor-Export.
+
+---
+
+## Stapelverarbeitung
+
+Unter `/batch` können mehrere Bilder gleichzeitig in ein Zielformat konvertiert werden.
+
+### Eingabe
+
+Bilder per Datei-Dialog oder Drag & Drop hinzufügen (JPEG, PNG, WebP, GIF, BMP, SVG, TIFF, HEIC/HEIF).
+
+### Ausgabeformate
+
+| Format | Anmerkung |
+|---|---|
+| JPG | Qualität einstellbar |
+| PNG | Verlustfrei |
+| WebP | Qualität einstellbar |
+| GIF | |
+| BMP | |
+| TIFF | Via Backend-API |
+| PDF | Einzelne PDFs oder zusammengeführtes Dokument |
+| SVG | Via Backend-API |
+
+### Einstellungen
+
+- **Format** – Zielformat für alle Bilder
+- **Qualität** – 1–100 % (wo anwendbar)
+- **Größe ändern** – Optional: maximale Breite/Höhe
+- **PDF-Modus** – Einzelne PDFs oder ein zusammengeführtes PDF-Dokument
+
+### Verarbeitung
+
+Bilder werden sequenziell verarbeitet und einzeln oder als ZIP-Archiv heruntergeladen.
+
+---
+
+## Format-Konvertierung
+
+Unter `/konvertieren/:format-paar` (z.B. `/konvertieren/jpg-to-webp`) gibt es dedizierte Seiten für häufige Format-Konvertierungen. Diese Seiten sind SEO-optimiert und bieten eine vereinfachte Benutzeroberfläche für ein spezifisches Konvertierungspaar.
+
+---
+
+## Unterstützte Formate
+
+### Eingabe
+
+| Format | Editor | Batch | Konvertierung |
+|---|---|---|---|
+| JPEG / JPG | ✅ | ✅ | ✅ |
+| PNG | ✅ | ✅ | ✅ |
+| WebP | ✅ | ✅ | ✅ |
+| GIF | ✅ | ✅ | ✅ |
+| BMP | ✅ | ✅ | ✅ |
+| SVG | ✅ | ✅ | ✅ |
+| TIFF | ✅ (API) | ✅ (API) | ✅ (API) |
+| HEIC / HEIF | ✅ (API) | ✅ (API) | – |
+
+### Ausgabe
+
+| Format | Editor | Batch |
+|---|---|---|
+| JPEG | ✅ | ✅ |
+| PNG | ✅ | ✅ |
+| WebP | ✅ | ✅ |
+| AVIF | ✅ | – |
+| GIF | – | ✅ |
+| BMP | – | ✅ |
+| TIFF | – | ✅ (API) |
+| PDF | – | ✅ |
+| SVG | – | ✅ (API) |
+
+> **API** = Konvertierung erfolgt serverseitig über die Backend-API. Erfordert aktive Serververbindung.
+
+---
+
+## Tastaturkürzel
+
+### Editor
+
+| Kürzel | Aktion |
+|---|---|
+| `Ctrl + Z` | Rückgängig (Undo) |
+| `Ctrl + Y` / `Ctrl + Shift + Z` | Wiederholen (Redo) |
+| `Ctrl + V` | Bild aus Zwischenablage einfügen |
+| `T` | Text hinzufügen |
+| `Esc` | Zuschneiden abbrechen / Dialog schließen |
+
+---
+
+## Installation & Setup
 
 ### Online-Nutzung
-Die App kann direkt im Browser genutzt werden - keine Installation erforderlich!
 
-### Lokale Installation (für Entwickler)
+Die App kann direkt im Browser genutzt werden – keine Installation erforderlich.
+
+### Lokale Installation
 
 ```bash
 # Repository klonen
-git clone [repository-url]
-
-# In das Projektverzeichnis wechseln
+git clone https://github.com/KodiniTools/Bildkonverter.git
 cd Bildkonverter
 
-# Dependencies installieren
+# Abhängigkeiten installieren
 npm install
 
-# Development-Server starten
+# Entwicklungsserver starten
 npm run dev
 
-# Für Production bauen
+# Produktions-Build erstellen
 npm run build
 ```
 
-Die Anwendung läuft standardmäßig auf http://localhost:5173
+Die Anwendung läuft standardmäßig auf `http://localhost:5173`.
+
+### Backend-API (optional)
+
+Für die Verarbeitung von TIFF, HEIC/HEIF, SVG und TIFF-Export wird eine Backend-API benötigt. Ohne aktive API-Verbindung sind diese Formate nicht verfügbar – alle anderen Funktionen bleiben vollständig nutzbar.
 
 ---
 
-## ⚙️ Einstellungen
+## Technologie
 
-Passen Sie die App nach Ihren Wünschen an.
+### Frontend
 
-### Design & Darstellung
-
-#### Theme
-- **Hell**: Klassisches helles Design
-- **Dunkel**: Augenschonender Dark Mode
-- **Automatisch**: Passt sich Ihrem System an
-
-#### Sprache
-- **Deutsch**: Vollständige deutsche Übersetzung
-- **English**: Complete English translation
-- Die Spracheinstellung wird gespeichert und beim nächsten Besuch wiederhergestellt
-
-### Performance
-
-#### Vorschau-Qualität
-- **Hoch**: Beste Qualität, höherer Ressourcenverbrauch
-- **Mittel**: Ausgewogen (empfohlen)
-- **Niedrig**: Schnellere Verarbeitung auf älteren Geräten
-
-#### Auto-Vorschau
-- **Ein**: Änderungen werden sofort angezeigt
-- **Aus**: Vorschau wird nur auf Knopfdruck aktualisiert (spart Ressourcen)
-
-### Export-Standardwerte
-
-Setzen Sie Ihre bevorzugten Export-Einstellungen:
-- **Standard-Format**: JPEG, PNG, WebP oder AVIF
-- **Standard-Qualität**: 0-100%
-- **Dateinamens-Schema**: Original, mit Datum, mit Zeitstempel
-
-### Datenschutz & Sicherheit
-
-- **Offline-First**: Alle Bilder werden lokal verarbeitet
-- **Keine Uploads**: Ihre Bilder verlassen nie Ihr Gerät
-- **Keine Tracking**: Keine Analyse-Tools oder Cookies
-- **EXIF-Daten**: Wählen Sie, ob Metadaten beibehalten werden sollen
-
----
-
-## 🔧 Technologie
-
-### Frontend-Framework
-Diese Anwendung ist entwickelt mit modernen Web-Technologien:
-- **Vue 3** - Progressives JavaScript-Framework
-- **Vite** - Schneller Build-Tool
-- **SCSS** - Strukturiertes CSS
-- **i18n** - Mehrsprachigkeit (DE/EN)
+| Technologie | Zweck |
+|---|---|
+| Vue 3 | Reaktives UI-Framework (Composition API) |
+| Vite | Build-Tool und Dev-Server |
+| Pinia | State Management |
+| Vue Router | Client-seitiges Routing mit SEO-Metadaten |
+| Vue i18n | Mehrsprachigkeit (DE / EN) |
+| SCSS | Strukturiertes CSS mit Variablen und Verschachtelung |
 
 ### Browser-APIs
-- **Canvas API** - Bildverarbeitung in Echtzeit
-- **File API** - Lokale Dateiverarbeitung
-- **LocalStorage** - Speicherung von Einstellungen und Presets
-- **Web Workers** - Performance-Optimierung (geplant)
 
-### Kompatibilität
-Die App funktioniert in allen modernen Browsern:
-- ✅ Chrome/Edge (Version 90+)
-- ✅ Firefox (Version 88+)
-- ✅ Safari (Version 14+)
-- ✅ Opera (Version 76+)
+| API | Verwendung |
+|---|---|
+| Canvas API | Bildverarbeitung und Rendering |
+| File API | Lokales Lesen von Bilddateien |
+| FileReader API | Base64-Konvertierung für Galerie |
+| Clipboard API | Einfügen aus Zwischenablage |
+| URL.createObjectURL | Effizientes Laden von Bildern |
 
-### Systemanforderungen
-- Moderner Browser mit JavaScript aktiviert
-- Mindestens 2 GB RAM empfohlen
-- Keine zusätzliche Software erforderlich
+### Browser-Kompatibilität
 
----
-
-## 💡 Tipps & Tricks
-
-### Workflow-Optimierung
-1. **Nutzen Sie Presets**: Speichern Sie häufig verwendete Filter-Kombinationen
-2. **Tastaturkürzel**: Lernen Sie die wichtigsten Shortcuts für schnelleres Arbeiten
-3. **Batch-Verarbeitung**: Wenden Sie das gleiche Preset auf mehrere Bilder an
-4. **Vorher-Nachher**: Nutzen Sie die Vergleichsfunktion um Änderungen zu bewerten
-
-### Qualität vs. Dateigröße
-- Für Web: JPEG mit 80-85% Qualität ist meist optimal
-- Für Archivierung: PNG oder JPEG mit 95-100% Qualität
-- Für moderne Websites: WebP spart 30% Dateigröße bei gleicher Qualität
-- Für beste Kompression: AVIF (wenn Browser-Support vorhanden)
-
-### Häufige Anwendungsfälle
-
-#### Social Media Optimierung
-1. Bild öffnen
-2. Preset "Instagram" oder "Facebook" wählen
-3. Optional: Wasserzeichen hinzufügen
-4. Als JPEG (85% Qualität) exportieren
-
-#### Produktfotos
-1. Hintergrund aufhellen (Helligkeit +10-20)
-2. Kontrast leicht erhöhen (+10)
-3. Schärfe erhöhen
-4. Logo-Wasserzeichen hinzufügen
-5. Als PNG oder JPEG (95% Qualität) exportieren
-
-#### Schnelle Korrekturen
-- **Zu dunkel**: Helligkeit +20, eventuell Schatten aufhellen
-- **Zu blass**: Sättigung +15, Kontrast +10
-- **Unscharf**: Schärfe-Filter anwenden
-- **Farbstich**: Farbtemperatur oder Tint anpassen
-
-### Performance-Tipps
-- Bei großen Bildern (>10 MP): Auto-Vorschau ausschalten
-- Für schnellere Bearbeitung: Bild zuerst auf Zielgröße skalieren
-- Browser-Tab aktiv lassen für beste Performance
-
----
-## 👨‍💻 Author
-**Dinko Ramić** - [Kodini Tools](https://kodinitools.com)
+| Browser | Mindestversion |
+|---|---|
+| Chrome / Edge | 90+ |
+| Firefox | 88+ |
+| Safari | 14+ |
+| Opera | 76+ |
 
 ---
 
-## 📄 Lizenz
+## Roadmap
 
-MIT License - Siehe LICENSE-Datei für Details
-
----
-
-## 🙋 Support & Feedback
-
-Bei Fragen, Problemen oder Verbesserungsvorschlägen:
-- **GitHub Issues**: Fehler melden oder Features vorschlagen
-- **Diskussionen**: Erfahrungen austauschen und Tipps teilen
-- **E-Mail**: Direkter Support über die Website
+- Histogramm-Anzeige
+- Freihand-Zuschnitt und Formen
+- Farbpaletten-Extraktion aus Bildern
+- Undo/Redo History-Vorschau
+- KI-gestützte Filter und Bildverbesserungen
+- Progressive Web App (PWA) für Offline-Nutzung
+- RAW-Format-Unterstützung (CR2, NEF, ARW)
 
 ---
 
-## 🚀 Roadmap
+## Autor
 
-Geplante Features für zukünftige Versionen:
-- 📊 Histogramm-Anzeige
-- 🔲 Erweiterte Zuschnitt-Funktionen (Freihand, Formen)
-- 🎨 Farbpaletten-Extraktion aus Bildern
-- 📸 Batch-Verarbeitung mehrerer Bilder
-- 🔄 Erweiterte Undo/Redo mit History-Vorschau
-- 🎯 KI-gestützte Filter und Verbesserungen
-- 📱 Progressive Web App (PWA) für Offline-Nutzung
-- 🖼️ Unterstützung für RAW-Formate
+**Dinko Ramić** – [KodiniTools](https://kodinitools.com)
 
----
+## Lizenz
 
-**Viel Spaß beim Bearbeiten Ihrer Bilder! 🎨✨**
+MIT License – Siehe `LICENSE` für Details.
