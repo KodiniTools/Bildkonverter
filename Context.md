@@ -266,7 +266,7 @@ isProcessing, isImageLoaded, isDragging
 
 | Methode | Pfad | Beschreibung |
 |---------|------|-------------|
-| `POST` | `/convert-image` | Bildkonvertierung (TIFF, HEIC, SVG) |
+| `POST` | `/convert-image` | Bildkonvertierung (TIFF, HEIC, RAW, SVG) |
 | `GET` | `/formats` | Unterstützte Formate abrufen |
 | `POST` | `/upload` | Bild hochladen |
 
@@ -274,7 +274,7 @@ isProcessing, isImageLoaded, isDragging
 - `ApiClient.convertImage(blob, format, filename, options)` – FormData-Upload mit Quality-Option
 - `ApiClient.checkBackendAvailability()` – Health-Check mit 5s Timeout
 
-**Wann wird das Backend benötigt?** TIFF- und HEIC/HEIF-Eingabe sowie TIFF- und SVG-Export erfordern eine aktive Backend-Verbindung. Alle anderen Formate laufen vollständig im Browser.
+**Wann wird das Backend benötigt?** TIFF-, HEIC/HEIF- und RAW-Eingabe (CR2, CR3, NEF, ARW, DNG, RAF, ORF, RW2, PEF) sowie TIFF- und SVG-Export erfordern eine aktive Backend-Verbindung. Alle anderen Formate laufen vollständig im Browser.
 
 ---
 

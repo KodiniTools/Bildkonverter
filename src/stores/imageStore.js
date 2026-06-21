@@ -139,11 +139,14 @@ export const useImageStore = defineStore('image', () => {
 
       isProcessing.value = true;
 
-      // Browser-inkompatible Formate (TIFF, HEIC) via Backend zu PNG konvertieren
+      // Browser-inkompatible Formate (TIFF, HEIC, RAW) via Backend zu PNG konvertieren
       let url;
       const unsupportedTypes = ['image/tiff', 'image/heic', 'image/heif'];
+      const rawExtensionPattern = /\.(cr2|cr3|nef|arw|dng|raf|orf|rw2|pef|x3f)$/i;
       const needsConversion =
-        unsupportedTypes.includes(file.type) || /\.(tiff?|heic|heif)$/i.test(file.name);
+        unsupportedTypes.includes(file.type) ||
+        /\.(tiff?|heic|heif)$/i.test(file.name) ||
+        rawExtensionPattern.test(file.name);
 
       if (needsConversion) {
         const pngBlob = await ApiClient.convertImage(file, 'png', file.name, {});
