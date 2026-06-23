@@ -101,7 +101,7 @@
             @click="downloadImage"
           >
             <i :class="isExporting ? 'fas fa-spinner fa-spin' : 'fas fa-download'"></i>
-            {{ isExporting ? 'Exportiere...' : $t('editor.toolbar.download') }}
+            {{ isExporting ? $t('toast.editor.exporting', 'Exportiere...') : $t('editor.toolbar.download') }}
           </button>
         </div>
       </div>
@@ -330,6 +330,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useImageStore } from '@/stores/imageStore';
 import { useTextModal } from '@/composables/useTextModal';
+import { useConfirm } from '@/composables/useConfirm';
 import { useCrop, ASPECT_RATIO_PRESETS } from '@/composables/useCrop';
 import { useTransform } from '@/composables/useTransform';
 import { useFilterManagement } from '@/composables/useFilterManagement';
@@ -357,6 +358,7 @@ const route = useRoute();
 const router = useRouter();
 const imageStore = useImageStore();
 const textModal = useTextModal();
+const { confirm: confirmDialog } = useConfirm();
 
 // ===== CORE REFS =====
 const fileInput = ref(null);
@@ -619,14 +621,16 @@ async function loadImage(img) {
   initTextHistory(); // Initialisiere Text-History für neues Bild
 }
 
-function resetFilters() {
+async function resetFilters() {
   if (!currentImage.value || !originalImage.value) return;
 
-  // Bestätigung vom Benutzer
-  const confirmReset = confirm(
-    'Do you really want to discard all changes?\n\nThe image will be reset to its original state. All filters, texts, crops and transformations will be lost.'
-  );
-  if (!confirmReset) return;
+  const confirmed = await confirmDialog(t('confirm.editor.resetMessage'), {
+    title: t('confirm.editor.resetTitle'),
+    confirmText: t('confirm.reset'),
+    cancelText: t('confirm.cancel'),
+    variant: 'warning',
+  });
+  if (!confirmed) return;
 
   // Filter und Hintergrund über Composable zurücksetzen
   filterManagement.resetAll();
@@ -673,9 +677,8 @@ function resetFilters() {
 
   console.log('✅ Bild auf Originalzustand zurückgesetzt');
 
-  // Toast-Benachrichtigung
   if (window.$toast) {
-    window.$toast.success('Image has been reset to its original state');
+    window.$toast.success(t('toast.editor.imageReset', 'Bild zurückgesetzt'));
   }
 }
 
@@ -686,15 +689,20 @@ function exitCollageMode() {
   router.push('/gallery');
 }
 
-function clearImage() {
+async function clearImage() {
   if (!currentImage.value && !isCollageMode.value) return;
 
-  // Bestätigung vom Benutzer
   const confirmMessage = isCollageMode.value
-    ? 'Möchten Sie die Collage wirklich entfernen? Alle Layer und Änderungen gehen verloren.'
-    : 'Möchten Sie das Bild wirklich entfernen? Alle Änderungen gehen verloren.';
-  const confirmDelete = confirm(confirmMessage);
-  if (!confirmDelete) return;
+    ? t('confirm.editor.clearCollageMessage')
+    : t('confirm.editor.clearMessage');
+  const confirmTitle = t('confirm.editor.clearTitle');
+  const confirmed = await confirmDialog(confirmMessage, {
+    title: confirmTitle,
+    confirmText: t('confirm.delete'),
+    cancelText: t('confirm.cancel'),
+    variant: 'danger',
+  });
+  if (!confirmed) return;
 
   // Im Collage-Modus: Layer löschen
   if (isCollageMode.value) {
@@ -850,8 +858,6 @@ async function downloadImage() {
     // Error-Toast anzeigen
     if (window.$toast) {
       window.$toast.error(`Export fehlgeschlagen: ${error.message}`);
-    } else {
-      alert(`Export fehlgeschlagen: ${error.message}`);
     }
   } finally {
     isExporting.value = false;

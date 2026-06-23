@@ -5,6 +5,7 @@
 
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 // Seitenverhältnis-Presets
 export const ASPECT_RATIO_PRESETS = [
@@ -20,8 +21,8 @@ export const ASPECT_RATIO_PRESETS = [
 const RESIZE_HANDLES = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
 
 export function useCrop() {
-  // i18n für Übersetzungen
   const { t } = useI18n();
+  const { confirm: confirmDialog } = useConfirm();
 
   // State
   const cropMode = ref(false);
@@ -629,22 +630,24 @@ export function useCrop() {
     }
   }
 
-  function undoCrop(context) {
+  async function undoCrop(context) {
     if (!hasCropped.value || !beforeCropImage.value) {
-      console.warn('Kein gespeichertes Bild zum Wiederherstellen vorhanden');
       if (window.$toast) {
         window.$toast.warning(t('toast.crop.undoNotAvailable'));
       }
       return;
     }
 
-    // Bestätigung vom Benutzer
-    const confirmUndo = confirm(
-      'Möchten Sie den Zuschnitt rückgängig machen und das Original-Bild wiederherstellen?'
+    const confirmed = await confirmDialog(
+      'Möchten Sie den Zuschnitt rückgängig machen und das Original-Bild wiederherstellen?',
+      {
+        title: 'Zuschnitt rückgängig?',
+        confirmText: 'Rückgängig',
+        cancelText: 'Abbrechen',
+        variant: 'warning',
+      }
     );
-    if (!confirmUndo) return;
-
-    console.log('Stelle Original-Bild vor Crop wieder her...');
+    if (!confirmed) return;
 
     const { imageStore } = context;
 

@@ -1000,6 +1000,32 @@ const de = {
       downloadStarted: '{filename} wird heruntergeladen',
       uploadReceived: 'Bild empfangen – Konvertierung läuft...',
     },
+    editor: {
+      imageDeleted: 'Bild erfolgreich gelöscht',
+      imageReset: 'Bild auf Originalzustand zurückgesetzt',
+      exportSuccess: 'Bild als {format} exportiert',
+      exporting: 'Exportiere...',
+    },
+    network: {
+      online: 'Verbindung wiederhergestellt',
+      offline: 'Keine Verbindung – du arbeitest offline',
+    },
+  },
+  confirm: {
+    cancel: 'Abbrechen',
+    delete: 'Löschen',
+    reset: 'Zurücksetzen',
+    editor: {
+      resetTitle: 'Alle Änderungen verwerfen?',
+      resetMessage: 'Das Bild wird auf den Originalzustand zurückgesetzt. Alle Filter, Texte, Zuschnitte und Transformationen gehen verloren.',
+      clearTitle: 'Bild entfernen?',
+      clearMessage: 'Möchten Sie das Bild wirklich entfernen? Alle Änderungen gehen verloren.',
+      clearCollageMessage: 'Möchten Sie die Collage wirklich entfernen? Alle Layer und Änderungen gehen verloren.',
+      deleteTextTitle: 'Text löschen?',
+      deleteTextMessage: 'Diesen Text wirklich löschen?',
+      clearTextsTitle: 'Alle Texte löschen?',
+      clearTextsMessage: 'Wirklich alle {count} Texte löschen?',
+    },
   },
   layerPanel: {
     tabs: {
@@ -2147,6 +2173,32 @@ const en = {
       error: 'Conversion failed: {error}',
       downloadStarted: 'Downloading {filename}',
       uploadReceived: 'Image received – converting...',
+    },
+    editor: {
+      imageDeleted: 'Image successfully deleted',
+      imageReset: 'Image reset to original state',
+      exportSuccess: 'Image exported as {format}',
+      exporting: 'Exporting...',
+    },
+    network: {
+      online: 'Connection restored',
+      offline: 'No connection – working offline',
+    },
+  },
+  confirm: {
+    cancel: 'Cancel',
+    delete: 'Delete',
+    reset: 'Reset',
+    editor: {
+      resetTitle: 'Discard all changes?',
+      resetMessage: 'The image will be reset to its original state. All filters, texts, crops and transformations will be lost.',
+      clearTitle: 'Remove image?',
+      clearMessage: 'Do you really want to remove the image? All changes will be lost.',
+      clearCollageMessage: 'Do you really want to remove the collage? All layers and changes will be lost.',
+      deleteTextTitle: 'Delete text?',
+      deleteTextMessage: 'Do you really want to delete this text?',
+      clearTextsTitle: 'Delete all texts?',
+      clearTextsMessage: 'Do you really want to delete all {count} texts?',
     },
   },
   layerPanel: {
