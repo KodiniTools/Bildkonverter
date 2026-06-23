@@ -42,8 +42,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useConfirm } from '@/composables/useConfirm';
 
 const { t } = useI18n({ useScope: 'global' });
+const { confirm: confirmDialog } = useConfirm();
 
 // Props
 const props = defineProps({
@@ -312,8 +314,14 @@ function showSaveDialog() {
   }
 }
 
-function deletePreset(presetId) {
-  if (!confirm(t('presets.dialogs.confirmDelete'))) return;
+async function deletePreset(presetId) {
+  const confirmed = await confirmDialog(t('presets.dialogs.confirmDelete'), {
+    title: t('presets.dialogs.deleteTitle', 'Preset löschen?'),
+    confirmText: t('confirm.delete', 'Löschen'),
+    cancelText: t('confirm.cancel', 'Abbrechen'),
+    variant: 'danger',
+  });
+  if (!confirmed) return;
 
   const index = customPresets.value.findIndex((p) => p.id === presetId);
   if (index !== -1) {

@@ -250,6 +250,7 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useGalleryStore } from '@/stores/galleryStore';
 import { useImageStore } from '@/stores/imageStore';
+import { useConfirm } from '@/composables/useConfirm';
 import HandoffReceiver from '@/components/features/HandoffReceiver.vue';
 import { handoffImageToCanvas } from '@/lib/core/handoff';
 
@@ -257,6 +258,7 @@ const { t } = useI18n({ useScope: 'global' });
 const router = useRouter();
 const galleryStore = useGalleryStore();
 const imageStore = useImageStore();
+const { confirm: confirmDialog } = useConfirm();
 
 const fileInput = ref(null);
 const folderInput = ref(null);
@@ -343,7 +345,9 @@ async function handleFileSelect(event) {
       await addImageToGallery(file);
     } catch (error) {
       console.error(`Fehler beim Laden von ${file.name}:`, error);
-      alert(t('gallery.uploadError', { name: file.name }) + ': ' + error.message);
+      if (window.$toast) {
+        window.$toast.error(t('gallery.uploadError', { name: file.name }) + ': ' + error.message);
+      }
     }
   }
   event.target.value = '';
@@ -414,18 +418,30 @@ async function openPreviewInEditor() {
 
 // ===== DELETE =====
 
-function deleteSelected() {
+async function deleteSelected() {
   const selected = galleryStore.selectedImage();
   if (!selected) return;
-  if (!confirm(t('gallery.confirmDelete', { name: selected.name }))) return;
+  const confirmed = await confirmDialog(t('gallery.confirmDelete', { name: selected.name }), {
+    title: t('gallery.deleteTitle', 'Bild löschen?'),
+    confirmText: t('confirm.delete', 'Löschen'),
+    cancelText: t('confirm.cancel', 'Abbrechen'),
+    variant: 'danger',
+  });
+  if (!confirmed) return;
   galleryStore.removeImage(selected.id);
 }
 
-function deleteAllImages() {
+async function deleteAllImages() {
   const count = galleryStore.images.length;
   if (count === 0) return;
   const imageWord = count === 1 ? t('gallery.imageCount.single') : t('gallery.imageCount.plural');
-  if (!confirm(t('gallery.confirmDeleteAll', { count, images: imageWord }))) return;
+  const confirmed = await confirmDialog(t('gallery.confirmDeleteAll', { count, images: imageWord }), {
+    title: t('gallery.deleteAllTitle', 'Alle Bilder löschen?'),
+    confirmText: t('confirm.delete', 'Löschen'),
+    cancelText: t('confirm.cancel', 'Abbrechen'),
+    variant: 'danger',
+  });
+  if (!confirmed) return;
   galleryStore.images.map((img) => img.id).forEach((id) => galleryStore.removeImage(id));
 }
 
@@ -472,7 +488,9 @@ function handleImageClick(imageId) {
 async function createCollage() {
   const selectedImages = galleryStore.selectedImages;
   if (selectedImages.length < 2) {
-    alert(t('gallery.errors.minTwoImages', 'Bitte wählen Sie mindestens 2 Bilder aus'));
+    if (window.$toast) {
+      window.$toast.warning(t('gallery.errors.minTwoImages', 'Bitte wählen Sie mindestens 2 Bilder aus'));
+    }
     return;
   }
   try {
@@ -482,7 +500,9 @@ async function createCollage() {
     await router.push({ path: '/editor', query: { collageMode: 'true' } });
   } catch (error) {
     console.error('Fehler beim Erstellen der Collage:', error);
-    alert(t('gallery.errors.collageError', 'Fehler beim Erstellen der Collage') + ': ' + error.message);
+    if (window.$toast) {
+      window.$toast.error(t('gallery.errors.collageError', 'Fehler beim Erstellen der Collage') + ': ' + error.message);
+    }
   }
 }
 </script>

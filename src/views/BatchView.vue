@@ -282,10 +282,12 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useConfirm } from '@/composables/useConfirm';
 import { FORMAT_INFO } from '@/utils/exportUtils';
 import { ApiClient } from '@/api/api';
 
 const { t } = useI18n({ useScope: 'global' });
+const { confirm: confirmDialog } = useConfirm();
 
 // State
 const fileInput = ref(null);
@@ -865,9 +867,14 @@ function removeFile(fileId) {
   window.$toast?.info(t('toast.batch.fileRemoved', { name: fileName }));
 }
 
-function clearAll() {
-  if (confirm(t('batch.confirmClear'))) {
-    // Revoke all blob URLs
+async function clearAll() {
+  const confirmed = await confirmDialog(t('batch.confirmClear'), {
+    title: t('batch.clearAllTitle', 'Alle Dateien entfernen?'),
+    confirmText: t('confirm.delete', 'Entfernen'),
+    cancelText: t('confirm.cancel', 'Abbrechen'),
+    variant: 'warning',
+  });
+  if (confirmed) {
     files.value.forEach((f) => {
       if (f.processedPreview && f.processedPreview.startsWith('blob:')) {
         URL.revokeObjectURL(f.processedPreview);

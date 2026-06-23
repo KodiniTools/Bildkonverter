@@ -764,9 +764,11 @@
 import { ref, computed, reactive, watch, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useImageStore } from '@/stores/imageStore';
+import { useConfirm } from '@/composables/useConfirm';
 import { availableFonts } from '@/assets/fonts/fontList.js';
 
 const { t } = useI18n();
+const { confirm: confirmDialog } = useConfirm();
 
 const props = defineProps({
   canvasSelectedTextId: {
@@ -925,8 +927,14 @@ function toggleVisibility(layer) {
   saveStateNow(layer.visible ? 'Layer ausgeblendet' : 'Layer eingeblendet', 'layer');
 }
 
-function deleteLayer(layerId) {
-  if (confirm(t('layerPanel.layers.confirmDelete'))) {
+async function deleteLayer(layerId) {
+  const confirmed = await confirmDialog(t('layerPanel.layers.confirmDelete'), {
+    title: t('layerPanel.layers.delete'),
+    confirmText: t('confirm.delete', 'Löschen'),
+    cancelText: t('confirm.cancel', 'Abbrechen'),
+    variant: 'danger',
+  });
+  if (confirmed) {
     imageStore.deleteImageLayer(layerId);
     emit('render');
   }
@@ -1089,8 +1097,14 @@ function selectText(textId) {
   emit('render');
 }
 
-function deleteText(textId) {
-  if (confirm(t('layerPanel.text.confirmDelete'))) {
+async function deleteText(textId) {
+  const confirmed = await confirmDialog(t('layerPanel.text.confirmDelete'), {
+    title: t('layerPanel.text.delete', 'Text löschen'),
+    confirmText: t('confirm.delete', 'Löschen'),
+    cancelText: t('confirm.cancel', 'Abbrechen'),
+    variant: 'danger',
+  });
+  if (confirmed) {
     const index = imageStore.texts.findIndex((txt) => txt.id === textId);
     if (index !== -1) {
       imageStore.texts.splice(index, 1);

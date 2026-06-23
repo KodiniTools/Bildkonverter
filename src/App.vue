@@ -17,6 +17,9 @@
     <!-- Toast Container -->
     <ToastContainer />
 
+    <!-- Confirm Dialog -->
+    <ConfirmDialog />
+
     <!-- Keyboard Shortcuts Listener -->
     <KeyboardShortcuts v-if="settings.shortcutsEnabled" />
 
@@ -42,13 +45,16 @@ import { useTextModal } from '@/composables/useTextModal';
 import { i18n } from '@/i18n';
 import AppHeader from '@/components/layout/AppHeader.vue';
 import ToastContainer from '@/components/ui/ToastContainer.vue';
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import KeyboardShortcuts from '@/components/features/KeyboardShortcuts.vue';
 import PerformanceMonitor from '@/components/dev/PerformanceMonitor.vue';
 import TextEditModal from '@/components/modals/TextEditModal.vue';
+import { useI18n } from 'vue-i18n';
 
 // Stores & Composables
 const settings = useSettingsStore();
 const textModal = useTextModal();
+const { t } = useI18n({ useScope: 'global' });
 
 // Observer für externe Navigation
 let externalNavObserver = null;
@@ -248,10 +254,9 @@ watch(
 function handleTextSave(textData) {
   try {
     textModal.saveText(textData);
-    console.log('✅ Text gespeichert:', textData);
   } catch (error) {
     console.error('❌ Fehler beim Speichern:', error);
-    alert('Fehler beim Speichern des Textes: ' + error.message);
+    if (window.$toast) window.$toast.error('Fehler beim Speichern des Textes: ' + error.message);
   }
 }
 
@@ -259,11 +264,10 @@ function handleTextDelete() {
   try {
     if (textModal.editingText.value?.id) {
       textModal.deleteText(textModal.editingText.value.id);
-      console.log('✅ Text gelöscht');
     }
   } catch (error) {
     console.error('❌ Fehler beim Löschen:', error);
-    alert('Fehler beim Löschen des Textes: ' + error.message);
+    if (window.$toast) window.$toast.error('Fehler beim Löschen des Textes: ' + error.message);
   }
 }
 
@@ -407,11 +411,11 @@ onUnmounted(() => {
 });
 
 function handleOnline() {
-  console.log('🌐 Online');
+  if (window.$toast) window.$toast.success(t('toast.network.online'));
 }
 
 function handleOffline() {
-  console.log('📴 Offline');
+  if (window.$toast) window.$toast.warning(t('toast.network.offline'), null, 5000);
 }
 </script>
 

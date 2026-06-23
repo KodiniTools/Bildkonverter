@@ -874,7 +874,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pipetteBtn) {
       pipetteBtn.addEventListener('click', async () => {
         if (!('EyeDropper' in window)) {
-          alert('Dein Browser unterstützt die Pipetten-Funktion nicht.');
+          if (window.$toast) {
+            window.$toast.warning('Dein Browser unterstützt die Pipetten-Funktion nicht.');
+          }
           return;
         }
         try {

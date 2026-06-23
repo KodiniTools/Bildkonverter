@@ -206,12 +206,14 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useImageStore } from '@/stores/imageStore';
 import { useTextInteraction } from '@/composables/useTextInteraction';
 import { useTextModal } from '@/composables/useTextModal';
+import { useConfirm } from '@/composables/useConfirm';
 import TextEditModal from '@/components/modals/TextEditModal.vue';
 
 // Stores & Composables
 const imageStore = useImageStore();
 const textInteraction = useTextInteraction(imageStore);
 const textModal = useTextModal();
+const { confirm: confirmDialog } = useConfirm();
 
 // Refs
 const canvasRef = ref(null);
@@ -323,18 +325,30 @@ function handleDuplicateText() {
   }
 }
 
-function handleDeleteText() {
+async function handleDeleteText() {
   if (!imageStore.selectedTextId) return;
 
-  if (confirm('Text wirklich löschen?')) {
+  const confirmed = await confirmDialog('Text wirklich löschen?', {
+    title: 'Text löschen?',
+    confirmText: 'Löschen',
+    cancelText: 'Abbrechen',
+    variant: 'danger',
+  });
+  if (confirmed) {
     imageStore.deleteText(imageStore.selectedTextId);
   }
 }
 
-function handleClearAllTexts() {
+async function handleClearAllTexts() {
   if (!imageStore.hasTexts) return;
 
-  if (confirm(`Wirklich alle ${imageStore.textCount} Texte löschen?`)) {
+  const confirmed = await confirmDialog(`Wirklich alle ${imageStore.textCount} Texte löschen?`, {
+    title: 'Alle Texte löschen?',
+    confirmText: 'Löschen',
+    cancelText: 'Abbrechen',
+    variant: 'danger',
+  });
+  if (confirmed) {
     imageStore.clearTexts();
   }
 }
