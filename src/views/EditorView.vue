@@ -321,6 +321,40 @@
       :edited-src="editedPreviewSrc"
       @close="closePreview"
     />
+
+    <!-- Export Dialog -->
+    <Teleport to="body">
+      <div
+        v-if="showExportDialog"
+        class="export-dialog-overlay"
+        @click.self="showExportDialog = false"
+      >
+        <div class="export-dialog">
+          <h3 class="export-dialog__title">{{ $t('editor.toolbar.download') }}</h3>
+          <div class="export-dialog__input-row">
+            <input
+              v-model="exportDialogFilename"
+              class="export-dialog__input"
+              type="text"
+              :placeholder="$t('editor.toolbar.download')"
+              @keydown.enter="confirmExport"
+              @keydown.escape="showExportDialog = false"
+              autofocus
+            />
+            <span class="export-dialog__ext">.{{ outputFormat }}</span>
+          </div>
+          <div class="export-dialog__actions">
+            <button class="export-dialog__btn export-dialog__btn--cancel" @click="showExportDialog = false">
+              {{ $t('common.cancel', 'Abbrechen') }}
+            </button>
+            <button class="export-dialog__btn export-dialog__btn--confirm" @click="confirmExport">
+              <i class="fas fa-download"></i>
+              {{ $t('editor.toolbar.download') }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -373,6 +407,9 @@ const currentImageFormat = ref(''); // Format des hochgeladenen Bildes
 const exportQuality = ref(92); // Quality-Wert (0-100)
 const isExporting = ref(false); // Loading-State beim Export
 const exportTransparent = ref(false); // Transparenter Hintergrund beim PNG-Export
+const currentFileName = ref('');
+const showExportDialog = ref(false);
+const exportDialogFilename = ref('');
 
 // ===== TEXT INTERACTION STATE =====
 const selectedTextId = ref(null);
@@ -482,6 +519,7 @@ const {
   originalImage,
   isDraggingFile,
   imageStore,
+  currentFileName,
   onImageReady: (img) => loadImage(img),
 });
 
@@ -823,29 +861,30 @@ function applyResize() {
   }
 }
 
-// ===== NEU: Aktualisierte downloadImage Funktion mit neuer Export-Architektur =====
+// ===== Export mit Dateiname-Dialog =====
 async function downloadImage() {
   if (!canvas.value) return;
+  exportDialogFilename.value = currentFileName.value || 'image';
+  showExportDialog.value = true;
+}
+
+async function confirmExport() {
+  showExportDialog.value = false;
+  const filename = exportDialogFilename.value.trim() || currentFileName.value || 'image';
 
   isExporting.value = true;
 
   try {
-    const filename = `image-${Date.now()}`;
-
-    // ✨ FIX: Rendere ohne Auswahl-Markierung vor dem Export
-    // Bei PNG mit transparentem Hintergrund: forceTransparent = true
     const useTransparent = outputFormat.value === 'png' && exportTransparent.value;
     renderImageForExport(useTransparent);
 
-    // Export mit neuer Export-Utils
     const result = await exportImage(canvas.value, outputFormat.value, filename, {
-      quality: exportQuality.value / 100, // Konvertiere 0-100 zu 0-1
-      texts: imageStore.texts || [], // Texte aus dem Store
+      quality: exportQuality.value / 100,
+      texts: imageStore.texts || [],
     });
 
     console.log('✅ Export erfolgreich:', result);
 
-    // Optional: Success-Toast anzeigen
     if (window.$toast) {
       window.$toast.success(
         `Bild erfolgreich als ${result.format.toUpperCase()} exportiert` +
@@ -855,14 +894,11 @@ async function downloadImage() {
   } catch (error) {
     console.error('❌ Export fehlgeschlagen:', error);
 
-    // Error-Toast anzeigen
     if (window.$toast) {
       window.$toast.error(`Export fehlgeschlagen: ${error.message}`);
     }
   } finally {
     isExporting.value = false;
-
-    // ✨ FIX: Stelle Auswahl-Markierung nach dem Export wieder her
     renderImage();
   }
 }
@@ -1987,6 +2023,109 @@ function handleKeyup(e) {
 
   i {
     pointer-events: none;
+  }
+}
+
+// ===== Export Dialog =====
+.export-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.export-dialog {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  min-width: 340px;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+  &__title {
+    margin: 0 0 1.25rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  &__input-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1px solid var(--color-primary);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+
+    &:focus-within {
+      box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb, 99, 102, 241), 0.2);
+    }
+  }
+
+  &__input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 0.6rem 0.75rem;
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+    font-size: 0.9rem;
+    min-width: 0;
+  }
+
+  &__ext {
+    padding: 0.6rem 0.75rem;
+    background: var(--color-bg-tertiary, var(--color-border));
+    color: var(--color-text-secondary, var(--color-text));
+    font-size: 0.85rem;
+    white-space: nowrap;
+    border-left: 1px solid var(--color-border);
+    opacity: 0.8;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+
+  &__btn {
+    padding: 0.5rem 1.1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--color-border);
+    transition: all 0.15s ease;
+
+    &--cancel {
+      background: transparent;
+      color: var(--color-text);
+
+      &:hover {
+        background: var(--color-bg-secondary);
+      }
+    }
+
+    &--confirm {
+      background: var(--color-primary);
+      color: #fff;
+      border-color: var(--color-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+
+      &:hover {
+        opacity: 0.9;
+      }
+    }
   }
 }
 </style>
