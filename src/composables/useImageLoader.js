@@ -6,6 +6,7 @@ export function useImageLoader({
   originalImage,
   isDraggingFile,
   imageStore,
+  currentFileName,
   onImageReady,
 }) {
   function needsBackendPreview(file) {
@@ -17,6 +18,7 @@ export function useImageLoader({
   async function loadFileIntoEditor(file) {
     const fileType = file.type ? file.type.split('/')[1] : file.name.split('.').pop().toLowerCase();
     currentImageFormat.value = fileType === 'jpeg' ? 'jpg' : fileType;
+    if (currentFileName) currentFileName.value = file.name.replace(/\.[^.]+$/, '');
 
     let imageUrl;
     if (needsBackendPreview(file)) {
@@ -113,6 +115,7 @@ export function useImageLoader({
             const ext = formatMatch[1].toLowerCase();
             currentImageFormat.value = ext === 'jpeg' ? 'jpg' : ext;
           }
+          if (currentFileName) currentFileName.value = galleryImage.name.replace(/\.[^.]+$/, '');
           await onImageReady(img);
           if (window.$toast) window.$toast.success(t('toast.editor.galleryLoaded'));
         };
