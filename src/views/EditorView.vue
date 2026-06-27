@@ -1868,13 +1868,13 @@ function handleKeyup(e) {
 
 /* Erfolg: Download */
 .tb-btn--success {
-  background: var(--color-success, #22c55e);
-  color: #fff;
+  background: var(--color-primary);
+  color: var(--color-btn-text-light, #fff);
   padding: 0.45rem 0.9rem;
 
   &:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--color-success, #22c55e) 88%, #000);
-    box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
+    background: color-mix(in srgb, var(--color-primary) 85%, #000);
+    box-shadow: 0 2px 6px rgba(1, 79, 153, 0.35);
   }
 }
 
