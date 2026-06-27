@@ -30,16 +30,27 @@
         <span class="filter-label">{{ $t('editor.background.opacity', 'Deckkraft') }}</span>
         <span class="filter-value">{{ background.opacity }}%</span>
       </label>
-      <div class="slider-track">
-        <input
-          v-model.number="background.opacity"
-          type="range"
-          min="0"
-          max="100"
-          class="modern-slider"
-          :disabled="disabled"
-          @input="$emit('render')"
-        />
+      <div class="slider-row">
+        <div class="slider-track">
+          <input
+            v-model.number="background.opacity"
+            type="range"
+            min="0"
+            max="100"
+            class="modern-slider"
+            :style="sliderStyle(background.opacity, 0, 100)"
+            :disabled="disabled"
+            @input="$emit('render')"
+          />
+        </div>
+        <button
+          v-if="background.opacity !== 100"
+          class="reset-btn"
+          title="Zurücksetzen"
+          @click="resetOpacity"
+        >
+          <i class="fas fa-undo-alt"></i>
+        </button>
       </div>
     </div>
 
@@ -51,7 +62,7 @@
 </template>
 
 <script setup>
-defineProps({
+const props = defineProps({
   background: {
     type: Object,
     required: true,
@@ -62,5 +73,17 @@ defineProps({
   },
 });
 
-defineEmits(['render']);
+const emit = defineEmits(['render']);
+
+function sliderStyle(value, min, max) {
+  const pct = ((value - min) / (max - min)) * 100;
+  return {
+    backgroundImage: `linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) ${pct}%, var(--color-border) ${pct}%, var(--color-border) 100%)`,
+  };
+}
+
+function resetOpacity() {
+  props.background.opacity = 100;
+  emit('render');
+}
 </script>

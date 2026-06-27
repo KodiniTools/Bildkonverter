@@ -25,15 +25,26 @@
         <span class="filter-label">{{ $t('editor.export.quality', 'Qualität') }}</span>
         <span class="filter-value">{{ exportQuality }}%</span>
       </label>
-      <div class="slider-track">
-        <input
-          :value="exportQuality"
-          type="range"
-          min="1"
-          max="100"
-          class="modern-slider"
-          @input="$emit('update:exportQuality', Number($event.target.value))"
-        />
+      <div class="slider-row">
+        <div class="slider-track">
+          <input
+            :value="exportQuality"
+            type="range"
+            min="1"
+            max="100"
+            class="modern-slider"
+            :style="sliderStyle(exportQuality, 1, 100)"
+            @input="$emit('update:exportQuality', Number($event.target.value))"
+          />
+        </div>
+        <button
+          v-if="exportQuality !== 92"
+          class="reset-btn"
+          title="Zurücksetzen"
+          @click="$emit('update:exportQuality', 92)"
+        >
+          <i class="fas fa-undo-alt"></i>
+        </button>
       </div>
     </div>
 
@@ -63,4 +74,11 @@ defineProps({
 });
 
 defineEmits(['update:outputFormat', 'update:exportQuality', 'update:exportTransparent']);
+
+function sliderStyle(value, min, max) {
+  const pct = ((value - min) / (max - min)) * 100;
+  return {
+    backgroundImage: `linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) ${pct}%, var(--color-border) ${pct}%, var(--color-border) 100%)`,
+  };
+}
 </script>
