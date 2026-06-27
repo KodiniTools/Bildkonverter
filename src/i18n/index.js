@@ -442,6 +442,19 @@ const de = {
       quality: 'Qualität',
       transparentBackground: 'Transparenter Hintergrund',
     },
+    formats: {
+      png:  { description: 'Verlustfrei, mit Transparenz',       recommended: 'Logos, UI, Screenshots' },
+      jpeg: { description: 'Komprimiert, kleine Dateigröße',     recommended: 'Fotos, Bilder' },
+      jpg:  { description: 'Komprimiert, kleine Dateigröße',     recommended: 'Fotos, Bilder' },
+      webp: { description: 'Modern, effizient, klein',           recommended: 'Web, moderne Browser' },
+      tiff: { description: 'Professionelles Format',             recommended: 'Druck, Archivierung' },
+      tif:  { description: 'Professionelles Format',             recommended: 'Druck, Archivierung' },
+      heif: { description: 'Modern, hohe Effizienz',             recommended: 'Fotos (neuere Geräte)' },
+      heic: { description: 'Modern, hohe Effizienz (Apple)',     recommended: 'iOS, macOS' },
+      gif:  { description: 'Einzelbild GIF',                     recommended: 'Kompatibilität, Retro' },
+      pdf:  { description: 'Dokument, A4-Format',                recommended: 'Dokumente, Druck' },
+      svg:  { description: 'Skalierbare Vektorgrafik',           recommended: 'Logos, Icons, Webgrafiken' },
+    },
   },
   transform: {
     crop: {
@@ -1620,6 +1633,19 @@ const en = {
     export: {
       quality: 'Quality',
       transparentBackground: 'Transparent background',
+    },
+    formats: {
+      png:  { description: 'Lossless, with transparency',        recommended: 'Logos, UI, Screenshots' },
+      jpeg: { description: 'Lossy, small file size',             recommended: 'Photos, Images' },
+      jpg:  { description: 'Lossy, small file size',             recommended: 'Photos, Images' },
+      webp: { description: 'Modern, efficient, small',           recommended: 'Web, modern browsers' },
+      tiff: { description: 'Professional format',                recommended: 'Print, Archiving' },
+      tif:  { description: 'Professional format',                recommended: 'Print, Archiving' },
+      heif: { description: 'Modern, high efficiency',            recommended: 'Photos (newer devices)' },
+      heic: { description: 'Modern, high efficiency (Apple)',    recommended: 'iOS, macOS' },
+      gif:  { description: 'Single-frame GIF',                   recommended: 'Compatibility, Retro' },
+      pdf:  { description: 'Document, A4 format',                recommended: 'Documents, Print' },
+      svg:  { description: 'Scalable Vector Graphics',           recommended: 'Logos, Icons, Web Graphics' },
     },
   },
   transform: {

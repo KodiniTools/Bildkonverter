@@ -13,8 +13,8 @@
     </select>
 
     <div v-if="currentFormatInfo" class="format-info">
-      <p class="format-description">{{ currentFormatInfo.description }}</p>
-      <span class="format-badge">{{ currentFormatInfo.recommended }}</span>
+      <p class="format-description">{{ $t(`editor.formats.${outputFormat}.description`) }}</p>
+      <span class="format-badge">{{ $t(`editor.formats.${outputFormat}.recommended`) }}</span>
       <span v-if="requiresBackend" class="backend-badge" :title="'Benötigt Backend-API'">
         🌐 Backend
       </span>
