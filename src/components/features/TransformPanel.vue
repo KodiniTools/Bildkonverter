@@ -664,6 +664,14 @@
             />
             <span class="unit">%</span>
           </div>
+          <button
+            v-if="transforms.borderRadius !== 0"
+            class="reset-btn"
+            title="Zurücksetzen"
+            @click="$emit('update:border-radius', 0); $emit('commit-transform')"
+          >
+            <i class="fas fa-undo-alt"></i>
+          </button>
         </div>
         <p class="control-hint">
           {{ $t('transform.borderRadiusHint', '50% = vollständiger Kreis') }}
@@ -702,6 +710,14 @@
             />
             <span class="unit">px</span>
           </div>
+          <button
+            v-if="transforms.borderWidth !== 0"
+            class="reset-btn"
+            title="Zurücksetzen"
+            @click="$emit('update:border-width', 0); $emit('commit-transform')"
+          >
+            <i class="fas fa-undo-alt"></i>
+          </button>
         </div>
 
         <div v-if="transforms.borderWidth > 0" class="color-picker-group">
@@ -767,6 +783,14 @@
                 />
                 <span class="unit">px</span>
               </div>
+              <button
+                v-if="transforms.shadowOffsetX !== 10"
+                class="reset-btn"
+                title="Zurücksetzen"
+                @click="$emit('update:shadow-offset-x', 10); $emit('commit-transform')"
+              >
+                <i class="fas fa-undo-alt"></i>
+              </button>
             </div>
           </div>
 
@@ -803,6 +827,14 @@
                 />
                 <span class="unit">px</span>
               </div>
+              <button
+                v-if="transforms.shadowOffsetY !== 10"
+                class="reset-btn"
+                title="Zurücksetzen"
+                @click="$emit('update:shadow-offset-y', 10); $emit('commit-transform')"
+              >
+                <i class="fas fa-undo-alt"></i>
+              </button>
             </div>
           </div>
 
@@ -839,6 +871,14 @@
                 />
                 <span class="unit">px</span>
               </div>
+              <button
+                v-if="transforms.shadowBlur !== 20"
+                class="reset-btn"
+                title="Zurücksetzen"
+                @click="$emit('update:shadow-blur', 20); $emit('commit-transform')"
+              >
+                <i class="fas fa-undo-alt"></i>
+              </button>
             </div>
           </div>
 
@@ -875,6 +915,14 @@
                 />
                 <span class="unit">%</span>
               </div>
+              <button
+                v-if="transforms.shadowOpacity !== 50"
+                class="reset-btn"
+                title="Zurücksetzen"
+                @click="$emit('update:shadow-opacity', 50); $emit('commit-transform')"
+              >
+                <i class="fas fa-undo-alt"></i>
+              </button>
             </div>
           </div>
 
