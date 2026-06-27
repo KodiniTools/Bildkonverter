@@ -194,7 +194,32 @@
 
         <!-- Image Info -->
         <div class="gallery-card__info">
-          <div class="gallery-card__name" :title="image.name">{{ image.name }}</div>
+          <div class="gallery-card__name-row">
+            <div
+              v-if="editingImageId !== image.id"
+              class="gallery-card__name"
+              :title="image.name"
+              @dblclick.stop="startRename(image)"
+            >{{ image.name }}</div>
+            <input
+              v-else
+              :data-rename-id="image.id"
+              v-model="editingName"
+              class="gallery-card__name-input"
+              @keydown.enter.stop="confirmRename(image)"
+              @keydown.escape.stop="cancelRename()"
+              @blur="confirmRename(image)"
+              @click.stop
+            />
+            <button
+              v-if="editingImageId !== image.id"
+              class="gallery-card__rename-btn"
+              :title="$t('gallery.buttons.rename', 'Umbenennen')"
+              @click.stop="startRename(image)"
+            >
+              <i class="fas fa-pen"></i>
+            </button>
+          </div>
           <div class="gallery-card__meta">
             <span><i class="fas fa-expand-arrows-alt"></i> {{ image.width }} × {{ image.height }}</span>
             <span><i class="fas fa-file"></i> {{ formatSize(image.size) }}</span>
@@ -245,7 +270,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, nextTick, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useGalleryStore } from '@/stores/galleryStore';
@@ -264,6 +289,8 @@ const fileInput = ref(null);
 const folderInput = ref(null);
 const previewImage = ref(null);
 const isMultiSelectMode = ref(false);
+const editingImageId = ref(null);
+const editingName = ref('');
 
 // ===== CLIPBOARD PASTE =====
 
@@ -414,6 +441,33 @@ async function openPreviewInEditor() {
   if (!previewImage.value) return;
   await router.push({ path: '/editor', query: { galleryImageId: previewImage.value.id } });
   closePreview();
+}
+
+// ===== RENAME =====
+
+async function startRename(image) {
+  editingImageId.value = image.id;
+  editingName.value = image.name;
+  await nextTick();
+  const input = document.querySelector(`[data-rename-id="${image.id}"]`);
+  if (input) {
+    input.focus();
+    input.select();
+  }
+}
+
+function confirmRename(image) {
+  const trimmed = editingName.value.trim();
+  if (trimmed && trimmed !== image.name) {
+    galleryStore.renameImage(image.id, trimmed);
+  }
+  editingImageId.value = null;
+  editingName.value = '';
+}
+
+function cancelRename() {
+  editingImageId.value = null;
+  editingName.value = '';
 }
 
 // ===== DELETE =====
@@ -895,13 +949,63 @@ async function createCollage() {
     border-top: 1px solid var(--color-border);
   }
 
+  &__name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-bottom: 0.35rem;
+  }
+
   &__name {
+    flex: 1;
+    min-width: 0;
     font-size: 0.85rem;
     font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    margin-bottom: 0.35rem;
+    cursor: text;
+  }
+
+  &__name-input {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text);
+    background: var(--color-bg);
+    border: 1.5px solid var(--color-primary);
+    border-radius: 4px;
+    padding: 1px 5px;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(1, 79, 153, 0.12);
+  }
+
+  &__rename-btn {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    border-radius: 4px;
+    opacity: 0;
+    transition: all 0.15s ease;
+
+    &:hover {
+      color: var(--color-primary);
+      background: rgba(1, 79, 153, 0.1);
+    }
+  }
+
+  &:hover &__rename-btn {
+    opacity: 1;
   }
 
   &__meta {
