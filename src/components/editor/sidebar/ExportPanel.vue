@@ -8,7 +8,7 @@
       @change="$emit('update:outputFormat', $event.target.value)"
     >
       <option v-for="format in formats" :key="format" :value="format">
-        {{ formatInfo[format]?.icon }} {{ format.toUpperCase() }}
+        {{ format.toUpperCase() }}
       </option>
     </select>
 
