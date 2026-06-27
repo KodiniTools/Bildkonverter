@@ -215,6 +215,8 @@ $breakpoint-2xl: 1536px;
 
 // ===== CSS CUSTOM PROPERTIES (für Runtime-Änderungen) =====
 :root {
+  color-scheme: light;
+
   // Colors
   --color-primary: #{$color-primary};
   --color-success: #{$color-success};
@@ -279,6 +281,7 @@ $breakpoint-2xl: 1536px;
 
 // Dark Mode
 :root[data-theme="dark"] {
+  color-scheme: dark;
   --color-bg: #{$dark-primary-bg};
   --color-bg-secondary: #{$dark-secondary-bg};
   --color-bg-gradient: #{$dark-primary-bg};

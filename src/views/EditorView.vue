@@ -2214,12 +2214,12 @@ function handleKeyup(e) {
 
 .form-select {
   width: 100%;
-  padding: 0.5rem 0.75rem; // ✨ Kompakter
+  padding: 0.5rem 0.75rem;
   border: 1px solid var(--color-border);
-  border-radius: 6px; // ✨ Weniger rund
-  background: var(--color-bg);
-  color: var(--color-text-primary);
-  font-size: 0.85rem; // ✨ Kleinere Schrift
+  border-radius: 6px;
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
+  font-size: 0.85rem;
   transition: all 0.2s ease;
 
   &:hover {
@@ -3030,8 +3030,8 @@ function handleKeyup(e) {
   }
 
   .form-select {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.1);
+    background: var(--color-card-bg);
+    border-color: rgba(255, 255, 255, 0.2);
     color: var(--color-text);
 
     &:hover {
