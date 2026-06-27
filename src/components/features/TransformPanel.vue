@@ -50,15 +50,25 @@
           {{ $t('textPanel.fontSize', 'Schriftgröße') }}
           <span class="value">{{ selectedText.fontSize || selectedText.size || 32 }}px</span>
         </label>
-        <input
-          type="range"
-          min="8"
-          max="200"
-          :value="selectedText.fontSize || selectedText.size || 32"
-          class="slider"
-          @input="$emit('update:text-font-size', Number($event.target.value))"
-          @change="$emit('save-text-history')"
-        />
+        <div class="slider-row">
+          <input
+            type="range"
+            min="8"
+            max="200"
+            :value="selectedText.fontSize || selectedText.size || 32"
+            class="slider"
+            @input="$emit('update:text-font-size', Number($event.target.value))"
+            @change="$emit('save-text-history')"
+          />
+          <button
+            v-if="(selectedText.fontSize || selectedText.size || 32) !== 32"
+            class="reset-btn"
+            title="Zurücksetzen"
+            @click="$emit('update:text-font-size', 32); $emit('save-text-history')"
+          >
+            <i class="fas fa-undo-alt"></i>
+          </button>
+        </div>
       </div>
 
       <!-- Schriftart -->
@@ -128,15 +138,25 @@
           {{ $t('textPanel.strokeWidth', 'Umrandung') }}
           <span class="value">{{ selectedText.strokeWidth || 0 }}px</span>
         </label>
-        <input
-          type="range"
-          min="0"
-          max="50"
-          :value="selectedText.strokeWidth || 0"
-          class="slider"
-          @input="$emit('update:text-stroke-width', Number($event.target.value))"
-          @change="$emit('save-text-history')"
-        />
+        <div class="slider-row">
+          <input
+            type="range"
+            min="0"
+            max="50"
+            :value="selectedText.strokeWidth || 0"
+            class="slider"
+            @input="$emit('update:text-stroke-width', Number($event.target.value))"
+            @change="$emit('save-text-history')"
+          />
+          <button
+            v-if="(selectedText.strokeWidth || 0) !== 0"
+            class="reset-btn"
+            title="Zurücksetzen"
+            @click="$emit('update:text-stroke-width', 0); $emit('save-text-history')"
+          >
+            <i class="fas fa-undo-alt"></i>
+          </button>
+        </div>
         <div v-if="(selectedText.strokeWidth || 0) > 0" class="color-picker-row mt-2">
           <input
             type="color"
@@ -164,15 +184,25 @@
           {{ $t('textPanel.shadow', 'Schatten') }}
           <span class="value">{{ selectedText.shadowBlur || 0 }}px</span>
         </label>
-        <input
-          type="range"
-          min="0"
-          max="20"
-          :value="selectedText.shadowBlur || 0"
-          class="slider"
-          @input="$emit('update:text-shadow-blur', Number($event.target.value))"
-          @change="$emit('save-text-history')"
-        />
+        <div class="slider-row">
+          <input
+            type="range"
+            min="0"
+            max="20"
+            :value="selectedText.shadowBlur || 0"
+            class="slider"
+            @input="$emit('update:text-shadow-blur', Number($event.target.value))"
+            @change="$emit('save-text-history')"
+          />
+          <button
+            v-if="(selectedText.shadowBlur || 0) !== 0"
+            class="reset-btn"
+            title="Zurücksetzen"
+            @click="$emit('update:text-shadow-blur', 0); $emit('save-text-history')"
+          >
+            <i class="fas fa-undo-alt"></i>
+          </button>
+        </div>
         <div v-if="(selectedText.shadowBlur || 0) > 0" class="shadow-controls">
           <div class="shadow-offset-row">
             <div class="mini-control">
@@ -228,15 +258,25 @@
           {{ $t('textPanel.rotation', 'Rotation') }}
           <span class="value">{{ selectedText.rotation || 0 }}°</span>
         </label>
-        <input
-          type="range"
-          min="-180"
-          max="180"
-          :value="selectedText.rotation || 0"
-          class="slider"
-          @input="$emit('update:text-rotation', Number($event.target.value))"
-          @change="$emit('save-text-history')"
-        />
+        <div class="slider-row">
+          <input
+            type="range"
+            min="-180"
+            max="180"
+            :value="selectedText.rotation || 0"
+            class="slider"
+            @input="$emit('update:text-rotation', Number($event.target.value))"
+            @change="$emit('save-text-history')"
+          />
+          <button
+            v-if="(selectedText.rotation || 0) !== 0"
+            class="reset-btn"
+            title="Zurücksetzen"
+            @click="$emit('update:text-rotation', 0); $emit('save-text-history')"
+          >
+            <i class="fas fa-undo-alt"></i>
+          </button>
+        </div>
       </div>
 
       <!-- Text-Deckkraft -->
@@ -248,15 +288,25 @@
             >{{ selectedText.opacity !== undefined ? selectedText.opacity : 100 }}%</span
           >
         </label>
-        <input
-          type="range"
-          min="0"
-          max="100"
-          :value="selectedText.opacity !== undefined ? selectedText.opacity : 100"
-          class="slider"
-          @input="$emit('update:text-opacity', Number($event.target.value))"
-          @change="$emit('save-text-history')"
-        />
+        <div class="slider-row">
+          <input
+            type="range"
+            min="0"
+            max="100"
+            :value="selectedText.opacity !== undefined ? selectedText.opacity : 100"
+            class="slider"
+            @input="$emit('update:text-opacity', Number($event.target.value))"
+            @change="$emit('save-text-history')"
+          />
+          <button
+            v-if="(selectedText.opacity !== undefined ? selectedText.opacity : 100) !== 100"
+            class="reset-btn"
+            title="Zurücksetzen"
+            @click="$emit('update:text-opacity', 100); $emit('save-text-history')"
+          >
+            <i class="fas fa-undo-alt"></i>
+          </button>
+        </div>
       </div>
 
       <!-- Text löschen -->
