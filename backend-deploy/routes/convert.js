@@ -166,8 +166,68 @@ async function checkPotraceAvailable() {
   }
 }
 
-// Potrace-Verfügbarkeit beim Start prüfen
+// ---------------------------------------------------------------------------
+// RAW-Kamera-Format-Unterstützung via dcraw
+// Unterstützte Formate: CR2, CR3, NEF, ARW, DNG, RAF, ORF, RW2, PEF, X3F
+// Pipeline: RAW-Datei → dcraw (→ TIFF/PPM stdout) → sharp (→ Zielformat)
+// Voraussetzung: apt install dcraw
+// ---------------------------------------------------------------------------
+
+const RAW_EXTENSIONS = new Set([
+  'cr2', 'cr3', 'nef', 'arw', 'dng', 'raf', 'orf', 'rw2', 'pef', 'x3f',
+]);
+
+/**
+ * Erkennt ob eine Datei ein RAW-Kameraformat ist (anhand der Dateiendung)
+ */
+function isRawFile(originalname) {
+  const ext = path.extname(originalname || '').slice(1).toLowerCase();
+  return RAW_EXTENSIONS.has(ext);
+}
+
+/**
+ * Konvertiert eine RAW-Kameradatei zu einem Buffer via dcraw
+ * dcraw -c   = Ausgabe auf stdout
+ * dcraw -w   = Kamera-Weißabgleich verwenden
+ * dcraw -T   = TIFF statt PPM ausgeben (16-bit wenn möglich)
+ * dcraw -q 3 = Beste Demosaicing-Qualität (AHD)
+ */
+async function convertRawToBuffer(rawBuffer, originalname) {
+  const id = randomUUID();
+  const ext = path.extname(originalname || '.raw').toLowerCase();
+  const inputPath = path.join(tmpdir(), `raw-${id}${ext}`);
+
+  try {
+    await writeFile(inputPath, rawBuffer);
+
+    const { stdout } = await runCommand(
+      'dcraw',
+      ['-c', '-w', '-T', '-q', '3', inputPath],
+      { encoding: 'buffer', maxBuffer: 300 * 1024 * 1024 }
+    );
+
+    return Buffer.from(stdout);
+  } finally {
+    await unlink(inputPath).catch(() => {});
+  }
+}
+
+/**
+ * Prüft ob dcraw verfügbar ist
+ */
+async function checkDcrawAvailable() {
+  try {
+    await runCommand('dcraw', ['-v']);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Verfügbarkeit beim Start prüfen
 let potraceAvailable = false;
+let dcrawAvailable = false;
+
 checkPotraceAvailable().then((available) => {
   potraceAvailable = available;
   console.log(
@@ -177,9 +237,38 @@ checkPotraceAvailable().then((available) => {
   );
 });
 
+checkDcrawAvailable().then((available) => {
+  dcrawAvailable = available;
+  console.log(
+    available
+      ? '✅ dcraw gefunden – RAW-Kameraformate (CR2, NEF, ARW, DNG …) aktiviert'
+      : '⚠️ dcraw nicht gefunden – RAW-Konvertierung nicht verfügbar (apt install dcraw)'
+  );
+});
+
 // ---------------------------------------------------------------------------
 // API-Routen
 // ---------------------------------------------------------------------------
+
+// GET /api/formats  (Frontend-Gesundheitscheck + Format-Info)
+router.get('/formats', (_req, res) => {
+  res.json({
+    status: 'ok',
+    inputs: {
+      browser: ['jpeg', 'png', 'webp', 'gif', 'bmp', 'svg'],
+      backend: [
+        'tiff',
+        'heic',
+        'heif',
+        ...(dcrawAvailable ? ['cr2', 'cr3', 'nef', 'arw', 'dng', 'raf', 'orf', 'rw2', 'pef', 'x3f'] : []),
+      ],
+    },
+    features: {
+      svg: potraceAvailable,
+      raw: dcrawAvailable,
+    },
+  });
+});
 
 // GET /api/convert-image/formats
 router.get('/convert-image/formats', (_req, res) => {
@@ -189,13 +278,8 @@ router.get('/convert-image/formats', (_req, res) => {
     aliases: c.aliases,
   }));
 
-  // SVG hinzufügen wenn potrace verfügbar
   if (potraceAvailable) {
-    formats.push({
-      format: 'svg',
-      mime: 'image/svg+xml',
-      aliases: ['svg'],
-    });
+    formats.push({ format: 'svg', mime: 'image/svg+xml', aliases: ['svg'] });
   }
 
   res.json({ outputs: formats });
@@ -229,6 +313,22 @@ router.post('/convert-image', upload.single('image'), async (req, res) => {
       }
     }
 
+    // RAW-Kameraformate via dcraw dekodieren
+    let inputBuffer = req.file.buffer;
+    if (isRawFile(req.file.originalname)) {
+      if (!dcrawAvailable) {
+        return res.status(501).json({
+          error: 'RAW-Konvertierung nicht verfügbar. dcraw ist nicht installiert. (apt install dcraw)',
+        });
+      }
+      try {
+        inputBuffer = await convertRawToBuffer(req.file.buffer, req.file.originalname);
+      } catch (e) {
+        console.error('RAW-Dekodierung fehlgeschlagen:', e);
+        return res.status(500).json({ error: 'RAW-Dekodierung fehlgeschlagen: ' + e.message });
+      }
+    }
+
     // Standard-Konvertierung über sharp
     const canonical = OUTPUTS.aliasMap.get(requestedRaw);
     if (!canonical) {
@@ -240,7 +340,7 @@ router.post('/convert-image', upload.single('image'), async (req, res) => {
     }
 
     const cfg = OUTPUTS.canonicalMap.get(canonical);
-    const outBuf = await cfg.encoder(sharp(req.file.buffer)).toBuffer();
+    const outBuf = await cfg.encoder(sharp(inputBuffer)).toBuffer();
     res.setHeader('Content-Type', cfg.mime);
     res.setHeader('Content-Disposition', `attachment; filename="${base}.${cfg.canonical}"`);
     res.send(outBuf);
