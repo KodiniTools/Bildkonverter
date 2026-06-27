@@ -2124,9 +2124,20 @@ function handleKeyup(e) {
     }
   }
 
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+
+    .slider-track {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
   .slider-track {
     position: relative;
-    height: 20px;
+    height: 14px;
     display: flex;
     align-items: center;
 
@@ -2137,7 +2148,7 @@ function handleKeyup(e) {
         position: absolute;
         left: 0;
         right: 0;
-        height: 4px;
+        height: 2px;
         border-radius: 2px;
         background: linear-gradient(
           to right,
@@ -2164,7 +2175,7 @@ function handleKeyup(e) {
         position: absolute;
         left: 0;
         right: 0;
-        height: 4px;
+        height: 2px;
         border-radius: 2px;
         background: linear-gradient(to right, var(--color-border) 0%, #d4a574 50%, #8b5a2b 100%);
         pointer-events: none;
@@ -2178,14 +2189,14 @@ function handleKeyup(e) {
 
   .modern-slider {
     width: 100%;
-    height: 4px;
+    height: 2px;
     -webkit-appearance: none;
     appearance: none;
     background: var(--color-border);
     border-radius: 2px;
     outline: none;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: background 0.15s ease;
 
     // Chrome, Safari, Edge - Thumb
     &::-webkit-slider-thumb {
@@ -2193,77 +2204,58 @@ function handleKeyup(e) {
       appearance: none;
       width: 12px;
       height: 12px;
-      background: var(--color-primary);
+      background: white;
       border-radius: 50%;
       cursor: pointer;
       transition: all 0.15s ease;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-      border: 2px solid var(--color-bg);
+      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
+      border: 2px solid var(--color-primary);
     }
 
     &:hover::-webkit-slider-thumb {
-      transform: scale(1.2);
-      box-shadow: 0 2px 8px rgba(1, 79, 153, 0.4);
+      transform: scale(1.25);
+      box-shadow: 0 2px 8px rgba(1, 79, 153, 0.35);
     }
 
     &:active::-webkit-slider-thumb {
       transform: scale(1.1);
-      background: var(--color-primary);
+      box-shadow: 0 1px 5px rgba(1, 79, 153, 0.4);
     }
 
     // Firefox - Thumb
     &::-moz-range-thumb {
       width: 12px;
       height: 12px;
-      background: var(--color-primary);
-      border: 2px solid var(--color-bg);
+      background: white;
+      border: 2px solid var(--color-primary);
       border-radius: 50%;
       cursor: pointer;
       transition: all 0.15s ease;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
     }
 
     &:hover::-moz-range-thumb {
-      transform: scale(1.2);
-      box-shadow: 0 2px 8px rgba(1, 79, 153, 0.4);
+      transform: scale(1.25);
+      box-shadow: 0 2px 8px rgba(1, 79, 153, 0.35);
     }
 
     // Firefox - Track
     &::-moz-range-track {
       background: var(--color-border);
       border-radius: 2px;
-      height: 4px;
+      height: 2px;
     }
 
     // Center-Zero Slider (für Werte von -X bis +X)
     &.center-zero {
-      background: linear-gradient(
-        to right,
-        var(--color-border) 0%,
-        var(--color-border) 50%,
-        var(--color-border) 100%
-      );
       position: relative;
-
-      &::before {
-        content: '';
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        width: 2px;
-        height: 8px;
-        background: var(--color-text-light);
-        border-radius: 1px;
-        opacity: 0.5;
-      }
     }
   }
 
   // Legacy support für alte input[type="range"] ohne .modern-slider Klasse
   input[type='range']:not(.modern-slider) {
     width: 100%;
-    height: 4px;
+    height: 2px;
     -webkit-appearance: none;
     appearance: none;
     background: var(--color-border);
@@ -2275,27 +2267,27 @@ function handleKeyup(e) {
       -webkit-appearance: none;
       width: 12px;
       height: 12px;
-      background: var(--color-primary);
+      background: white;
       border-radius: 50%;
       cursor: pointer;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-      border: 2px solid var(--color-bg);
+      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
+      border: 2px solid var(--color-primary);
     }
 
     &::-moz-range-thumb {
       width: 12px;
       height: 12px;
-      background: var(--color-primary);
-      border: 2px solid var(--color-bg);
+      background: white;
+      border: 2px solid var(--color-primary);
       border-radius: 50%;
       cursor: pointer;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
     }
 
     &::-moz-range-track {
       background: var(--color-border);
       border-radius: 2px;
-      height: 4px;
+      height: 2px;
     }
   }
 
@@ -2323,6 +2315,32 @@ function handleKeyup(e) {
         accent-color: var(--color-primary);
       }
     }
+  }
+}
+
+/* Global Reset Button for Sliders */
+.reset-btn {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--color-text-light);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+
+  &:hover {
+    color: var(--color-primary);
+    background: rgba(1, 79, 153, 0.1);
+    opacity: 1;
+    transform: rotate(-45deg);
   }
 }
 

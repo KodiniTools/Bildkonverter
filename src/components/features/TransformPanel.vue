@@ -378,6 +378,14 @@
             />
             <span class="unit">%</span>
           </div>
+          <button
+            v-if="transforms.opacity !== 100"
+            class="reset-btn"
+            title="Zurücksetzen"
+            @click="$emit('update:opacity', 100); $emit('commit-transform')"
+          >
+            <i class="fas fa-undo-alt"></i>
+          </button>
         </div>
       </div>
 
@@ -413,6 +421,14 @@
             />
             <span class="unit">°</span>
           </div>
+          <button
+            v-if="transforms.rotation !== 0"
+            class="reset-btn"
+            title="Zurücksetzen"
+            @click="$emit('update:rotation', 0); $emit('commit-transform')"
+          >
+            <i class="fas fa-undo-alt"></i>
+          </button>
         </div>
       </div>
 
@@ -505,6 +521,14 @@
               />
               <span class="unit">°</span>
             </div>
+            <button
+              v-if="transforms.skewX !== 0"
+              class="reset-btn"
+              title="Zurücksetzen"
+              @click="$emit('update:skew-x', 0); $emit('commit-transform')"
+            >
+              <i class="fas fa-undo-alt"></i>
+            </button>
           </div>
         </div>
 
@@ -538,6 +562,14 @@
               />
               <span class="unit">°</span>
             </div>
+            <button
+              v-if="transforms.skewY !== 0"
+              class="reset-btn"
+              title="Zurücksetzen"
+              @click="$emit('update:skew-y', 0); $emit('commit-transform')"
+            >
+              <i class="fas fa-undo-alt"></i>
+            </button>
           </div>
         </div>
       </div>
@@ -574,6 +606,14 @@
             />
             <span class="unit">%</span>
           </div>
+          <button
+            v-if="transforms.scale !== 100"
+            class="reset-btn"
+            title="Zurücksetzen"
+            @click="$emit('update:scale', 100); $emit('commit-transform')"
+          >
+            <i class="fas fa-undo-alt"></i>
+          </button>
         </div>
       </div>
 
@@ -1179,6 +1219,31 @@ defineEmits([
   .slider {
     flex: 1;
   }
+
+  .reset-btn {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--color-text-light, #9ca3af);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    opacity: 0.6;
+
+    &:hover {
+      color: var(--color-primary, #014f99);
+      background: rgba(1, 79, 153, 0.1);
+      opacity: 1;
+      transform: rotate(-45deg);
+    }
+  }
 }
 
 .number-input-wrapper {
@@ -1247,7 +1312,7 @@ defineEmits([
 /* Slider Track Wrapper - angeglichen an linke Sidebar */
 .slider-track {
   position: relative;
-  height: 20px;
+  height: 14px;
   display: flex;
   align-items: center;
 }
@@ -1255,13 +1320,13 @@ defineEmits([
 /* Slider - angeglichen an linke Sidebar */
 .slider {
   width: 100%;
-  height: 4px;
+  height: 2px;
   border-radius: 2px;
   background: var(--color-border, #d1d5db);
   outline: none;
   -webkit-appearance: none;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background 0.15s ease;
 
   &::-webkit-slider-thumb {
     -webkit-appearance: none;
@@ -1269,43 +1334,43 @@ defineEmits([
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: var(--color-primary, #014f99);
+    background: white;
     cursor: pointer;
     transition: all 0.15s ease;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-    border: 2px solid var(--color-bg, #ffffff);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
+    border: 2px solid var(--color-primary, #014f99);
   }
 
   &:hover::-webkit-slider-thumb {
-    transform: scale(1.2);
-    box-shadow: 0 2px 8px rgba(1, 79, 153, 0.4);
+    transform: scale(1.25);
+    box-shadow: 0 2px 8px rgba(1, 79, 153, 0.35);
   }
 
   &:active::-webkit-slider-thumb {
     transform: scale(1.1);
-    background: var(--color-primary, #014f99);
+    box-shadow: 0 1px 5px rgba(1, 79, 153, 0.4);
   }
 
   &::-moz-range-thumb {
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: var(--color-primary, #014f99);
+    background: white;
     cursor: pointer;
-    border: 2px solid var(--color-bg, #ffffff);
+    border: 2px solid var(--color-primary, #014f99);
     transition: all 0.15s ease;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
   }
 
   &:hover::-moz-range-thumb {
-    transform: scale(1.2);
-    box-shadow: 0 2px 8px rgba(1, 79, 153, 0.4);
+    transform: scale(1.25);
+    box-shadow: 0 2px 8px rgba(1, 79, 153, 0.35);
   }
 
   &::-moz-range-track {
     background: var(--color-border, #d1d5db);
     border-radius: 2px;
-    height: 4px;
+    height: 2px;
   }
 }
 
@@ -1549,14 +1614,6 @@ defineEmits([
 
 :root[data-theme='dark'] .slider {
   background: var(--color-border);
-
-  &::-webkit-slider-thumb {
-    border-color: var(--color-bg);
-  }
-
-  &::-moz-range-thumb {
-    border-color: var(--color-bg);
-  }
 }
 
 :root[data-theme='dark'] .color-input {

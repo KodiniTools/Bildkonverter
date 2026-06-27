@@ -1557,19 +1557,44 @@ onUnmounted(() => {
 
   input[type='range'] {
     width: 100%;
-    height: 5px;
-    border-radius: 3px;
-    background: var(--color-bg-secondary);
+    height: 2px;
+    border-radius: 2px;
+    background: var(--color-border);
     outline: none;
     -webkit-appearance: none;
+    cursor: pointer;
 
     &::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 14px;
-      height: 14px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
-      background: var(--color-primary);
+      background: white;
+      border: 2px solid var(--color-primary);
       cursor: pointer;
+      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
+      transition: all 0.15s ease;
+    }
+
+    &:hover::-webkit-slider-thumb {
+      transform: scale(1.25);
+      box-shadow: 0 2px 8px rgba(1, 79, 153, 0.35);
+    }
+
+    &::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: white;
+      border: 2px solid var(--color-primary);
+      cursor: pointer;
+      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
+    }
+
+    &::-moz-range-track {
+      background: var(--color-border);
+      border-radius: 2px;
+      height: 2px;
     }
   }
 
