@@ -87,6 +87,13 @@ export const useGalleryStore = defineStore('gallery', () => {
     return images.value.find((img) => img.id === imageId);
   }
 
+  function renameImage(imageId, newName) {
+    const image = images.value.find((img) => img.id === imageId);
+    if (image && newName.trim()) {
+      image.name = newName.trim();
+    }
+  }
+
   return {
     // State
     images,
@@ -101,6 +108,7 @@ export const useGalleryStore = defineStore('gallery', () => {
     // Actions
     addImage,
     removeImage,
+    renameImage,
     selectImage,
     toggleImageSelection,
     selectAllImages,
