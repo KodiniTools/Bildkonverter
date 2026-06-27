@@ -2124,17 +2124,6 @@ function handleKeyup(e) {
     }
   }
 
-  .slider-row {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-
-    .slider-track {
-      flex: 1;
-      min-width: 0;
-    }
-  }
-
   .slider-track {
     position: relative;
     height: 14px;
@@ -2315,6 +2304,20 @@ function handleKeyup(e) {
         accent-color: var(--color-primary);
       }
     }
+  }
+}
+
+/* Global Slider Row — flex wrapper for slider + reset button */
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+
+  .slider-track,
+  > input[type='range'] {
+    flex: 1;
+    min-width: 0;
+    width: auto;
   }
 }
 
