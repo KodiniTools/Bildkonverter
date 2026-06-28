@@ -339,6 +339,132 @@
       </div>
     </section>
 
+    <!-- Collage & Layers Section -->
+    <section class="section section-white">
+      <div class="section-container">
+        <div class="section-grid">
+          <div class="section-text">
+            <div class="section-header section-header-left">
+              <div class="section-icon section-icon-small">
+                <i class="fas fa-layer-group"></i>
+              </div>
+              <h2>{{ $t('guide.collage.title') }}</h2>
+            </div>
+            <p class="section-intro">{{ $t('guide.collage.description') }}</p>
+            <div class="feature-list-grid">
+              <div
+                v-for="feature in collageFeatures"
+                :key="feature.key"
+                class="feature-list-item"
+              >
+                <i :class="feature.icon"></i>
+                <span>{{ $t(`guide.collage.features.${feature.key}`) }}</span>
+              </div>
+            </div>
+            <div class="tip-box" style="margin-top: 1.25rem">
+              <div class="tip-icon"><i class="fas fa-lightbulb"></i></div>
+              <p>{{ $t('guide.collage.tip') }}</p>
+            </div>
+          </div>
+          <div class="section-visual">
+            <div class="visual-card visual-card-collage">
+              <div class="collage-preview">
+                <div class="collage-layer collage-layer-1"></div>
+                <div class="collage-layer collage-layer-2"></div>
+                <div class="collage-layer collage-layer-3"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mobile Gestures Section -->
+    <section class="section section-gradient">
+      <div class="section-container">
+        <div class="section-header">
+          <div class="section-icon">
+            <i class="fas fa-mobile-alt"></i>
+          </div>
+          <h2>{{ $t('guide.mobile.title') }}</h2>
+          <p class="section-description">{{ $t('guide.mobile.description') }}</p>
+        </div>
+        <div class="gestures-grid">
+          <div v-for="gesture in mobileGestures" :key="gesture.key" class="gesture-card">
+            <div class="gesture-icon">
+              <i :class="gesture.icon"></i>
+            </div>
+            <p>{{ $t(`guide.mobile.gestures.${gesture.key}`) }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Batch Processing Section -->
+    <section class="section section-white">
+      <div class="section-container">
+        <div class="section-grid section-grid-reverse">
+          <div class="section-visual">
+            <div class="visual-card visual-card-batch">
+              <div class="batch-preview">
+                <div v-for="n in 3" :key="n" class="batch-item">
+                  <i class="fas fa-file-image"></i>
+                </div>
+                <div class="batch-arrow">
+                  <i class="fas fa-arrow-right"></i>
+                </div>
+                <div class="batch-zip">
+                  <i class="fas fa-file-archive"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="section-text">
+            <div class="section-header section-header-left">
+              <div class="section-icon section-icon-small">
+                <i class="fas fa-tasks"></i>
+              </div>
+              <h2>{{ $t('guide.batch.title') }}</h2>
+            </div>
+            <p class="section-intro">{{ $t('guide.batch.description') }}</p>
+            <div class="feature-list-grid">
+              <div v-for="feature in batchFeatures" :key="feature.key" class="feature-list-item">
+                <i :class="feature.icon"></i>
+                <span>{{ $t(`guide.batch.features.${feature.key}`) }}</span>
+              </div>
+            </div>
+            <router-link to="/batch" class="section-link-btn">
+              <i class="fas fa-arrow-right"></i>
+              {{ $t('guide.batch.link') }}
+            </router-link>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Privacy Section -->
+    <section class="section section-dark">
+      <div class="section-container">
+        <div class="section-header section-header-light">
+          <div class="section-icon section-icon-light">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h2>{{ $t('guide.privacy.title') }}</h2>
+          <p class="section-description" style="color: rgba(255,255,255,0.8)">
+            {{ $t('guide.privacy.description') }}
+          </p>
+        </div>
+        <div class="privacy-grid">
+          <div v-for="feature in privacyFeatures" :key="feature.key" class="privacy-card">
+            <div class="privacy-icon">
+              <i :class="feature.icon"></i>
+            </div>
+            <span>{{ $t(`guide.privacy.features.${feature.key}`) }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- History & Settings Combined Section -->
     <section class="section section-white">
       <div class="section-container">
@@ -368,6 +494,32 @@
                   <kbd>Y</kbd>
                 </div>
                 <span class="shortcut-label">{{ $t('guide.history.redo') }}</span>
+              </div>
+              <div class="shortcut-item">
+                <div class="shortcut-keys">
+                  <kbd>T</kbd>
+                </div>
+                <span class="shortcut-label">{{ $t('guide.history.shortcuts.addText') }}</span>
+              </div>
+              <div class="shortcut-item">
+                <div class="shortcut-keys">
+                  <kbd>Esc</kbd>
+                </div>
+                <span class="shortcut-label">{{ $t('guide.history.shortcuts.escape') }}</span>
+              </div>
+              <div class="shortcut-item">
+                <div class="shortcut-keys">
+                  <kbd>Del</kbd>
+                </div>
+                <span class="shortcut-label">{{ $t('guide.history.shortcuts.delete') }}</span>
+              </div>
+              <div class="shortcut-item">
+                <div class="shortcut-keys">
+                  <kbd>Ctrl</kbd>
+                  <span class="shortcut-plus">+</span>
+                  <kbd>V</kbd>
+                </div>
+                <span class="shortcut-label">{{ $t('guide.history.shortcuts.pasteImage') }}</span>
               </div>
             </div>
           </div>
@@ -478,6 +630,37 @@ const galleryFeatures = [
   { key: 'openEditor', icon: 'fas fa-edit' },
   { key: 'download', icon: 'fas fa-download' },
   { key: 'delete', icon: 'fas fa-trash-alt' },
+];
+
+const collageFeatures = [
+  { key: 'addLayer', icon: 'fas fa-plus-circle' },
+  { key: 'drag', icon: 'fas fa-arrows-alt' },
+  { key: 'resize', icon: 'fas fa-expand-arrows-alt' },
+  { key: 'order', icon: 'fas fa-layer-group' },
+  { key: 'background', icon: 'fas fa-palette' },
+  { key: 'merge', icon: 'fas fa-object-group' },
+];
+
+const mobileGestures = [
+  { key: 'pinch', icon: 'fas fa-search-plus' },
+  { key: 'drag', icon: 'fas fa-hand-paper' },
+  { key: 'doubleTap', icon: 'fas fa-mouse-pointer' },
+  { key: 'longPress', icon: 'fas fa-hand-point-up' },
+  { key: 'tap', icon: 'fas fa-hand-pointer' },
+];
+
+const batchFeatures = [
+  { key: 'multiUpload', icon: 'fas fa-images' },
+  { key: 'formatConvert', icon: 'fas fa-sync-alt' },
+  { key: 'qualitySet', icon: 'fas fa-sliders-h' },
+  { key: 'zipDownload', icon: 'fas fa-file-archive' },
+];
+
+const privacyFeatures = [
+  { key: 'local', icon: 'fas fa-laptop' },
+  { key: 'noUpload', icon: 'fas fa-ban' },
+  { key: 'noAccount', icon: 'fas fa-user-slash' },
+  { key: 'offline', icon: 'fas fa-wifi' },
 ];
 
 function getPresetIcon(preset) {
@@ -1609,6 +1792,226 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       transform: translateY(-3px);
       box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
     }
+  }
+}
+
+// ===== COLLAGE VISUAL =====
+.visual-card-collage {
+  .collage-preview {
+    position: relative;
+    width: 200px;
+    height: 180px;
+  }
+
+  .collage-layer {
+    position: absolute;
+    border-radius: 10px;
+    border: 2px solid var(--color-border);
+
+    &-1 {
+      width: 140px;
+      height: 140px;
+      background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+      top: 0;
+      left: 0;
+    }
+
+    &-2 {
+      width: 110px;
+      height: 110px;
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      top: 30px;
+      left: 50px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    &-3 {
+      width: 90px;
+      height: 90px;
+      background: linear-gradient(135deg, var(--color-light-blue) 0%, var(--color-medium-blue) 100%);
+      top: 60px;
+      left: 95px;
+      box-shadow: 0 6px 20px rgba(1, 79, 153, 0.2);
+    }
+  }
+}
+
+// ===== GESTURES GRID =====
+.gestures-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 500px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.gesture-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1rem;
+  background: var(--color-bg);
+  border-radius: 14px;
+  border: 1px solid var(--color-border);
+  text-align: center;
+  transition: all $transition-smooth;
+
+  &:hover {
+    border-color: var(--color-primary);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(1, 79, 153, 0.12);
+  }
+
+  .gesture-icon {
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--color-primary) 0%, #003971 100%);
+    border-radius: 14px;
+    flex-shrink: 0;
+
+    i {
+      font-size: 1.3rem;
+      color: #f5f4d6;
+    }
+  }
+
+  p {
+    font-size: 0.82rem;
+    color: var(--color-text-light);
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+// ===== BATCH VISUAL =====
+.visual-card-batch {
+  .batch-preview {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    .batch-item {
+      width: 52px;
+      height: 64px;
+      background: linear-gradient(135deg, var(--color-light-blue) 0%, var(--color-medium-blue) 100%);
+      border-radius: 10px;
+      border: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      i {
+        font-size: 1.4rem;
+        color: var(--color-primary);
+      }
+    }
+
+    .batch-arrow {
+      font-size: 1.5rem;
+      color: var(--color-text-light);
+    }
+
+    .batch-zip {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, var(--color-primary) 0%, #003971 100%);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(1, 79, 153, 0.3);
+
+      i {
+        font-size: 1.6rem;
+        color: #f5f4d6;
+      }
+    }
+  }
+}
+
+// ===== SECTION LINK BUTTON =====
+.section-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding: 0.65rem 1.25rem;
+  background: var(--color-primary);
+  color: #f5f4d6;
+  text-decoration: none;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all $transition-smooth;
+  box-shadow: 0 6px 20px rgba(1, 79, 153, 0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(1, 79, 153, 0.4);
+  }
+}
+
+// ===== PRIVACY GRID =====
+.privacy-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.privacy-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1rem;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  text-align: center;
+  backdrop-filter: blur(10px);
+  transition: all $transition-smooth;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-3px);
+  }
+
+  .privacy-icon {
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 14px;
+
+    i {
+      font-size: 1.3rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+  }
+
+  span {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+    line-height: 1.4;
   }
 }
 
