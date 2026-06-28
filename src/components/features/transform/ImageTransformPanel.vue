@@ -741,6 +741,9 @@ defineEmits([
   cursor: pointer;
   transition: all 0.3s ease;
   padding: 2px;
+  overflow: hidden;
+  outline: none;
+  flex-shrink: 0;
 
   &.active {
     background: linear-gradient(135deg, #014f99, #003971);
@@ -756,6 +759,7 @@ defineEmits([
     border-radius: 50%;
     transition: transform 0.3s ease;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
   }
 
   &.active .toggle-slider {
