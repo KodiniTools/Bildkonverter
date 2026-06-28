@@ -10,8 +10,7 @@
           class="nav-link"
           :class="{ active: isActiveRoute(route.path) }"
         >
-          <i :class="route.icon"></i>
-          <span>{{ $t(route.label) }}</span>
+          {{ $t(route.label) }}
         </router-link>
       </nav>
 
@@ -39,8 +38,7 @@
           :class="{ active: isActiveRoute(route.path) }"
           @click="closeMobileMenu"
         >
-          <i :class="route.icon"></i>
-          <span>{{ $t(route.label) }}</span>
+          {{ $t(route.label) }}
         </router-link>
       </nav>
     </transition>
@@ -58,12 +56,12 @@ const isMobileMenuOpen = ref(false);
 
 // Navigation Routes
 const routes = [
-  { path: '/', icon: 'fas fa-home', label: 'nav.home' },
-  { path: '/editor', icon: 'fas fa-edit', label: 'nav.editor' },
-  { path: '/gallery', icon: 'fas fa-images', label: 'nav.gallery' },
-  { path: '/guide', icon: 'fas fa-book-open', label: 'nav.guide' },
-  { path: '/faq', icon: 'fas fa-question-circle', label: 'nav.faq' },
-  { path: '/about', icon: 'fas fa-info-circle', label: 'nav.about' },
+  { path: '/', label: 'nav.home' },
+  { path: '/editor', label: 'nav.editor' },
+  { path: '/gallery', label: 'nav.gallery' },
+  { path: '/guide', label: 'nav.guide' },
+  { path: '/faq', label: 'nav.faq' },
+  { path: '/about', label: 'nav.about' },
 ];
 
 // Methods
@@ -118,17 +116,14 @@ function closeMobileMenu() {
 .nav-link {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: 0.3rem 0.65rem;
   text-decoration: none;
   color: var(--color-text-secondary);
+  font-size: 0.8rem;
   font-weight: 500;
+  letter-spacing: 0.01em;
   border-radius: var(--border-radius-md);
   transition: all 0.2s ease;
-
-  i {
-    font-size: 1rem;
-  }
 
   &:hover {
     background: var(--color-light-blue);
@@ -204,18 +199,13 @@ function closeMobileMenu() {
 .mobile-nav-link {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
   padding: var(--spacing-md);
   text-decoration: none;
   color: var(--color-text-secondary);
+  font-size: 0.85rem;
   font-weight: 500;
   border-radius: var(--border-radius-md);
   transition: all 0.2s ease;
-
-  i {
-    font-size: 1.2rem;
-    width: 24px;
-  }
 
   &:hover {
     background: var(--color-light-blue);
