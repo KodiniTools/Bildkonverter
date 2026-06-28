@@ -833,12 +833,68 @@ const de = {
         delete: 'Löschen Sie nicht mehr benötigte Bilder',
       },
     },
+    collage: {
+      title: 'Collage & Ebenen',
+      description:
+        'Im Collage-Modus können Sie mehrere Bilder übereinander platzieren und eine kreative Komposition erstellen.',
+      features: {
+        addLayer: 'Weitere Bilder als Ebenen hinzufügen',
+        drag: 'Ebenen frei auf der Leinwand positionieren',
+        resize: 'Größe jeder Ebene unabhängig anpassen',
+        order: 'Reihenfolge der Ebenen ändern',
+        background: 'Hintergrundfarbe der Leinwand wählen',
+        merge: 'Alle Ebenen zum fertigen Bild zusammenfügen',
+      },
+      tip: 'Tipp: Aktivieren Sie den Collage-Modus über den Button in der Editor-Toolbar.',
+    },
+    mobile: {
+      title: 'Mobile Bedienung',
+      description:
+        'Der Editor ist vollständig für Touch-Geräte optimiert – alle Funktionen sind auch auf Smartphones und Tablets verfügbar.',
+      gestures: {
+        title: 'Touch-Gesten',
+        pinch: 'Zwei Finger zum Zoomen spreizen oder zusammenführen',
+        drag: 'Mit einem Finger das Bild verschieben',
+        doubleTap: 'Doppel-Tap auf Text zum Bearbeiten',
+        longPress: 'Langer Druck öffnet Bearbeitungsoptionen',
+        tap: 'Auf Text tippen, um ihn auszuwählen',
+      },
+    },
+    batch: {
+      title: 'Stapelverarbeitung',
+      description:
+        'Mit der Stapelverarbeitung können Sie mehrere Bilder gleichzeitig konvertieren und herunterladen – ohne jedes Bild einzeln bearbeiten zu müssen.',
+      features: {
+        multiUpload: 'Mehrere Bilder auf einmal hochladen',
+        formatConvert: 'Alle Bilder in ein Format konvertieren',
+        qualitySet: 'Qualität und Größe für alle Bilder festlegen',
+        zipDownload: 'Ergebnisse als ZIP-Datei herunterladen',
+      },
+      link: 'Zur Stapelverarbeitung',
+    },
+    privacy: {
+      title: 'Datenschutz & lokale Verarbeitung',
+      description:
+        'Alle Bildbearbeitungen erfolgen direkt in Ihrem Browser – keine Bilder werden auf Server hochgeladen. Ihre Daten bleiben jederzeit auf Ihrem Gerät.',
+      features: {
+        local: 'Vollständig lokale Verarbeitung im Browser',
+        noUpload: 'Keine Uploads auf externe Server',
+        noAccount: 'Kein Konto oder Login erforderlich',
+        offline: 'Funktioniert auch offline nach dem ersten Laden',
+      },
+    },
     history: {
       title: 'Verlauf (Rückgängig/Wiederholen)',
       description:
         'Alle Ihre Bearbeitungsschritte werden gespeichert. Sie können jederzeit Änderungen rückgängig machen oder wiederherstellen.',
       undo: 'Rückgängig',
       redo: 'Wiederholen',
+      shortcuts: {
+        addText: 'Text hinzufügen',
+        escape: 'Auswahl aufheben / Abbrechen',
+        delete: 'Ausgewähltes Element löschen',
+        pasteImage: 'Bild aus Zwischenablage einfügen',
+      },
     },
     settings: {
       title: 'Einstellungen',
@@ -2021,11 +2077,67 @@ const en = {
         delete: 'Delete images you no longer need',
       },
     },
+    collage: {
+      title: 'Collage & Layers',
+      description:
+        'In collage mode you can place multiple images on top of each other to create a creative composition.',
+      features: {
+        addLayer: 'Add more images as layers',
+        drag: 'Freely position layers on the canvas',
+        resize: 'Resize each layer independently',
+        order: 'Change the order of layers',
+        background: 'Choose the canvas background color',
+        merge: 'Merge all layers into the final image',
+      },
+      tip: 'Tip: Activate collage mode via the button in the editor toolbar.',
+    },
+    mobile: {
+      title: 'Mobile Controls',
+      description:
+        'The editor is fully optimized for touch devices – all features are available on smartphones and tablets.',
+      gestures: {
+        title: 'Touch Gestures',
+        pinch: 'Spread or pinch two fingers to zoom',
+        drag: 'Drag with one finger to pan the image',
+        doubleTap: 'Double-tap on text to edit it',
+        longPress: 'Long press opens editing options',
+        tap: 'Tap on text to select it',
+      },
+    },
+    batch: {
+      title: 'Batch Processing',
+      description:
+        'With batch processing you can convert and download multiple images at once – without editing each image individually.',
+      features: {
+        multiUpload: 'Upload multiple images at once',
+        formatConvert: 'Convert all images to one format',
+        qualitySet: 'Set quality and size for all images',
+        zipDownload: 'Download results as a ZIP file',
+      },
+      link: 'Go to Batch Processing',
+    },
+    privacy: {
+      title: 'Privacy & Local Processing',
+      description:
+        'All image processing happens directly in your browser – no images are uploaded to servers. Your data stays on your device at all times.',
+      features: {
+        local: 'Fully local processing in the browser',
+        noUpload: 'No uploads to external servers',
+        noAccount: 'No account or login required',
+        offline: 'Works offline after the first load',
+      },
+    },
     history: {
       title: 'History (Undo/Redo)',
       description: 'All your editing steps are saved. You can undo or redo changes at any time.',
       undo: 'Undo',
       redo: 'Redo',
+      shortcuts: {
+        addText: 'Add text',
+        escape: 'Deselect / Cancel',
+        delete: 'Delete selected element',
+        pasteImage: 'Paste image from clipboard',
+      },
     },
     settings: {
       title: 'Settings',
