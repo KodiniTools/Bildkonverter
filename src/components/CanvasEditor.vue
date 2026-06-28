@@ -9,6 +9,9 @@
       @mouseup="onMouseUp"
       @mouseleave="onMouseUp"
       @dblclick="onDoubleClick"
+      @touchstart.prevent="onTouchStart"
+      @touchmove.prevent="onTouchMove"
+      @touchend.prevent="onTouchEnd"
     />
 
     <!-- Text-Bearbeitung Modal -->
@@ -40,15 +43,18 @@ const canvasRef = ref(null);
 const showTextModal = ref(false);
 const editingText = ref(null);
 
-// Canvas Position berechnen
+// Canvas Position berechnen (Maus oder Touch)
 function getCanvasPosition(event) {
   const rect = canvasRef.value.getBoundingClientRect();
   const scaleX = imageStore.imageWidth / rect.width;
   const scaleY = imageStore.imageHeight / rect.height;
 
+  const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+  const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+
   return {
-    x: (event.clientX - rect.left) * scaleX,
-    y: (event.clientY - rect.top) * scaleY,
+    x: (clientX - rect.left) * scaleX,
+    y: (clientY - rect.top) * scaleY,
   };
 }
 
@@ -77,6 +83,66 @@ function onDoubleClick(event) {
   const pos = getCanvasPosition(event);
   // Doppelklick wird bereits in handleMouseDown behandelt
   console.log('Double click at:', pos);
+}
+
+// Touch-Handler mit Long-Press für Text-Bearbeitung
+let touchLongPressTimer = null;
+let lastTouchTime = 0;
+let lastTouchPos = null;
+
+function onTouchStart(event) {
+  if (event.touches.length !== 1) return;
+
+  const pos = getCanvasPosition(event);
+  const result = handleMouseDown(pos.x, pos.y);
+
+  if (result && result.action === 'edit') {
+    editingText.value = imageStore.texts[result.textIndex];
+    showTextModal.value = true;
+    return;
+  }
+
+  // Doppeltipp-Erkennung (400ms Fenster)
+  const now = Date.now();
+  if (lastTouchPos && now - lastTouchTime < 400) {
+    const dx = Math.abs(pos.x - lastTouchPos.x);
+    const dy = Math.abs(pos.y - lastTouchPos.y);
+    if (dx < 30 && dy < 30) {
+      // Doppeltipp: Text bearbeiten
+      const textIndex = imageStore.texts.findIndex((t) => t.id === imageStore.selectedTextId);
+      if (textIndex !== -1) {
+        editingText.value = imageStore.texts[textIndex];
+        showTextModal.value = true;
+        lastTouchTime = 0;
+        return;
+      }
+    }
+  }
+
+  lastTouchTime = now;
+  lastTouchPos = pos;
+
+  // Long-Press-Erkennung (600ms) für Text-Bearbeitung
+  touchLongPressTimer = setTimeout(() => {
+    const textIndex = imageStore.texts.findIndex((t) => t.id === imageStore.selectedTextId);
+    if (textIndex !== -1) {
+      handleMouseUp();
+      editingText.value = imageStore.texts[textIndex];
+      showTextModal.value = true;
+    }
+  }, 600);
+}
+
+function onTouchMove(event) {
+  if (event.touches.length !== 1) return;
+  clearTimeout(touchLongPressTimer);
+  const pos = getCanvasPosition(event);
+  handleMouseMove(pos.x, pos.y);
+}
+
+function onTouchEnd(event) {
+  clearTimeout(touchLongPressTimer);
+  handleMouseUp();
 }
 
 function onKeyDown(event) {

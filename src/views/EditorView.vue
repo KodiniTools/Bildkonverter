@@ -209,6 +209,9 @@
               @mousemove="onCanvasMouseMove"
               @mouseup="onCanvasMouseUp"
               @dblclick="onCanvasDoubleClick"
+              @touchstart.prevent="onCanvasTouchStart"
+              @touchmove.prevent="onCanvasTouchMove"
+              @touchend.prevent="onCanvasTouchEnd"
             ></canvas>
             <!-- Crop Overlay mit Resize-Handles -->
             <div
@@ -1173,19 +1176,21 @@ const handleRedoText = () => { redoText(); renderImage(); };
 function getMousePos(e) {
   const rect = canvas.value.getBoundingClientRect();
 
-  // Maus-Position relativ zum Canvas-Element (in Display-Pixeln)
-  const displayX = e.clientX - rect.left;
-  const displayY = e.clientY - rect.top;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
-  // Skalierungsfaktor zwischen Display-Größe und Canvas-Größe
   const scaleX = canvas.value.width / rect.width;
   const scaleY = canvas.value.height / rect.height;
 
-  // Konvertiere zu Canvas-Koordinaten
   return {
-    x: displayX * scaleX,
-    y: displayY * scaleY,
+    x: (clientX - rect.left) * scaleX,
+    y: (clientY - rect.top) * scaleY,
   };
+}
+
+function getTouchClientPos(e) {
+  const touch = e.touches?.[0] ?? e.changedTouches?.[0];
+  return { clientX: touch?.clientX ?? 0, clientY: touch?.clientY ?? 0 };
 }
 
 // Gibt den Display-Skalierungsfaktor zurück (wie viel kleiner ist die Anzeige als das Canvas)
@@ -1408,6 +1413,197 @@ function onCanvasDoubleClick(e) {
 
   if (text) {
     textModal.openEditTextModal(text.id);
+  }
+}
+
+// ===== TOUCH HANDLER =====
+
+let touchLongPressTimer = null;
+let lastTouchTime = 0;
+let lastTouchEndPos = null;
+let activeTouchCount = 0;
+let pinchStartDist = 0;
+
+function getPinchDistance(e) {
+  const t = e.touches;
+  const dx = t[0].clientX - t[1].clientX;
+  const dy = t[0].clientY - t[1].clientY;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+function onCanvasTouchStart(e) {
+  e.preventDefault();
+  activeTouchCount = e.touches.length;
+
+  if (e.touches.length === 2) {
+    // Pinch-to-zoom vorbereiten
+    pinchStartDist = getPinchDistance(e);
+    clearTimeout(touchLongPressTimer);
+    return;
+  }
+
+  if (e.touches.length !== 1) return;
+
+  const { clientX, clientY } = getTouchClientPos(e);
+  const pos = getMousePos(e);
+
+  // Pan mit zwei Fingern – hier noch Ein-Finger: prüfe ob Leertaste (nicht möglich auf Mobil)
+  // Crop-Handler
+  const displayScale = getDisplayScale();
+  const cropHandled = crop.handleMouseDown(pos, displayScale);
+  if (cropHandled) return;
+
+  // Im Collage-Modus
+  if (isCollageMode.value) {
+    const text = findTextAtPosition(pos.x, pos.y);
+    if (text) {
+      selectedTextId.value = text.id;
+      isDraggingText.value = true;
+      dragOffset.value = { x: pos.x - text.x, y: pos.y - text.y };
+      if (canvas.value) canvas.value.style.cursor = 'grabbing';
+      imageStore.selectImageLayer(null);
+      renderImage();
+    } else {
+      selectedTextId.value = null;
+      // Synthetisches Event für Layer-Interaktion
+      const syntheticEvent = {
+        clientX,
+        clientY,
+        preventDefault: () => {},
+        shiftKey: false,
+        button: 0,
+      };
+      layerInteraction.handleMouseDown(syntheticEvent);
+      renderImage();
+    }
+    return;
+  }
+
+  // Text-Interaktion (normaler Modus)
+  const text = findTextAtPosition(pos.x, pos.y);
+  if (text) {
+    selectedTextId.value = text.id;
+    isDraggingText.value = true;
+    dragOffset.value = { x: pos.x - text.x, y: pos.y - text.y };
+    if (canvas.value) canvas.value.style.cursor = 'grabbing';
+  } else {
+    selectedTextId.value = null;
+  }
+  renderImage();
+
+  // Long-Press für Text-Bearbeitung (600ms)
+  if (text) {
+    touchLongPressTimer = setTimeout(() => {
+      isDraggingText.value = false;
+      textModal.openEditTextModal(text.id);
+    }, 600);
+  }
+
+  // Doppeltipp-Erkennung (350ms)
+  const now = Date.now();
+  if (lastTouchEndPos && now - lastTouchTime < 350) {
+    const dx = Math.abs(clientX - lastTouchEndPos.x);
+    const dy = Math.abs(clientY - lastTouchEndPos.y);
+    if (dx < 40 && dy < 40) {
+      clearTimeout(touchLongPressTimer);
+      const doubleTapText = findTextAtPosition(pos.x, pos.y);
+      if (doubleTapText) {
+        textModal.openEditTextModal(doubleTapText.id);
+      }
+      lastTouchTime = 0;
+    }
+  }
+}
+
+function onCanvasTouchMove(e) {
+  e.preventDefault();
+  clearTimeout(touchLongPressTimer);
+
+  if (e.touches.length === 2 && pinchStartDist > 0) {
+    // Pinch-to-zoom
+    const newDist = getPinchDistance(e);
+    const scaleDelta = newDist / pinchStartDist;
+    // Clamp Scale-Delta für sanfteres Zoomen
+    const clampedDelta = Math.max(0.95, Math.min(1.05, scaleDelta));
+    transform.setScale(Math.max(10, Math.min(200, (transform.transforms.value.scale ?? 100) * clampedDelta)));
+    pinchStartDist = newDist;
+    renderImage();
+    return;
+  }
+
+  if (e.touches.length !== 1) return;
+
+  const { clientX, clientY } = getTouchClientPos(e);
+  const pos = getMousePos(e);
+
+  // Crop-Handler
+  const cropHandled = crop.handleMouseMove(pos);
+  if (cropHandled) return;
+
+  // Im Collage-Modus: Text-Dragging oder Layer
+  if (isCollageMode.value) {
+    if (isDraggingText.value && selectedTextId.value) {
+      const text = imageStore.texts.find((t) => t.id === selectedTextId.value);
+      if (text) {
+        text.x = pos.x - dragOffset.value.x;
+        text.y = pos.y - dragOffset.value.y;
+        renderImage();
+      }
+      return;
+    }
+    const syntheticEvent = { clientX, clientY, preventDefault: () => {}, shiftKey: false };
+    layerInteraction.handleMouseMove(syntheticEvent);
+    if (layerInteraction.isDragging.value || layerInteraction.isResizing.value) renderImage();
+    return;
+  }
+
+  // Text-Dragging
+  if (isDraggingText.value && selectedTextId.value) {
+    const text = imageStore.texts.find((t) => t.id === selectedTextId.value);
+    if (text) {
+      text.x = pos.x - dragOffset.value.x;
+      text.y = pos.y - dragOffset.value.y;
+      renderImage();
+    }
+  }
+}
+
+function onCanvasTouchEnd(e) {
+  e.preventDefault();
+  clearTimeout(touchLongPressTimer);
+
+  const { clientX, clientY } = getTouchClientPos(e);
+  lastTouchTime = Date.now();
+  lastTouchEndPos = { x: clientX, y: clientY };
+
+  pinchStartDist = 0;
+  activeTouchCount = 0;
+
+  // Crop-Handler
+  const cropHandled = crop.handleMouseUp();
+  if (cropHandled) {
+    handleFinishCrop();
+    return;
+  }
+
+  // Im Collage-Modus
+  if (isCollageMode.value) {
+    if (isDraggingText.value) {
+      isDraggingText.value = false;
+      if (canvas.value) canvas.value.style.cursor = 'default';
+      renderImage();
+      return;
+    }
+    layerInteraction.handleMouseUp();
+    renderImage();
+    return;
+  }
+
+  // Text-Dragging beenden
+  if (isDraggingText.value) {
+    isDraggingText.value = false;
+    if (canvas.value) canvas.value.style.cursor = 'default';
+    saveHistory();
   }
 }
 

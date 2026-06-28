@@ -84,7 +84,7 @@ export function useImageLayerInteraction(canvasRef) {
   }
 
   /**
-   * Konvertiert Maus-Koordinaten zu Canvas-Koordinaten
+   * Konvertiert Maus- oder Touch-Koordinaten zu Canvas-Koordinaten
    */
   function getCanvasCoords(event) {
     if (!canvasRef.value) return { x: 0, y: 0 };
@@ -93,9 +93,12 @@ export function useImageLayerInteraction(canvasRef) {
     const scaleX = canvasRef.value.width / rect.width;
     const scaleY = canvasRef.value.height / rect.height;
 
+    const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+    const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+
     return {
-      x: (event.clientX - rect.left) * scaleX,
-      y: (event.clientY - rect.top) * scaleY,
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
     };
   }
 
@@ -281,6 +284,21 @@ export function useImageLayerInteraction(canvasRef) {
     return cursors[handle] || 'default';
   }
 
+  function handleTouchStart(event) {
+    event.preventDefault();
+    handleMouseDown(event);
+  }
+
+  function handleTouchMove(event) {
+    event.preventDefault();
+    handleMouseMove(event);
+  }
+
+  function handleTouchEnd(event) {
+    event.preventDefault();
+    handleMouseUp();
+  }
+
   /**
    * Initialisiert die Event-Listener
    */
@@ -288,8 +306,11 @@ export function useImageLayerInteraction(canvasRef) {
     if (!canvasRef.value) return;
 
     canvasRef.value.addEventListener('mousedown', handleMouseDown);
+    canvasRef.value.addEventListener('touchstart', handleTouchStart, { passive: false });
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd);
   }
 
   /**
@@ -298,9 +319,12 @@ export function useImageLayerInteraction(canvasRef) {
   function removeListeners() {
     if (canvasRef.value) {
       canvasRef.value.removeEventListener('mousedown', handleMouseDown);
+      canvasRef.value.removeEventListener('touchstart', handleTouchStart);
     }
     window.removeEventListener('mousemove', handleMouseMove);
     window.removeEventListener('mouseup', handleMouseUp);
+    window.removeEventListener('touchmove', handleTouchMove);
+    window.removeEventListener('touchend', handleTouchEnd);
   }
 
   return {
