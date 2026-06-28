@@ -438,6 +438,15 @@ const de = {
         clipboardTitle: 'Aus Zwischenablage',
       },
     },
+    preview: {
+      before: 'Vorher',
+      compare: 'Vergleich',
+      after: 'Nachher',
+      noOriginal: 'Kein Original verfügbar',
+      noEdited: 'Keine Bearbeitung verfügbar',
+      labelBefore: 'VORHER',
+      labelAfter: 'NACHHER',
+    },
     export: {
       quality: 'Qualität',
       transparentBackground: 'Transparenter Hintergrund',
@@ -1685,6 +1694,15 @@ const en = {
         dragDropDesc: 'Drop image here',
         clipboardTitle: 'From Clipboard',
       },
+    },
+    preview: {
+      before: 'Before',
+      compare: 'Compare',
+      after: 'After',
+      noOriginal: 'No original available',
+      noEdited: 'No edits available',
+      labelBefore: 'BEFORE',
+      labelAfter: 'AFTER',
     },
     export: {
       quality: 'Quality',
