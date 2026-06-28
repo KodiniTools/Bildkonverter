@@ -534,6 +534,10 @@ defineExpose({
   text-align: center;
   line-height: 1.2;
   color: var(--color-text-primary);
+  width: 100%;
+  overflow: hidden;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 .delete-btn {
