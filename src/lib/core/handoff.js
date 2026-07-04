@@ -45,6 +45,7 @@ const TARGET_URLS = {
   bildkonverter: '/bildkonverter/gallery',
   collagemaker: '/collagemaker/editor',
   'color-extractor': '/kodini-color-extractor/app',
+  visualizer: '/visualizer/app',
 };
 
 /**

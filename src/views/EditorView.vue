@@ -358,6 +358,43 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- Weiterleitungs-Angebot nach erfolgreichem Download -->
+    <Teleport to="body">
+      <div v-if="showForwardOffer" class="forward-offer-overlay" @click.self="dismissForwardOffer">
+        <div class="forward-offer">
+          <div class="forward-offer__icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <h3 class="forward-offer__title">{{ $t('handoff.forwardTitle') }}</h3>
+          <p class="forward-offer__text">{{ $t('handoff.forwardText') }}</p>
+
+          <div class="forward-offer__options">
+            <button class="forward-offer__option" @click="forwardTo('color-extractor')">
+              <i class="fas fa-palette"></i>
+              <span class="forward-offer__option-label">
+                {{ $t('handoff.forwardColorExtractor') }}
+                <small>{{ $t('handoff.forwardColorExtractorHint') }}</small>
+              </span>
+              <i class="fas fa-arrow-right forward-offer__option-arrow"></i>
+            </button>
+
+            <button class="forward-offer__option" @click="forwardTo('visualizer')">
+              <i class="fas fa-wave-square"></i>
+              <span class="forward-offer__option-label">
+                {{ $t('handoff.forwardVisualizer') }}
+                <small>{{ $t('handoff.forwardVisualizerHint') }}</small>
+              </span>
+              <i class="fas fa-arrow-right forward-offer__option-arrow"></i>
+            </button>
+          </div>
+
+          <button class="forward-offer__dismiss" @click="dismissForwardOffer">
+            {{ $t('handoff.forwardDismiss') }}
+          </button>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -378,6 +415,7 @@ import { useImageLayerInteraction } from '@/composables/useImageLayerInteraction
 import { useCanvasRenderer } from '@/composables/useCanvasRenderer';
 import { useImageLoader } from '@/composables/useImageLoader';
 import { exportImage, FORMAT_INFO, SUPPORTED_FORMATS, getFormatInfo } from '@/utils/exportUtils';
+import { prepareHandoff } from '@/lib/core/handoff';
 
 import TransformPanel from '@/components/features/TransformPanel.vue';
 import LayerControlPanel from '@/components/features/LayerControlPanel.vue';
@@ -413,6 +451,11 @@ const exportTransparent = ref(false); // Transparenter Hintergrund beim PNG-Expo
 const currentFileName = ref('');
 const showExportDialog = ref(false);
 const exportDialogFilename = ref('');
+
+// ===== FORWARD/HANDOFF STATE (nach Download zu anderem Tool weiterleiten) =====
+const showForwardOffer = ref(false);
+const forwardCanvasSnapshot = ref(null); // Kopie des exportierten Canvas
+const forwardFilename = ref('');
 
 // ===== TEXT INTERACTION STATE =====
 const selectedTextId = ref(null);
@@ -888,6 +931,20 @@ async function confirmExport() {
 
     console.log('✅ Export erfolgreich:', result);
 
+    // Snapshot des exportierten Canvas sichern, solange der Export-Render aktiv ist.
+    // Wird für die optionale Weiterleitung an ein anderes Kodini-Tool genutzt.
+    try {
+      const snap = document.createElement('canvas');
+      snap.width = canvas.value.width;
+      snap.height = canvas.value.height;
+      snap.getContext('2d').drawImage(canvas.value, 0, 0);
+      forwardCanvasSnapshot.value = snap;
+      forwardFilename.value = filename;
+      showForwardOffer.value = true;
+    } catch (snapErr) {
+      console.warn('[Handoff] Snapshot für Weiterleitung fehlgeschlagen:', snapErr);
+    }
+
     if (window.$toast) {
       window.$toast.success(
         `Bild erfolgreich als ${result.format.toUpperCase()} exportiert` +
@@ -904,6 +961,30 @@ async function confirmExport() {
     isExporting.value = false;
     renderImage();
   }
+}
+
+// ===== Weiterleitung an anderes Kodini-Tool (Color-Extractor / Visualizer) =====
+function forwardTo(target) {
+  const snap = forwardCanvasSnapshot.value;
+  showForwardOffer.value = false;
+
+  if (!snap) return;
+
+  const name = forwardFilename.value || 'image';
+  const url = prepareHandoff([{ name, canvas: snap }], target, 'bildkonverter');
+
+  if (url) {
+    // Cross-App-Navigation: die Tools liegen unter unterschiedlichen Base-Pfaden,
+    // daher vollständiger Seitenwechsel statt Vue-Router.
+    window.location.href = url;
+  } else if (window.$toast) {
+    window.$toast.error('Weiterleitung fehlgeschlagen');
+  }
+}
+
+function dismissForwardOffer() {
+  showForwardOffer.value = false;
+  forwardCanvasSnapshot.value = null;
 }
 
 function saveHistory() {
@@ -2322,6 +2403,143 @@ function handleKeyup(e) {
         opacity: 0.9;
       }
     }
+  }
+}
+
+// ===== Forward Offer (nach Download) =====
+.forward-offer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+  backdrop-filter: blur(2px);
+  padding: 1rem;
+}
+
+.forward-offer {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 1.75rem 1.5rem 1.5rem;
+  min-width: 320px;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  animation: forward-offer-pop 0.25s ease-out;
+
+  &__icon {
+    font-size: 2.25rem;
+    color: #22c55e;
+    margin-bottom: 0.75rem;
+  }
+
+  &__title {
+    margin: 0 0 0.4rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  &__text {
+    margin: 0 0 1.25rem;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: var(--color-text-secondary, var(--color-text));
+    opacity: 0.85;
+  }
+
+  &__options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+  }
+
+  &__option {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s ease;
+
+    > i:first-child {
+      font-size: 1.2rem;
+      color: var(--color-primary);
+      width: 1.5rem;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      border-color: var(--color-primary);
+      background: var(--color-bg);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+
+      .forward-offer__option-arrow {
+        opacity: 1;
+        transform: translateX(2px);
+      }
+    }
+  }
+
+  &__option-label {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+
+    small {
+      font-size: 0.78rem;
+      font-weight: 400;
+      opacity: 0.7;
+    }
+  }
+
+  &__option-arrow {
+    opacity: 0.4;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+
+  &__dismiss {
+    background: transparent;
+    border: none;
+    color: var(--color-text-secondary, var(--color-text));
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 0.4rem 0.75rem;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+
+    &:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+  }
+}
+
+@keyframes forward-offer-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 </style>

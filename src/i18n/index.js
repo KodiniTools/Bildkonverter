@@ -1254,6 +1254,13 @@ const de = {
     from: 'Aus {tool} uebertragen',
     accept: 'Bilder uebernehmen',
     dismiss: 'Verwerfen',
+    forwardTitle: 'Download gestartet!',
+    forwardText: 'Moechtest du mit deinem Bild direkt in einem anderen Kodini-Tool weiterarbeiten?',
+    forwardColorExtractor: 'Farben extrahieren',
+    forwardColorExtractorHint: 'Farbpalette aus dem Bild gewinnen',
+    forwardVisualizer: 'Im Visualizer nutzen',
+    forwardVisualizerHint: 'Als Hintergrund im Audio-Visualizer verwenden',
+    forwardDismiss: 'Nein danke',
   },
 };
 
@@ -2505,6 +2512,13 @@ const en = {
     from: 'Transferred from {tool}',
     accept: 'Import images',
     dismiss: 'Dismiss',
+    forwardTitle: 'Download started!',
+    forwardText: 'Want to keep working with your image in another Kodini tool?',
+    forwardColorExtractor: 'Extract colors',
+    forwardColorExtractorHint: 'Get a color palette from the image',
+    forwardVisualizer: 'Use in Visualizer',
+    forwardVisualizerHint: 'Use it as a background in the audio visualizer',
+    forwardDismiss: 'No thanks',
   },
 };
 
