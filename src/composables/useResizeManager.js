@@ -68,9 +68,12 @@ export function useResizeManager(options = {}) {
    * @param {number} newWidth - Neue Breite
    */
   function onWidthChange(newWidth) {
-    resizeWidth.value = Math.max(1, Math.round(newWidth));
+    // Rohwert übernehmen, damit das Feld während des Tippens frei editierbar
+    // bleibt (Leeren/Teil­eingaben werden nicht auf 1 gezwungen). Die
+    // Validierung erfolgt in der Live-Vorschau bzw. beim "Anwenden".
+    resizeWidth.value = Math.round(newWidth);
 
-    if (maintainAspectRatio.value && aspectRatio.value > 0) {
+    if (maintainAspectRatio.value && aspectRatio.value > 0 && resizeWidth.value > 0) {
       resizeHeight.value = Math.max(1, Math.round(resizeWidth.value / aspectRatio.value));
     }
   }
@@ -80,9 +83,12 @@ export function useResizeManager(options = {}) {
    * @param {number} newHeight - Neue Höhe
    */
   function onHeightChange(newHeight) {
-    resizeHeight.value = Math.max(1, Math.round(newHeight));
+    // Rohwert übernehmen, damit das Feld während des Tippens frei editierbar
+    // bleibt (Leeren/Teil­eingaben werden nicht auf 1 gezwungen). Die
+    // Validierung erfolgt in der Live-Vorschau bzw. beim "Anwenden".
+    resizeHeight.value = Math.round(newHeight);
 
-    if (maintainAspectRatio.value && aspectRatio.value > 0) {
+    if (maintainAspectRatio.value && aspectRatio.value > 0 && resizeHeight.value > 0) {
       resizeWidth.value = Math.max(1, Math.round(resizeHeight.value * aspectRatio.value));
     }
   }
