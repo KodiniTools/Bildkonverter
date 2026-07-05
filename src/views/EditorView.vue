@@ -666,6 +666,26 @@ watch(outputFormat, () => {
   updateImageSize();
 });
 
+// Live-Vorschau: Das Bild im Canvas reagiert direkt auf die Werte in den
+// "Grösse ändern"-Feldern (Breite/Höhe) sowie auf Presets. Die endgültige
+// Übernahme (History + Toast) erfolgt weiterhin über "Anwenden".
+watch([resizeWidth, resizeHeight], ([newWidth, newHeight]) => {
+  if (!canvas.value || !currentImage.value) return;
+
+  // Leere oder ungültige Eingaben ignorieren (z.B. während des Tippens)
+  if (!newWidth || !newHeight) return;
+  if (newWidth < 1 || newHeight < 1 || newWidth > 10000 || newHeight > 10000) return;
+
+  // Keine Änderung gegenüber der aktuellen Canvas-Größe → nichts tun
+  // (verhindert überflüssiges Neuzeichnen z.B. nach initFromDimensions)
+  if (canvas.value.width === newWidth && canvas.value.height === newHeight) return;
+
+  // Canvas live an die Eingabefelder anpassen und neu zeichnen
+  canvas.value.width = newWidth;
+  canvas.value.height = newHeight;
+  renderImage();
+});
+
 // Methods
 function triggerFileInput() {
   fileInput.value?.click();
