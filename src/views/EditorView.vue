@@ -666,9 +666,10 @@ watch(outputFormat, () => {
   updateImageSize();
 });
 
-// Live-Vorschau: Das Bild im Canvas reagiert direkt auf die Werte in den
-// "Grösse ändern"-Feldern (Breite/Höhe) sowie auf Presets. Die endgültige
-// Übernahme (History + Toast) erfolgt weiterhin über "Anwenden".
+// Live-Vorschau: Das Bild im Canvas reagiert schon während des Tippens auf die
+// Werte in den "Grösse ändern"-Feldern (Breite/Höhe) sowie auf Presets. Die
+// endgültige Übernahme (History + Toast) erfolgt weiterhin über "Anwenden".
+let resizePreviewTimer = null;
 watch([resizeWidth, resizeHeight], ([newWidth, newHeight]) => {
   if (!canvas.value || !currentImage.value) return;
 
@@ -680,10 +681,15 @@ watch([resizeWidth, resizeHeight], ([newWidth, newHeight]) => {
   // (verhindert überflüssiges Neuzeichnen z.B. nach initFromDimensions)
   if (canvas.value.width === newWidth && canvas.value.height === newHeight) return;
 
-  // Canvas live an die Eingabefelder anpassen und neu zeichnen
-  canvas.value.width = newWidth;
-  canvas.value.height = newHeight;
-  renderImage();
+  // Neuzeichnen leicht entprellen, damit schnelles Tippen den Canvas bei
+  // großen Bildern nicht überlastet – fühlt sich trotzdem unmittelbar an.
+  if (resizePreviewTimer) clearTimeout(resizePreviewTimer);
+  resizePreviewTimer = setTimeout(() => {
+    if (!canvas.value || !currentImage.value) return;
+    canvas.value.width = newWidth;
+    canvas.value.height = newHeight;
+    renderImage();
+  }, 100);
 });
 
 // Methods

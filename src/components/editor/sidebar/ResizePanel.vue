@@ -31,7 +31,7 @@
           :value="resizeWidth"
           type="number"
           :disabled="disabled"
-          @change="
+          @input="
             $emit('update:resizeWidth', Number($event.target.value));
             $emit('dimension-change', 'width');
           "
@@ -43,7 +43,7 @@
           :value="resizeHeight"
           type="number"
           :disabled="disabled"
-          @change="
+          @input="
             $emit('update:resizeHeight', Number($event.target.value));
             $emit('dimension-change', 'height');
           "
