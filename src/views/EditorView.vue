@@ -124,6 +124,11 @@
             @update:export-transparent="exportTransparent = $event"
           />
           <BackgroundPanel :background="background" :disabled="!currentImage" @render="renderImage" />
+          <DetachPanel
+            :detached="detachedFromBackground"
+            :disabled="!currentImage"
+            @toggle="handleToggleDetach"
+          />
           <AdjustmentsPanel :filters="filters" :sections-open="sectionsOpen" :disabled="!currentImage" @render="renderImage" @save-history="saveHistory" />
           <LightColorPanel :filters="filters" :sections-open="sectionsOpen" :disabled="!currentImage" @render="renderImage" @save-history="saveHistory" />
           <EffectsPanel :filters="filters" :sections-open="sectionsOpen" :disabled="!currentImage" @render="renderImage" @save-history="saveHistory" />
@@ -422,6 +427,7 @@ import LayerControlPanel from '@/components/features/LayerControlPanel.vue';
 import FilterPresets from '@/components/editor/FilterPresets.vue';
 import ExportPanel from '@/components/editor/sidebar/ExportPanel.vue';
 import BackgroundPanel from '@/components/editor/sidebar/BackgroundPanel.vue';
+import DetachPanel from '@/components/editor/sidebar/DetachPanel.vue';
 import AdjustmentsPanel from '@/components/editor/sidebar/AdjustmentsPanel.vue';
 import LightColorPanel from '@/components/editor/sidebar/LightColorPanel.vue';
 import EffectsPanel from '@/components/editor/sidebar/EffectsPanel.vue';
@@ -474,6 +480,10 @@ const editedPreviewSrc = ref('');
 
 // ===== COLLAGE MODE STATE =====
 const isCollageMode = ref(false);
+
+// ===== DETACH STATE (Bild vom Hintergrund lösen) =====
+// true, wenn das Basisbild als frei bewegliche Ebene "abgelöst" wurde
+const detachedFromBackground = ref(false);
 
 // ===== DRAG & DROP STATE =====
 const isDraggingFile = ref(false);
@@ -751,6 +761,15 @@ async function resetFilters() {
   // Transform-Zustand über Composable zurücksetzen
   transform.resetTransforms();
 
+  // Abgelösten Zustand (freie Ebene) auflösen und zurück in den Einzelbild-Modus
+  if (detachedFromBackground.value || isCollageMode.value) {
+    imageStore.clearImageLayers();
+    imageStore.selectImageLayer(null);
+    detachedFromBackground.value = false;
+    isCollageMode.value = false;
+    layerInteraction.removeListeners();
+  }
+
   // Alle Texte entfernen
   imageStore.texts.splice(0, imageStore.texts.length);
   selectedTextId.value = null;
@@ -820,6 +839,7 @@ async function clearImage() {
     isCollageMode.value = false;
     layerInteraction.removeListeners();
   }
+  detachedFromBackground.value = false;
 
   // Bild und Daten zurücksetzen
   currentImage.value = null;
@@ -932,6 +952,140 @@ function applyResize() {
     );
   }
 }
+
+// ===== Bild vom Hintergrund lösen (zuschaltbar) =====
+// Wandelt das fest im Canvas verankerte Basisbild in eine frei bewegliche Ebene um
+// (nutzt das bestehende Ebenen-/Collage-System) und wieder zurück.
+function handleToggleDetach() {
+  if (detachedFromBackground.value) {
+    reattachImageToBackground();
+  } else {
+    detachImageFromBackground();
+  }
+}
+
+async function detachImageFromBackground() {
+  if (!canvas.value || !currentImage.value || isCollageMode.value) return;
+
+  const canvasW = canvas.value.width;
+  const canvasH = canvas.value.height;
+
+  // Aktuell bearbeitetes Basisbild (mit Filtern/Transformationen, ohne Text) auf
+  // transparentem Grund in eine Data-URL "backen".
+  renderImageForExport(true, false);
+  const bakedUrl = canvas.value.toDataURL('image/png');
+
+  // Hintergrundfarbe des Canvas mit dem Hintergrund-Panel synchronisieren, damit
+  // der Collage-Renderer denselben Hintergrund zeigt.
+  imageStore.canvasBackgroundColor =
+    background.value.opacity > 0 ? background.value.color : 'transparent';
+
+  // Store-Canvas initialisieren (für Layer-Interaktion & Store-History)
+  imageStore.initCanvas(canvas.value);
+
+  try {
+    // Bild als frei bewegliche Ebene hinzufügen und exakt über den Canvas legen
+    const layer = await imageStore.addImageLayer({
+      url: bakedUrl,
+      name: currentFileName.value || t('editor.detach.layerName', 'Bild'),
+    });
+    imageStore.updateImageLayer(layer.id, {
+      x: 0,
+      y: 0,
+      width: canvasW,
+      height: canvasH,
+      originalWidth: canvasW,
+      originalHeight: canvasH,
+    });
+    imageStore.selectImageLayer(layer.id);
+  } catch (error) {
+    console.error('❌ Ablösen vom Hintergrund fehlgeschlagen:', error);
+    if (window.$toast) {
+      window.$toast.error(t('toast.editor.detachFailed', 'Ablösen fehlgeschlagen'));
+    }
+    return;
+  }
+
+  // Filter/Transformationen sind nun in der Ebene eingebacken → Basiswerte
+  // neutralisieren (Hintergrund bleibt als Canvas-Backdrop erhalten)
+  filterManagement.resetFilters();
+  transform.resetTransforms();
+
+  detachedFromBackground.value = true;
+  isCollageMode.value = true;
+
+  renderImage();
+  updateImageInfo();
+  saveHistory();
+
+  if (window.$toast) {
+    window.$toast.success(
+      t('toast.editor.imageDetached', 'Bild vom Hintergrund gelöst – jetzt frei verschiebbar')
+    );
+  }
+}
+
+async function reattachImageToBackground() {
+  if (!canvas.value) return;
+
+  const canvasW = canvas.value.width;
+  const canvasH = canvas.value.height;
+
+  // Aktuelle Ebene(n) ohne Text-Overlays transparent in eine Data-URL backen.
+  // Text bleibt als eigene, editierbare Ebene erhalten.
+  renderImageForExport(true, false);
+  const flatUrl = canvas.value.toDataURL('image/png');
+
+  let img;
+  try {
+    img = new Image();
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = flatUrl;
+    });
+  } catch (error) {
+    console.error('❌ Zurückverbinden mit dem Hintergrund fehlgeschlagen:', error);
+    if (window.$toast) {
+      window.$toast.error(t('toast.editor.reattachFailed', 'Verbinden fehlgeschlagen'));
+    }
+    return;
+  }
+
+  // Ebenen entfernen und zurück in den Einzelbild-Modus wechseln
+  imageStore.clearImageLayers();
+  imageStore.selectImageLayer(null);
+  detachedFromBackground.value = false;
+  isCollageMode.value = false;
+
+  currentImage.value = img;
+  originalImage.value = originalImage.value || img;
+  canvas.value.width = canvasW;
+  canvas.value.height = canvasH;
+  resizeManager.initFromDimensions(canvasW, canvasH);
+
+  renderImage();
+  updateImageInfo();
+  saveHistory();
+
+  if (window.$toast) {
+    window.$toast.success(
+      t('toast.editor.imageReattached', 'Bild wieder mit dem Hintergrund verbunden')
+    );
+  }
+}
+
+// Live-Hintergrund im abgelösten Zustand: Änderungen im Hintergrund-Panel wirken
+// sich auch im Ebenen-Modus auf den Canvas-Hintergrund aus.
+watch(
+  () => [background.value.color, background.value.opacity],
+  () => {
+    if (!detachedFromBackground.value) return;
+    imageStore.canvasBackgroundColor =
+      background.value.opacity > 0 ? background.value.color : 'transparent';
+    renderImage();
+  }
+);
 
 // ===== Export mit Dateiname-Dialog =====
 async function downloadImage() {

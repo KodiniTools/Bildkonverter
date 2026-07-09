@@ -642,7 +642,9 @@ export function useCanvasRenderer({
   }
 
   // Rendert Bild ohne Auswahl-Markierung (für Export)
-  function renderImageForExport(forceTransparent = false) {
+  // includeTexts=false backt nur das Bild/die Ebenen ohne Text-Overlays (z.B. beim
+  // "Bild vom Hintergrund lösen", damit Text als separate Ebene erhalten bleibt)
+  function renderImageForExport(forceTransparent = false, includeTexts = true) {
     // Im Collage-Modus: Zeichne Layer direkt ohne Auswahl-Markierung
     if (isCollageMode.value && imageStore.hasImageLayers) {
       const ctx = canvas.value.getContext('2d');
@@ -826,7 +828,7 @@ export function useCanvasRenderer({
 
       // Texte zeichnen für Export
       ctx.filter = 'none';
-      if (imageStore.texts && imageStore.texts.length > 0) {
+      if (includeTexts && imageStore.texts && imageStore.texts.length > 0) {
         imageStore.texts.forEach((text) => {
           ctx.save();
           const opacity = text.opacity !== undefined ? text.opacity : 100;
@@ -1040,7 +1042,7 @@ export function useCanvasRenderer({
     }
 
     // Texte OHNE Auswahl-Markierung (mit Rotation, Deckkraft, Umrandung und Schatten)
-    if (imageStore.texts && imageStore.texts.length > 0) {
+    if (includeTexts && imageStore.texts && imageStore.texts.length > 0) {
       imageStore.texts.forEach((text) => {
         ctx.save();
 
