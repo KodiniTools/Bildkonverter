@@ -385,6 +385,7 @@ const de = {
     sidebar: {
       format: 'Format',
       background: 'Hintergrund',
+      detach: 'Vom Hintergrund lösen',
       adjustments: 'Anpassungen',
       lightColor: 'Licht & Farbe',
       effects: 'Effekte',
@@ -395,6 +396,14 @@ const de = {
       color: 'Farbe',
       opacity: 'Deckkraft',
       hint: 'Bild laden um Hintergrund anzupassen',
+    },
+    detach: {
+      on: 'Als freie Ebene aktiv',
+      off: 'Bild vom Hintergrund lösen',
+      hint: 'Löst das Bild vom Canvas und macht es zu einer eigenen Ebene.',
+      hintActive: 'Das Bild ist jetzt eine frei verschieb-, skalier- und drehbare Ebene.',
+      hintDisabled: 'Bild laden um es vom Hintergrund zu lösen',
+      layerName: 'Bild',
     },
     filters: {
       brightness: 'Helligkeit',
@@ -1083,6 +1092,10 @@ const de = {
       imageReset: 'Bild auf Originalzustand zurückgesetzt',
       exportSuccess: 'Bild als {format} exportiert',
       exporting: 'Exportiere...',
+      imageDetached: 'Bild vom Hintergrund gelöst – jetzt frei verschiebbar',
+      imageReattached: 'Bild wieder mit dem Hintergrund verbunden',
+      detachFailed: 'Ablösen fehlgeschlagen',
+      reattachFailed: 'Verbinden fehlgeschlagen',
     },
     network: {
       online: 'Verbindung wiederhergestellt',
@@ -1649,6 +1662,7 @@ const en = {
     sidebar: {
       format: 'Format',
       background: 'Background',
+      detach: 'Detach from background',
       adjustments: 'Adjustments',
       lightColor: 'Light & Color',
       effects: 'Effects',
@@ -1659,6 +1673,14 @@ const en = {
       color: 'Color',
       opacity: 'Opacity',
       hint: 'Load an image to adjust background',
+    },
+    detach: {
+      on: 'Active as a free layer',
+      off: 'Detach image from background',
+      hint: 'Detaches the image from the canvas and turns it into its own layer.',
+      hintActive: 'The image is now a freely movable, resizable and rotatable layer.',
+      hintDisabled: 'Load an image to detach it from the background',
+      layerName: 'Image',
     },
     filters: {
       brightness: 'Brightness',
@@ -2342,6 +2364,10 @@ const en = {
       imageReset: 'Image reset to original state',
       exportSuccess: 'Image exported as {format}',
       exporting: 'Exporting...',
+      imageDetached: 'Image detached from background – now freely movable',
+      imageReattached: 'Image reattached to the background',
+      detachFailed: 'Detaching failed',
+      reattachFailed: 'Reattaching failed',
     },
     network: {
       online: 'Connection restored',
