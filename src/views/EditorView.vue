@@ -2425,7 +2425,7 @@ function handleKeyup(e) {
 .crop-overlay {
   /* Rein optische Größe der Griffe. Die Trefferfläche steckt in
      getHandleAtPoint() (useCrop.js) und ist davon unabhängig. */
-  --handle-size: 10px;
+  --handle-size: 7px;
 
   position: absolute;
   border: 2px solid #4ade80;
@@ -2454,7 +2454,7 @@ function handleKeyup(e) {
   width: var(--handle-size);
   height: var(--handle-size);
   background: #4ade80;
-  border: 1.5px solid white;
+  border: 1px solid white;
   border-radius: 2px;
   pointer-events: none;
   z-index: 101;
@@ -2509,7 +2509,7 @@ function handleKeyup(e) {
    sichtbar bleiben. Die Trefferfläche ändert sich dadurch nicht. */
 @media (pointer: coarse) {
   .crop-overlay {
-    --handle-size: 12px;
+    --handle-size: 10px;
   }
 }
 
