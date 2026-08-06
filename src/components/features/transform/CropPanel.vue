@@ -10,6 +10,24 @@
       <span>{{ cropMode ? $t('transform.crop.confirm') : $t('transform.crop.button') }}</span>
     </button>
 
+    <!-- Live-Anzeige der Zuschnittabmessungen -->
+    <div v-if="cropMode && hasSelection" class="crop-size-section">
+      <label class="aspect-label">
+        <i class="fas fa-vector-square"></i>
+        {{ $t('transform.crop.dimensions') }}
+      </label>
+      <div class="crop-size-grid">
+        <div class="crop-size-item">
+          <span class="crop-size-key">{{ $t('transform.crop.width') }}</span>
+          <span class="crop-size-value">{{ cropDimensions.width }} px</span>
+        </div>
+        <div class="crop-size-item">
+          <span class="crop-size-key">{{ $t('transform.crop.height') }}</span>
+          <span class="crop-size-value">{{ cropDimensions.height }} px</span>
+        </div>
+      </div>
+    </div>
+
     <!-- Seitenverhältnis Presets -->
     <div v-if="cropMode" class="aspect-ratio-section">
       <label class="aspect-label">
@@ -39,18 +57,25 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n({ useScope: 'global' });
 
-defineProps({
+const props = defineProps({
   cropMode: { type: Boolean, required: true },
   hasCropped: { type: Boolean, required: true },
   selectedAspectRatio: { type: String, default: 'free' },
   aspectRatioPresets: { type: Array, default: () => [] },
+  cropDimensions: { type: Object, default: () => ({ width: 0, height: 0 }) },
 });
 
 defineEmits(['toggle-crop', 'undo-crop', 'set-aspect-ratio']);
+
+// Nur anzeigen, wenn tatsächlich eine Auswahl aufgezogen wurde
+const hasSelection = computed(
+  () => props.cropDimensions.width > 0 && props.cropDimensions.height > 0
+);
 
 function getPresetLabel(preset) {
   if (preset.id === 'free' || preset.id === 'circle') {
@@ -63,10 +88,42 @@ function getPresetLabel(preset) {
 <style scoped lang="scss">
 @import './shared';
 
-.aspect-ratio-section {
+.aspect-ratio-section,
+.crop-size-section {
   margin: 0.75rem 0;
   padding-top: 0.5rem;
   border-top: 1px dashed var(--color-border, #e5e7eb);
+}
+
+.crop-size-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.35rem;
+}
+
+.crop-size-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.4rem 0.5rem;
+  background: var(--color-bg, #ffffff);
+  border: 1.5px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+}
+
+.crop-size-key {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--color-text-light, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.crop-size-value {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-primary, #014f99);
+  font-variant-numeric: tabular-nums;
 }
 
 .aspect-label {
@@ -140,8 +197,22 @@ function getPresetLabel(preset) {
 
 // Dark Mode
 :root[data-theme='dark'] {
-  .aspect-ratio-section {
+  .aspect-ratio-section,
+  .crop-size-section {
     border-top-color: var(--color-border);
+  }
+
+  .crop-size-item {
+    background: var(--color-card-bg, var(--color-bg));
+    border-color: var(--color-border);
+  }
+
+  .crop-size-key {
+    color: var(--color-text-light);
+  }
+
+  .crop-size-value {
+    color: var(--color-text);
   }
 
   .aspect-label {

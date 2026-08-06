@@ -70,6 +70,16 @@ export function useCrop() {
     };
   });
 
+  // Aktuelle Zuschnittabmessungen in Bild-Pixeln (Breite × Höhe)
+  // Die Crop-Koordinaten sind bereits Canvas-Koordinaten, entsprechen also 1:1 den Bildpixeln
+  const cropDimensions = computed(() => {
+    const box = normalizedCropBox.value;
+    return {
+      width: Math.max(0, Math.round(box.width)),
+      height: Math.max(0, Math.round(box.height)),
+    };
+  });
+
   // Methods
   function toggleCropMode() {
     if (cropMode.value && cropping.value) {
@@ -807,6 +817,7 @@ export function useCrop() {
     isResizing,
     isCreating,
     normalizedCropBox,
+    cropDimensions,
 
     // Methods
     toggleCropMode,

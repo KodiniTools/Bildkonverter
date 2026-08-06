@@ -238,6 +238,18 @@
               <div class="move-indicator">
                 <i class="fas fa-arrows-alt"></i>
               </div>
+              <!-- Live-Anzeige der Zuschnittabmessungen (Breite × Höhe in Pixel) -->
+              <div
+                class="crop-dimensions"
+                :class="{ 'crop-dimensions--inside': cropLabelInside }"
+                :title="$t('transform.crop.dimensionsTooltip')"
+              >
+                <i class="fas fa-vector-square"></i>
+                <span
+                  >{{ crop.cropDimensions.value.width }} ×
+                  {{ crop.cropDimensions.value.height }} px</span
+                >
+              </div>
             </div>
             <div class="canvas-info">
               <span
@@ -266,6 +278,7 @@
           :has-cropped="crop.hasCropped.value"
           :selected-aspect-ratio="crop.selectedAspectRatio.value"
           :aspect-ratio-presets="ASPECT_RATIO_PRESETS"
+          :crop-dimensions="panelCropDimensions"
           :transforms="transform.transforms.value"
           :can-pan="transform.canPan.value"
           :has-pan="transform.hasPan.value"
@@ -602,8 +615,8 @@ const requiresBackend = computed(() => {
   return currentFormatInfo.value?.requiresBackend || false;
 });
 
-// Crop-Overlay-Style: Konvertiere Canvas-Koordinaten zu Display-Koordinaten
-const scaledCropOverlayStyle = computed(() => {
+// Crop-Overlay-Rechteck: Konvertiere Canvas-Koordinaten zu Display-Koordinaten
+const cropOverlayRect = computed(() => {
   if (!crop.cropOverlayStyle.value || !canvas.value) return null;
 
   const canvasRect = canvas.value.getBoundingClientRect();
@@ -623,11 +636,36 @@ const scaledCropOverlayStyle = computed(() => {
   const parsePixels = (str) => parseFloat(str) || 0;
 
   return {
-    left: `${offsetX + parsePixels(originalStyle.left) * scaleX}px`,
-    top: `${offsetY + parsePixels(originalStyle.top) * scaleY}px`,
-    width: `${parsePixels(originalStyle.width) * scaleX}px`,
-    height: `${parsePixels(originalStyle.height) * scaleY}px`,
+    left: offsetX + parsePixels(originalStyle.left) * scaleX,
+    top: offsetY + parsePixels(originalStyle.top) * scaleY,
+    width: parsePixels(originalStyle.width) * scaleX,
+    height: parsePixels(originalStyle.height) * scaleY,
   };
+});
+
+const scaledCropOverlayStyle = computed(() => {
+  const rect = cropOverlayRect.value;
+  if (!rect) return null;
+
+  return {
+    left: `${rect.left}px`,
+    top: `${rect.top}px`,
+    width: `${rect.width}px`,
+    height: `${rect.height}px`,
+  };
+});
+
+// Abmessungs-Label sitzt normalerweise über der Crop-Box.
+// Ist dort kein Platz (Box klebt am oberen Rand), klappt es nach innen.
+const cropLabelInside = computed(() => {
+  const rect = cropOverlayRect.value;
+  return rect ? rect.top < 34 : false;
+});
+
+// Abmessungen für das Crop-Panel – nur solange eine Auswahl existiert
+const panelCropDimensions = computed(() => {
+  if (!crop.cropping.value) return { width: 0, height: 0 };
+  return crop.cropDimensions.value;
 });
 
 // Image info (reactive refs statt computed für bessere Kontrolle)
@@ -2456,6 +2494,41 @@ function handleKeyup(e) {
     top: 50%;
     left: -7px;
     transform: translateY(-50%);
+  }
+}
+
+/* Live-Anzeige der Zuschnittabmessungen */
+.crop-dimensions {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.6rem;
+  background: rgba(17, 24, 39, 0.9);
+  color: #ffffff;
+  border: 1px solid rgba(74, 222, 128, 0.9);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 102;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+
+  i {
+    color: #4ade80;
+    font-size: 0.7rem;
+  }
+
+  /* Kein Platz oberhalb der Box -> Label nach innen klappen */
+  &.crop-dimensions--inside {
+    bottom: auto;
+    top: 6px;
   }
 }
 

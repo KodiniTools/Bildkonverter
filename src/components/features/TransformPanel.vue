@@ -29,6 +29,7 @@
       :has-cropped="hasCropped"
       :selected-aspect-ratio="selectedAspectRatio"
       :aspect-ratio-presets="aspectRatioPresets"
+      :crop-dimensions="cropDimensions"
       @toggle-crop="$emit('toggle-crop')"
       @undo-crop="$emit('undo-crop')"
       @set-aspect-ratio="$emit('set-aspect-ratio', $event)"
@@ -77,6 +78,7 @@ defineProps({
   hasCropped: { type: Boolean, required: true },
   selectedAspectRatio: { type: String, default: 'free' },
   aspectRatioPresets: { type: Array, default: () => [] },
+  cropDimensions: { type: Object, default: () => ({ width: 0, height: 0 }) },
   transforms: { type: Object, required: true },
   canPan: { type: Boolean, default: false },
   hasPan: { type: Boolean, default: false },
