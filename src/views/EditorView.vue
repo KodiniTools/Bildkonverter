@@ -2423,6 +2423,10 @@ function handleKeyup(e) {
 
 /* Crop Overlay */
 .crop-overlay {
+  /* Rein optische Größe der Griffe. Die Trefferfläche steckt in
+     getHandleAtPoint() (useCrop.js) und ist davon unabhängig. */
+  --handle-size: 10px;
+
   position: absolute;
   border: 2px solid #4ade80;
   background: rgba(74, 222, 128, 0.1);
@@ -2440,60 +2444,72 @@ function handleKeyup(e) {
   }
 }
 
-/* Resize Handles - rein visuell, Canvas handled alle Events */
+/* Resize Handles - rein visuell, Canvas handled alle Events.
+   Die Griffe sitzen über --handle-offset exakt mittig auf der Kante,
+   damit die Ecke unabhängig von der Griffgröße genau ablesbar bleibt. */
 .resize-handle {
+  --handle-offset: calc(var(--handle-size) / -2);
+
   position: absolute;
-  width: 14px;
-  height: 14px;
+  width: var(--handle-size);
+  height: var(--handle-size);
   background: #4ade80;
-  border: 2px solid white;
-  border-radius: 3px;
+  border: 1.5px solid white;
+  border-radius: 2px;
   pointer-events: none;
   z-index: 101;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 
   &.handle-nw {
-    top: -7px;
-    left: -7px;
+    top: var(--handle-offset);
+    left: var(--handle-offset);
   }
 
   &.handle-n {
-    top: -7px;
+    top: var(--handle-offset);
     left: 50%;
     transform: translateX(-50%);
   }
 
   &.handle-ne {
-    top: -7px;
-    right: -7px;
+    top: var(--handle-offset);
+    right: var(--handle-offset);
   }
 
   &.handle-e {
     top: 50%;
-    right: -7px;
+    right: var(--handle-offset);
     transform: translateY(-50%);
   }
 
   &.handle-se {
-    bottom: -7px;
-    right: -7px;
+    bottom: var(--handle-offset);
+    right: var(--handle-offset);
   }
 
   &.handle-s {
-    bottom: -7px;
+    bottom: var(--handle-offset);
     left: 50%;
     transform: translateX(-50%);
   }
 
   &.handle-sw {
-    bottom: -7px;
-    left: -7px;
+    bottom: var(--handle-offset);
+    left: var(--handle-offset);
   }
 
   &.handle-w {
     top: 50%;
-    left: -7px;
+    left: var(--handle-offset);
     transform: translateY(-50%);
+  }
+}
+
+/* Auf Touch-Geräten etwas größer, damit die Griffe unter dem Finger
+   sichtbar bleiben. Die Trefferfläche ändert sich dadurch nicht. */
+@media (pointer: coarse) {
+  .crop-overlay {
+    --handle-size: 12px;
   }
 }
 
