@@ -481,6 +481,10 @@ const de = {
       confirm: 'Bestätigen',
       undo: 'Rückgängig',
       aspectRatio: 'Seitenverhältnis',
+      dimensions: 'Zuschnittabmessungen',
+      dimensionsTooltip: 'Breite × Höhe des Zuschnitts in Pixel',
+      width: 'Breite',
+      height: 'Höhe',
       presets: {
         free: 'Frei',
         circle: 'Kreis',
@@ -1758,6 +1762,10 @@ const en = {
       confirm: 'Confirm',
       undo: 'Undo',
       aspectRatio: 'Aspect Ratio',
+      dimensions: 'Crop Size',
+      dimensionsTooltip: 'Width × height of the crop area in pixels',
+      width: 'Width',
+      height: 'Height',
       presets: {
         free: 'Free',
         circle: 'Circle',
