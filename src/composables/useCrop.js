@@ -423,6 +423,88 @@ export function useCrop() {
     canvasSize.value = { width, height };
   }
 
+  // Setzt die Crop-Box auf eine exakte Größe (in Bild-Pixeln) und hält sie
+  // dabei innerhalb des Canvas. Die obere linke Ecke bleibt möglichst
+  // verankert; passt die Box nicht mehr, wird sie nach links/oben verschoben
+  // bzw. auf Canvas-Größe begrenzt.
+  function applyExactCropSize(width, height) {
+    const cw = canvasSize.value.width;
+    const ch = canvasSize.value.height;
+    const box = normalizedCropBox.value;
+
+    let w = Math.max(1, Math.round(width));
+    let h = Math.max(1, Math.round(height));
+    let x = box.x;
+    let y = box.y;
+
+    if (cw > 0) {
+      w = Math.min(w, cw);
+      x = Math.max(0, Math.min(x, cw - w));
+    }
+    if (ch > 0) {
+      h = Math.min(h, ch);
+      y = Math.max(0, Math.min(y, ch - h));
+    }
+
+    cropStart.value = { x, y };
+    cropEnd.value = { x: x + w, y: y + h };
+  }
+
+  function currentCropRatio() {
+    const preset = ASPECT_RATIO_PRESETS.find((p) => p.id === selectedAspectRatio.value);
+    return preset?.ratio ?? null;
+  }
+
+  // Exakte Breite setzen (px). Bei aktivem Seitenverhältnis wird die Höhe
+  // mitgeführt; die Box bleibt innerhalb des Canvas.
+  function setCropWidth(width) {
+    if (!cropping.value) return;
+    const cw = canvasSize.value.width;
+    const ch = canvasSize.value.height;
+    const ratio = currentCropRatio();
+
+    let w = Math.max(1, Math.round(width));
+    if (cw > 0) w = Math.min(w, cw);
+
+    let h;
+    if (ratio) {
+      h = w / ratio;
+      if (ch > 0 && h > ch) {
+        h = ch;
+        w = h * ratio;
+      }
+    } else {
+      h = normalizedCropBox.value.height;
+    }
+
+    applyExactCropSize(w, h);
+  }
+
+  // Exakte Höhe setzen (px). Bei aktivem Seitenverhältnis wird die Breite
+  // mitgeführt; die Box bleibt innerhalb des Canvas.
+  function setCropHeight(height) {
+    if (!cropping.value) return;
+    const cw = canvasSize.value.width;
+    const ch = canvasSize.value.height;
+    const ratio = currentCropRatio();
+
+    let h = Math.max(1, Math.round(height));
+    if (ch > 0) h = Math.min(h, ch);
+
+    let w;
+    if (ratio) {
+      w = h * ratio;
+      if (cw > 0 && w > cw) {
+        w = cw;
+        h = w / ratio;
+      }
+    } else {
+      w = normalizedCropBox.value.width;
+    }
+
+    applyExactCropSize(w, h);
+  }
+
   async function finishCrop(context) {
     const { canvas, currentImage, filters, imageStore } = context;
 
@@ -827,6 +909,8 @@ export function useCrop() {
     clearCropSelection,
     setAspectRatio,
     setCanvasSize,
+    setCropWidth,
+    setCropHeight,
     getCursorForPosition,
     getHandleAtPoint,
     cancelDragResize,
