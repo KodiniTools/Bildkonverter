@@ -126,7 +126,9 @@ a {
 
 .btn-primary {
   background: var(--color-primary);
-  color: var(--color-btn-text-light);
+  // Weißer Text für klaren Kontrast auf dem blauen Primary-Hintergrund
+  // (in beiden Themes blau) – zuvor dunkler Text im Dark Mode = unlesbar.
+  color: #fff;
 
   &:hover:not(:disabled) {
     background: $color-primary-dark;

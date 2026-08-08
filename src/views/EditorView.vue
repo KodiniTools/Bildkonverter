@@ -106,6 +106,23 @@
         </div>
       </div>
 
+      <!-- Hero-Leiste: Grösse ändern (aus der Sidebar hierher verschoben) -->
+      <div class="resize-hero">
+        <ResizePanel
+          variant="hero"
+          :resize-width="resizeWidth"
+          :resize-height="resizeHeight"
+          :maintain-aspect-ratio="maintainAspectRatio"
+          :disabled="!currentImage"
+          @update:resize-width="resizeWidth = $event"
+          @update:resize-height="resizeHeight = $event"
+          @update:maintain-aspect-ratio="maintainAspectRatio = $event"
+          @dimension-change="onResizeChange"
+          @apply-preset="applySocialPreset"
+          @apply-resize="applyResize"
+        />
+      </div>
+
       <!-- Main Editor -->
       <div class="editor-main">
         <!-- Sidebar -->
@@ -137,18 +154,6 @@
             <h3>{{ $t('editor.sidebar.presets') }}</h3>
             <FilterPresets :filters="filters" @apply-preset="handlePresetApply" />
           </div>
-          <ResizePanel
-            :resize-width="resizeWidth"
-            :resize-height="resizeHeight"
-            :maintain-aspect-ratio="maintainAspectRatio"
-            :disabled="!currentImage"
-            @update:resize-width="resizeWidth = $event"
-            @update:resize-height="resizeHeight = $event"
-            @update:maintain-aspect-ratio="maintainAspectRatio = $event"
-            @dimension-change="onResizeChange"
-            @apply-preset="applySocialPreset"
-            @apply-resize="applyResize"
-          />
         </aside>
 
         <!-- Canvas Area -->
@@ -2364,7 +2369,9 @@ function handleKeyup(e) {
 /* Erfolg: Download */
 .tb-btn--success {
   background: var(--color-primary);
-  color: var(--color-btn-text-light, #fff);
+  // Weißer Text für klaren Kontrast auf dem blauen Hintergrund in beiden
+  // Themes (zuvor dunkler Text im Dark Mode → kaum lesbar/„verschwommen").
+  color: #fff;
   padding: 0.45rem 0.9rem;
 
   &:hover:not(:disabled) {
@@ -3280,6 +3287,73 @@ function handleKeyup(e) {
     font-size: 0.75rem; // ✨ Kleiner und kompakter
     font-weight: 500;
     text-align: center;
+  }
+}
+
+/* === "Grösse ändern" als horizontale Hero-Leiste (aus der Sidebar verschoben) === */
+.resize-hero {
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.55rem 1rem;
+  overflow-x: auto;
+}
+
+.sidebar-section.sidebar-section--hero {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  overflow: visible;
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  &:hover {
+    border: none;
+    box-shadow: none;
+  }
+
+  // Titel inline statt als Kartenkopf mit Trennlinie
+  &:not(.collapsible) > h3 {
+    margin: 0;
+    padding: 0;
+    border-bottom: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  .resize-controls {
+    flex-direction: row;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    flex: 1;
+
+    .resize-presets,
+    .resize-input {
+      margin: 0;
+      gap: 0.25rem;
+    }
+
+    .resize-presets select,
+    .resize-input input {
+      width: auto;
+      min-width: 96px;
+    }
+
+    .checkbox-label {
+      margin: 0 0 0.45rem 0;
+      align-self: flex-end;
+      white-space: nowrap;
+    }
+
+    .btn.btn-primary {
+      margin-left: auto;
+      white-space: nowrap;
+    }
   }
 }
 
