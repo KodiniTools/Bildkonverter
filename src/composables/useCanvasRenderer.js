@@ -3,6 +3,8 @@
  * Extrahiert Canvas-Rendering-Logik aus EditorView.vue
  */
 
+import { buildTextFontString, applyTextTransform } from '@/utils/textRender';
+
 /**
  * @param {Object} options
  * @param {import('vue').Ref<HTMLCanvasElement>} options.canvas
@@ -95,7 +97,7 @@ export function useCanvasRenderer({
     if (!text) return;
 
     ctx.save();
-    ctx.font = `${text.fontSize || text.size || 32}px ${text.fontFamily || 'Arial'}`;
+    ctx.font = buildTextFontString(text);
     const metrics = ctx.measureText(text.content || text.txt || '');
     ctx.strokeStyle = '#0066ff';
     ctx.lineWidth = 2;
@@ -322,19 +324,12 @@ export function useCanvasRenderer({
           const opacity = text.opacity !== undefined ? text.opacity : 100;
           ctx.globalAlpha = opacity / 100;
           const fontSize = text.fontSize || text.size || 32;
-          ctx.font = `${fontSize}px ${text.fontFamily || 'Arial'}`;
+          ctx.font = buildTextFontString(text);
           ctx.fillStyle = text.color || '#000000';
           ctx.textBaseline = 'top';
 
-          // Rotation um Textmittelpunkt
-          if (text.rotation && text.rotation !== 0) {
-            const metrics = ctx.measureText(text.content || text.txt || '');
-            const centerX = (text.x || 0) + metrics.width / 2;
-            const centerY = (text.y || 0) + fontSize / 2;
-            ctx.translate(centerX, centerY);
-            ctx.rotate((text.rotation * Math.PI) / 180);
-            ctx.translate(-centerX, -centerY);
-          }
+          // Rotation + Neigung um den Textmittelpunkt
+          applyTextTransform(ctx, text);
 
           // Schatten
           if (text.shadowBlur && text.shadowBlur > 0) {
@@ -597,7 +592,7 @@ export function useCanvasRenderer({
         const opacity = text.opacity !== undefined ? text.opacity : 100;
         ctx.globalAlpha = opacity / 100;
 
-        ctx.font = `${text.fontSize || text.size || 32}px ${text.fontFamily || 'Arial'}`;
+        ctx.font = buildTextFontString(text);
         ctx.fillStyle = text.color || '#000000';
         ctx.textBaseline = 'top';
 
@@ -609,19 +604,8 @@ export function useCanvasRenderer({
           ctx.shadowOffsetY = text.shadowOffsetY || 2;
         }
 
-        // Rotation anwenden (um den Textmittelpunkt)
-        const rotation = text.rotation || 0;
-        if (rotation !== 0) {
-          const textMetrics = ctx.measureText(text.content || text.txt || '');
-          const textWidth = textMetrics.width;
-          const textHeight = text.fontSize || text.size || 32;
-          const centerX = (text.x || 0) + textWidth / 2;
-          const centerY = (text.y || 0) + textHeight / 2;
-
-          ctx.translate(centerX, centerY);
-          ctx.rotate((rotation * Math.PI) / 180);
-          ctx.translate(-centerX, -centerY);
-        }
+        // Rotation + Neigung um den Textmittelpunkt
+        applyTextTransform(ctx, text);
 
         // Umrandung (Stroke) zeichnen
         if (text.strokeWidth && text.strokeWidth > 0) {
@@ -833,20 +817,12 @@ export function useCanvasRenderer({
           ctx.save();
           const opacity = text.opacity !== undefined ? text.opacity : 100;
           ctx.globalAlpha = opacity / 100;
-          const fontSize = text.fontSize || text.size || 32;
-          ctx.font = `${fontSize}px ${text.fontFamily || 'Arial'}`;
+          ctx.font = buildTextFontString(text);
           ctx.fillStyle = text.color || '#000000';
           ctx.textBaseline = 'top';
 
-          // Rotation um Textmittelpunkt
-          if (text.rotation && text.rotation !== 0) {
-            const metrics = ctx.measureText(text.content || text.txt || '');
-            const centerX = (text.x || 0) + metrics.width / 2;
-            const centerY = (text.y || 0) + fontSize / 2;
-            ctx.translate(centerX, centerY);
-            ctx.rotate((text.rotation * Math.PI) / 180);
-            ctx.translate(-centerX, -centerY);
-          }
+          // Rotation + Neigung um den Textmittelpunkt
+          applyTextTransform(ctx, text);
 
           // Schatten
           if (text.shadowBlur && text.shadowBlur > 0) {
@@ -1050,7 +1026,7 @@ export function useCanvasRenderer({
         const opacity = text.opacity !== undefined ? text.opacity : 100;
         ctx.globalAlpha = opacity / 100;
 
-        ctx.font = `${text.fontSize || text.size || 32}px ${text.fontFamily || 'Arial'}`;
+        ctx.font = buildTextFontString(text);
         ctx.fillStyle = text.color || '#000000';
         ctx.textBaseline = 'top';
 
@@ -1062,19 +1038,8 @@ export function useCanvasRenderer({
           ctx.shadowOffsetY = text.shadowOffsetY || 2;
         }
 
-        // Rotation anwenden (um den Textmittelpunkt)
-        const rotation = text.rotation || 0;
-        if (rotation !== 0) {
-          const textMetrics = ctx.measureText(text.content || text.txt || '');
-          const textWidth = textMetrics.width;
-          const textHeight = text.fontSize || text.size || 32;
-          const centerX = (text.x || 0) + textWidth / 2;
-          const centerY = (text.y || 0) + textHeight / 2;
-
-          ctx.translate(centerX, centerY);
-          ctx.rotate((rotation * Math.PI) / 180);
-          ctx.translate(-centerX, -centerY);
-        }
+        // Rotation + Neigung um den Textmittelpunkt
+        applyTextTransform(ctx, text);
 
         // Umrandung (Stroke) zeichnen
         if (text.strokeWidth && text.strokeWidth > 0) {

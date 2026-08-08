@@ -25,6 +25,8 @@
  * @param {Function} deps.handleFinishCrop
  * @param {Function} deps.saveHistory
  */
+import { buildTextFontString } from '@/utils/textRender';
+
 export function useCanvasInteraction({
   canvas,
   isSpacePressed,
@@ -86,7 +88,7 @@ export function useCanvasInteraction({
       const fontSize = text.fontSize || text.size || 32;
       const content = text.content || text.txt || '';
 
-      ctx.font = `${fontSize}px ${text.fontFamily || 'Arial'}`;
+      ctx.font = buildTextFontString(text);
       const metrics = ctx.measureText(content);
 
       // Hit-Box: text.y ist Top-Koordinate (wegen textBaseline = 'top' in renderImage)

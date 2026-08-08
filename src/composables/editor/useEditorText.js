@@ -39,6 +39,10 @@ export function useEditorText({
       color: '#000000',
       rotation: 0,
       opacity: 100,
+      bold: false,
+      italic: false,
+      skewX: 0,
+      skewY: 0,
       strokeWidth: 0,
       strokeColor: '#000000',
       shadowBlur: 0,
@@ -65,6 +69,10 @@ export function useEditorText({
   const handleTextColorUpdate = (color) => updateSelectedText({ color });
   const handleTextRotationUpdate = (rotation) => updateSelectedText({ rotation });
   const handleTextOpacityUpdate = (opacity) => updateSelectedText({ opacity });
+  const handleTextBoldUpdate = (bold) => updateSelectedText({ bold });
+  const handleTextItalicUpdate = (italic) => updateSelectedText({ italic });
+  const handleTextSkewXUpdate = (skewX) => updateSelectedText({ skewX });
+  const handleTextSkewYUpdate = (skewY) => updateSelectedText({ skewY });
   const handleTextStrokeWidthUpdate = (strokeWidth) => updateSelectedText({ strokeWidth });
   const handleTextStrokeColorUpdate = (strokeColor) => updateSelectedText({ strokeColor });
   const handleTextShadowOffsetXUpdate = (shadowOffsetX) => updateSelectedText({ shadowOffsetX });
@@ -124,6 +132,10 @@ export function useEditorText({
     handleTextColorUpdate,
     handleTextRotationUpdate,
     handleTextOpacityUpdate,
+    handleTextBoldUpdate,
+    handleTextItalicUpdate,
+    handleTextSkewXUpdate,
+    handleTextSkewYUpdate,
     handleTextStrokeWidthUpdate,
     handleTextStrokeColorUpdate,
     handleTextShadowOffsetXUpdate,

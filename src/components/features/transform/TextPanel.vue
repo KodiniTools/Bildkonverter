@@ -104,6 +104,46 @@
       </select>
     </div>
 
+    <!-- Textstil: Fett / Kursiv -->
+    <div class="control-group">
+      <label>
+        <i class="fas fa-bold"></i>
+        {{ $t('textPanel.style', 'Stil') }}
+      </label>
+      <div class="style-toggle-row">
+        <button
+          type="button"
+          class="style-toggle"
+          :class="{ active: isBoldActive }"
+          :disabled="fontIsBold"
+          :title="
+            fontIsBold
+              ? $t('textPanel.boldInherent', 'Schriftart ist bereits fett')
+              : $t('textPanel.bold', 'Fett')
+          "
+          @click="toggleBold"
+        >
+          <i class="fas fa-bold"></i>
+          <span>{{ $t('textPanel.bold', 'Fett') }}</span>
+        </button>
+        <button
+          type="button"
+          class="style-toggle"
+          :class="{ active: isItalicActive }"
+          :disabled="fontIsItalic"
+          :title="
+            fontIsItalic
+              ? $t('textPanel.italicInherent', 'Schriftart ist bereits kursiv')
+              : $t('textPanel.italic', 'Kursiv')
+          "
+          @click="toggleItalic"
+        >
+          <i class="fas fa-italic"></i>
+          <span>{{ $t('textPanel.italic', 'Kursiv') }}</span>
+        </button>
+      </div>
+    </div>
+
     <!-- Textfarbe -->
     <div class="control-group">
       <label>
@@ -278,6 +318,62 @@
       </div>
     </div>
 
+    <!-- Text-Neigung horizontal (Skew X) -->
+    <div class="control-group">
+      <label>
+        <i class="fas fa-arrows-alt-h"></i>
+        {{ $t('textPanel.skewX', 'Neigung horizontal') }}
+        <span class="value">{{ selectedText.skewX || 0 }}°</span>
+      </label>
+      <div class="slider-row">
+        <input
+          type="range"
+          min="-60"
+          max="60"
+          :value="selectedText.skewX || 0"
+          class="slider"
+          @input="$emit('update:text-skew-x', Number($event.target.value))"
+          @change="$emit('save-text-history')"
+        />
+        <button
+          v-if="(selectedText.skewX || 0) !== 0"
+          class="reset-btn"
+          title="Zurücksetzen"
+          @click="$emit('update:text-skew-x', 0); $emit('save-text-history')"
+        >
+          <i class="fas fa-undo-alt"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Text-Neigung vertikal (Skew Y) -->
+    <div class="control-group">
+      <label>
+        <i class="fas fa-arrows-alt-v"></i>
+        {{ $t('textPanel.skewY', 'Neigung vertikal') }}
+        <span class="value">{{ selectedText.skewY || 0 }}°</span>
+      </label>
+      <div class="slider-row">
+        <input
+          type="range"
+          min="-60"
+          max="60"
+          :value="selectedText.skewY || 0"
+          class="slider"
+          @input="$emit('update:text-skew-y', Number($event.target.value))"
+          @change="$emit('save-text-history')"
+        />
+        <button
+          v-if="(selectedText.skewY || 0) !== 0"
+          class="reset-btn"
+          title="Zurücksetzen"
+          @click="$emit('update:text-skew-y', 0); $emit('save-text-history')"
+        >
+          <i class="fas fa-undo-alt"></i>
+        </button>
+      </div>
+    </div>
+
     <!-- Text-Deckkraft -->
     <div class="control-group">
       <label>
@@ -331,24 +427,30 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import { availableFonts } from '@/assets/fonts/fontList.js';
+import { isFontBold, isFontItalic } from '@/utils/textRender';
 
 const systemFonts = ['Arial', 'Helvetica', 'Times New Roman', 'Georgia', 'Verdana', 'Courier New'];
 
-defineProps({
+const props = defineProps({
   selectedText: { type: Object, default: null },
   hasTexts: { type: Boolean, default: false },
   canUndoText: { type: Boolean, default: false },
   canRedoText: { type: Boolean, default: false },
 });
 
-defineEmits([
+const emit = defineEmits([
   'update:text-content',
   'update:text-font-size',
   'update:text-font-family',
   'update:text-color',
   'update:text-rotation',
   'update:text-opacity',
+  'update:text-bold',
+  'update:text-italic',
+  'update:text-skew-x',
+  'update:text-skew-y',
   'update:text-stroke-width',
   'update:text-stroke-color',
   'update:text-shadow-blur',
@@ -361,6 +463,27 @@ defineEmits([
   'delete-text',
   'deselect-text',
 ]);
+
+// Bringt die aktuelle Schriftart Fett/Kursiv bereits von Haus aus mit?
+// Dann werden die entsprechenden Umschalter deaktiviert (Ausnahme laut Vorgabe).
+const fontIsBold = computed(() => isFontBold(props.selectedText?.fontFamily || ''));
+const fontIsItalic = computed(() => isFontItalic(props.selectedText?.fontFamily || ''));
+
+// Aktiv-Zustand der Umschalter: durch die Schriftart bedingt ODER manuell gesetzt
+const isBoldActive = computed(() => fontIsBold.value || !!props.selectedText?.bold);
+const isItalicActive = computed(() => fontIsItalic.value || !!props.selectedText?.italic);
+
+function toggleBold() {
+  if (fontIsBold.value) return;
+  emit('update:text-bold', !props.selectedText?.bold);
+  emit('save-text-history');
+}
+
+function toggleItalic() {
+  if (fontIsItalic.value) return;
+  emit('update:text-italic', !props.selectedText?.italic);
+  emit('save-text-history');
+}
 </script>
 
 <style scoped lang="scss">
@@ -462,6 +585,48 @@ defineEmits([
   }
 }
 
+.style-toggle-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.style-toggle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.5rem;
+  border: 1.5px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  background: var(--color-bg, #ffffff);
+  color: var(--color-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  i {
+    font-size: 0.85rem;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-primary, #014f99);
+    background: rgba(1, 79, 153, 0.05);
+  }
+
+  &.active {
+    background: var(--color-primary, #014f99);
+    color: #fff;
+    border-color: var(--color-primary, #014f99);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.85;
+  }
+}
+
 .shadow-controls {
   margin-top: 0.5rem;
 }
@@ -554,6 +719,23 @@ defineEmits([
     background: var(--color-card-bg, var(--color-bg));
     border-color: var(--color-border);
     color: var(--color-text);
+  }
+
+  .style-toggle {
+    background: var(--color-card-bg, var(--color-bg));
+    border-color: var(--color-border);
+    color: var(--color-text);
+
+    &:hover:not(:disabled) {
+      background: var(--color-bg-secondary);
+      border-color: var(--color-primary);
+    }
+
+    &.active {
+      background: var(--color-primary);
+      color: #fff;
+      border-color: var(--color-primary);
+    }
   }
 
   .text-hint {
