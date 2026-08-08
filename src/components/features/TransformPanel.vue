@@ -31,6 +31,7 @@
       :aspect-ratio-presets="aspectRatioPresets"
       :crop-dimensions="cropDimensions"
       @toggle-crop="$emit('toggle-crop')"
+      @cancel-crop="$emit('cancel-crop')"
       @undo-crop="$emit('undo-crop')"
       @set-aspect-ratio="$emit('set-aspect-ratio', $event)"
       @set-crop-width="$emit('set-crop-width', $event)"
@@ -95,6 +96,7 @@ defineProps({
 
 defineEmits([
   'toggle-crop',
+  'cancel-crop',
   'undo-crop',
   'set-aspect-ratio',
   'set-crop-width',

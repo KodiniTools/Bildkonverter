@@ -479,6 +479,7 @@ const de = {
       title: 'Zuschneiden',
       button: 'Zuschneiden',
       confirm: 'Bestätigen',
+      cancel: 'Abbrechen',
       undo: 'Rückgängig',
       center: 'Zentrieren',
       aspectRatio: 'Seitenverhältnis',
@@ -1046,6 +1047,7 @@ const de = {
       error: 'Fehler beim Zuschneiden des Bildes',
       undoNotAvailable: 'Kein Zuschnitt zum Rückgängigmachen vorhanden',
       undoSuccess: 'Original-Bild wiederhergestellt',
+      cancelled: 'Zuschneiden abgebrochen',
     },
     editor: {
       imageDeleted: 'Bild erfolgreich gelöscht',
@@ -1761,6 +1763,7 @@ const en = {
       title: 'Crop',
       button: 'Crop',
       confirm: 'Confirm',
+      cancel: 'Cancel',
       undo: 'Undo',
       center: 'Center',
       aspectRatio: 'Aspect Ratio',
@@ -2323,6 +2326,7 @@ const en = {
       error: 'Error cropping image',
       undoNotAvailable: 'No crop to undo',
       undoSuccess: 'Original image restored',
+      cancelled: 'Cropping cancelled',
     },
     editor: {
       imageDeleted: 'Image successfully deleted',

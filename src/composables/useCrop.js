@@ -793,6 +793,18 @@ export function useCrop() {
     img.src = beforeCropImage.value.dataUrl;
   }
 
+  // Bricht den laufenden Zuschneide-Vorgang ab: verlässt den Crop-Modus und
+  // verwirft die aktuelle Auswahl, ohne zuzuschneiden. Ein bereits
+  // angewandter Zuschnitt (hasCropped) bleibt unberührt.
+  function cancelCrop() {
+    cropMode.value = false;
+    clearCropSelection();
+    selectedAspectRatio.value = 'free';
+    if (window.$toast) {
+      window.$toast.info(t('toast.crop.cancelled', 'Zuschneiden abgebrochen'));
+    }
+  }
+
   function resetCropState() {
     if (cropMode.value) {
       cropMode.value = false;
@@ -923,6 +935,7 @@ export function useCrop() {
     toggleCropMode,
     finishCrop,
     undoCrop,
+    cancelCrop,
     resetCropState,
     clearCropSelection,
     setAspectRatio,

@@ -294,6 +294,7 @@
           :can-undo-transform="transform.canUndoTransform.value"
           :can-redo-transform="transform.canRedoTransform.value"
           @toggle-crop="handleToggleCrop"
+          @cancel-crop="handleCancelCrop"
           @undo-crop="handleUndoCrop"
           @set-aspect-ratio="handleSetAspectRatio"
           @set-crop-width="handleSetCropWidth"
@@ -1267,6 +1268,10 @@ function handleToggleCrop() {
     // Setze Canvas-Größe für Seitenverhältnis-Berechnung
     crop.setCanvasSize(canvas.value.width, canvas.value.height);
   }
+}
+
+function handleCancelCrop() {
+  crop.cancelCrop();
 }
 
 function handleFinishCrop() {
