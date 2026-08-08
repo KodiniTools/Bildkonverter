@@ -19,11 +19,35 @@
       <div class="crop-size-grid">
         <div class="crop-size-item">
           <span class="crop-size-key">{{ $t('transform.crop.width') }}</span>
-          <span class="crop-size-value">{{ cropDimensions.width }} px</span>
+          <div class="crop-size-input-wrap">
+            <input
+              class="crop-size-input"
+              type="number"
+              min="1"
+              step="1"
+              :value="cropDimensions.width"
+              :aria-label="$t('transform.crop.width')"
+              @change="onWidthChange"
+              @keyup.enter="onWidthChange"
+            />
+            <span class="crop-size-unit">px</span>
+          </div>
         </div>
         <div class="crop-size-item">
           <span class="crop-size-key">{{ $t('transform.crop.height') }}</span>
-          <span class="crop-size-value">{{ cropDimensions.height }} px</span>
+          <div class="crop-size-input-wrap">
+            <input
+              class="crop-size-input"
+              type="number"
+              min="1"
+              step="1"
+              :value="cropDimensions.height"
+              :aria-label="$t('transform.crop.height')"
+              @change="onHeightChange"
+              @keyup.enter="onHeightChange"
+            />
+            <span class="crop-size-unit">px</span>
+          </div>
         </div>
       </div>
     </div>
@@ -70,12 +94,33 @@ const props = defineProps({
   cropDimensions: { type: Object, default: () => ({ width: 0, height: 0 }) },
 });
 
-defineEmits(['toggle-crop', 'undo-crop', 'set-aspect-ratio']);
+const emit = defineEmits([
+  'toggle-crop',
+  'undo-crop',
+  'set-aspect-ratio',
+  'set-crop-width',
+  'set-crop-height',
+]);
 
 // Nur anzeigen, wenn tatsächlich eine Auswahl aufgezogen wurde
 const hasSelection = computed(
   () => props.cropDimensions.width > 0 && props.cropDimensions.height > 0
 );
+
+// Pixelgenaue Eingabe der Zuschnittgröße über die Zahlenfelder
+function onWidthChange(event) {
+  const value = Math.round(Number(event.target.value));
+  if (Number.isFinite(value) && value > 0) {
+    emit('set-crop-width', value);
+  }
+}
+
+function onHeightChange(event) {
+  const value = Math.round(Number(event.target.value));
+  if (Number.isFinite(value) && value > 0) {
+    emit('set-crop-height', value);
+  }
+}
 
 function getPresetLabel(preset) {
   if (preset.id === 'free' || preset.id === 'circle') {
@@ -109,6 +154,18 @@ function getPresetLabel(preset) {
   background: var(--color-bg, #ffffff);
   border: 1.5px solid var(--color-border, #d1d5db);
   border-radius: 6px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: var(--color-primary, #014f99);
+  }
+
+  &:focus-within {
+    border-color: var(--color-primary, #014f99);
+    box-shadow: 0 0 0 2px rgba(1, 79, 153, 0.15);
+  }
 }
 
 .crop-size-key {
@@ -119,11 +176,40 @@ function getPresetLabel(preset) {
   letter-spacing: 0.03em;
 }
 
-.crop-size-value {
+.crop-size-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.crop-size-input {
+  width: 100%;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 0;
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--color-primary, #014f99);
   font-variant-numeric: tabular-nums;
+
+  &:focus {
+    outline: none;
+  }
+
+  // Native Stepper-Pfeile sichtbar lassen (pixelgenaues Anpassen)
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    opacity: 1;
+    height: 1.1rem;
+  }
+}
+
+.crop-size-unit {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-text-light, #6b7280);
+  flex-shrink: 0;
 }
 
 .aspect-label {
@@ -211,7 +297,7 @@ function getPresetLabel(preset) {
     color: var(--color-text-light);
   }
 
-  .crop-size-value {
+  .crop-size-input {
     color: var(--color-text);
   }
 

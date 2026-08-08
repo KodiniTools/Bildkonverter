@@ -33,6 +33,8 @@
       @toggle-crop="$emit('toggle-crop')"
       @undo-crop="$emit('undo-crop')"
       @set-aspect-ratio="$emit('set-aspect-ratio', $event)"
+      @set-crop-width="$emit('set-crop-width', $event)"
+      @set-crop-height="$emit('set-crop-height', $event)"
     />
 
     <ImageTransformPanel
@@ -94,6 +96,8 @@ defineEmits([
   'toggle-crop',
   'undo-crop',
   'set-aspect-ratio',
+  'set-crop-width',
+  'set-crop-height',
   'update:opacity',
   'update:rotation',
   'update:scale',

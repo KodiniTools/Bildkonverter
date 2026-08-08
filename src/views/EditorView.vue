@@ -296,6 +296,8 @@
           @toggle-crop="handleToggleCrop"
           @undo-crop="handleUndoCrop"
           @set-aspect-ratio="handleSetAspectRatio"
+          @set-crop-width="handleSetCropWidth"
+          @set-crop-height="handleSetCropHeight"
           @update:opacity="handleOpacityUpdate"
           @update:rotation="handleRotationUpdate"
           @update:scale="handleScaleUpdate"
@@ -1311,6 +1313,15 @@ function handleUndoCrop() {
 
 function handleSetAspectRatio(ratioId) {
   crop.setAspectRatio(ratioId);
+}
+
+// Pixelgenaue Zuschnittgröße über die Eingabefelder im Crop-Panel
+function handleSetCropWidth(width) {
+  crop.setCropWidth(width);
+}
+
+function handleSetCropHeight(height) {
+  crop.setCropHeight(height);
 }
 
 // ===== TRANSFORM FUNCTIONS =====
