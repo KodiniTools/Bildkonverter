@@ -50,6 +50,12 @@
           </div>
         </div>
       </div>
+
+      <!-- Auswahl mit einem Klick mittig im Canvas positionieren -->
+      <button class="crop-center-btn" @click="$emit('center-crop')">
+        <i class="fas fa-crosshairs"></i>
+        <span>{{ $t('transform.crop.center', 'Zentrieren') }}</span>
+      </button>
     </div>
 
     <!-- Seitenverhältnis Presets -->
@@ -100,6 +106,7 @@ const emit = defineEmits([
   'set-aspect-ratio',
   'set-crop-width',
   'set-crop-height',
+  'center-crop',
 ]);
 
 // Nur anzeigen, wenn tatsächlich eine Auswahl aufgezogen wurde
@@ -212,6 +219,42 @@ function getPresetLabel(preset) {
   flex-shrink: 0;
 }
 
+.crop-center-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.45rem 0.5rem;
+  background: var(--color-bg, #ffffff);
+  border: 1.5px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
+
+  i {
+    font-size: 0.8rem;
+    color: var(--color-primary, #014f99);
+  }
+
+  &:hover {
+    border-color: var(--color-primary, #014f99);
+    background: rgba(1, 79, 153, 0.05);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
 .aspect-label {
   display: flex;
   align-items: center;
@@ -299,6 +342,17 @@ function getPresetLabel(preset) {
 
   .crop-size-input {
     color: var(--color-text);
+  }
+
+  .crop-center-btn {
+    background: var(--color-card-bg, var(--color-bg));
+    border-color: var(--color-border);
+    color: var(--color-text);
+
+    &:hover {
+      background: var(--color-bg-secondary);
+      border-color: var(--color-primary);
+    }
   }
 
   .aspect-label {
