@@ -5,9 +5,20 @@
       {{ $t('transform.crop.title') }}
     </h3>
 
-    <button class="transform-btn" :class="{ active: cropMode }" @click="$emit('toggle-crop')">
-      <i :class="cropMode ? 'fas fa-check' : 'fas fa-crop'"></i>
-      <span>{{ cropMode ? $t('transform.crop.confirm') : $t('transform.crop.button') }}</span>
+    <!-- Im Crop-Modus: Bestätigen + Abbrechen nebeneinander -->
+    <div v-if="cropMode" class="crop-actions">
+      <button class="transform-btn active crop-confirm-btn" @click="$emit('toggle-crop')">
+        <i class="fas fa-check"></i>
+        <span>{{ $t('transform.crop.confirm') }}</span>
+      </button>
+      <button class="transform-btn crop-cancel-btn" @click="$emit('cancel-crop')">
+        <i class="fas fa-times"></i>
+        <span>{{ $t('transform.crop.cancel', 'Abbrechen') }}</span>
+      </button>
+    </div>
+    <button v-else class="transform-btn" @click="$emit('toggle-crop')">
+      <i class="fas fa-crop"></i>
+      <span>{{ $t('transform.crop.button') }}</span>
     </button>
 
     <!-- Live-Anzeige der Zuschnittabmessungen -->
@@ -102,6 +113,7 @@ const props = defineProps({
 
 const emit = defineEmits([
   'toggle-crop',
+  'cancel-crop',
   'undo-crop',
   'set-aspect-ratio',
   'set-crop-width',
@@ -217,6 +229,32 @@ function getPresetLabel(preset) {
   font-weight: 600;
   color: var(--color-text-light, #6b7280);
   flex-shrink: 0;
+}
+
+.crop-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+
+  .transform-btn {
+    flex: 1;
+    margin-bottom: 0;
+    justify-content: center;
+
+    span {
+      flex: 0 0 auto;
+      text-align: center;
+    }
+  }
+}
+
+.crop-cancel-btn {
+  &:hover {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.08);
+    color: #ef4444;
+    transform: translateY(-1px);
+  }
 }
 
 .crop-center-btn {
