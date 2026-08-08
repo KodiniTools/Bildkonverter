@@ -106,8 +106,9 @@
         </div>
       </div>
 
-      <!-- Hero-Leiste: Grösse ändern (aus der Sidebar hierher verschoben) -->
-      <div class="resize-hero">
+      <!-- Hero-Leiste: Grösse ändern – nur sichtbar, wenn ein Bild geladen ist
+           (hochgeladen oder aus der Galerie/Collage hinzugefügt) -->
+      <div v-if="currentImage || isCollageMode" class="resize-hero">
         <ResizePanel
           variant="hero"
           :resize-width="resizeWidth"
