@@ -451,6 +451,8 @@ import LightColorPanel from '@/components/editor/sidebar/LightColorPanel.vue';
 import EffectsPanel from '@/components/editor/sidebar/EffectsPanel.vue';
 import ResizePanel from '@/components/editor/sidebar/ResizePanel.vue';
 import PreviewModal from '@/components/editor/PreviewModal.vue';
+import { useTransformHandlers } from '@/composables/editor/useTransformHandlers';
+import { useEditorText } from '@/composables/editor/useEditorText';
 
 const { t } = useI18n({ useScope: 'global' });
 const route = useRoute();
@@ -1351,131 +1353,65 @@ function handleSetAspectRatio(ratioId) {
 
 // ===== TRANSFORM FUNCTIONS =====
 
-function makeHandler(setter) {
-  return (value) => { setter(value); renderImage(); };
-}
-function makeActionHandler(action, toastKey) {
-  return () => { action(); renderImage(); if (toastKey && window.$toast) window.$toast.success(t(toastKey)); };
-}
-
-const handleOpacityUpdate = makeHandler((v) => transform.setOpacity(v));
-const handleRotationUpdate = makeHandler((v) => transform.setRotation(v));
-const handleScaleUpdate = makeHandler((v) => transform.setScale(v));
-const handleBorderRadiusUpdate = makeHandler((v) => transform.setBorderRadius(v));
-const handleBorderWidthUpdate = makeHandler((v) => transform.setBorderWidth(v));
-const handleBorderColorUpdate = makeHandler((v) => transform.setBorderColor(v));
-const handleShadowEnabledUpdate = makeHandler((v) => transform.setShadowEnabled(v));
-const handleShadowOffsetXUpdate = makeHandler((v) => transform.setShadowOffsetX(v));
-const handleShadowOffsetYUpdate = makeHandler((v) => transform.setShadowOffsetY(v));
-const handleShadowBlurUpdate = makeHandler((v) => transform.setShadowBlur(v));
-const handleShadowColorUpdate = makeHandler((v) => transform.setShadowColor(v));
-const handleShadowOpacityUpdate = makeHandler((v) => transform.setShadowOpacity(v));
-const handleSkewXUpdate = makeHandler((v) => transform.setSkewX(v));
-const handleSkewYUpdate = makeHandler((v) => transform.setSkewY(v));
-const handleRotate90 = makeActionHandler(() => transform.rotate90(), 'toast.transform.rotated90');
-const handleRotate90Counter = makeActionHandler(() => transform.rotate90Counter(), 'toast.transform.rotated90');
-const handleRotate180 = makeActionHandler(() => transform.rotate180(), 'toast.transform.rotated180');
-const handleFlipHorizontal = makeActionHandler(() => transform.flipHorizontal(), 'toast.transform.flippedHorizontal');
-const handleFlipVertical = makeActionHandler(() => transform.flipVertical(), 'toast.transform.flippedVertical');
-const handleResetPan = makeActionHandler(() => transform.resetPan(), 'toast.transform.panReset');
-
-function handleUndoTransform() {
-  if (transform.undoTransform()) {
-    renderImage();
-    if (window.$toast) window.$toast.info(t('toast.transform.undo', 'Transformation rückgängig'));
-  }
-}
-
-function handleRedoTransform() {
-  if (transform.redoTransform()) {
-    renderImage();
-    if (window.$toast) window.$toast.info(t('toast.transform.redo', 'Transformation wiederhergestellt'));
-  }
-}
-
-function handleCommitTransform() { transform.commitTransform(); }
+const {
+  handleOpacityUpdate,
+  handleRotationUpdate,
+  handleScaleUpdate,
+  handleBorderRadiusUpdate,
+  handleBorderWidthUpdate,
+  handleBorderColorUpdate,
+  handleShadowEnabledUpdate,
+  handleShadowOffsetXUpdate,
+  handleShadowOffsetYUpdate,
+  handleShadowBlurUpdate,
+  handleShadowColorUpdate,
+  handleShadowOpacityUpdate,
+  handleSkewXUpdate,
+  handleSkewYUpdate,
+  handleRotate90,
+  handleRotate90Counter,
+  handleRotate180,
+  handleFlipHorizontal,
+  handleFlipVertical,
+  handleResetPan,
+  handleUndoTransform,
+  handleRedoTransform,
+  handleCommitTransform,
+} = useTransformHandlers({ transform, renderImage, t });
 
 // ===== TEXT FUNCTIONS =====
 
-function addText() {
-  if (!currentImage.value) return;
-  const newText = {
-    id: Date.now(),
-    content: 'Neuer Text',
-    x: Math.floor(canvas.value.width / 2) - 50,
-    y: Math.floor(canvas.value.height / 2),
-    fontSize: 32,
-    fontFamily: 'Satoshi Regular',
-    color: '#000000',
-    rotation: 0,
-    opacity: 100,
-    strokeWidth: 0,
-    strokeColor: '#000000',
-    shadowBlur: 0,
-    shadowOffsetX: 2,
-    shadowOffsetY: 2,
-    shadowColor: '#000000',
-  };
-  imageStore.texts.push(newText);
-  selectedTextId.value = newText.id;
-  renderImage();
-  saveHistory();
-}
-
-function updateSelectedText(updates) {
-  if (!selectedTextId.value) return;
-  const text = imageStore.texts.find((t) => t.id === selectedTextId.value);
-  if (!text) return;
-  Object.assign(text, updates);
-  renderImage();
-}
-
-const handleTextContentUpdate = (content) => updateSelectedText({ content, txt: content });
-const handleTextFontSizeUpdate = (fontSize) => updateSelectedText({ fontSize, size: fontSize });
-const handleTextColorUpdate = (color) => updateSelectedText({ color });
-const handleTextRotationUpdate = (rotation) => updateSelectedText({ rotation });
-const handleTextOpacityUpdate = (opacity) => updateSelectedText({ opacity });
-const handleTextStrokeWidthUpdate = (strokeWidth) => updateSelectedText({ strokeWidth });
-const handleTextStrokeColorUpdate = (strokeColor) => updateSelectedText({ strokeColor });
-const handleTextShadowOffsetXUpdate = (shadowOffsetX) => updateSelectedText({ shadowOffsetX });
-const handleTextShadowOffsetYUpdate = (shadowOffsetY) => updateSelectedText({ shadowOffsetY });
-const handleTextShadowColorUpdate = (shadowColor) => updateSelectedText({ shadowColor });
-
-function handleTextFontFamilyUpdate(fontFamily) {
-  updateSelectedText({ fontFamily });
-  saveHistory();
-}
-
-function handleTextShadowBlurUpdate(shadowBlur) {
-  if (!selectedTextId.value) return;
-  const text = imageStore.texts.find((t) => t.id === selectedTextId.value);
-  if (!text) return;
-  const updates = { shadowBlur };
-  if (shadowBlur > 0 && !text.shadowOffsetX) {
-    updates.shadowOffsetX = 2;
-    updates.shadowOffsetY = 2;
-    updates.shadowColor = text.shadowColor || '#000000';
-  }
-  Object.assign(text, updates);
-  renderImage();
-}
-
-function handleDeleteText() {
-  if (!selectedTextId.value) return;
-  const index = imageStore.texts.findIndex((t) => t.id === selectedTextId.value);
-  if (index !== -1) {
-    imageStore.texts.splice(index, 1);
-    selectedTextId.value = null;
-    renderImage();
-    saveHistory();
-  }
-}
-
-function handleDeselectText() { selectedTextId.value = null; renderImage(); }
-
-const handleSaveTextHistory = () => saveTextHistory();
-const handleUndoText = () => { undoText(); renderImage(); };
-const handleRedoText = () => { redoText(); renderImage(); };
+const {
+  addText,
+  updateSelectedText,
+  handleTextContentUpdate,
+  handleTextFontSizeUpdate,
+  handleTextColorUpdate,
+  handleTextRotationUpdate,
+  handleTextOpacityUpdate,
+  handleTextStrokeWidthUpdate,
+  handleTextStrokeColorUpdate,
+  handleTextShadowOffsetXUpdate,
+  handleTextShadowOffsetYUpdate,
+  handleTextShadowColorUpdate,
+  handleTextFontFamilyUpdate,
+  handleTextShadowBlurUpdate,
+  handleDeleteText,
+  handleDeselectText,
+  handleSaveTextHistory,
+  handleUndoText,
+  handleRedoText,
+} = useEditorText({
+  currentImage,
+  canvas,
+  imageStore,
+  selectedTextId,
+  renderImage,
+  saveHistory,
+  saveTextHistory,
+  undoText,
+  redoText,
+});
 
 function getMousePos(e) {
   const rect = canvas.value.getBoundingClientRect();
