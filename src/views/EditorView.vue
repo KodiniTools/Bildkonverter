@@ -298,6 +298,7 @@
           @set-aspect-ratio="handleSetAspectRatio"
           @set-crop-width="handleSetCropWidth"
           @set-crop-height="handleSetCropHeight"
+          @center-crop="handleCenterCrop"
           @update:opacity="handleOpacityUpdate"
           @update:rotation="handleRotationUpdate"
           @update:scale="handleScaleUpdate"
@@ -1322,6 +1323,11 @@ function handleSetCropWidth(width) {
 
 function handleSetCropHeight(height) {
   crop.setCropHeight(height);
+}
+
+// Zuschnittbereich mittig im Canvas positionieren
+function handleCenterCrop() {
+  crop.centerCropBox();
 }
 
 // ===== TRANSFORM FUNCTIONS =====

@@ -450,6 +450,24 @@ export function useCrop() {
     cropEnd.value = { x: x + w, y: y + h };
   }
 
+  // Positioniert die aktuelle Crop-Box (unter Beibehaltung ihrer Größe)
+  // mittig im Canvas.
+  function centerCropBox() {
+    if (!cropping.value) return;
+    const cw = canvasSize.value.width;
+    const ch = canvasSize.value.height;
+    if (cw <= 0 || ch <= 0) return;
+
+    const box = normalizedCropBox.value;
+    const w = Math.min(box.width, cw);
+    const h = Math.min(box.height, ch);
+    const x = Math.max(0, Math.round((cw - w) / 2));
+    const y = Math.max(0, Math.round((ch - h) / 2));
+
+    cropStart.value = { x, y };
+    cropEnd.value = { x: x + w, y: y + h };
+  }
+
   function currentCropRatio() {
     const preset = ASPECT_RATIO_PRESETS.find((p) => p.id === selectedAspectRatio.value);
     return preset?.ratio ?? null;
@@ -911,6 +929,7 @@ export function useCrop() {
     setCanvasSize,
     setCropWidth,
     setCropHeight,
+    centerCropBox,
     getCursorForPosition,
     getHandleAtPoint,
     cancelDragResize,
