@@ -11,6 +11,10 @@
       @update:text-color="$emit('update:text-color', $event)"
       @update:text-rotation="$emit('update:text-rotation', $event)"
       @update:text-opacity="$emit('update:text-opacity', $event)"
+      @update:text-bold="$emit('update:text-bold', $event)"
+      @update:text-italic="$emit('update:text-italic', $event)"
+      @update:text-skew-x="$emit('update:text-skew-x', $event)"
+      @update:text-skew-y="$emit('update:text-skew-y', $event)"
       @update:text-stroke-width="$emit('update:text-stroke-width', $event)"
       @update:text-stroke-color="$emit('update:text-stroke-color', $event)"
       @update:text-shadow-blur="$emit('update:text-shadow-blur', $event)"
@@ -131,6 +135,10 @@ defineEmits([
   'update:text-color',
   'update:text-rotation',
   'update:text-opacity',
+  'update:text-bold',
+  'update:text-italic',
+  'update:text-skew-x',
+  'update:text-skew-y',
   'update:text-stroke-width',
   'update:text-stroke-color',
   'update:text-shadow-blur',

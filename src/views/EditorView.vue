@@ -330,6 +330,10 @@
           @update:text-color="handleTextColorUpdate"
           @update:text-rotation="handleTextRotationUpdate"
           @update:text-opacity="handleTextOpacityUpdate"
+          @update:text-bold="handleTextBoldUpdate"
+          @update:text-italic="handleTextItalicUpdate"
+          @update:text-skew-x="handleTextSkewXUpdate"
+          @update:text-skew-y="handleTextSkewYUpdate"
           @update:text-stroke-width="handleTextStrokeWidthUpdate"
           @update:text-stroke-color="handleTextStrokeColorUpdate"
           @update:text-shadow-blur="handleTextShadowBlurUpdate"
@@ -1374,6 +1378,10 @@ const {
   handleTextColorUpdate,
   handleTextRotationUpdate,
   handleTextOpacityUpdate,
+  handleTextBoldUpdate,
+  handleTextItalicUpdate,
+  handleTextSkewXUpdate,
+  handleTextSkewYUpdate,
   handleTextStrokeWidthUpdate,
   handleTextStrokeColorUpdate,
   handleTextShadowOffsetXUpdate,
