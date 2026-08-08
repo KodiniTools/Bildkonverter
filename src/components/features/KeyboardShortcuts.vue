@@ -133,6 +133,16 @@ function triggerReset() {
 }
 
 function handleKeyDown(event) {
+  // Tastenkürzel ignorieren, wenn ein Eingabefeld fokussiert ist,
+  // damit z.B. der Buchstabe "R" (Reset-Shortcut) normal getippt werden kann.
+  const target = event.target;
+  const isEditable =
+    target?.tagName === 'INPUT' ||
+    target?.tagName === 'TEXTAREA' ||
+    target?.tagName === 'SELECT' ||
+    target?.isContentEditable;
+  if (isEditable) return;
+
   const key = event.key;
   const ctrl = event.ctrlKey || event.metaKey;
   const shift = event.shiftKey;
