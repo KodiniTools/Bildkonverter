@@ -455,6 +455,7 @@ import { useTransformHandlers } from '@/composables/editor/useTransformHandlers'
 import { useEditorText } from '@/composables/editor/useEditorText';
 import { useCanvasInteraction } from '@/composables/editor/useCanvasInteraction';
 import { useEditorKeyboard } from '@/composables/editor/useEditorKeyboard';
+import { useImageInfo } from '@/composables/editor/useImageInfo';
 
 const { t } = useI18n({ useScope: 'global' });
 const route = useRoute();
@@ -577,6 +578,16 @@ const {
   drawTextSelection,
 } = canvasRenderer;
 
+const {
+  imageWidth,
+  imageHeight,
+  imageSize,
+  updateImageDimensions,
+  updateImageSize,
+  updateImageInfo,
+  formatSize,
+} = useImageInfo({ canvas, outputFormat });
+
 function renderImage() {
   _renderImageCore();
   updateImageDimensions();
@@ -678,50 +689,7 @@ const panelCropDimensions = computed(() => {
 });
 
 // Image info (reactive refs statt computed für bessere Kontrolle)
-const imageWidth = ref(0);
-const imageHeight = ref(0);
-const imageSize = ref(0);
-
-// Schnelle Funktion: nur Dimensionen aktualisieren (wird bei jedem renderImage() aufgerufen)
-function updateImageDimensions() {
-  if (!canvas.value) {
-    imageWidth.value = 0;
-    imageHeight.value = 0;
-    return;
-  }
-
-  imageWidth.value = canvas.value.width;
-  imageHeight.value = canvas.value.height;
-}
-
-// Langsame Funktion: Dateigröße berechnen (nur bei Bedarf aufrufen!)
-function updateImageSize() {
-  if (!canvas.value) {
-    imageSize.value = 0;
-    return;
-  }
-
-  try {
-    const dataUrl = canvas.value.toDataURL(`image/${outputFormat.value}`, 0.92);
-    const base64String = dataUrl.split(',')[1];
-    const padding = base64String.endsWith('==') ? 2 : base64String.endsWith('=') ? 1 : 0;
-    const bytes = (base64String.length * 3) / 4 - padding;
-    imageSize.value = Math.round(bytes);
-  } catch (error) {
-    imageSize.value = Math.round(canvas.value.toDataURL().length * 0.75);
-  }
-}
-
-// Komplette Update-Funktion (nur bei Load/Resize/Format-Wechsel)
-function updateImageInfo() {
-  updateImageDimensions();
-  updateImageSize();
-}
-
-// Watch outputFormat changes to update image size
-watch(outputFormat, () => {
-  updateImageSize();
-});
+// Bild-Infos (Breite/Höhe/Dateigröße) siehe useImageInfo-Composable oben.
 
 // Live-Vorschau: Das Bild im Canvas reagiert schon während des Tippens auf die
 // Werte in den "Grösse ändern"-Feldern (Breite/Höhe) sowie auf Presets. Die
@@ -1284,14 +1252,6 @@ function restoreState(state) {
     renderImage();
   };
   img.src = srcToLoad;
-}
-
-function formatSize(bytes) {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 }
 
 // ===== CROP FUNCTIONS (jetzt über useCrop Composable) =====
