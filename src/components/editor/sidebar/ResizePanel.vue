@@ -1,5 +1,5 @@
 <template>
-  <div class="sidebar-section">
+  <div class="sidebar-section" :class="{ 'sidebar-section--hero': variant === 'hero' }">
     <h3>{{ $t('editor.sidebar.resize') }}</h3>
     <div class="resize-controls">
       <!-- Social Media Presets -->
@@ -81,6 +81,11 @@ defineProps({
   disabled: {
     type: Boolean,
     default: false,
+  },
+  // 'sidebar' (Standard) oder 'hero' für die horizontale Leiste oben
+  variant: {
+    type: String,
+    default: 'sidebar',
   },
 });
 
