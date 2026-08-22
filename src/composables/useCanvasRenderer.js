@@ -4,6 +4,7 @@
  */
 
 import { buildTextFontString, applyTextTransform } from '@/utils/textRender';
+import { getAdjustedImage } from '@/utils/imageAdjustments';
 
 /**
  * @param {Object} options
@@ -102,7 +103,12 @@ export function useCanvasRenderer({
     ctx.strokeStyle = '#0066ff';
     ctx.lineWidth = 2;
     ctx.setLineDash([5, 5]);
-    ctx.strokeRect(text.x - 4, text.y - 4, metrics.width + 8, (text.fontSize || text.size || 32) + 8);
+    ctx.strokeRect(
+      text.x - 4,
+      text.y - 4,
+      metrics.width + 8,
+      (text.fontSize || text.size || 32) + 8
+    );
     ctx.setLineDash([]);
     ctx.restore();
   }
@@ -149,7 +155,8 @@ export function useCanvasRenderer({
         const filterParts = [];
         if (layer.filters.brightness !== 100)
           filterParts.push(`brightness(${layer.filters.brightness}%)`);
-        if (layer.filters.contrast !== 100) filterParts.push(`contrast(${layer.filters.contrast}%)`);
+        if (layer.filters.contrast !== 100)
+          filterParts.push(`contrast(${layer.filters.contrast}%)`);
         if (layer.filters.saturation !== 100)
           filterParts.push(`saturate(${layer.filters.saturation}%)`);
         if (layer.filters.grayscale > 0) filterParts.push(`grayscale(${layer.filters.grayscale}%)`);
@@ -437,22 +444,14 @@ export function useCanvasRenderer({
     // Wende Transformationen an (temporär für Vorschau)
     const restoreTransform = transform.applyToCanvas(canvas.value, ctx);
 
-    // Apply filters (inkl. neue Filter)
-    // Berechne erweiterte Werte für Exposure, Highlights, Shadows
-    const exposureAdjust = 100 + filters.value.exposure;
-    const highlightsAdjust = 100 + filters.value.highlights * 0.5;
-    const shadowsAdjust = 100 + filters.value.shadows * 0.3;
-
-    const filterString = `
-      brightness(${filters.value.brightness * (exposureAdjust / 100) * (highlightsAdjust / 100)}%)
-      contrast(${filters.value.contrast * (shadowsAdjust / 100)}%)
-      saturate(${filters.value.saturation}%)
-      blur(${filters.value.blur}px)
-      hue-rotate(${filters.value.hue}deg)
-      sepia(${filters.value.sepia}%)
-      grayscale(${filters.value.grayscale}%)
-      invert(${filters.value.invert}%)
-    `;
+    // Echte Tonwert-Anpassungen (Belichtung, Helligkeit, Kontrast,
+    // Lichter, Schatten, Sättigung) werden pixelbasiert in die
+    // Zeichenquelle gebacken. Die verbleibenden Effekt-Filter (Blur,
+    // Farbton, Sepia, Graustufen, Invertieren) bleiben CSS-Filter.
+    const { el: adjustedSource, cssFilter: filterString } = getAdjustedImage(
+      currentImage.value,
+      filters.value
+    );
 
     ctx.filter = filterString;
 
@@ -523,7 +522,7 @@ export function useCanvasRenderer({
       }
     }
 
-    ctx.drawImage(currentImage.value, drawX, drawY, drawWidth, drawHeight);
+    ctx.drawImage(adjustedSource, drawX, drawY, drawWidth, drawHeight);
 
     // Border zeichnen
     if (transform.transforms.value.borderWidth > 0) {
@@ -657,7 +656,8 @@ export function useCanvasRenderer({
         const filterParts = [];
         if (layer.filters.brightness !== 100)
           filterParts.push(`brightness(${layer.filters.brightness}%)`);
-        if (layer.filters.contrast !== 100) filterParts.push(`contrast(${layer.filters.contrast}%)`);
+        if (layer.filters.contrast !== 100)
+          filterParts.push(`contrast(${layer.filters.contrast}%)`);
         if (layer.filters.saturation !== 100)
           filterParts.push(`saturate(${layer.filters.saturation}%)`);
         if (layer.filters.grayscale > 0) filterParts.push(`grayscale(${layer.filters.grayscale}%)`);
@@ -916,14 +916,12 @@ export function useCanvasRenderer({
     // Transformationen
     const restoreTransform = transform.applyToCanvas(canvas.value, ctx);
 
-    // Filter
-    const filterString = `
-      brightness(${filters.value.brightness}%)
-      contrast(${filters.value.contrast}%)
-      saturate(${filters.value.saturation}%)
-      blur(${filters.value.blur}px)
-      hue-rotate(${filters.value.hue}deg)
-    `;
+    // Filter: echte Tonwert-Anpassungen in die Quelle backen,
+    // Effekt-Filter als CSS anwenden (identisch zur Vorschau).
+    const { el: adjustedSource, cssFilter: filterString } = getAdjustedImage(
+      currentImage.value,
+      filters.value
+    );
     ctx.filter = filterString;
 
     // Berechne BorderRadius in Pixeln für den Zeichenbereich
@@ -984,7 +982,7 @@ export function useCanvasRenderer({
       }
     }
 
-    ctx.drawImage(currentImage.value, drawX, drawY, drawWidth, drawHeight);
+    ctx.drawImage(adjustedSource, drawX, drawY, drawWidth, drawHeight);
 
     // Border
     if (transform.transforms.value.borderWidth > 0) {
