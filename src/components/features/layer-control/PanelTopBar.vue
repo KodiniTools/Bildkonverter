@@ -23,7 +23,7 @@
         :title="$t('layerPanel.history.undo')"
         @click="handleUndo"
       >
-        <i class="fas fa-undo"></i>
+        <i class="fas fa-reply"></i>
       </button>
       <button
         class="history-btn"
@@ -32,7 +32,7 @@
         :title="$t('layerPanel.history.redo')"
         @click="handleRedo"
       >
-        <i class="fas fa-redo"></i>
+        <i class="fas fa-share"></i>
       </button>
       <button
         class="history-btn preview-btn"

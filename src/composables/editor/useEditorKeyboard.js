@@ -68,20 +68,11 @@ export function useEditorKeyboard({
     if (e.ctrlKey || e.metaKey) {
       if (e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
-        // Erst Transform-Undo versuchen, dann allgemeines Undo
-        if (transform.canUndoTransform.value) {
-          handleUndoTransform();
-        } else {
-          undo();
-        }
+        // Einheitliche, umfangreiche Undo/Redo-Historie
+        undo();
       } else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
         e.preventDefault();
-        // Erst Transform-Redo versuchen, dann allgemeines Redo
-        if (transform.canRedoTransform.value) {
-          handleRedoTransform();
-        } else {
-          redo();
-        }
+        redo();
       }
       return;
     }

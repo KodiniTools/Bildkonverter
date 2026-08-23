@@ -12,7 +12,7 @@
           :title="$t('transform.undo', 'Rückgängig')"
           @click="$emit('undo-transform')"
         >
-          <i class="fas fa-undo"></i>
+          <i class="fas fa-reply"></i>
         </button>
         <button
           class="btn-icon-small"
@@ -20,7 +20,7 @@
           :title="$t('transform.redo', 'Wiederherstellen')"
           @click="$emit('redo-transform')"
         >
-          <i class="fas fa-redo"></i>
+          <i class="fas fa-share"></i>
         </button>
       </div>
     </div>

@@ -28,7 +28,7 @@
               :title="$t('editor.toolbar.undo', 'Rückgängig (Ctrl+Z)')"
               @click="undo"
             >
-              <i class="fas fa-undo"></i>
+              <i class="fas fa-reply"></i>
             </button>
             <button
               class="tb-btn tb-btn--icon"
@@ -36,7 +36,7 @@
               :title="$t('editor.toolbar.redo', 'Wiederholen (Ctrl+Y)')"
               @click="redo"
             >
-              <i class="fas fa-redo"></i>
+              <i class="fas fa-share"></i>
             </button>
           </div>
 
@@ -149,6 +149,7 @@
             :background="background"
             :disabled="!currentImage"
             @render="renderImage"
+            @save-history="saveHistory"
           />
           <DetachPanel
             :detached="detachedFromBackground"
@@ -324,10 +325,10 @@
           :has-texts="imageStore.texts && imageStore.texts.length > 0"
           :texts="imageStore.texts || []"
           :selected-text-id="selectedTextId"
-          :can-undo-text="canUndoText"
-          :can-redo-text="canRedoText"
-          :can-undo-transform="transform.canUndoTransform.value"
-          :can-redo-transform="transform.canRedoTransform.value"
+          :can-undo-text="canUndo"
+          :can-redo-text="canRedo"
+          :can-undo-transform="canUndo"
+          :can-redo-transform="canRedo"
           @toggle-crop="handleToggleCrop"
           @cancel-crop="handleCancelCrop"
           @undo-crop="handleUndoCrop"
@@ -355,8 +356,8 @@
           @flip-horizontal="handleFlipHorizontal"
           @flip-vertical="handleFlipVertical"
           @reset-pan="handleResetPan"
-          @undo-transform="handleUndoTransform"
-          @redo-transform="handleRedoTransform"
+          @undo-transform="undo"
+          @redo-transform="redo"
           @commit-transform="handleCommitTransform"
           @update:text-content="handleTextContentUpdate"
           @update:text-font-size="handleTextFontSizeUpdate"
@@ -374,9 +375,9 @@
           @update:text-shadow-offset-x="handleTextShadowOffsetXUpdate"
           @update:text-shadow-offset-y="handleTextShadowOffsetYUpdate"
           @update:text-shadow-color="handleTextShadowColorUpdate"
-          @save-text-history="handleSaveTextHistory"
-          @undo-text="handleUndoText"
-          @redo-text="handleRedoText"
+          @save-text-history="saveHistory"
+          @undo-text="undo"
+          @redo-text="redo"
           @delete-text="handleDeleteText"
           @deselect-text="handleDeselectText"
           @add-text="addText"
@@ -1253,6 +1254,10 @@ function saveHistory() {
     filters: { ...filters.value },
     background: { ...background.value },
     transforms: { ...transform.transforms.value },
+    // Texte in die gemeinsame Historie aufnehmen, damit Undo/Redo den
+    // gesamten Editor-Zustand umfasst (nicht nur Bild/Filter/Transform)
+    texts: JSON.parse(JSON.stringify(imageStore.texts || [])),
+    selectedTextId: selectedTextId.value,
     width: canvas.value.width,
     height: canvas.value.height,
     hasCropped: crop.hasCropped.value,
@@ -1288,6 +1293,11 @@ function restoreState(state) {
     if (state.transforms) {
       transform.transforms.value = { ...state.transforms };
     }
+    // Texte wiederherstellen (gemeinsame Historie)
+    if (state.texts) {
+      imageStore.texts = JSON.parse(JSON.stringify(state.texts));
+    }
+    selectedTextId.value = state.selectedTextId ?? null;
     // Crop-State zurücksetzen wenn der gespeicherte State kein Zuschnitt war
     if (!state.hasCropped) {
       crop.resetCropState();
@@ -1401,7 +1411,7 @@ const {
   handleUndoTransform,
   handleRedoTransform,
   handleCommitTransform,
-} = useTransformHandlers({ transform, renderImage, t });
+} = useTransformHandlers({ transform, renderImage, t, saveHistory });
 
 // ===== TEXT FUNCTIONS =====
 
