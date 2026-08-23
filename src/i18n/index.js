@@ -461,17 +461,17 @@ const de = {
       transparentBackground: 'Transparenter Hintergrund',
     },
     formats: {
-      png:  { description: 'Verlustfrei, mit Transparenz',       recommended: 'Logos, UI, Screenshots' },
-      jpeg: { description: 'Komprimiert, kleine Dateigröße',     recommended: 'Fotos, Bilder' },
-      jpg:  { description: 'Komprimiert, kleine Dateigröße',     recommended: 'Fotos, Bilder' },
-      webp: { description: 'Modern, effizient, klein',           recommended: 'Web, moderne Browser' },
-      tiff: { description: 'Professionelles Format',             recommended: 'Druck, Archivierung' },
-      tif:  { description: 'Professionelles Format',             recommended: 'Druck, Archivierung' },
-      heif: { description: 'Modern, hohe Effizienz',             recommended: 'Fotos (neuere Geräte)' },
-      heic: { description: 'Modern, hohe Effizienz (Apple)',     recommended: 'iOS, macOS' },
-      gif:  { description: 'Einzelbild GIF',                     recommended: 'Kompatibilität, Retro' },
-      pdf:  { description: 'Dokument, A4-Format',                recommended: 'Dokumente, Druck' },
-      svg:  { description: 'Skalierbare Vektorgrafik',           recommended: 'Logos, Icons, Webgrafiken' },
+      png: { description: 'Verlustfrei, mit Transparenz', recommended: 'Logos, UI, Screenshots' },
+      jpeg: { description: 'Komprimiert, kleine Dateigröße', recommended: 'Fotos, Bilder' },
+      jpg: { description: 'Komprimiert, kleine Dateigröße', recommended: 'Fotos, Bilder' },
+      webp: { description: 'Modern, effizient, klein', recommended: 'Web, moderne Browser' },
+      tiff: { description: 'Professionelles Format', recommended: 'Druck, Archivierung' },
+      tif: { description: 'Professionelles Format', recommended: 'Druck, Archivierung' },
+      heif: { description: 'Modern, hohe Effizienz', recommended: 'Fotos (neuere Geräte)' },
+      heic: { description: 'Modern, hohe Effizienz (Apple)', recommended: 'iOS, macOS' },
+      gif: { description: 'Einzelbild GIF', recommended: 'Kompatibilität, Retro' },
+      pdf: { description: 'Dokument, A4-Format', recommended: 'Dokumente, Druck' },
+      svg: { description: 'Skalierbare Vektorgrafik', recommended: 'Logos, Icons, Webgrafiken' },
     },
   },
   transform: {
@@ -1063,6 +1063,13 @@ const de = {
       galleryLoaded: 'Bild aus Galerie geladen',
       galleryError: 'Fehler beim Laden aus Galerie',
       resizeSuccess: 'Bildgröße erfolgreich geändert: {width}×{height}px',
+      imageReset: 'Bild auf Originalzustand zurückgesetzt',
+      exportSuccess: 'Bild als {format} exportiert',
+      exporting: 'Exportiere...',
+      imageDetached: 'Bild vom Hintergrund gelöst – jetzt frei verschiebbar',
+      imageReattached: 'Bild wieder mit dem Hintergrund verbunden',
+      detachFailed: 'Ablösen fehlgeschlagen',
+      reattachFailed: 'Verbinden fehlgeschlagen',
     },
     presets: {
       applied: 'Preset "{name}" angewendet',
@@ -1101,16 +1108,6 @@ const de = {
       downloadStarted: '{filename} wird heruntergeladen',
       uploadReceived: 'Bild empfangen – Konvertierung läuft...',
     },
-    editor: {
-      imageDeleted: 'Bild erfolgreich gelöscht',
-      imageReset: 'Bild auf Originalzustand zurückgesetzt',
-      exportSuccess: 'Bild als {format} exportiert',
-      exporting: 'Exportiere...',
-      imageDetached: 'Bild vom Hintergrund gelöst – jetzt frei verschiebbar',
-      imageReattached: 'Bild wieder mit dem Hintergrund verbunden',
-      detachFailed: 'Ablösen fehlgeschlagen',
-      reattachFailed: 'Verbinden fehlgeschlagen',
-    },
     network: {
       online: 'Verbindung wiederhergestellt',
       offline: 'Keine Verbindung – du arbeitest offline',
@@ -1122,10 +1119,12 @@ const de = {
     reset: 'Zurücksetzen',
     editor: {
       resetTitle: 'Alle Änderungen verwerfen?',
-      resetMessage: 'Das Bild wird auf den Originalzustand zurückgesetzt. Alle Filter, Texte, Zuschnitte und Transformationen gehen verloren.',
+      resetMessage:
+        'Das Bild wird auf den Originalzustand zurückgesetzt. Alle Filter, Texte, Zuschnitte und Transformationen gehen verloren.',
       clearTitle: 'Bild entfernen?',
       clearMessage: 'Möchten Sie das Bild wirklich entfernen? Alle Änderungen gehen verloren.',
-      clearCollageMessage: 'Möchten Sie die Collage wirklich entfernen? Alle Layer und Änderungen gehen verloren.',
+      clearCollageMessage:
+        'Möchten Sie die Collage wirklich entfernen? Alle Layer und Änderungen gehen verloren.',
       deleteTextTitle: 'Text löschen?',
       deleteTextMessage: 'Diesen Text wirklich löschen?',
       clearTextsTitle: 'Alle Texte löschen?',
@@ -1752,17 +1751,17 @@ const en = {
       transparentBackground: 'Transparent background',
     },
     formats: {
-      png:  { description: 'Lossless, with transparency',        recommended: 'Logos, UI, Screenshots' },
-      jpeg: { description: 'Lossy, small file size',             recommended: 'Photos, Images' },
-      jpg:  { description: 'Lossy, small file size',             recommended: 'Photos, Images' },
-      webp: { description: 'Modern, efficient, small',           recommended: 'Web, modern browsers' },
-      tiff: { description: 'Professional format',                recommended: 'Print, Archiving' },
-      tif:  { description: 'Professional format',                recommended: 'Print, Archiving' },
-      heif: { description: 'Modern, high efficiency',            recommended: 'Photos (newer devices)' },
-      heic: { description: 'Modern, high efficiency (Apple)',    recommended: 'iOS, macOS' },
-      gif:  { description: 'Single-frame GIF',                   recommended: 'Compatibility, Retro' },
-      pdf:  { description: 'Document, A4 format',                recommended: 'Documents, Print' },
-      svg:  { description: 'Scalable Vector Graphics',           recommended: 'Logos, Icons, Web Graphics' },
+      png: { description: 'Lossless, with transparency', recommended: 'Logos, UI, Screenshots' },
+      jpeg: { description: 'Lossy, small file size', recommended: 'Photos, Images' },
+      jpg: { description: 'Lossy, small file size', recommended: 'Photos, Images' },
+      webp: { description: 'Modern, efficient, small', recommended: 'Web, modern browsers' },
+      tiff: { description: 'Professional format', recommended: 'Print, Archiving' },
+      tif: { description: 'Professional format', recommended: 'Print, Archiving' },
+      heif: { description: 'Modern, high efficiency', recommended: 'Photos (newer devices)' },
+      heic: { description: 'Modern, high efficiency (Apple)', recommended: 'iOS, macOS' },
+      gif: { description: 'Single-frame GIF', recommended: 'Compatibility, Retro' },
+      pdf: { description: 'Document, A4 format', recommended: 'Documents, Print' },
+      svg: { description: 'Scalable Vector Graphics', recommended: 'Logos, Icons, Web Graphics' },
     },
   },
   transform: {
@@ -2349,6 +2348,13 @@ const en = {
       galleryLoaded: 'Image loaded from gallery',
       galleryError: 'Error loading from gallery',
       resizeSuccess: 'Image size successfully changed: {width}×{height}px',
+      imageReset: 'Image reset to original state',
+      exportSuccess: 'Image exported as {format}',
+      exporting: 'Exporting...',
+      imageDetached: 'Image detached from background – now freely movable',
+      imageReattached: 'Image reattached to the background',
+      detachFailed: 'Detaching failed',
+      reattachFailed: 'Reattaching failed',
     },
     presets: {
       applied: 'Preset "{name}" applied',
@@ -2387,16 +2393,6 @@ const en = {
       downloadStarted: 'Downloading {filename}',
       uploadReceived: 'Image received – converting...',
     },
-    editor: {
-      imageDeleted: 'Image successfully deleted',
-      imageReset: 'Image reset to original state',
-      exportSuccess: 'Image exported as {format}',
-      exporting: 'Exporting...',
-      imageDetached: 'Image detached from background – now freely movable',
-      imageReattached: 'Image reattached to the background',
-      detachFailed: 'Detaching failed',
-      reattachFailed: 'Reattaching failed',
-    },
     network: {
       online: 'Connection restored',
       offline: 'No connection – working offline',
@@ -2408,10 +2404,12 @@ const en = {
     reset: 'Reset',
     editor: {
       resetTitle: 'Discard all changes?',
-      resetMessage: 'The image will be reset to its original state. All filters, texts, crops and transformations will be lost.',
+      resetMessage:
+        'The image will be reset to its original state. All filters, texts, crops and transformations will be lost.',
       clearTitle: 'Remove image?',
       clearMessage: 'Do you really want to remove the image? All changes will be lost.',
-      clearCollageMessage: 'Do you really want to remove the collage? All layers and changes will be lost.',
+      clearCollageMessage:
+        'Do you really want to remove the collage? All layers and changes will be lost.',
       deleteTextTitle: 'Delete text?',
       deleteTextMessage: 'Do you really want to delete this text?',
       clearTextsTitle: 'Delete all texts?',
@@ -2575,6 +2573,108 @@ const en = {
     forwardDismiss: 'No thanks',
   },
 };
+
+/**
+ * Nachträglich ergänzte Übersetzungen für zuvor fehlende Schlüssel.
+ * Sauber je Sprache getrennt und per Deep-Merge ergänzt, damit im
+ * Englischen keine deutschen Fallback-Texte mehr durchschlagen.
+ */
+const deExtra = {
+  common: { reset: 'Zurücksetzen', increase: 'Erhöhen', decrease: 'Verringern' },
+  batch: { clearAllTitle: 'Alle Dateien entfernen?' },
+  editor: {
+    toolbar: { addText: 'Text hinzufügen (T)', exitCollage: 'Collage-Modus beenden' },
+    format: { backendRequired: 'Benötigt Backend-API', backendBadge: 'Backend' },
+  },
+  errors: {
+    fileLoadError: 'Fehler beim Laden der Datei',
+    invalidImage: 'Ungültige Bilddatei',
+    networkError: 'Netzwerkfehler',
+  },
+  gallery: {
+    buttons: { rename: 'Umbenennen' },
+    deleteAllTitle: 'Alle Bilder löschen?',
+    deleteTitle: 'Bild löschen?',
+    pasteHint: 'Bilder direkt per',
+    pasteHint2: 'einfügen',
+    pasteShortcutHint: 'aus Zwischenablage einfügen',
+  },
+  guide: {
+    badge: 'Benutzerhandbuch',
+    quickStart: { subtitle: 'In nur drei einfachen Schritten zum perfekten Bild' },
+  },
+  presets: { dialogs: { deleteTitle: 'Preset löschen?' } },
+  textPanel: { noTexts: 'Noch keine Texte – füge einen hinzu.' },
+  toast: {
+    text: {
+      saveError: 'Fehler beim Speichern des Textes',
+      deleteError: 'Fehler beim Löschen des Textes',
+    },
+    gallery: { pasted: 'Bild aus Zwischenablage hinzugefügt' },
+    transform: {
+      redo: 'Transformation wiederhergestellt',
+      rotationReset: 'Rotation zurückgesetzt',
+      undo: 'Transformation rückgängig',
+    },
+  },
+  transform: { redo: 'Wiederherstellen', undo: 'Rückgängig' },
+};
+
+const enExtra = {
+  common: { reset: 'Reset', increase: 'Increase', decrease: 'Decrease' },
+  batch: { clearAllTitle: 'Remove all files?' },
+  editor: {
+    toolbar: { addText: 'Add text (T)', exitCollage: 'Exit collage mode' },
+    format: { backendRequired: 'Requires backend API', backendBadge: 'Backend' },
+  },
+  errors: {
+    fileLoadError: 'Error loading file',
+    invalidImage: 'Invalid image file',
+    networkError: 'Network error',
+  },
+  gallery: {
+    buttons: { rename: 'Rename' },
+    deleteAllTitle: 'Delete all images?',
+    deleteTitle: 'Delete image?',
+    pasteHint: 'Paste images directly with',
+    pasteHint2: '',
+    pasteShortcutHint: 'to paste from clipboard',
+  },
+  guide: {
+    badge: 'User guide',
+    quickStart: { subtitle: 'The perfect image in just three easy steps' },
+  },
+  presets: { dialogs: { deleteTitle: 'Delete preset?' } },
+  textPanel: { noTexts: 'No texts yet – add one.' },
+  toast: {
+    text: {
+      saveError: 'Error saving text',
+      deleteError: 'Error deleting text',
+    },
+    gallery: { pasted: 'Image added from clipboard' },
+    transform: {
+      redo: 'Transformation redone',
+      rotationReset: 'Rotation reset',
+      undo: 'Transformation undone',
+    },
+  },
+  transform: { redo: 'Redo', undo: 'Undo' },
+};
+
+// Füllt nur fehlende Schlüssel auf (überschreibt keine bestehenden Werte)
+function deepMergeMissing(target, source) {
+  for (const key in source) {
+    const val = source[key];
+    if (val && typeof val === 'object' && !Array.isArray(val)) {
+      if (!target[key] || typeof target[key] !== 'object') target[key] = {};
+      deepMergeMissing(target[key], val);
+    } else if (target[key] === undefined) {
+      target[key] = val;
+    }
+  }
+}
+deepMergeMissing(de, deExtra);
+deepMergeMissing(en, enExtra);
 
 /**
  * i18n-Konfiguration

@@ -72,7 +72,7 @@
             visibility:
               (selectedText.fontSize || selectedText.size || 32) !== 32 ? 'visible' : 'hidden',
           }"
-          title="Zurücksetzen"
+          :title="$t('common.reset')"
           @click="
             $emit('update:text-font-size', 32);
             $emit('save-text-history');
@@ -210,7 +210,7 @@
         <button
           class="reset-btn"
           :style="{ visibility: (selectedText.strokeWidth || 0) !== 0 ? 'visible' : 'hidden' }"
-          title="Zurücksetzen"
+          :title="$t('common.reset')"
           @click="
             $emit('update:text-stroke-width', 0);
             $emit('save-text-history');
@@ -266,7 +266,7 @@
         <button
           class="reset-btn"
           :style="{ visibility: (selectedText.shadowBlur || 0) !== 0 ? 'visible' : 'hidden' }"
-          title="Zurücksetzen"
+          :title="$t('common.reset')"
           @click="
             $emit('update:text-shadow-blur', 0);
             $emit('save-text-history');
@@ -350,7 +350,7 @@
         <button
           class="reset-btn"
           :style="{ visibility: (selectedText.rotation || 0) !== 0 ? 'visible' : 'hidden' }"
-          title="Zurücksetzen"
+          :title="$t('common.reset')"
           @click="
             $emit('update:text-rotation', 0);
             $emit('save-text-history');
@@ -388,7 +388,7 @@
         <button
           class="reset-btn"
           :style="{ visibility: (selectedText.skewX || 0) !== 0 ? 'visible' : 'hidden' }"
-          title="Zurücksetzen"
+          :title="$t('common.reset')"
           @click="
             $emit('update:text-skew-x', 0);
             $emit('save-text-history');
@@ -426,7 +426,7 @@
         <button
           class="reset-btn"
           :style="{ visibility: (selectedText.skewY || 0) !== 0 ? 'visible' : 'hidden' }"
-          title="Zurücksetzen"
+          :title="$t('common.reset')"
           @click="
             $emit('update:text-skew-y', 0);
             $emit('save-text-history');
@@ -469,7 +469,7 @@
                 ? 'visible'
                 : 'hidden',
           }"
-          title="Zurücksetzen"
+          :title="$t('common.reset')"
           @click="
             $emit('update:text-opacity', 100);
             $emit('save-text-history');

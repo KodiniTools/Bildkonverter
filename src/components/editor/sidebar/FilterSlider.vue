@@ -35,7 +35,7 @@
       <button
         class="reset-btn"
         :style="{ visibility: modelValue !== defaultValue ? 'visible' : 'hidden' }"
-        title="Zurücksetzen"
+        :title="$t('common.reset')"
         :disabled="disabled"
         @click="onReset"
       >
