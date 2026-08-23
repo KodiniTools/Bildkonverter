@@ -10,8 +10,9 @@
  * @param {object}   deps.transform    useTransform()-Composable-Instanz
  * @param {Function} deps.renderImage  Rendert das Canvas neu
  * @param {Function} deps.t            i18n-Übersetzungsfunktion
+ * @param {Function} [deps.saveHistory] Speichert den Gesamt-Editor-State (gemeinsame Undo/Redo-Historie)
  */
-export function useTransformHandlers({ transform, renderImage, t }) {
+export function useTransformHandlers({ transform, renderImage, t, saveHistory }) {
   function makeHandler(setter) {
     return (value) => {
       setter(value);
@@ -45,7 +46,10 @@ export function useTransformHandlers({ transform, renderImage, t }) {
     () => transform.rotate90Counter(),
     'toast.transform.rotated90'
   );
-  const handleRotate180 = makeActionHandler(() => transform.rotate180(), 'toast.transform.rotated180');
+  const handleRotate180 = makeActionHandler(
+    () => transform.rotate180(),
+    'toast.transform.rotated180'
+  );
   const handleFlipHorizontal = makeActionHandler(
     () => transform.flipHorizontal(),
     'toast.transform.flippedHorizontal'
@@ -73,6 +77,9 @@ export function useTransformHandlers({ transform, renderImage, t }) {
 
   function handleCommitTransform() {
     transform.commitTransform();
+    // Transformationen ebenfalls in die gemeinsame Editor-Historie schreiben,
+    // damit die zentrale Undo/Redo-Funktion sie umfasst.
+    if (saveHistory) saveHistory();
   }
 
   return {

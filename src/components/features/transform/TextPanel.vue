@@ -13,7 +13,7 @@
           :title="$t('textPanel.undo', 'Rückgängig')"
           @click="$emit('undo-text')"
         >
-          <i class="fas fa-undo"></i>
+          <i class="fas fa-reply"></i>
         </button>
         <button
           class="btn-icon-small"
@@ -21,7 +21,7 @@
           :title="$t('textPanel.redo', 'Wiederherstellen')"
           @click="$emit('redo-text')"
         >
-          <i class="fas fa-redo"></i>
+          <i class="fas fa-share"></i>
         </button>
       </div>
     </div>

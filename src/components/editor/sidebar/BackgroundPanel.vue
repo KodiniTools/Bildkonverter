@@ -13,6 +13,7 @@
           class="color-input"
           :disabled="disabled"
           @input="$emit('render')"
+          @change="$emit('save-history')"
         />
         <input
           v-model="background.color"
@@ -21,6 +22,7 @@
           maxlength="7"
           :disabled="disabled"
           @input="$emit('render')"
+          @change="$emit('save-history')"
         />
       </div>
     </div>
@@ -34,6 +36,7 @@
       unit="%"
       :disabled="disabled"
       @render="$emit('render')"
+      @save-history="$emit('save-history')"
     />
 
     <p v-if="disabled" class="hint-text">
@@ -57,5 +60,5 @@ defineProps({
   },
 });
 
-defineEmits(['render']);
+defineEmits(['render', 'save-history']);
 </script>
