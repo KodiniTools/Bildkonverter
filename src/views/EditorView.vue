@@ -322,6 +322,8 @@
           :has-pan="transform.hasPan.value"
           :selected-text="selectedTextObject"
           :has-texts="imageStore.texts && imageStore.texts.length > 0"
+          :texts="imageStore.texts || []"
+          :selected-text-id="selectedTextId"
           :can-undo-text="canUndoText"
           :can-redo-text="canRedoText"
           :can-undo-transform="transform.canUndoTransform.value"
@@ -377,6 +379,9 @@
           @redo-text="handleRedoText"
           @delete-text="handleDeleteText"
           @deselect-text="handleDeselectText"
+          @add-text="addText"
+          @select-text-by-id="onSelectTextFromPanel"
+          @delete-text-by-id="handleDeleteTextById"
         />
       </div>
     </div>
@@ -1420,6 +1425,7 @@ const {
   handleTextFontFamilyUpdate,
   handleTextShadowBlurUpdate,
   handleDeleteText,
+  handleDeleteTextById,
   handleDeselectText,
   handleSaveTextHistory,
   handleUndoText,
