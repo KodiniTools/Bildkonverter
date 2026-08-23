@@ -52,6 +52,10 @@ export function useLayerPanel(props, emit) {
   watch(
     () => props.canvasSelectedTextId,
     (newTextId) => {
+      // Store-Renderer (imageStore.draw) nutzt imageStore.selectedTextId für die
+      // Auswahl-Markierung – synchron halten, damit der markierte Text auf dem
+      // Canvas sichtbar bleibt (sonst überzeichnet ein späterer draw() die Marke).
+      imageStore.selectedTextId = newTextId || null;
       if (newTextId) {
         selectedTextId.value = newTextId;
         activeTab.value = 'text';
@@ -330,11 +334,16 @@ export function useLayerPanel(props, emit) {
     }
     imageStore.texts.push(newText);
     selectedTextId.value = newText.id;
+    // Neuen Text auch im Store-Renderer und im Editor markieren
+    imageStore.selectedTextId = newText.id;
+    emit('select-text', newText.id);
     emit('render');
   }
 
   function selectText(textId) {
     selectedTextId.value = textId;
+    // Store-Renderer-Auswahl synchron setzen (für Canvas-Markierung)
+    imageStore.selectedTextId = textId;
     // Layer-Auswahl aufheben
     imageStore.selectImageLayer(null);
     emit('select-text', textId);
