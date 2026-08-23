@@ -101,7 +101,11 @@
             @click="downloadImage"
           >
             <i :class="isExporting ? 'fas fa-spinner fa-spin' : 'fas fa-download'"></i>
-            {{ isExporting ? $t('toast.editor.exporting', 'Exportiere...') : $t('editor.toolbar.download') }}
+            {{
+              isExporting
+                ? $t('toast.editor.exporting', 'Exportiere...')
+                : $t('editor.toolbar.download')
+            }}
           </button>
         </div>
       </div>
@@ -141,15 +145,37 @@
             @update:export-quality="exportQuality = $event"
             @update:export-transparent="exportTransparent = $event"
           />
-          <BackgroundPanel :background="background" :disabled="!currentImage" @render="renderImage" />
+          <BackgroundPanel
+            :background="background"
+            :disabled="!currentImage"
+            @render="renderImage"
+          />
           <DetachPanel
             :detached="detachedFromBackground"
             :disabled="!currentImage"
             @toggle="handleToggleDetach"
           />
-          <AdjustmentsPanel :filters="filters" :sections-open="sectionsOpen" :disabled="!currentImage" @render="renderImage" @save-history="saveHistory" />
-          <LightColorPanel :filters="filters" :sections-open="sectionsOpen" :disabled="!currentImage" @render="renderImage" @save-history="saveHistory" />
-          <EffectsPanel :filters="filters" :sections-open="sectionsOpen" :disabled="!currentImage" @render="renderImage" @save-history="saveHistory" />
+          <AdjustmentsPanel
+            :filters="filters"
+            :sections-open="sectionsOpen"
+            :disabled="!currentImage"
+            @render="renderImage"
+            @save-history="saveHistory"
+          />
+          <LightColorPanel
+            :filters="filters"
+            :sections-open="sectionsOpen"
+            :disabled="!currentImage"
+            @render="renderImage"
+            @save-history="saveHistory"
+          />
+          <EffectsPanel
+            :filters="filters"
+            :sections-open="sectionsOpen"
+            :disabled="!currentImage"
+            @render="renderImage"
+            @save-history="saveHistory"
+          />
           <!-- Presets -->
           <div class="sidebar-section">
             <h3>{{ $t('editor.sidebar.presets') }}</h3>
@@ -177,7 +203,13 @@
 
             <div class="upload-cards">
               <!-- Datei wählen -->
-              <div class="upload-card upload-card--file" role="button" tabindex="0" @click="triggerFileInput" @keyup.enter="triggerFileInput">
+              <div
+                class="upload-card upload-card--file"
+                role="button"
+                tabindex="0"
+                @click="triggerFileInput"
+                @keyup.enter="triggerFileInput"
+              >
                 <div class="upload-card__icon">
                   <i class="fas fa-folder-open"></i>
                 </div>
@@ -379,7 +411,10 @@
             <span class="export-dialog__ext">.{{ outputFormat }}</span>
           </div>
           <div class="export-dialog__actions">
-            <button class="export-dialog__btn export-dialog__btn--cancel" @click="showExportDialog = false">
+            <button
+              class="export-dialog__btn export-dialog__btn--cancel"
+              @click="showExportDialog = false"
+            >
               {{ $t('common.cancel', 'Abbrechen') }}
             </button>
             <button class="export-dialog__btn export-dialog__btn--confirm" @click="confirmExport">
@@ -581,11 +616,7 @@ const canvasRenderer = useCanvasRenderer({
   background,
   selectedTextId,
 });
-const {
-  renderImage: _renderImageCore,
-  renderImageForExport,
-  drawTextSelection,
-} = canvasRenderer;
+const { renderImage: _renderImageCore, renderImageForExport, drawTextSelection } = canvasRenderer;
 
 const {
   imageWidth,
@@ -730,7 +761,6 @@ watch([resizeWidth, resizeHeight], ([newWidth, newHeight]) => {
 function triggerFileInput() {
   fileInput.value?.click();
 }
-
 
 async function loadImage(img) {
   currentImage.value = img;
@@ -1437,9 +1467,13 @@ const {
 });
 
 // Watch texts
-watch(() => imageStore.texts, () => {
-  renderImage();
-}, { deep: true });
+watch(
+  () => imageStore.texts,
+  () => {
+    renderImage();
+  },
+  { deep: true }
+);
 
 // ===== PREVIEW FUNCTIONS =====
 
@@ -1454,9 +1488,13 @@ function openPreview() {
     // Aktualisiere Original-Preview
     originalPreviewSrc.value = originalImageDataUrl.value || imageStore.workingUrl || '';
 
-    // Aktualisiere bearbeitetes Preview mit der AKTUELLEN Canvas
+    // Bearbeitetes Preview OHNE Auswahl-Markierung rendern, damit der
+    // Text-Auswahlrahmen nicht in der Vorschau erscheint.
     if (canvas.value) {
+      renderImageForExport();
       editedPreviewSrc.value = canvas.value.toDataURL('image/png');
+      // On-Screen-Canvas wieder mit Auswahl-Markierung herstellen
+      renderImage();
     }
 
     // Öffne das Modal
@@ -1484,9 +1522,11 @@ function handleLayerPreview() {
       originalPreviewSrc.value = '';
     }
 
-    // Aktualisiere bearbeitetes Preview mit der aktuellen Canvas
+    // Bearbeitetes Preview OHNE Auswahl-Markierung rendern
     if (canvas.value) {
+      renderImageForExport();
       editedPreviewSrc.value = canvas.value.toDataURL('image/png');
+      renderImage();
     }
 
     showPreviewModal.value = true;
@@ -1499,7 +1539,6 @@ function handleLayerPreview() {
 // Keyboard shortcuts und Initial Load
 
 // ===== LIFECYCLE HOOKS =====
-
 
 const { handleKeydown, handleKeyup } = useEditorKeyboard({
   canvas,
@@ -1602,7 +1641,6 @@ onUnmounted(() => {
     layerInteraction.removeListeners();
   }
 });
-
 </script>
 
 <style lang="scss" scoped src="./EditorView.scoped.scss"></style>

@@ -24,11 +24,7 @@
             <i class="fas fa-columns"></i>
             {{ $t('editor.preview.compare', 'Vergleich') }}
           </button>
-          <button
-            class="preview-tab"
-            :class="{ active: mode === 'after' }"
-            @click="mode = 'after'"
-          >
+          <button class="preview-tab" :class="{ active: mode === 'after' }" @click="mode = 'after'">
             <i class="fas fa-magic"></i>
             {{ $t('editor.preview.after', 'Nachher') }}
           </button>
@@ -64,6 +60,7 @@
             :src="editedSrc"
             alt="Edited"
             class="slider-img"
+            draggable="false"
           />
           <div v-else class="preview-placeholder full">
             {{ $t('editor.preview.noEdited', 'Keine Bearbeitung verfügbar') }}
@@ -75,6 +72,7 @@
             :src="originalSrc"
             alt="Original"
             class="slider-img slider-before"
+            draggable="false"
             :style="{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }"
           />
 
@@ -113,14 +111,20 @@ const sliderPos = ref(50);
 const sliderContainer = ref(null);
 let dragging = false;
 
-watch(() => props.show, (val) => {
-  if (val) {
-    mode.value = 'compare';
-    sliderPos.value = 50;
+watch(
+  () => props.show,
+  (val) => {
+    if (val) {
+      mode.value = 'compare';
+      sliderPos.value = 50;
+    }
   }
-});
+);
 
 function startDrag(e) {
+  // Verhindert natives Bild-Ziehen (sonst „schluckt" der Browser das
+  // mouseup und der Slider würde nach dem Loslassen weiterziehen)
+  if (e.cancelable) e.preventDefault();
   dragging = true;
   updateSlider(e);
   window.addEventListener('mousemove', onDrag);
@@ -272,6 +276,8 @@ function updateSlider(e) {
   max-width: 100%;
   max-height: 75vh;
   object-fit: contain;
+  -webkit-user-drag: none;
+  user-select: none;
 
   &.slider-before {
     position: absolute;
