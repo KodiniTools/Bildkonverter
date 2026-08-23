@@ -67,8 +67,11 @@
           @commit="$emit('save-text-history')"
         />
         <button
-          v-if="(selectedText.fontSize || selectedText.size || 32) !== 32"
           class="reset-btn"
+          :style="{
+            visibility:
+              (selectedText.fontSize || selectedText.size || 32) !== 32 ? 'visible' : 'hidden',
+          }"
           title="Zurücksetzen"
           @click="
             $emit('update:text-font-size', 32);
@@ -205,8 +208,8 @@
           @commit="$emit('save-text-history')"
         />
         <button
-          v-if="(selectedText.strokeWidth || 0) !== 0"
           class="reset-btn"
+          :style="{ visibility: (selectedText.strokeWidth || 0) !== 0 ? 'visible' : 'hidden' }"
           title="Zurücksetzen"
           @click="
             $emit('update:text-stroke-width', 0);
@@ -261,8 +264,8 @@
           @commit="$emit('save-text-history')"
         />
         <button
-          v-if="(selectedText.shadowBlur || 0) !== 0"
           class="reset-btn"
+          :style="{ visibility: (selectedText.shadowBlur || 0) !== 0 ? 'visible' : 'hidden' }"
           title="Zurücksetzen"
           @click="
             $emit('update:text-shadow-blur', 0);
@@ -345,8 +348,8 @@
           @commit="$emit('save-text-history')"
         />
         <button
-          v-if="(selectedText.rotation || 0) !== 0"
           class="reset-btn"
+          :style="{ visibility: (selectedText.rotation || 0) !== 0 ? 'visible' : 'hidden' }"
           title="Zurücksetzen"
           @click="
             $emit('update:text-rotation', 0);
@@ -383,8 +386,8 @@
           @commit="$emit('save-text-history')"
         />
         <button
-          v-if="(selectedText.skewX || 0) !== 0"
           class="reset-btn"
+          :style="{ visibility: (selectedText.skewX || 0) !== 0 ? 'visible' : 'hidden' }"
           title="Zurücksetzen"
           @click="
             $emit('update:text-skew-x', 0);
@@ -421,8 +424,8 @@
           @commit="$emit('save-text-history')"
         />
         <button
-          v-if="(selectedText.skewY || 0) !== 0"
           class="reset-btn"
+          :style="{ visibility: (selectedText.skewY || 0) !== 0 ? 'visible' : 'hidden' }"
           title="Zurücksetzen"
           @click="
             $emit('update:text-skew-y', 0);
@@ -459,8 +462,13 @@
           @commit="$emit('save-text-history')"
         />
         <button
-          v-if="(selectedText.opacity !== undefined ? selectedText.opacity : 100) !== 100"
           class="reset-btn"
+          :style="{
+            visibility:
+              (selectedText.opacity !== undefined ? selectedText.opacity : 100) !== 100
+                ? 'visible'
+                : 'hidden',
+          }"
           title="Zurücksetzen"
           @click="
             $emit('update:text-opacity', 100);

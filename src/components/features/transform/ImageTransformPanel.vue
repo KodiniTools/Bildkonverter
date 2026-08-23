@@ -52,8 +52,8 @@
           @commit="$emit('commit-transform')"
         />
         <button
-          v-if="transforms.opacity !== 100"
           class="reset-btn"
+          :style="{ visibility: transforms.opacity !== 100 ? 'visible' : 'hidden' }"
           title="Zurücksetzen"
           @click="
             $emit('update:opacity', 100);
@@ -92,8 +92,8 @@
           @commit="$emit('commit-transform')"
         />
         <button
-          v-if="transforms.rotation !== 0"
           class="reset-btn"
+          :style="{ visibility: transforms.rotation !== 0 ? 'visible' : 'hidden' }"
           title="Zurücksetzen"
           @click="
             $emit('update:rotation', 0);
@@ -189,8 +189,8 @@
             @commit="$emit('commit-transform')"
           />
           <button
-            v-if="transforms.skewX !== 0"
             class="reset-btn"
+            :style="{ visibility: transforms.skewX !== 0 ? 'visible' : 'hidden' }"
             title="Zurücksetzen"
             @click="
               $emit('update:skew-x', 0);
@@ -227,8 +227,8 @@
             @commit="$emit('commit-transform')"
           />
           <button
-            v-if="transforms.skewY !== 0"
             class="reset-btn"
+            :style="{ visibility: transforms.skewY !== 0 ? 'visible' : 'hidden' }"
             title="Zurücksetzen"
             @click="
               $emit('update:skew-y', 0);
@@ -268,8 +268,8 @@
           @commit="$emit('commit-transform')"
         />
         <button
-          v-if="transforms.scale !== 100"
           class="reset-btn"
+          :style="{ visibility: transforms.scale !== 100 ? 'visible' : 'hidden' }"
           title="Zurücksetzen"
           @click="
             $emit('update:scale', 100);
@@ -320,8 +320,8 @@
           @commit="$emit('commit-transform')"
         />
         <button
-          v-if="transforms.borderRadius !== 0"
           class="reset-btn"
+          :style="{ visibility: transforms.borderRadius !== 0 ? 'visible' : 'hidden' }"
           title="Zurücksetzen"
           @click="
             $emit('update:border-radius', 0);
@@ -363,8 +363,8 @@
           @commit="$emit('commit-transform')"
         />
         <button
-          v-if="transforms.borderWidth !== 0"
           class="reset-btn"
+          :style="{ visibility: transforms.borderWidth !== 0 ? 'visible' : 'hidden' }"
           title="Zurücksetzen"
           @click="
             $emit('update:border-width', 0);
@@ -429,8 +429,8 @@
               @commit="$emit('commit-transform')"
             />
             <button
-              v-if="transforms.shadowOffsetX !== 10"
               class="reset-btn"
+              :style="{ visibility: transforms.shadowOffsetX !== 10 ? 'visible' : 'hidden' }"
               title="Zurücksetzen"
               @click="
                 $emit('update:shadow-offset-x', 10);
@@ -467,8 +467,8 @@
               @commit="$emit('commit-transform')"
             />
             <button
-              v-if="transforms.shadowOffsetY !== 10"
               class="reset-btn"
+              :style="{ visibility: transforms.shadowOffsetY !== 10 ? 'visible' : 'hidden' }"
               title="Zurücksetzen"
               @click="
                 $emit('update:shadow-offset-y', 10);
@@ -505,8 +505,8 @@
               @commit="$emit('commit-transform')"
             />
             <button
-              v-if="transforms.shadowBlur !== 20"
               class="reset-btn"
+              :style="{ visibility: transforms.shadowBlur !== 20 ? 'visible' : 'hidden' }"
               title="Zurücksetzen"
               @click="
                 $emit('update:shadow-blur', 20);
@@ -543,8 +543,8 @@
               @commit="$emit('commit-transform')"
             />
             <button
-              v-if="transforms.shadowOpacity !== 50"
               class="reset-btn"
+              :style="{ visibility: transforms.shadowOpacity !== 50 ? 'visible' : 'hidden' }"
               title="Zurücksetzen"
               @click="
                 $emit('update:shadow-opacity', 50);
