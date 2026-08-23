@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed, reactive } from 'vue';
 import { ValidationUtils } from '@/utils/validationUtils';
 import { ApiClient } from '@/api/api';
+import { getAdjustedImage } from '@/utils/imageAdjustments';
 import {
   drawText,
   drawTextSelection,
@@ -256,16 +257,13 @@ export const useImageStore = defineStore('image', () => {
       // Deckkraft
       context.globalAlpha = layer.opacity / 100;
 
-      // Filter für diesen Layer
-      const filterParts = [];
-      if (layer.filters.brightness !== 100)
-        filterParts.push(`brightness(${layer.filters.brightness}%)`);
-      if (layer.filters.contrast !== 100) filterParts.push(`contrast(${layer.filters.contrast}%)`);
-      if (layer.filters.saturation !== 100)
-        filterParts.push(`saturate(${layer.filters.saturation}%)`);
-      if (layer.filters.grayscale > 0) filterParts.push(`grayscale(${layer.filters.grayscale}%)`);
-      if (layer.filters.sepia > 0) filterParts.push(`sepia(${layer.filters.sepia}%)`);
-      context.filter = filterParts.length > 0 ? filterParts.join(' ') : 'none';
+      // Echte, pixelbasierte Tonwert-Anpassungen in die Ebenen-Quelle backen;
+      // Effekt-Filter (Graustufen, Sepia) bleiben CSS-Filter.
+      const { el: layerSource, cssFilter: layerCssFilter } = getAdjustedImage(
+        layer.image,
+        layer.filters
+      );
+      context.filter = layerCssFilter;
 
       // Rotation um Mittelpunkt
       if (layer.rotation !== 0) {
@@ -277,7 +275,7 @@ export const useImageStore = defineStore('image', () => {
       }
 
       // Bild zeichnen
-      context.drawImage(layer.image, layer.x, layer.y, layer.width, layer.height);
+      context.drawImage(layerSource, layer.x, layer.y, layer.width, layer.height);
 
       context.restore();
 

@@ -151,17 +151,14 @@ export function useCanvasRenderer({
         // Deckkraft
         ctx.globalAlpha = layer.opacity / 100;
 
-        // Filter für diesen Layer
-        const filterParts = [];
-        if (layer.filters.brightness !== 100)
-          filterParts.push(`brightness(${layer.filters.brightness}%)`);
-        if (layer.filters.contrast !== 100)
-          filterParts.push(`contrast(${layer.filters.contrast}%)`);
-        if (layer.filters.saturation !== 100)
-          filterParts.push(`saturate(${layer.filters.saturation}%)`);
-        if (layer.filters.grayscale > 0) filterParts.push(`grayscale(${layer.filters.grayscale}%)`);
-        if (layer.filters.sepia > 0) filterParts.push(`sepia(${layer.filters.sepia}%)`);
-        ctx.filter = filterParts.length > 0 ? filterParts.join(' ') : 'none';
+        // Echte, pixelbasierte Tonwert-Anpassungen (Helligkeit, Kontrast,
+        // Sättigung) werden in die Ebenen-Quelle gebacken; Effekt-Filter
+        // (Graustufen, Sepia) bleiben CSS-Filter – wie beim Hauptbild.
+        const { el: layerSource, cssFilter: layerCssFilter } = getAdjustedImage(
+          layer.image,
+          layer.filters
+        );
+        ctx.filter = layerCssFilter;
 
         // Rotation um Mittelpunkt
         if (layer.rotation !== 0) {
@@ -270,7 +267,7 @@ export function useCanvasRenderer({
           ctx.clip();
 
           // Bild zeichnen (innerhalb des Clipping-Pfads)
-          ctx.drawImage(layer.image, layer.x, layer.y, layer.width, layer.height);
+          ctx.drawImage(layerSource, layer.x, layer.y, layer.width, layer.height);
 
           ctx.restore();
 
@@ -299,7 +296,7 @@ export function useCanvasRenderer({
           }
         } else {
           // Bild ohne abgerundete Ecken zeichnen
-          ctx.drawImage(layer.image, layer.x, layer.y, layer.width, layer.height);
+          ctx.drawImage(layerSource, layer.x, layer.y, layer.width, layer.height);
 
           // Schatten zurücksetzen für Umrandung
           ctx.shadowColor = 'transparent';
@@ -652,17 +649,14 @@ export function useCanvasRenderer({
         // Deckkraft
         ctx.globalAlpha = layer.opacity / 100;
 
-        // Filter für diesen Layer
-        const filterParts = [];
-        if (layer.filters.brightness !== 100)
-          filterParts.push(`brightness(${layer.filters.brightness}%)`);
-        if (layer.filters.contrast !== 100)
-          filterParts.push(`contrast(${layer.filters.contrast}%)`);
-        if (layer.filters.saturation !== 100)
-          filterParts.push(`saturate(${layer.filters.saturation}%)`);
-        if (layer.filters.grayscale > 0) filterParts.push(`grayscale(${layer.filters.grayscale}%)`);
-        if (layer.filters.sepia > 0) filterParts.push(`sepia(${layer.filters.sepia}%)`);
-        ctx.filter = filterParts.length > 0 ? filterParts.join(' ') : 'none';
+        // Echte, pixelbasierte Tonwert-Anpassungen (Helligkeit, Kontrast,
+        // Sättigung) werden in die Ebenen-Quelle gebacken; Effekt-Filter
+        // (Graustufen, Sepia) bleiben CSS-Filter – wie beim Hauptbild.
+        const { el: layerSource, cssFilter: layerCssFilter } = getAdjustedImage(
+          layer.image,
+          layer.filters
+        );
+        ctx.filter = layerCssFilter;
 
         // Rotation um Mittelpunkt
         if (layer.rotation !== 0) {
@@ -767,7 +761,7 @@ export function useCanvasRenderer({
           ctx.closePath();
           ctx.clip();
 
-          ctx.drawImage(layer.image, layer.x, layer.y, layer.width, layer.height);
+          ctx.drawImage(layerSource, layer.x, layer.y, layer.width, layer.height);
           ctx.restore();
 
           // Schatten zurücksetzen für Umrandung
@@ -793,7 +787,7 @@ export function useCanvasRenderer({
             ctx.stroke();
           }
         } else {
-          ctx.drawImage(layer.image, layer.x, layer.y, layer.width, layer.height);
+          ctx.drawImage(layerSource, layer.x, layer.y, layer.width, layer.height);
 
           ctx.shadowColor = 'transparent';
           ctx.shadowBlur = 0;

@@ -211,13 +211,15 @@
 
         <!-- Rotation -->
         <div class="control-group">
-          <label>{{ $t('layerPanel.transform.rotation') }}: {{ selectedLayer.rotation }}°</label>
-          <input
-            type="range"
-            min="-180"
-            max="180"
-            :value="selectedLayer.rotation"
-            @input="updateLayerProperty('rotation', parseInt($event.target.value))"
+          <FilterSlider
+            :model-value="selectedLayer.rotation"
+            :label="$t('layerPanel.transform.rotation')"
+            :min="-180"
+            :max="180"
+            :default-value="0"
+            unit="°"
+            center-zero
+            @update:model-value="updateLayerProperty('rotation', $event)"
           />
           <div class="quick-rotate">
             <button class="btn btn-sm" @click="rotateBy(-90)">-90°</button>
@@ -252,16 +254,15 @@
         </div>
 
         <!-- Deckkraft -->
-        <div class="control-group">
-          <label>{{ $t('layerPanel.transform.opacity') }}: {{ selectedLayer.opacity }}%</label>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            :value="selectedLayer.opacity"
-            @input="updateLayerProperty('opacity', parseInt($event.target.value))"
-          />
-        </div>
+        <FilterSlider
+          :model-value="selectedLayer.opacity"
+          :label="$t('layerPanel.transform.opacity')"
+          :min="0"
+          :max="100"
+          :default-value="100"
+          unit="%"
+          @update:model-value="updateLayerProperty('opacity', $event)"
+        />
       </div>
     </div>
 
@@ -276,56 +277,42 @@
         ></i>
       </div>
       <div v-show="openSections.filters" class="section-content">
-        <div class="control-group">
-          <label
-            >{{ $t('layerPanel.filters.brightness') }}:
-            {{ selectedLayer.filters.brightness }}%</label
-          >
-          <input
-            type="range"
-            min="0"
-            max="200"
-            :value="selectedLayer.filters.brightness"
-            @input="updateFilter('brightness', parseInt($event.target.value))"
-          />
-        </div>
-        <div class="control-group">
-          <label
-            >{{ $t('layerPanel.filters.contrast') }}: {{ selectedLayer.filters.contrast }}%</label
-          >
-          <input
-            type="range"
-            min="0"
-            max="200"
-            :value="selectedLayer.filters.contrast"
-            @input="updateFilter('contrast', parseInt($event.target.value))"
-          />
-        </div>
-        <div class="control-group">
-          <label
-            >{{ $t('layerPanel.filters.saturation') }}:
-            {{ selectedLayer.filters.saturation }}%</label
-          >
-          <input
-            type="range"
-            min="0"
-            max="200"
-            :value="selectedLayer.filters.saturation"
-            @input="updateFilter('saturation', parseInt($event.target.value))"
-          />
-        </div>
-        <div class="control-group">
-          <label
-            >{{ $t('layerPanel.filters.grayscale') }}: {{ selectedLayer.filters.grayscale }}%</label
-          >
-          <input
-            type="range"
-            min="0"
-            max="100"
-            :value="selectedLayer.filters.grayscale"
-            @input="updateFilter('grayscale', parseInt($event.target.value))"
-          />
-        </div>
+        <FilterSlider
+          :model-value="selectedLayer.filters.brightness"
+          :label="$t('layerPanel.filters.brightness')"
+          :min="0"
+          :max="200"
+          :default-value="100"
+          unit="%"
+          @update:model-value="updateFilter('brightness', $event)"
+        />
+        <FilterSlider
+          :model-value="selectedLayer.filters.contrast"
+          :label="$t('layerPanel.filters.contrast')"
+          :min="0"
+          :max="200"
+          :default-value="100"
+          unit="%"
+          @update:model-value="updateFilter('contrast', $event)"
+        />
+        <FilterSlider
+          :model-value="selectedLayer.filters.saturation"
+          :label="$t('layerPanel.filters.saturation')"
+          :min="0"
+          :max="200"
+          :default-value="100"
+          unit="%"
+          @update:model-value="updateFilter('saturation', $event)"
+        />
+        <FilterSlider
+          :model-value="selectedLayer.filters.grayscale"
+          :label="$t('layerPanel.filters.grayscale')"
+          :min="0"
+          :max="100"
+          :default-value="0"
+          unit="%"
+          @update:model-value="updateFilter('grayscale', $event)"
+        />
         <button class="btn btn-secondary btn-full" @click="resetLayerFilters">
           <i class="fas fa-undo"></i>
           {{ $t('layerPanel.filters.reset') }}
@@ -344,16 +331,15 @@
         ></i>
       </div>
       <div v-show="openSections.border" class="section-content">
-        <div class="control-group">
-          <label>{{ $t('layerPanel.border.width') }}: {{ layerBorder.width }}px</label>
-          <input
-            type="range"
-            min="0"
-            max="50"
-            :value="layerBorder.width"
-            @input="updateBorder('width', parseInt($event.target.value))"
-          />
-        </div>
+        <FilterSlider
+          :model-value="layerBorder.width"
+          :label="$t('layerPanel.border.width')"
+          :min="0"
+          :max="50"
+          :default-value="0"
+          unit="px"
+          @update:model-value="updateBorder('width', $event)"
+        />
         <div class="control-group">
           <label>{{ $t('layerPanel.border.color') }}</label>
           <div class="color-picker-row">
@@ -372,16 +358,15 @@
             />
           </div>
         </div>
-        <div class="control-group">
-          <label>{{ $t('layerPanel.border.radius') }}: {{ layerBorder.radius }}%</label>
-          <input
-            type="range"
-            min="0"
-            max="50"
-            :value="layerBorder.radius"
-            @input="updateBorder('radius', parseInt($event.target.value))"
-          />
-        </div>
+        <FilterSlider
+          :model-value="layerBorder.radius"
+          :label="$t('layerPanel.border.radius')"
+          :min="0"
+          :max="50"
+          :default-value="0"
+          unit="%"
+          @update:model-value="updateBorder('radius', $event)"
+        />
       </div>
     </div>
 
@@ -407,36 +392,35 @@
           </label>
         </div>
         <template v-if="layerShadow.enabled">
-          <div class="control-group">
-            <label>{{ $t('layerPanel.shadow.offsetX') }}: {{ layerShadow.offsetX }}px</label>
-            <input
-              type="range"
-              min="-50"
-              max="50"
-              :value="layerShadow.offsetX"
-              @input="updateShadow('offsetX', parseInt($event.target.value))"
-            />
-          </div>
-          <div class="control-group">
-            <label>{{ $t('layerPanel.shadow.offsetY') }}: {{ layerShadow.offsetY }}px</label>
-            <input
-              type="range"
-              min="-50"
-              max="50"
-              :value="layerShadow.offsetY"
-              @input="updateShadow('offsetY', parseInt($event.target.value))"
-            />
-          </div>
-          <div class="control-group">
-            <label>{{ $t('layerPanel.shadow.blur') }}: {{ layerShadow.blur }}px</label>
-            <input
-              type="range"
-              min="0"
-              max="50"
-              :value="layerShadow.blur"
-              @input="updateShadow('blur', parseInt($event.target.value))"
-            />
-          </div>
+          <FilterSlider
+            :model-value="layerShadow.offsetX"
+            :label="$t('layerPanel.shadow.offsetX')"
+            :min="-50"
+            :max="50"
+            :default-value="5"
+            unit="px"
+            center-zero
+            @update:model-value="updateShadow('offsetX', $event)"
+          />
+          <FilterSlider
+            :model-value="layerShadow.offsetY"
+            :label="$t('layerPanel.shadow.offsetY')"
+            :min="-50"
+            :max="50"
+            :default-value="5"
+            unit="px"
+            center-zero
+            @update:model-value="updateShadow('offsetY', $event)"
+          />
+          <FilterSlider
+            :model-value="layerShadow.blur"
+            :label="$t('layerPanel.shadow.blur')"
+            :min="0"
+            :max="50"
+            :default-value="10"
+            unit="px"
+            @update:model-value="updateShadow('blur', $event)"
+          />
           <div class="control-group">
             <label>{{ $t('layerPanel.shadow.color') }}</label>
             <div class="color-picker-row">
@@ -455,16 +439,15 @@
               />
             </div>
           </div>
-          <div class="control-group">
-            <label>{{ $t('layerPanel.shadow.opacity') }}: {{ layerShadow.opacity }}%</label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              :value="layerShadow.opacity"
-              @input="updateShadow('opacity', parseInt($event.target.value))"
-            />
-          </div>
+          <FilterSlider
+            :model-value="layerShadow.opacity"
+            :label="$t('layerPanel.shadow.opacity')"
+            :min="0"
+            :max="100"
+            :default-value="50"
+            unit="%"
+            @update:model-value="updateShadow('opacity', $event)"
+          />
         </template>
       </div>
     </div>
@@ -482,6 +465,7 @@
 <script setup>
 import { inject } from 'vue';
 import { LAYER_PANEL_KEY } from '@/composables/useLayerPanel';
+import FilterSlider from '@/components/editor/sidebar/FilterSlider.vue';
 
 const {
   imageStore,
