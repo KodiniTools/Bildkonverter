@@ -63,16 +63,15 @@
           />
         </div>
 
-        <div class="control-group">
-          <label>{{ $t('layerPanel.text.fontSize') }}: {{ selectedText.fontSize || 32 }}px</label>
-          <input
-            type="range"
-            min="8"
-            max="200"
-            :value="selectedText.fontSize || 32"
-            @input="updateTextProperty('fontSize', parseInt($event.target.value))"
-          />
-        </div>
+        <FilterSlider
+          :model-value="selectedText.fontSize ?? 32"
+          :label="$t('layerPanel.text.fontSize')"
+          :min="8"
+          :max="200"
+          :default-value="32"
+          unit="px"
+          @update:model-value="updateTextProperty('fontSize', $event)"
+        />
 
         <div class="control-group">
           <label>{{ $t('layerPanel.text.fontFamily') }}</label>
@@ -123,42 +122,38 @@
           </div>
         </div>
 
-        <div class="control-group">
-          <label>{{ $t('layerPanel.text.opacity') }}: {{ selectedText.opacity || 100 }}%</label>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            :value="selectedText.opacity || 100"
-            @input="updateTextProperty('opacity', parseInt($event.target.value))"
-          />
-        </div>
+        <FilterSlider
+          :model-value="selectedText.opacity ?? 100"
+          :label="$t('layerPanel.text.opacity')"
+          :min="0"
+          :max="100"
+          :default-value="100"
+          unit="%"
+          @update:model-value="updateTextProperty('opacity', $event)"
+        />
 
-        <div class="control-group">
-          <label>{{ $t('layerPanel.text.rotation') }}: {{ selectedText.rotation || 0 }}°</label>
-          <input
-            type="range"
-            min="-180"
-            max="180"
-            :value="selectedText.rotation || 0"
-            @input="updateTextProperty('rotation', parseInt($event.target.value))"
-          />
-        </div>
+        <FilterSlider
+          :model-value="selectedText.rotation ?? 0"
+          :label="$t('layerPanel.text.rotation')"
+          :min="-180"
+          :max="180"
+          :default-value="0"
+          unit="°"
+          center-zero
+          @update:model-value="updateTextProperty('rotation', $event)"
+        />
 
         <!-- Text Kontur -->
         <h4 class="subsection-title">{{ $t('layerPanel.text.stroke') }}</h4>
-        <div class="control-group">
-          <label
-            >{{ $t('layerPanel.text.strokeWidth') }}: {{ selectedText.strokeWidth || 0 }}px</label
-          >
-          <input
-            type="range"
-            min="0"
-            max="20"
-            :value="selectedText.strokeWidth || 0"
-            @input="updateTextProperty('strokeWidth', parseInt($event.target.value))"
-          />
-        </div>
+        <FilterSlider
+          :model-value="selectedText.strokeWidth ?? 0"
+          :label="$t('layerPanel.text.strokeWidth')"
+          :min="0"
+          :max="20"
+          :default-value="0"
+          unit="px"
+          @update:model-value="updateTextProperty('strokeWidth', $event)"
+        />
 
         <div v-if="(selectedText.strokeWidth || 0) > 0" class="control-group">
           <label>{{ $t('layerPanel.text.strokeColor') }}</label>
@@ -181,44 +176,37 @@
 
         <!-- Text Schatten -->
         <h4 class="subsection-title">{{ $t('layerPanel.text.textShadow') }}</h4>
-        <div class="control-group">
-          <label
-            >{{ $t('layerPanel.text.shadowBlur') }}: {{ selectedText.shadowBlur || 0 }}px</label
-          >
-          <input
-            type="range"
-            min="0"
-            max="30"
-            :value="selectedText.shadowBlur || 0"
-            @input="updateTextProperty('shadowBlur', parseInt($event.target.value))"
-          />
-        </div>
+        <FilterSlider
+          :model-value="selectedText.shadowBlur ?? 0"
+          :label="$t('layerPanel.text.shadowBlur')"
+          :min="0"
+          :max="30"
+          :default-value="0"
+          unit="px"
+          @update:model-value="updateTextProperty('shadowBlur', $event)"
+        />
 
         <template v-if="(selectedText.shadowBlur || 0) > 0">
-          <div class="control-group">
-            <label
-              >{{ $t('layerPanel.text.shadowX') }}: {{ selectedText.shadowOffsetX || 2 }}px</label
-            >
-            <input
-              type="range"
-              min="-20"
-              max="20"
-              :value="selectedText.shadowOffsetX || 2"
-              @input="updateTextProperty('shadowOffsetX', parseInt($event.target.value))"
-            />
-          </div>
-          <div class="control-group">
-            <label
-              >{{ $t('layerPanel.text.shadowY') }}: {{ selectedText.shadowOffsetY || 2 }}px</label
-            >
-            <input
-              type="range"
-              min="-20"
-              max="20"
-              :value="selectedText.shadowOffsetY || 2"
-              @input="updateTextProperty('shadowOffsetY', parseInt($event.target.value))"
-            />
-          </div>
+          <FilterSlider
+            :model-value="selectedText.shadowOffsetX ?? 2"
+            :label="$t('layerPanel.text.shadowX')"
+            :min="-20"
+            :max="20"
+            :default-value="2"
+            unit="px"
+            center-zero
+            @update:model-value="updateTextProperty('shadowOffsetX', $event)"
+          />
+          <FilterSlider
+            :model-value="selectedText.shadowOffsetY ?? 2"
+            :label="$t('layerPanel.text.shadowY')"
+            :min="-20"
+            :max="20"
+            :default-value="2"
+            unit="px"
+            center-zero
+            @update:model-value="updateTextProperty('shadowOffsetY', $event)"
+          />
           <div class="control-group">
             <label>{{ $t('layerPanel.text.shadowColor') }}</label>
             <div class="color-picker-row">
@@ -259,6 +247,7 @@
 <script setup>
 import { inject } from 'vue';
 import { LAYER_PANEL_KEY } from '@/composables/useLayerPanel';
+import FilterSlider from '@/components/editor/sidebar/FilterSlider.vue';
 
 const {
   imageStore,
