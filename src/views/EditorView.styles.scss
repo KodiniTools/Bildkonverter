@@ -353,113 +353,6 @@
   }
 }
 
-/* Zahlen-Spinner (Eingabefeld + Schrittpfeile) neben den Slidern */
-.number-spinner {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  height: 22px;
-  background: var(--color-bg, #ffffff);
-  border: 1px solid var(--color-border, #d1d5db);
-  border-radius: 4px;
-  padding: 0 1px 0 0;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
-
-  &:hover {
-    border-color: var(--color-primary);
-  }
-
-  &:focus-within {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px rgba(1, 79, 153, 0.12);
-  }
-
-  &.disabled {
-    opacity: 0.5;
-    pointer-events: none;
-  }
-
-  .spinner-value {
-    width: 34px;
-    padding: 0 1px 0 5px;
-    border: none;
-    background: transparent;
-    font-size: 0.7rem;
-    font-weight: 600;
-    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
-    color: var(--color-primary);
-    text-align: right;
-    -moz-appearance: textfield;
-    appearance: textfield;
-
-    &::-webkit-outer-spin-button,
-    &::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-
-    &:focus {
-      outline: none;
-    }
-  }
-
-  .spinner-unit {
-    font-size: 0.6rem;
-    font-weight: 500;
-    color: var(--color-text-light);
-    margin-right: 1px;
-    pointer-events: none;
-  }
-
-  .spinner-buttons {
-    display: flex;
-    flex-direction: column;
-    margin-left: 2px;
-    border-left: 1px solid var(--color-border, #d1d5db);
-  }
-
-  .spinner-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 16px;
-    height: 10px;
-    border: none;
-    background: none;
-    padding: 0;
-    cursor: pointer;
-    color: var(--color-text-light);
-    transition:
-      color 0.15s ease,
-      background 0.15s ease;
-
-    i {
-      font-size: 0.6rem;
-      line-height: 1;
-    }
-
-    &:hover:not(:disabled) {
-      color: var(--color-primary);
-      background: rgba(1, 79, 153, 0.1);
-    }
-
-    &:disabled {
-      opacity: 0.35;
-      cursor: default;
-    }
-  }
-
-  .spinner-up {
-    border-top-right-radius: 3px;
-  }
-
-  .spinner-down {
-    border-bottom-right-radius: 3px;
-  }
-}
-
 // Color Picker für Hintergrund
 .color-picker-row {
   display: flex;
@@ -1076,24 +969,6 @@
     .slider-track.hue-slider::before,
     .slider-track.warm-slider::before {
       opacity: 0.9;
-    }
-  }
-
-  .number-spinner {
-    background: var(--color-card-bg, var(--color-bg));
-    border-color: rgba(255, 255, 255, 0.15);
-
-    .spinner-value {
-      color: #60a5fa;
-    }
-
-    .spinner-buttons {
-      border-left-color: rgba(255, 255, 255, 0.15);
-    }
-
-    .spinner-btn:hover:not(:disabled) {
-      color: #60a5fa;
-      background: rgba(96, 165, 250, 0.15);
     }
   }
 

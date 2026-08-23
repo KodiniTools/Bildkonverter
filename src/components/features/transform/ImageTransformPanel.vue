@@ -43,23 +43,22 @@
           @input="$emit('update:opacity', Number($event.target.value))"
           @change="$emit('commit-transform')"
         />
-        <div class="number-input-wrapper">
-          <input
-            type="number"
-            min="0"
-            max="100"
-            :value="transforms.opacity"
-            class="number-input"
-            @input="$emit('update:opacity', Math.min(100, Math.max(0, Number($event.target.value))))"
-            @change="$emit('commit-transform')"
-          />
-          <span class="unit">%</span>
-        </div>
+        <NumberSpinner
+          :model-value="transforms.opacity"
+          :min="0"
+          :max="100"
+          unit="%"
+          @update:model-value="$emit('update:opacity', $event)"
+          @commit="$emit('commit-transform')"
+        />
         <button
           v-if="transforms.opacity !== 100"
           class="reset-btn"
           title="Zurücksetzen"
-          @click="$emit('update:opacity', 100); $emit('commit-transform')"
+          @click="
+            $emit('update:opacity', 100);
+            $emit('commit-transform');
+          "
         >
           <i class="fas fa-undo-alt"></i>
         </button>
@@ -84,23 +83,22 @@
           @input="$emit('update:rotation', Number($event.target.value))"
           @change="$emit('commit-transform')"
         />
-        <div class="number-input-wrapper">
-          <input
-            type="number"
-            min="-180"
-            max="180"
-            :value="transforms.rotation"
-            class="number-input"
-            @input="$emit('update:rotation', Math.min(180, Math.max(-180, Number($event.target.value))))"
-            @change="$emit('commit-transform')"
-          />
-          <span class="unit">°</span>
-        </div>
+        <NumberSpinner
+          :model-value="transforms.rotation"
+          :min="-180"
+          :max="180"
+          unit="°"
+          @update:model-value="$emit('update:rotation', $event)"
+          @commit="$emit('commit-transform')"
+        />
         <button
           v-if="transforms.rotation !== 0"
           class="reset-btn"
           title="Zurücksetzen"
-          @click="$emit('update:rotation', 0); $emit('commit-transform')"
+          @click="
+            $emit('update:rotation', 0);
+            $emit('commit-transform');
+          "
         >
           <i class="fas fa-undo-alt"></i>
         </button>
@@ -182,23 +180,22 @@
             @input="$emit('update:skew-x', Number($event.target.value))"
             @change="$emit('commit-transform')"
           />
-          <div class="number-input-wrapper">
-            <input
-              type="number"
-              min="-45"
-              max="45"
-              :value="transforms.skewX"
-              class="number-input"
-              @input="$emit('update:skew-x', Math.min(45, Math.max(-45, Number($event.target.value))))"
-              @change="$emit('commit-transform')"
-            />
-            <span class="unit">°</span>
-          </div>
+          <NumberSpinner
+            :model-value="transforms.skewX"
+            :min="-45"
+            :max="45"
+            unit="°"
+            @update:model-value="$emit('update:skew-x', $event)"
+            @commit="$emit('commit-transform')"
+          />
           <button
             v-if="transforms.skewX !== 0"
             class="reset-btn"
             title="Zurücksetzen"
-            @click="$emit('update:skew-x', 0); $emit('commit-transform')"
+            @click="
+              $emit('update:skew-x', 0);
+              $emit('commit-transform');
+            "
           >
             <i class="fas fa-undo-alt"></i>
           </button>
@@ -221,23 +218,22 @@
             @input="$emit('update:skew-y', Number($event.target.value))"
             @change="$emit('commit-transform')"
           />
-          <div class="number-input-wrapper">
-            <input
-              type="number"
-              min="-45"
-              max="45"
-              :value="transforms.skewY"
-              class="number-input"
-              @input="$emit('update:skew-y', Math.min(45, Math.max(-45, Number($event.target.value))))"
-              @change="$emit('commit-transform')"
-            />
-            <span class="unit">°</span>
-          </div>
+          <NumberSpinner
+            :model-value="transforms.skewY"
+            :min="-45"
+            :max="45"
+            unit="°"
+            @update:model-value="$emit('update:skew-y', $event)"
+            @commit="$emit('commit-transform')"
+          />
           <button
             v-if="transforms.skewY !== 0"
             class="reset-btn"
             title="Zurücksetzen"
-            @click="$emit('update:skew-y', 0); $emit('commit-transform')"
+            @click="
+              $emit('update:skew-y', 0);
+              $emit('commit-transform');
+            "
           >
             <i class="fas fa-undo-alt"></i>
           </button>
@@ -263,23 +259,22 @@
           @input="$emit('update:scale', Number($event.target.value))"
           @change="$emit('commit-transform')"
         />
-        <div class="number-input-wrapper">
-          <input
-            type="number"
-            min="10"
-            max="200"
-            :value="transforms.scale"
-            class="number-input"
-            @input="$emit('update:scale', Math.min(200, Math.max(10, Number($event.target.value))))"
-            @change="$emit('commit-transform')"
-          />
-          <span class="unit">%</span>
-        </div>
+        <NumberSpinner
+          :model-value="transforms.scale"
+          :min="10"
+          :max="200"
+          unit="%"
+          @update:model-value="$emit('update:scale', $event)"
+          @commit="$emit('commit-transform')"
+        />
         <button
           v-if="transforms.scale !== 100"
           class="reset-btn"
           title="Zurücksetzen"
-          @click="$emit('update:scale', 100); $emit('commit-transform')"
+          @click="
+            $emit('update:scale', 100);
+            $emit('commit-transform');
+          "
         >
           <i class="fas fa-undo-alt"></i>
         </button>
@@ -316,23 +311,22 @@
           @input="$emit('update:border-radius', Number($event.target.value))"
           @change="$emit('commit-transform')"
         />
-        <div class="number-input-wrapper">
-          <input
-            type="number"
-            min="0"
-            max="50"
-            :value="transforms.borderRadius"
-            class="number-input"
-            @input="$emit('update:border-radius', Math.min(50, Math.max(0, Number($event.target.value))))"
-            @change="$emit('commit-transform')"
-          />
-          <span class="unit">%</span>
-        </div>
+        <NumberSpinner
+          :model-value="transforms.borderRadius"
+          :min="0"
+          :max="50"
+          unit="%"
+          @update:model-value="$emit('update:border-radius', $event)"
+          @commit="$emit('commit-transform')"
+        />
         <button
           v-if="transforms.borderRadius !== 0"
           class="reset-btn"
           title="Zurücksetzen"
-          @click="$emit('update:border-radius', 0); $emit('commit-transform')"
+          @click="
+            $emit('update:border-radius', 0);
+            $emit('commit-transform');
+          "
         >
           <i class="fas fa-undo-alt"></i>
         </button>
@@ -360,23 +354,22 @@
           @input="$emit('update:border-width', Number($event.target.value))"
           @change="$emit('commit-transform')"
         />
-        <div class="number-input-wrapper">
-          <input
-            type="number"
-            min="0"
-            max="20"
-            :value="transforms.borderWidth"
-            class="number-input"
-            @input="$emit('update:border-width', Math.min(20, Math.max(0, Number($event.target.value))))"
-            @change="$emit('commit-transform')"
-          />
-          <span class="unit">px</span>
-        </div>
+        <NumberSpinner
+          :model-value="transforms.borderWidth"
+          :min="0"
+          :max="20"
+          unit="px"
+          @update:model-value="$emit('update:border-width', $event)"
+          @commit="$emit('commit-transform')"
+        />
         <button
           v-if="transforms.borderWidth !== 0"
           class="reset-btn"
           title="Zurücksetzen"
-          @click="$emit('update:border-width', 0); $emit('commit-transform')"
+          @click="
+            $emit('update:border-width', 0);
+            $emit('commit-transform');
+          "
         >
           <i class="fas fa-undo-alt"></i>
         </button>
@@ -427,23 +420,22 @@
               @input="$emit('update:shadow-offset-x', Number($event.target.value))"
               @change="$emit('commit-transform')"
             />
-            <div class="number-input-wrapper">
-              <input
-                type="number"
-                min="-50"
-                max="50"
-                :value="transforms.shadowOffsetX"
-                class="number-input"
-                @input="$emit('update:shadow-offset-x', Math.min(50, Math.max(-50, Number($event.target.value))))"
-                @change="$emit('commit-transform')"
-              />
-              <span class="unit">px</span>
-            </div>
+            <NumberSpinner
+              :model-value="transforms.shadowOffsetX"
+              :min="-50"
+              :max="50"
+              unit="px"
+              @update:model-value="$emit('update:shadow-offset-x', $event)"
+              @commit="$emit('commit-transform')"
+            />
             <button
               v-if="transforms.shadowOffsetX !== 10"
               class="reset-btn"
               title="Zurücksetzen"
-              @click="$emit('update:shadow-offset-x', 10); $emit('commit-transform')"
+              @click="
+                $emit('update:shadow-offset-x', 10);
+                $emit('commit-transform');
+              "
             >
               <i class="fas fa-undo-alt"></i>
             </button>
@@ -466,23 +458,22 @@
               @input="$emit('update:shadow-offset-y', Number($event.target.value))"
               @change="$emit('commit-transform')"
             />
-            <div class="number-input-wrapper">
-              <input
-                type="number"
-                min="-50"
-                max="50"
-                :value="transforms.shadowOffsetY"
-                class="number-input"
-                @input="$emit('update:shadow-offset-y', Math.min(50, Math.max(-50, Number($event.target.value))))"
-                @change="$emit('commit-transform')"
-              />
-              <span class="unit">px</span>
-            </div>
+            <NumberSpinner
+              :model-value="transforms.shadowOffsetY"
+              :min="-50"
+              :max="50"
+              unit="px"
+              @update:model-value="$emit('update:shadow-offset-y', $event)"
+              @commit="$emit('commit-transform')"
+            />
             <button
               v-if="transforms.shadowOffsetY !== 10"
               class="reset-btn"
               title="Zurücksetzen"
-              @click="$emit('update:shadow-offset-y', 10); $emit('commit-transform')"
+              @click="
+                $emit('update:shadow-offset-y', 10);
+                $emit('commit-transform');
+              "
             >
               <i class="fas fa-undo-alt"></i>
             </button>
@@ -505,23 +496,22 @@
               @input="$emit('update:shadow-blur', Number($event.target.value))"
               @change="$emit('commit-transform')"
             />
-            <div class="number-input-wrapper">
-              <input
-                type="number"
-                min="0"
-                max="100"
-                :value="transforms.shadowBlur"
-                class="number-input"
-                @input="$emit('update:shadow-blur', Math.min(100, Math.max(0, Number($event.target.value))))"
-                @change="$emit('commit-transform')"
-              />
-              <span class="unit">px</span>
-            </div>
+            <NumberSpinner
+              :model-value="transforms.shadowBlur"
+              :min="0"
+              :max="100"
+              unit="px"
+              @update:model-value="$emit('update:shadow-blur', $event)"
+              @commit="$emit('commit-transform')"
+            />
             <button
               v-if="transforms.shadowBlur !== 20"
               class="reset-btn"
               title="Zurücksetzen"
-              @click="$emit('update:shadow-blur', 20); $emit('commit-transform')"
+              @click="
+                $emit('update:shadow-blur', 20);
+                $emit('commit-transform');
+              "
             >
               <i class="fas fa-undo-alt"></i>
             </button>
@@ -544,23 +534,22 @@
               @input="$emit('update:shadow-opacity', Number($event.target.value))"
               @change="$emit('commit-transform')"
             />
-            <div class="number-input-wrapper">
-              <input
-                type="number"
-                min="0"
-                max="100"
-                :value="transforms.shadowOpacity"
-                class="number-input"
-                @input="$emit('update:shadow-opacity', Math.min(100, Math.max(0, Number($event.target.value))))"
-                @change="$emit('commit-transform')"
-              />
-              <span class="unit">%</span>
-            </div>
+            <NumberSpinner
+              :model-value="transforms.shadowOpacity"
+              :min="0"
+              :max="100"
+              unit="%"
+              @update:model-value="$emit('update:shadow-opacity', $event)"
+              @commit="$emit('commit-transform')"
+            />
             <button
               v-if="transforms.shadowOpacity !== 50"
               class="reset-btn"
               title="Zurücksetzen"
-              @click="$emit('update:shadow-opacity', 50); $emit('commit-transform')"
+              @click="
+                $emit('update:shadow-opacity', 50);
+                $emit('commit-transform');
+              "
             >
               <i class="fas fa-undo-alt"></i>
             </button>
@@ -598,6 +587,8 @@
 </template>
 
 <script setup>
+import NumberSpinner from '@/components/ui/NumberSpinner.vue';
+
 defineProps({
   transforms: { type: Object, required: true },
   canPan: { type: Boolean, default: false },

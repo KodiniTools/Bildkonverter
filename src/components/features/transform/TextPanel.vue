@@ -47,7 +47,6 @@
       <label>
         <i class="fas fa-text-height"></i>
         {{ $t('textPanel.fontSize', 'Schriftgröße') }}
-        <span class="value">{{ selectedText.fontSize || selectedText.size || 32 }}px</span>
       </label>
       <div class="slider-row">
         <input
@@ -59,11 +58,22 @@
           @input="$emit('update:text-font-size', Number($event.target.value))"
           @change="$emit('save-text-history')"
         />
+        <NumberSpinner
+          :model-value="selectedText.fontSize || selectedText.size || 32"
+          :min="8"
+          :max="200"
+          unit="px"
+          @update:model-value="$emit('update:text-font-size', $event)"
+          @commit="$emit('save-text-history')"
+        />
         <button
           v-if="(selectedText.fontSize || selectedText.size || 32) !== 32"
           class="reset-btn"
           title="Zurücksetzen"
-          @click="$emit('update:text-font-size', 32); $emit('save-text-history')"
+          @click="
+            $emit('update:text-font-size', 32);
+            $emit('save-text-history');
+          "
         >
           <i class="fas fa-undo-alt"></i>
         </button>
@@ -175,7 +185,6 @@
       <label>
         <i class="fas fa-border-style"></i>
         {{ $t('textPanel.strokeWidth', 'Umrandung') }}
-        <span class="value">{{ selectedText.strokeWidth || 0 }}px</span>
       </label>
       <div class="slider-row">
         <input
@@ -187,11 +196,22 @@
           @input="$emit('update:text-stroke-width', Number($event.target.value))"
           @change="$emit('save-text-history')"
         />
+        <NumberSpinner
+          :model-value="selectedText.strokeWidth || 0"
+          :min="0"
+          :max="50"
+          unit="px"
+          @update:model-value="$emit('update:text-stroke-width', $event)"
+          @commit="$emit('save-text-history')"
+        />
         <button
           v-if="(selectedText.strokeWidth || 0) !== 0"
           class="reset-btn"
           title="Zurücksetzen"
-          @click="$emit('update:text-stroke-width', 0); $emit('save-text-history')"
+          @click="
+            $emit('update:text-stroke-width', 0);
+            $emit('save-text-history');
+          "
         >
           <i class="fas fa-undo-alt"></i>
         </button>
@@ -221,7 +241,6 @@
       <label>
         <i class="fas fa-clone"></i>
         {{ $t('textPanel.shadow', 'Schatten') }}
-        <span class="value">{{ selectedText.shadowBlur || 0 }}px</span>
       </label>
       <div class="slider-row">
         <input
@@ -233,11 +252,22 @@
           @input="$emit('update:text-shadow-blur', Number($event.target.value))"
           @change="$emit('save-text-history')"
         />
+        <NumberSpinner
+          :model-value="selectedText.shadowBlur || 0"
+          :min="0"
+          :max="20"
+          unit="px"
+          @update:model-value="$emit('update:text-shadow-blur', $event)"
+          @commit="$emit('save-text-history')"
+        />
         <button
           v-if="(selectedText.shadowBlur || 0) !== 0"
           class="reset-btn"
           title="Zurücksetzen"
-          @click="$emit('update:text-shadow-blur', 0); $emit('save-text-history')"
+          @click="
+            $emit('update:text-shadow-blur', 0);
+            $emit('save-text-history');
+          "
         >
           <i class="fas fa-undo-alt"></i>
         </button>
@@ -295,7 +325,6 @@
       <label>
         <i class="fas fa-redo"></i>
         {{ $t('textPanel.rotation', 'Rotation') }}
-        <span class="value">{{ selectedText.rotation || 0 }}°</span>
       </label>
       <div class="slider-row">
         <input
@@ -307,11 +336,22 @@
           @input="$emit('update:text-rotation', Number($event.target.value))"
           @change="$emit('save-text-history')"
         />
+        <NumberSpinner
+          :model-value="selectedText.rotation || 0"
+          :min="-180"
+          :max="180"
+          unit="°"
+          @update:model-value="$emit('update:text-rotation', $event)"
+          @commit="$emit('save-text-history')"
+        />
         <button
           v-if="(selectedText.rotation || 0) !== 0"
           class="reset-btn"
           title="Zurücksetzen"
-          @click="$emit('update:text-rotation', 0); $emit('save-text-history')"
+          @click="
+            $emit('update:text-rotation', 0);
+            $emit('save-text-history');
+          "
         >
           <i class="fas fa-undo-alt"></i>
         </button>
@@ -323,7 +363,6 @@
       <label>
         <i class="fas fa-arrows-alt-h"></i>
         {{ $t('textPanel.skewX', 'Neigung horizontal') }}
-        <span class="value">{{ selectedText.skewX || 0 }}°</span>
       </label>
       <div class="slider-row">
         <input
@@ -335,11 +374,22 @@
           @input="$emit('update:text-skew-x', Number($event.target.value))"
           @change="$emit('save-text-history')"
         />
+        <NumberSpinner
+          :model-value="selectedText.skewX || 0"
+          :min="-60"
+          :max="60"
+          unit="°"
+          @update:model-value="$emit('update:text-skew-x', $event)"
+          @commit="$emit('save-text-history')"
+        />
         <button
           v-if="(selectedText.skewX || 0) !== 0"
           class="reset-btn"
           title="Zurücksetzen"
-          @click="$emit('update:text-skew-x', 0); $emit('save-text-history')"
+          @click="
+            $emit('update:text-skew-x', 0);
+            $emit('save-text-history');
+          "
         >
           <i class="fas fa-undo-alt"></i>
         </button>
@@ -351,7 +401,6 @@
       <label>
         <i class="fas fa-arrows-alt-v"></i>
         {{ $t('textPanel.skewY', 'Neigung vertikal') }}
-        <span class="value">{{ selectedText.skewY || 0 }}°</span>
       </label>
       <div class="slider-row">
         <input
@@ -363,11 +412,22 @@
           @input="$emit('update:text-skew-y', Number($event.target.value))"
           @change="$emit('save-text-history')"
         />
+        <NumberSpinner
+          :model-value="selectedText.skewY || 0"
+          :min="-60"
+          :max="60"
+          unit="°"
+          @update:model-value="$emit('update:text-skew-y', $event)"
+          @commit="$emit('save-text-history')"
+        />
         <button
           v-if="(selectedText.skewY || 0) !== 0"
           class="reset-btn"
           title="Zurücksetzen"
-          @click="$emit('update:text-skew-y', 0); $emit('save-text-history')"
+          @click="
+            $emit('update:text-skew-y', 0);
+            $emit('save-text-history');
+          "
         >
           <i class="fas fa-undo-alt"></i>
         </button>
@@ -379,9 +439,6 @@
       <label>
         <i class="fas fa-adjust"></i>
         {{ $t('textPanel.opacity', 'Opacity') }}
-        <span class="value"
-          >{{ selectedText.opacity !== undefined ? selectedText.opacity : 100 }}%</span
-        >
       </label>
       <div class="slider-row">
         <input
@@ -393,11 +450,22 @@
           @input="$emit('update:text-opacity', Number($event.target.value))"
           @change="$emit('save-text-history')"
         />
+        <NumberSpinner
+          :model-value="selectedText.opacity !== undefined ? selectedText.opacity : 100"
+          :min="0"
+          :max="100"
+          unit="%"
+          @update:model-value="$emit('update:text-opacity', $event)"
+          @commit="$emit('save-text-history')"
+        />
         <button
           v-if="(selectedText.opacity !== undefined ? selectedText.opacity : 100) !== 100"
           class="reset-btn"
           title="Zurücksetzen"
-          @click="$emit('update:text-opacity', 100); $emit('save-text-history')"
+          @click="
+            $emit('update:text-opacity', 100);
+            $emit('save-text-history');
+          "
         >
           <i class="fas fa-undo-alt"></i>
         </button>
@@ -427,6 +495,7 @@
 </template>
 
 <script setup>
+import NumberSpinner from '@/components/ui/NumberSpinner.vue';
 import { computed } from 'vue';
 import { availableFonts } from '@/assets/fonts/fontList.js';
 import { isFontBold, isFontItalic } from '@/utils/textRender';

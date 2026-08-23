@@ -20,43 +20,17 @@
         />
       </div>
 
-      <!-- Zahlen-Spinner: direkte Eingabe + Schrittpfeile -->
-      <div class="number-spinner" :class="{ disabled }">
-        <input
-          type="number"
-          :min="min"
-          :max="max"
-          :step="step"
-          :value="modelValue"
-          class="spinner-value"
-          :disabled="disabled"
-          @input="onNumberInput"
-          @change="emit('save-history')"
-        />
-        <span v-if="unit" class="spinner-unit">{{ unit }}</span>
-        <div class="spinner-buttons">
-          <button
-            type="button"
-            class="spinner-btn spinner-up"
-            tabindex="-1"
-            title="Erhöhen"
-            :disabled="disabled || modelValue >= max"
-            @pointerdown="startHold(1, $event)"
-          >
-            <i class="fas fa-caret-up"></i>
-          </button>
-          <button
-            type="button"
-            class="spinner-btn spinner-down"
-            tabindex="-1"
-            title="Verringern"
-            :disabled="disabled || modelValue <= min"
-            @pointerdown="startHold(-1, $event)"
-          >
-            <i class="fas fa-caret-down"></i>
-          </button>
-        </div>
-      </div>
+      <!-- Zahlen-Spinner: direkte Eingabe + Schrittpfeile (mit Halten-Dauerlauf) -->
+      <NumberSpinner
+        :model-value="modelValue"
+        :min="min"
+        :max="max"
+        :step="step"
+        :unit="unit"
+        :disabled="disabled"
+        @update:model-value="onSpinnerInput"
+        @commit="emit('save-history')"
+      />
 
       <button
         v-if="modelValue !== defaultValue"
@@ -72,11 +46,8 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount } from 'vue';
-
-// Verzögerung bis der Dauerlauf startet und Intervall zwischen den Schritten
-const HOLD_DELAY = 400;
-const HOLD_INTERVAL = 120;
+import { computed } from 'vue';
+import NumberSpinner from '@/components/ui/NumberSpinner.vue';
 
 const props = defineProps({
   modelValue: { type: Number, required: true },
@@ -93,84 +64,15 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'render', 'save-history']);
 
-// Rundet auf die durch step vorgegebene Genauigkeit (vermeidet Float-Drift)
-function roundToStep(v) {
-  return Number(v.toFixed(4));
-}
-
-function clamp(v) {
-  if (Number.isNaN(v)) return props.modelValue;
-  return Math.min(props.max, Math.max(props.min, v));
-}
-
 function onRangeInput(e) {
   emit('update:modelValue', Number(e.target.value));
   emit('render');
 }
 
-function onNumberInput(e) {
-  emit('update:modelValue', clamp(Number(e.target.value)));
+function onSpinnerInput(value) {
+  emit('update:modelValue', value);
   emit('render');
 }
-
-// Einzelner Schritt ohne History-Eintrag (History wird beim Loslassen gesetzt)
-function doStep(direction) {
-  const next = clamp(roundToStep(props.modelValue + direction * props.step));
-  if (next === props.modelValue) return false;
-  emit('update:modelValue', next);
-  emit('render');
-  return true;
-}
-
-// Klicken-und-Halten: erster Schritt sofort, danach Dauerlauf
-let holdTimeout = null;
-let holdInterval = null;
-let holdChanged = false;
-
-function startHold(direction, event) {
-  if (props.disabled) return;
-  if (event) {
-    if (event.button !== undefined && event.button !== 0) return; // nur linke Taste
-    event.preventDefault();
-  }
-  stopHold();
-
-  holdChanged = doStep(direction);
-
-  holdTimeout = setTimeout(() => {
-    holdInterval = setInterval(() => {
-      if (doStep(direction)) {
-        holdChanged = true;
-      } else {
-        stopHold(); // Grenze erreicht → anhalten
-      }
-    }, HOLD_INTERVAL);
-  }, HOLD_DELAY);
-
-  window.addEventListener('pointerup', stopHold);
-  window.addEventListener('pointercancel', stopHold);
-}
-
-function stopHold() {
-  if (holdTimeout) {
-    clearTimeout(holdTimeout);
-    holdTimeout = null;
-  }
-  if (holdInterval) {
-    clearInterval(holdInterval);
-    holdInterval = null;
-  }
-  window.removeEventListener('pointerup', stopHold);
-  window.removeEventListener('pointercancel', stopHold);
-
-  // Nach dem Loslassen genau einen History-Eintrag setzen
-  if (holdChanged) {
-    holdChanged = false;
-    emit('save-history');
-  }
-}
-
-onBeforeUnmount(stopHold);
 
 function onReset() {
   emit('update:modelValue', props.defaultValue);
