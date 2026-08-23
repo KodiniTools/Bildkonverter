@@ -33,8 +33,8 @@
       />
 
       <button
-        v-if="modelValue !== defaultValue"
         class="reset-btn"
+        :style="{ visibility: modelValue !== defaultValue ? 'visible' : 'hidden' }"
         title="Zurücksetzen"
         :disabled="disabled"
         @click="onReset"
