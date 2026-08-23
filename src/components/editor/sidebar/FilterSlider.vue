@@ -41,7 +41,7 @@
             tabindex="-1"
             title="Erhöhen"
             :disabled="disabled || modelValue >= max"
-            @click="stepValue(1)"
+            @pointerdown="startHold(1, $event)"
           >
             <i class="fas fa-caret-up"></i>
           </button>
@@ -51,7 +51,7 @@
             tabindex="-1"
             title="Verringern"
             :disabled="disabled || modelValue <= min"
-            @click="stepValue(-1)"
+            @pointerdown="startHold(-1, $event)"
           >
             <i class="fas fa-caret-down"></i>
           </button>
@@ -72,7 +72,11 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, onBeforeUnmount } from 'vue';
+
+// Verzögerung bis der Dauerlauf startet und Intervall zwischen den Schritten
+const HOLD_DELAY = 400;
+const HOLD_INTERVAL = 120;
 
 const props = defineProps({
   modelValue: { type: Number, required: true },
@@ -109,13 +113,64 @@ function onNumberInput(e) {
   emit('render');
 }
 
-function stepValue(direction) {
+// Einzelner Schritt ohne History-Eintrag (History wird beim Loslassen gesetzt)
+function doStep(direction) {
   const next = clamp(roundToStep(props.modelValue + direction * props.step));
-  if (next === props.modelValue) return;
+  if (next === props.modelValue) return false;
   emit('update:modelValue', next);
   emit('render');
-  emit('save-history');
+  return true;
 }
+
+// Klicken-und-Halten: erster Schritt sofort, danach Dauerlauf
+let holdTimeout = null;
+let holdInterval = null;
+let holdChanged = false;
+
+function startHold(direction, event) {
+  if (props.disabled) return;
+  if (event) {
+    if (event.button !== undefined && event.button !== 0) return; // nur linke Taste
+    event.preventDefault();
+  }
+  stopHold();
+
+  holdChanged = doStep(direction);
+
+  holdTimeout = setTimeout(() => {
+    holdInterval = setInterval(() => {
+      if (doStep(direction)) {
+        holdChanged = true;
+      } else {
+        stopHold(); // Grenze erreicht → anhalten
+      }
+    }, HOLD_INTERVAL);
+  }, HOLD_DELAY);
+
+  window.addEventListener('pointerup', stopHold);
+  window.addEventListener('pointercancel', stopHold);
+}
+
+function stopHold() {
+  if (holdTimeout) {
+    clearTimeout(holdTimeout);
+    holdTimeout = null;
+  }
+  if (holdInterval) {
+    clearInterval(holdInterval);
+    holdInterval = null;
+  }
+  window.removeEventListener('pointerup', stopHold);
+  window.removeEventListener('pointercancel', stopHold);
+
+  // Nach dem Loslassen genau einen History-Eintrag setzen
+  if (holdChanged) {
+    holdChanged = false;
+    emit('save-history');
+  }
+}
+
+onBeforeUnmount(stopHold);
 
 function onReset() {
   emit('update:modelValue', props.defaultValue);
