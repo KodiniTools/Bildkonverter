@@ -17,7 +17,7 @@
         type="button"
         class="spinner-btn spinner-up"
         tabindex="-1"
-        title="Erhöhen"
+        :title="$t('common.increase')"
         :disabled="disabled || modelValue >= max"
         @pointerdown="startHold(1, $event)"
       >
@@ -27,7 +27,7 @@
         type="button"
         class="spinner-btn spinner-down"
         tabindex="-1"
-        title="Verringern"
+        :title="$t('common.decrease')"
         :disabled="disabled || modelValue <= min"
         @pointerdown="startHold(-1, $event)"
       >

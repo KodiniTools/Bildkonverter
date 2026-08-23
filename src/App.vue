@@ -256,7 +256,10 @@ function handleTextSave(textData) {
     textModal.saveText(textData);
   } catch (error) {
     console.error('❌ Fehler beim Speichern:', error);
-    if (window.$toast) window.$toast.error('Fehler beim Speichern des Textes: ' + error.message);
+    if (window.$toast)
+      window.$toast.error(
+        t('toast.text.saveError', 'Fehler beim Speichern des Textes') + ': ' + error.message
+      );
   }
 }
 
@@ -267,7 +270,10 @@ function handleTextDelete() {
     }
   } catch (error) {
     console.error('❌ Fehler beim Löschen:', error);
-    if (window.$toast) window.$toast.error('Fehler beim Löschen des Textes: ' + error.message);
+    if (window.$toast)
+      window.$toast.error(
+        t('toast.text.deleteError', 'Fehler beim Löschen des Textes') + ': ' + error.message
+      );
   }
 }
 

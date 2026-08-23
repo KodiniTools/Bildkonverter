@@ -54,7 +54,7 @@
         <button
           class="reset-btn"
           :style="{ visibility: transforms.opacity !== 100 ? 'visible' : 'hidden' }"
-          title="Zurücksetzen"
+          :title="$t('common.reset')"
           @click="
             $emit('update:opacity', 100);
             $emit('commit-transform');
@@ -94,7 +94,7 @@
         <button
           class="reset-btn"
           :style="{ visibility: transforms.rotation !== 0 ? 'visible' : 'hidden' }"
-          title="Zurücksetzen"
+          :title="$t('common.reset')"
           @click="
             $emit('update:rotation', 0);
             $emit('commit-transform');
@@ -191,7 +191,7 @@
           <button
             class="reset-btn"
             :style="{ visibility: transforms.skewX !== 0 ? 'visible' : 'hidden' }"
-            title="Zurücksetzen"
+            :title="$t('common.reset')"
             @click="
               $emit('update:skew-x', 0);
               $emit('commit-transform');
@@ -229,7 +229,7 @@
           <button
             class="reset-btn"
             :style="{ visibility: transforms.skewY !== 0 ? 'visible' : 'hidden' }"
-            title="Zurücksetzen"
+            :title="$t('common.reset')"
             @click="
               $emit('update:skew-y', 0);
               $emit('commit-transform');
@@ -270,7 +270,7 @@
         <button
           class="reset-btn"
           :style="{ visibility: transforms.scale !== 100 ? 'visible' : 'hidden' }"
-          title="Zurücksetzen"
+          :title="$t('common.reset')"
           @click="
             $emit('update:scale', 100);
             $emit('commit-transform');
@@ -322,7 +322,7 @@
         <button
           class="reset-btn"
           :style="{ visibility: transforms.borderRadius !== 0 ? 'visible' : 'hidden' }"
-          title="Zurücksetzen"
+          :title="$t('common.reset')"
           @click="
             $emit('update:border-radius', 0);
             $emit('commit-transform');
@@ -365,7 +365,7 @@
         <button
           class="reset-btn"
           :style="{ visibility: transforms.borderWidth !== 0 ? 'visible' : 'hidden' }"
-          title="Zurücksetzen"
+          :title="$t('common.reset')"
           @click="
             $emit('update:border-width', 0);
             $emit('commit-transform');
@@ -431,7 +431,7 @@
             <button
               class="reset-btn"
               :style="{ visibility: transforms.shadowOffsetX !== 10 ? 'visible' : 'hidden' }"
-              title="Zurücksetzen"
+              :title="$t('common.reset')"
               @click="
                 $emit('update:shadow-offset-x', 10);
                 $emit('commit-transform');
@@ -469,7 +469,7 @@
             <button
               class="reset-btn"
               :style="{ visibility: transforms.shadowOffsetY !== 10 ? 'visible' : 'hidden' }"
-              title="Zurücksetzen"
+              :title="$t('common.reset')"
               @click="
                 $emit('update:shadow-offset-y', 10);
                 $emit('commit-transform');
@@ -507,7 +507,7 @@
             <button
               class="reset-btn"
               :style="{ visibility: transforms.shadowBlur !== 20 ? 'visible' : 'hidden' }"
-              title="Zurücksetzen"
+              :title="$t('common.reset')"
               @click="
                 $emit('update:shadow-blur', 20);
                 $emit('commit-transform');
@@ -545,7 +545,7 @@
             <button
               class="reset-btn"
               :style="{ visibility: transforms.shadowOpacity !== 50 ? 'visible' : 'hidden' }"
-              title="Zurücksetzen"
+              :title="$t('common.reset')"
               @click="
                 $emit('update:shadow-opacity', 50);
                 $emit('commit-transform');

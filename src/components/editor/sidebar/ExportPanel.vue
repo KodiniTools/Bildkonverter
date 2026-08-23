@@ -15,8 +15,12 @@
     <div v-if="currentFormatInfo" class="format-info">
       <p class="format-description">{{ $t(`editor.formats.${outputFormat}.description`) }}</p>
       <span class="format-badge">{{ $t(`editor.formats.${outputFormat}.recommended`) }}</span>
-      <span v-if="requiresBackend" class="backend-badge" :title="'Benötigt Backend-API'">
-        🌐 Backend
+      <span
+        v-if="requiresBackend"
+        class="backend-badge"
+        :title="$t('editor.format.backendRequired', 'Benötigt Backend-API')"
+      >
+        🌐 {{ $t('editor.format.backendBadge', 'Backend') }}
       </span>
     </div>
 
