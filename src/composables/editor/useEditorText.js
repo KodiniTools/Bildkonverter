@@ -114,6 +114,19 @@ export function useEditorText({
     renderImage();
   }
 
+  // Löscht einen Text anhand seiner ID (für die Textliste im Normal-Modus)
+  function handleDeleteTextById(id) {
+    const index = imageStore.texts.findIndex((t) => t.id === id);
+    if (index !== -1) {
+      imageStore.texts.splice(index, 1);
+      if (selectedTextId.value === id) {
+        selectedTextId.value = null;
+      }
+      renderImage();
+      saveHistory();
+    }
+  }
+
   const handleSaveTextHistory = () => saveTextHistory();
   const handleUndoText = () => {
     undoText();
@@ -144,6 +157,7 @@ export function useEditorText({
     handleTextFontFamilyUpdate,
     handleTextShadowBlurUpdate,
     handleDeleteText,
+    handleDeleteTextById,
     handleDeselectText,
     handleSaveTextHistory,
     handleUndoText,

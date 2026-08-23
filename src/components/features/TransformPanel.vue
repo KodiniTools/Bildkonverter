@@ -1,5 +1,13 @@
 <template>
   <aside class="transform-panel">
+    <TextListPanel
+      :texts="texts"
+      :selected-text-id="selectedTextId"
+      @add-text="$emit('add-text')"
+      @select-text-by-id="$emit('select-text-by-id', $event)"
+      @delete-text-by-id="$emit('delete-text-by-id', $event)"
+    />
+
     <TextPanel
       :selected-text="selectedText"
       :has-texts="hasTexts"
@@ -78,6 +86,7 @@
 
 <script setup>
 import TextPanel from './transform/TextPanel.vue';
+import TextListPanel from './transform/TextListPanel.vue';
 import CropPanel from './transform/CropPanel.vue';
 import ImageTransformPanel from './transform/ImageTransformPanel.vue';
 
@@ -92,6 +101,8 @@ defineProps({
   hasPan: { type: Boolean, default: false },
   selectedText: { type: Object, default: null },
   hasTexts: { type: Boolean, default: false },
+  texts: { type: Array, default: () => [] },
+  selectedTextId: { type: [String, Number], default: null },
   canUndoText: { type: Boolean, default: false },
   canRedoText: { type: Boolean, default: false },
   canUndoTransform: { type: Boolean, default: false },
@@ -150,6 +161,9 @@ defineEmits([
   'redo-text',
   'delete-text',
   'deselect-text',
+  'add-text',
+  'select-text-by-id',
+  'delete-text-by-id',
 ]);
 </script>
 
