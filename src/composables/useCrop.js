@@ -6,6 +6,7 @@
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useConfirm } from '@/composables/useConfirm';
+import { getAdjustedImage } from '@/utils/imageAdjustments';
 
 // Seitenverhältnis-Presets
 export const ASPECT_RATIO_PRESETS = [
@@ -554,17 +555,14 @@ export function useCrop() {
         backupCanvas.height = canvas.value.height;
 
         // Kopiere nur das gerenderte Bild (ohne Texte) vom Canvas
-        // Dazu müssen wir das currentImage mit Filtern zeichnen
-        // Filter-String erstellen (wie in renderImage)
-        const filterString = `
-          brightness(${filters.value.brightness}%)
-          contrast(${filters.value.contrast}%)
-          saturate(${filters.value.saturation}%)
-          blur(${filters.value.blur}px)
-          hue-rotate(${filters.value.hue}deg)
-        `;
-        backupCtx.filter = filterString;
-        backupCtx.drawImage(currentImage.value, 0, 0, backupCanvas.width, backupCanvas.height);
+        // Echte Tonwert-Anpassungen werden in die Quelle gebacken,
+        // Effekt-Filter als CSS angewendet (identisch zur Vorschau).
+        const { el: adjustedSource, cssFilter } = getAdjustedImage(
+          currentImage.value,
+          filters.value
+        );
+        backupCtx.filter = cssFilter;
+        backupCtx.drawImage(adjustedSource, 0, 0, backupCanvas.width, backupCanvas.height);
         backupCtx.filter = 'none';
 
         beforeCropImage.value = {
@@ -610,15 +608,9 @@ export function useCrop() {
       tempCanvas.height = canvas.value.height;
 
       // Rendere das Bild mit Filtern (OHNE Texte) - gleiche Logik wie beim Backup
-      const filterString = `
-        brightness(${filters.value.brightness}%)
-        contrast(${filters.value.contrast}%)
-        saturate(${filters.value.saturation}%)
-        blur(${filters.value.blur}px)
-        hue-rotate(${filters.value.hue}deg)
-      `;
-      tempCtx.filter = filterString;
-      tempCtx.drawImage(currentImage.value, 0, 0, tempCanvas.width, tempCanvas.height);
+      const { el: adjustedSource, cssFilter } = getAdjustedImage(currentImage.value, filters.value);
+      tempCtx.filter = cssFilter;
+      tempCtx.drawImage(adjustedSource, 0, 0, tempCanvas.width, tempCanvas.height);
       tempCtx.filter = 'none';
 
       // Erstelle neues Canvas für zugeschnittenes Bild
