@@ -3,15 +3,25 @@
     <div class="header-container">
       <!-- Navigation -->
       <nav class="header-nav">
-        <router-link
-          v-for="route in routes"
-          :key="route.path"
-          :to="route.path"
-          class="nav-link"
-          :class="{ active: isActiveRoute(route.path) }"
-        >
-          {{ $t(route.label) }}
-        </router-link>
+        <template v-for="route in routes" :key="route.path">
+          <a
+            v-if="route.external"
+            :href="route.path"
+            class="nav-link"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ $t(route.label) }}
+          </a>
+          <router-link
+            v-else
+            :to="route.path"
+            class="nav-link"
+            :class="{ active: isActiveRoute(route.path) }"
+          >
+            {{ $t(route.label) }}
+          </router-link>
+        </template>
       </nav>
 
       <!-- Actions -->
@@ -30,16 +40,27 @@
     <!-- Mobile Navigation -->
     <transition name="slide-down">
       <nav v-if="isMobileMenuOpen" class="mobile-nav">
-        <router-link
-          v-for="route in routes"
-          :key="route.path"
-          :to="route.path"
-          class="mobile-nav-link"
-          :class="{ active: isActiveRoute(route.path) }"
-          @click="closeMobileMenu"
-        >
-          {{ $t(route.label) }}
-        </router-link>
+        <template v-for="route in routes" :key="route.path">
+          <a
+            v-if="route.external"
+            :href="route.path"
+            class="mobile-nav-link"
+            target="_blank"
+            rel="noopener noreferrer"
+            @click="closeMobileMenu"
+          >
+            {{ $t(route.label) }}
+          </a>
+          <router-link
+            v-else
+            :to="route.path"
+            class="mobile-nav-link"
+            :class="{ active: isActiveRoute(route.path) }"
+            @click="closeMobileMenu"
+          >
+            {{ $t(route.label) }}
+          </router-link>
+        </template>
       </nav>
     </transition>
   </header>
@@ -55,6 +76,7 @@ const route = useRoute();
 const isMobileMenuOpen = ref(false);
 
 // Navigation Routes
+// `external: true` → wird als <a target="_blank"> statt <router-link> gerendert
 const routes = [
   { path: '/', label: 'nav.home' },
   { path: '/editor', label: 'nav.editor' },
@@ -62,6 +84,11 @@ const routes = [
   { path: '/guide', label: 'nav.guide' },
   { path: '/faq', label: 'nav.faq' },
   { path: '/about', label: 'nav.about' },
+  {
+    path: 'https://kodinitools.com/blog/jpg-zu-webp-konvertieren/',
+    label: 'nav.blog',
+    external: true,
+  },
 ];
 
 // Methods
