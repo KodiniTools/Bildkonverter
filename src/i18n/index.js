@@ -379,6 +379,7 @@ const de = {
       reset: 'Zurücksetzen',
       clearImage: 'Bild löschen',
       preview: 'Vorschau',
+      print: 'Drucken',
       download: 'Download',
       undo: 'Rückgängig',
       redo: 'Wiederholen',
@@ -1058,6 +1059,7 @@ const de = {
       cancelled: 'Zuschneiden abgebrochen',
     },
     editor: {
+      printFailed: 'Drucken fehlgeschlagen',
       imageDeleted: 'Bild erfolgreich gelöscht',
       transformApplied: 'Transformationen erfolgreich angewendet',
       transformError: 'Fehler beim Anwenden der Transformationen',
@@ -1670,6 +1672,7 @@ const en = {
       reset: 'Reset',
       clearImage: 'Clear Image',
       preview: 'Preview',
+      print: 'Print',
       download: 'Download',
       undo: 'Undo',
       redo: 'Redo',
@@ -2344,6 +2347,7 @@ const en = {
       cancelled: 'Cropping cancelled',
     },
     editor: {
+      printFailed: 'Printing failed',
       imageDeleted: 'Image successfully deleted',
       transformApplied: 'Transformations successfully applied',
       transformError: 'Error applying transformations',

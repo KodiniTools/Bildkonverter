@@ -73,6 +73,14 @@
             <button
               class="tb-btn tb-btn--icon"
               :disabled="!currentImage && !isCollageMode"
+              :title="$t('editor.toolbar.print', 'Drucken')"
+              @click="printCurrentImage"
+            >
+              <i class="fas fa-print"></i>
+            </button>
+            <button
+              class="tb-btn tb-btn--icon"
+              :disabled="!currentImage && !isCollageMode"
               :title="$t('editor.toolbar.reset', 'Zurücksetzen')"
               @click="resetFilters"
             >
@@ -489,6 +497,7 @@ import { useCanvasRenderer } from '@/composables/useCanvasRenderer';
 import { useImageLoader } from '@/composables/useImageLoader';
 import { exportImage, FORMAT_INFO, SUPPORTED_FORMATS, getFormatInfo } from '@/utils/exportUtils';
 import { prepareHandoff } from '@/lib/core/handoff';
+import { printImage } from '@/utils/printUtils';
 
 import TransformPanel from '@/components/features/TransformPanel.vue';
 import LayerControlPanel from '@/components/features/LayerControlPanel.vue';
@@ -1200,6 +1209,32 @@ async function confirmExport() {
   } finally {
     isExporting.value = false;
     renderImage();
+  }
+}
+
+// ===== Drucken =====
+async function printCurrentImage() {
+  if (!canvas.value) return;
+
+  let dataUrl = '';
+  try {
+    // Ohne Auswahl-Markierung rendern (wie beim Export), Hintergrund wie konfiguriert
+    renderImageForExport();
+    dataUrl = canvas.value.toDataURL('image/png');
+  } catch (error) {
+    console.error('❌ Druck-Rendering fehlgeschlagen:', error);
+  } finally {
+    // On-Screen-Canvas wieder mit Auswahl-Markierung herstellen
+    renderImage();
+  }
+
+  try {
+    await printImage(dataUrl, currentFileName.value || 'image');
+  } catch (error) {
+    console.error('❌ Drucken fehlgeschlagen:', error);
+    if (window.$toast) {
+      window.$toast.error(t('toast.editor.printFailed', 'Drucken fehlgeschlagen'));
+    }
   }
 }
 
