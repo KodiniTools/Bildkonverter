@@ -437,6 +437,7 @@ const de = {
       apply: 'Anwenden',
       presets: 'Presets',
       selectPreset: 'Preset wählen...',
+      noPreset: 'Ohne Preset – Originalgröße',
     },
     canvas: {
       empty: {
@@ -1066,6 +1067,7 @@ const de = {
       galleryLoaded: 'Bild aus Galerie geladen',
       galleryError: 'Fehler beim Laden aus Galerie',
       resizeSuccess: 'Bildgröße erfolgreich geändert: {width}×{height}px',
+      resizeInvalid: 'Ungültige Bildgröße – bitte Werte zwischen 1 und {max} px eingeben',
       imageReset: 'Bild auf Originalzustand zurückgesetzt',
       exportSuccess: 'Bild als {format} exportiert',
       exporting: 'Exportiere...',
@@ -1730,6 +1732,7 @@ const en = {
       apply: 'Apply',
       presets: 'Presets',
       selectPreset: 'Select preset...',
+      noPreset: 'No preset – original size',
     },
     canvas: {
       empty: {
@@ -2354,6 +2357,7 @@ const en = {
       galleryLoaded: 'Image loaded from gallery',
       galleryError: 'Error loading from gallery',
       resizeSuccess: 'Image size successfully changed: {width}×{height}px',
+      resizeInvalid: 'Invalid image size – please enter values between 1 and {max} px',
       imageReset: 'Image reset to original state',
       exportSuccess: 'Image exported as {format}',
       exporting: 'Exporting...',

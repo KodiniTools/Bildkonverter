@@ -2,7 +2,7 @@
  * useResizeManager Composable
  * Verwaltet Bildgrößen-Änderungen mit Seitenverhältnis-Beibehaltung
  */
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 
 /**
  * Composable für Resize-Management
@@ -18,8 +18,14 @@ export function useResizeManager(options = {}) {
   const resizeWidth = ref(0);
   const resizeHeight = ref(0);
   const maintainAspectRatio = ref(true);
+  // Basiswerte der aktuellen Bildgröße (Referenz für Seitenverhältnis/hasChanges).
+  // Werden bei jeder übernommenen Größenänderung aktualisiert.
   const originalWidth = ref(0);
   const originalHeight = ref(0);
+  // Originalgröße des geladenen Bildes – bleibt bei Größenänderungen erhalten
+  // und dient als Ziel für "Ohne Preset".
+  const naturalWidth = ref(0);
+  const naturalHeight = ref(0);
 
   // Computed
   const aspectRatio = computed(() => {
@@ -44,12 +50,32 @@ export function useResizeManager(options = {}) {
    * Initialisiert die Resize-Werte mit aktuellen Dimensionen
    * @param {number} width - Aktuelle Breite
    * @param {number} height - Aktuelle Höhe
+   * @param {Object} [options] - Optionen
+   * @param {boolean} [options.natural=true] - Auch die Originalgröße des Bildes
+   *   mitsetzen. `false` bei reinen Größenänderungen, damit "Ohne Preset"
+   *   weiterhin die ursprüngliche Bildgröße wiederherstellen kann.
    */
-  function initFromDimensions(width, height) {
+  function initFromDimensions(width, height, { natural = true } = {}) {
     originalWidth.value = width;
     originalHeight.value = height;
     resizeWidth.value = width;
     resizeHeight.value = height;
+
+    if (natural) {
+      naturalWidth.value = width;
+      naturalHeight.value = height;
+    }
+  }
+
+  /**
+   * Setzt die Originalgröße des Bildes explizit (z. B. beim Wiederherstellen
+   * eines History-Eintrags).
+   * @param {number} width - Originalbreite
+   * @param {number} height - Originalhöhe
+   */
+  function setNaturalSize(width, height) {
+    naturalWidth.value = width;
+    naturalHeight.value = height;
   }
 
   /**
@@ -207,6 +233,8 @@ export function useResizeManager(options = {}) {
     maintainAspectRatio,
     originalWidth,
     originalHeight,
+    naturalWidth,
+    naturalHeight,
 
     // Computed
     aspectRatio,
@@ -215,6 +243,7 @@ export function useResizeManager(options = {}) {
 
     // Methoden
     initFromDimensions,
+    setNaturalSize,
     syncWithCurrent,
     onWidthChange,
     onHeightChange,

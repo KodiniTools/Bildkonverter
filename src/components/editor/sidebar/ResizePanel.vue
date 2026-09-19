@@ -6,15 +6,18 @@
       <div class="resize-presets">
         <label>{{ $t('editor.resize.presets', 'Presets') }}</label>
         <select
+          ref="presetSelect"
           class="form-select form-select-sm"
           :disabled="disabled"
-          @change="
-            $emit('apply-preset', $event.target.value);
-            $event.target.value = '';
-          "
+          :value="selectedPreset"
+          @change="onPresetChange"
         >
           <option value="">
             {{ $t('editor.resize.selectPreset', 'Preset wählen...') }}
+          </option>
+          <option value="none">
+            ↺ {{ $t('editor.resize.noPreset', 'Ohne Preset – Originalgröße')
+            }}{{ naturalSizeLabel }}
           </option>
           <option value="instagram">📷 Instagram Post (1080×1080)</option>
           <option value="instagramStory">📱 Instagram Story (1080×1920)</option>
@@ -65,7 +68,9 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed, nextTick, ref } from 'vue';
+
+const props = defineProps({
   resizeWidth: {
     type: Number,
     default: null,
@@ -82,6 +87,22 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  // Aktiv gewähltes Preset ('' = keines). Wird vom Parent gesteuert, damit die
+  // Auswahl sichtbar bleibt und bei manuellen Änderungen wieder verfällt.
+  selectedPreset: {
+    type: String,
+    default: '',
+  },
+  // Originalgröße des geladenen Bildes – nur für die Beschriftung der
+  // "Ohne Preset"-Option.
+  naturalWidth: {
+    type: Number,
+    default: 0,
+  },
+  naturalHeight: {
+    type: Number,
+    default: 0,
+  },
   // 'sidebar' (Standard) oder 'hero' für die horizontale Leiste oben
   variant: {
     type: String,
@@ -89,7 +110,7 @@ defineProps({
   },
 });
 
-defineEmits([
+const emit = defineEmits([
   'update:resizeWidth',
   'update:resizeHeight',
   'update:maintainAspectRatio',
@@ -97,4 +118,29 @@ defineEmits([
   'apply-preset',
   'apply-resize',
 ]);
+
+const presetSelect = ref(null);
+
+const naturalSizeLabel = computed(() => {
+  if (!props.naturalWidth || !props.naturalHeight) return '';
+  return ` (${props.naturalWidth} × ${props.naturalHeight})`;
+});
+
+/**
+ * Meldet die Auswahl an den Parent und gleicht die Anzeige anschließend wieder
+ * mit dessen State ab.
+ *
+ * Der DOM-Wert wird bewusst direkt gesetzt: "Ohne Preset" ist ein Befehl und
+ * kein Zustand, der Parent bleibt dabei auf ''. Ohne Prop-Änderung patcht Vue
+ * das :value-Binding nicht erneut – die Auswahl bliebe sonst sichtbar hängen.
+ */
+function onPresetChange(event) {
+  emit('apply-preset', event.target.value);
+
+  nextTick(() => {
+    if (presetSelect.value) {
+      presetSelect.value.value = props.selectedPreset;
+    }
+  });
+}
 </script>
