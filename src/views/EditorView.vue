@@ -126,6 +126,9 @@
           :resize-width="resizeWidth"
           :resize-height="resizeHeight"
           :maintain-aspect-ratio="maintainAspectRatio"
+          :selected-preset="selectedPreset"
+          :natural-width="naturalWidth"
+          :natural-height="naturalHeight"
           :disabled="!currentImage"
           @update:resize-width="resizeWidth = $event"
           @update:resize-height="resizeHeight = $event"
@@ -615,7 +618,14 @@ const resizeManager = useResizeManager({
     // Resize wird in applyResize() gehandhabt
   },
 });
-const { resizeWidth, resizeHeight, maintainAspectRatio } = resizeManager;
+const { resizeWidth, resizeHeight, maintainAspectRatio, naturalWidth, naturalHeight } =
+  resizeManager;
+
+// Aktuell im Dropdown gewähltes Größen-Preset ('' = keines)
+const selectedPreset = ref('');
+
+// Maximale Kantenlänge für Größenänderungen (identisch zur Live-Vorschau)
+const MAX_RESIZE_DIMENSION = 10000;
 
 // Image Layer Interaction Composable (für Collage-Modus)
 const layerInteraction = useImageLayerInteraction(canvas);
@@ -770,6 +780,18 @@ watch([resizeWidth, resizeHeight], ([newWidth, newHeight]) => {
     canvas.value.height = newHeight;
     renderImage();
   }, 100);
+});
+
+// Die Preset-Auswahl gilt nur, solange die Maße auch wirklich zum Preset
+// passen. Manuelle Eingaben, Undo/Redo, Zuschnitt oder ein neues Bild setzen
+// das Dropdown daher automatisch auf "Preset wählen..." zurück.
+watch([resizeWidth, resizeHeight], ([newWidth, newHeight]) => {
+  if (!selectedPreset.value) return;
+
+  const preset = resizeManager.presetSizes[selectedPreset.value];
+  if (!preset || preset.width !== newWidth || preset.height !== newHeight) {
+    selectedPreset.value = '';
+  }
 });
 
 // Methods
@@ -996,30 +1018,112 @@ function onResizeChange(dimension) {
   resizeManager.onDimensionChange(dimension);
 }
 
+/**
+ * Übernimmt eine neue Bildgröße endgültig: Canvas anpassen, neu zeichnen,
+ * Basiswerte aktualisieren und einen History-Eintrag schreiben (Undo/Redo).
+ * @param {number} width - Neue Breite in Pixeln
+ * @param {number} height - Neue Höhe in Pixeln
+ */
+function commitResize(width, height) {
+  if (!canvas.value || !currentImage.value) return;
+
+  // Ausstehende Live-Vorschau verwerfen – die Größe wird jetzt direkt gesetzt
+  if (resizePreviewTimer) {
+    clearTimeout(resizePreviewTimer);
+    resizePreviewTimer = null;
+  }
+
+  canvas.value.width = width;
+  canvas.value.height = height;
+  renderImage();
+  updateImageSize(); // Dateigröße neu berechnen nach Resize
+
+  // Basiswerte (u. a. Seitenverhältnis) auf die neue Größe setzen. Die
+  // Originalgröße des Bildes bleibt erhalten, damit "Ohne Preset" weiterhin
+  // dorthin zurückführt.
+  resizeManager.initFromDimensions(width, height, { natural: false });
+
+  saveHistory();
+
+  // Toast-Benachrichtigung
+  if (window.$toast) {
+    window.$toast.success(t('toast.editor.resizeSuccess', { width, height }));
+  }
+}
+
 function applySocialPreset(presetName) {
-  if (!presetName || !currentImage.value) return;
-  // Verwende resizeManager Composable für Social Media Presets
-  resizeManager.applyPreset(presetName);
+  if (!canvas.value || !currentImage.value) return;
+
+  // Platzhalter "Preset wählen..." → keine Änderung
+  if (!presetName) {
+    selectedPreset.value = '';
+    return;
+  }
+
+  // "Ohne Preset" → zurück auf die Originalgröße des geladenen Bildes
+  if (presetName === 'none') {
+    selectedPreset.value = '';
+
+    const width = naturalWidth.value;
+    const height = naturalHeight.value;
+    if (!width || !height) return;
+
+    // Originalgröße ist bereits übernommen – nur die Eingabefelder angleichen
+    if (
+      resizeManager.originalWidth.value === width &&
+      resizeManager.originalHeight.value === height &&
+      canvas.value.width === width &&
+      canvas.value.height === height
+    ) {
+      resizeManager.resetToOriginal();
+      return;
+    }
+
+    commitResize(width, height);
+    return;
+  }
+
+  const preset = resizeManager.presetSizes[presetName];
+  if (!preset) return;
+
+  selectedPreset.value = presetName;
+  commitResize(preset.width, preset.height);
 }
 
 function applyResize() {
   if (!canvas.value || !currentImage.value) return;
 
-  canvas.value.width = resizeWidth.value;
-  canvas.value.height = resizeHeight.value;
-  renderImage();
-  updateImageSize(); // Dateigröße neu berechnen nach Resize
-  saveHistory();
+  const width = Math.round(Number(resizeWidth.value));
+  const height = Math.round(Number(resizeHeight.value));
 
-  // Toast-Benachrichtigung
-  if (window.$toast) {
-    window.$toast.success(
-      t('toast.editor.resizeSuccess', {
-        width: resizeWidth.value,
-        height: resizeHeight.value,
-      })
-    );
+  // Leere oder unsinnige Eingaben abfangen, bevor der Canvas zerstört wird
+  if (
+    !Number.isFinite(width) ||
+    !Number.isFinite(height) ||
+    width < 1 ||
+    height < 1 ||
+    width > MAX_RESIZE_DIMENSION ||
+    height > MAX_RESIZE_DIMENSION
+  ) {
+    if (window.$toast) {
+      window.$toast.error(t('toast.editor.resizeInvalid', { max: MAX_RESIZE_DIMENSION }));
+    }
+    return;
   }
+
+  // Größe ist bereits übernommen (z. B. direkt nach einem Preset) → keinen
+  // zweiten, identischen History-Eintrag anlegen. Der Canvas wird bewusst
+  // mitgeprüft, weil die Live-Vorschau ihn unabhängig verändert haben kann.
+  if (
+    width === resizeManager.originalWidth.value &&
+    height === resizeManager.originalHeight.value &&
+    canvas.value.width === width &&
+    canvas.value.height === height
+  ) {
+    return;
+  }
+
+  commitResize(width, height);
 }
 
 // ===== Bild vom Hintergrund lösen (zuschaltbar) =====
@@ -1295,6 +1399,10 @@ function saveHistory() {
     selectedTextId: selectedTextId.value,
     width: canvas.value.width,
     height: canvas.value.height,
+    // Originalgröße des Bildes mitsichern, damit "Ohne Preset" auch nach
+    // Undo/Redo das richtige Ziel hat
+    naturalWidth: naturalWidth.value,
+    naturalHeight: naturalHeight.value,
     hasCropped: crop.hasCropped.value,
   });
 }
@@ -1316,7 +1424,11 @@ function restoreState(state) {
     canvas.value.width = state.width;
     canvas.value.height = state.height;
     currentImage.value = img;
-    resizeManager.initFromDimensions(state.width, state.height);
+    resizeManager.initFromDimensions(state.width, state.height, { natural: false });
+    resizeManager.setNaturalSize(
+      state.naturalWidth || state.width,
+      state.naturalHeight || state.height
+    );
     // Verwende filterManagement für konsistenten State
     if (state.filters) {
       filterManagement.importState({
