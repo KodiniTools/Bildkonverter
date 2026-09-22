@@ -39,13 +39,10 @@ src/
 │   └── api.js                    # HTTP-Client für Backend-Konvertierungen
 ├── assets/
 │   ├── fonts/
-│   │   ├── fontList.js           # Verfügbare Schriftarten
-│   │   ├── fontManager.js        # Laden & Caching von Fonts
-│   │   ├── textManager.js        # Text-Rendering-Helfer
-│   │   └── main.js
+│   │   ├── fontList.js           # Verfügbare Schriftarten (generiert)
+│   │   └── fonts.css             # @font-face-Deklarationen (generiert)
 │   └── foto/                     # Statische Bilder (SEO-Seiten etc.)
 ├── components/
-│   ├── CanvasEditor.vue          # Kern-Canvas-Komponente
 │   ├── dev/
 │   │   └── PerformanceMonitor.vue
 │   ├── editor/
@@ -59,9 +56,7 @@ src/
 │   │       ├── LightColorPanel.vue    # Belichtung, Lichter, Schatten, Farbton
 │   │       └── ResizePanel.vue        # Skalieren mit Seitenverhältnis-Lock
 │   ├── features/
-│   │   ├── CropTool.vue          # Zuschneiden (frei & festes Seitenverhältnis)
 │   │   ├── HandoffReceiver.vue   # Cross-Tool Bildübergabe (KodiniTools-Protokoll)
-│   │   ├── ImageUpload.vue       # Drag & Drop / Datei-Dialog
 │   │   ├── KeyboardShortcuts.vue # Globaler Tastatur-Listener
 │   │   ├── LayerControlPanel.vue # Ebenen-Verwaltung im Collage-Modus
 │   │   └── TransformPanel.vue    # Drehen, Spiegeln, Skalieren
@@ -75,14 +70,11 @@ src/
 │   ├── useCanvasRenderer.js      # Canvas-Rendering (roundedRect, Selektionsrahmen)
 │   ├── useCrop.js                # Crop-Logik mit Vorschau
 │   ├── useFilterManagement.js    # Filter-State & Validierung
-│   ├── useGalleryIntegration.js  # Galerie ↔ Editor Synchronisation
-│   ├── useImageHistory.js        # Undo/Redo (History-Snapshots)
+│   ├── useImageHistory.js        # Undo/Redo (gemeinsame Editor-Historie: Bild, Filter, Transform, Text)
 │   ├── useImageLayerInteraction.js # Layer-Drag, Resize, Rotate
-│   ├── useImageLoader.js         # Datei-Validierung & Format-Erkennung
+│   ├── useImageLoader.js         # Datei-Validierung, Format-Erkennung, Galerie → Editor
 │   ├── useResizeManager.js       # Canvas-Resize & Social-Presets
 │   ├── useSeoMeta.js             # Dynamische Meta-Tags
-│   ├── useTextHistory.js         # Text-Undo/Redo
-│   ├── useTextInteraction.js     # Text-Dragging & Selektion
 │   ├── useTextModal.js           # Modal-Steuerung für Text-Editor
 │   └── useTransform.js           # Rotation, Flip, Schatten, Rahmen
 ├── i18n/
@@ -95,7 +87,6 @@ src/
 ├── stores/
 │   ├── galleryStore.js           # Galerie-Bilder & Multi-Select
 │   ├── imageStore.js             # Kern-Editor-State (Bild, Filter, Ebenen, Text)
-│   ├── presetsStore.js           # Filter-Presets (Standard + Benutzerdefiniert)
 │   └── settingsStore.js          # App-Einstellungen (Theme, Sprache, Export)
 ├── styles/
 │   ├── variables.scss            # CSS Custom Properties (Farben, Abstände)
@@ -190,12 +181,10 @@ isProcessing, isImageLoaded, isDragging
 **Persistenz:** Nur Sitzung (kein localStorage)  
 **Multi-Select-Actions:** `toggleImageSelection()`, `selectAllImages()`, `deselectAllImages()`, `isImageSelected()`
 
-### `presetsStore.js` – Filter-Presets
+### Filter-Presets (`components/editor/FilterPresets.vue`)
 
-**8 Standard-Presets:** Original, Vibrant, Vintage, B&W, Dramatic, Soft, Warm, Cool  
-**Benutzerdefinierte Presets:** Erstellen, Bearbeiten, Löschen, Duplizieren  
-**Persistenz:** `localStorage`  
-**Besonderheit:** `findSimilarPreset()` – Automatischer Preset-Vorschlag anhand aktueller Filterwerte
+Es gibt keinen eigenen Preset-Store. Standard-Presets, benutzerdefinierte Presets,
+Import/Export und die `localStorage`-Persistenz liegen vollständig in der Komponente.
 
 ---
 

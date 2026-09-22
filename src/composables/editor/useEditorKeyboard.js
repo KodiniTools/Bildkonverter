@@ -17,8 +17,6 @@
  * @param {Function} deps.renderImage
  * @param {Function} deps.undo
  * @param {Function} deps.redo
- * @param {Function} deps.handleUndoTransform
- * @param {Function} deps.handleRedoTransform
  * @param {Function} deps.handleFlipHorizontal
  * @param {Function} deps.handleFlipVertical
  * @param {Function} deps.handleRotate90
@@ -37,8 +35,6 @@ export function useEditorKeyboard({
   renderImage,
   undo,
   redo,
-  handleUndoTransform,
-  handleRedoTransform,
   handleFlipHorizontal,
   handleFlipVertical,
   handleRotate90,
@@ -102,10 +98,10 @@ export function useEditorKeyboard({
         e.preventDefault();
         if (e.shiftKey) {
           // Grobe Rotation: -15°
-          transform.setRotation(transform.transforms.value.rotation - 15, true);
+          transform.setRotation(transform.transforms.value.rotation - 15);
         } else {
           // Feine Rotation: -1°
-          transform.setRotation(transform.transforms.value.rotation - 1, true);
+          transform.setRotation(transform.transforms.value.rotation - 1);
         }
         renderImage();
         break;
@@ -113,10 +109,10 @@ export function useEditorKeyboard({
         e.preventDefault();
         if (e.shiftKey) {
           // Grobe Rotation: +15°
-          transform.setRotation(transform.transforms.value.rotation + 15, true);
+          transform.setRotation(transform.transforms.value.rotation + 15);
         } else {
           // Feine Rotation: +1°
-          transform.setRotation(transform.transforms.value.rotation + 1, true);
+          transform.setRotation(transform.transforms.value.rotation + 1);
         }
         renderImage();
         break;
@@ -126,7 +122,7 @@ export function useEditorKeyboard({
       case 'R':
         e.preventDefault();
         if (transform.transforms.value.rotation !== 0) {
-          transform.setRotation(0, true);
+          transform.setRotation(0);
           renderImage();
           if (window.$toast) {
             window.$toast.info(t('toast.transform.rotationReset', 'Rotation zurückgesetzt'));

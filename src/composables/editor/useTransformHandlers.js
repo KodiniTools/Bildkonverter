@@ -3,7 +3,7 @@
  *
  * Bündelt alle Event-Handler rund um die Bild-Transformationen
  * (Deckkraft, Rotation, Skalierung, Rahmen, Schatten, Neigung, Flip,
- * Undo/Redo/Commit). Ausgelagert aus EditorView.vue, um die View schlank
+ * Commit). Ausgelagert aus EditorView.vue, um die View schlank
  * zu halten. Verhalten unverändert.
  *
  * @param {object}   deps
@@ -60,25 +60,9 @@ export function useTransformHandlers({ transform, renderImage, t, saveHistory })
   );
   const handleResetPan = makeActionHandler(() => transform.resetPan(), 'toast.transform.panReset');
 
-  function handleUndoTransform() {
-    if (transform.undoTransform()) {
-      renderImage();
-      if (window.$toast) window.$toast.info(t('toast.transform.undo', 'Transformation rückgängig'));
-    }
-  }
-
-  function handleRedoTransform() {
-    if (transform.redoTransform()) {
-      renderImage();
-      if (window.$toast)
-        window.$toast.info(t('toast.transform.redo', 'Transformation wiederhergestellt'));
-    }
-  }
-
+  // Slider-Ende: Transformationen in die gemeinsame Editor-Historie schreiben,
+  // damit die zentrale Undo/Redo-Funktion sie umfasst.
   function handleCommitTransform() {
-    transform.commitTransform();
-    // Transformationen ebenfalls in die gemeinsame Editor-Historie schreiben,
-    // damit die zentrale Undo/Redo-Funktion sie umfasst.
     if (saveHistory) saveHistory();
   }
 
@@ -103,8 +87,6 @@ export function useTransformHandlers({ transform, renderImage, t, saveHistory })
     handleFlipHorizontal,
     handleFlipVertical,
     handleResetPan,
-    handleUndoTransform,
-    handleRedoTransform,
     handleCommitTransform,
   };
 }

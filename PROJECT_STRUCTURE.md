@@ -17,7 +17,6 @@
 
 ### 📦 Pinia Stores (State Management)
 - ✅ `src/stores/imageStore.js` - Bildbearbeitungs-State
-- ✅ `src/stores/presetsStore.js` - Filter-Presets-Verwaltung
 - ✅ `src/stores/settingsStore.js` - App-Einstellungen
 
 ### 🎨 Styles
@@ -32,7 +31,7 @@
 - ✅ `src/views/HomeView.vue` - Startseite
 
 ### 🧩 Components
-- ✅ `src/components/features/ImageUpload.vue` - Bild-Upload-Komponente
+- ✅ `src/composables/useImageLoader.js` - Bild-Upload (Datei, Drag & Drop, Paste, Galerie)
 
 ### 📚 Dokumentation
 - ✅ `README.md` - Umfassende Dokumentation mit Vue-Konzepten
@@ -145,11 +144,11 @@
 ### Bereits migriert:
 - ✅ `validationUtils.js` → `src/utils/validationUtils.js`
 - ✅ `config.js` → Integriert in Stores
-- ✅ `FilterPresetsModule.js` → `src/stores/presetsStore.js`
+- ✅ `FilterPresetsModule.js` → `src/components/editor/FilterPresets.vue`
 
 ### Zu migrieren:
 - ⏳ `imageConverter.js` → `src/stores/imageStore.js` + Composables
-- ⏳ `textManager.js` → `src/composables/useText.js`
+- ✅ `textManager.js` → `src/composables/editor/useEditorText.js` + `src/utils/textRender.js`
 - ⏳ `elements.js` → Vue-Komponenten
 - ⏳ `export.js` → `src/composables/useExport.js`
 - ⏳ `style.css` → SCSS-Module
