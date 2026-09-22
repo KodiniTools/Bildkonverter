@@ -491,15 +491,12 @@ import { useTextModal } from '@/composables/useTextModal';
 import { useConfirm } from '@/composables/useConfirm';
 import { useCrop, ASPECT_RATIO_PRESETS } from '@/composables/useCrop';
 import { useTransform } from '@/composables/useTransform';
-import { useFilterManagement } from '@/composables/useFilterManagement';
-import { useImageHistory } from '@/composables/useImageHistory';
+import { useFilterManagement, DEFAULT_FILTERS } from '@/composables/useFilterManagement';
 import { useResizeManager } from '@/composables/useResizeManager';
 import { useImageLayerInteraction } from '@/composables/useImageLayerInteraction';
 import { useCanvasRenderer } from '@/composables/useCanvasRenderer';
 import { useImageLoader } from '@/composables/useImageLoader';
-import { exportImage, FORMAT_INFO, SUPPORTED_FORMATS, getFormatInfo } from '@/utils/exportUtils';
-import { prepareHandoff } from '@/lib/core/handoff';
-import { printImage } from '@/utils/printUtils';
+import { FORMAT_INFO, SUPPORTED_FORMATS, getFormatInfo } from '@/utils/exportUtils';
 
 import TransformPanel from '@/components/features/TransformPanel.vue';
 import LayerControlPanel from '@/components/features/LayerControlPanel.vue';
@@ -517,6 +514,11 @@ import { useEditorText } from '@/composables/editor/useEditorText';
 import { useCanvasInteraction } from '@/composables/editor/useCanvasInteraction';
 import { useEditorKeyboard } from '@/composables/editor/useEditorKeyboard';
 import { useImageInfo } from '@/composables/editor/useImageInfo';
+import { useEditorHistory } from '@/composables/editor/useEditorHistory';
+import { useEditorResize } from '@/composables/editor/useEditorResize';
+import { useEditorDetach } from '@/composables/editor/useEditorDetach';
+import { useEditorExport } from '@/composables/editor/useEditorExport';
+import { useEditorPreview } from '@/composables/editor/useEditorPreview';
 
 const { t } = useI18n({ useScope: 'global' });
 const route = useRoute();
@@ -533,19 +535,7 @@ const originalImage = ref(null);
 const originalImageDataUrl = ref(''); // Speichert das Original als Data URL
 const outputFormat = ref('png');
 const currentImageFormat = ref(''); // Format des hochgeladenen Bildes
-
-// ===== EXPORT STATE =====
-const exportQuality = ref(92); // Quality-Wert (0-100)
-const isExporting = ref(false); // Loading-State beim Export
-const exportTransparent = ref(false); // Transparenter Hintergrund beim PNG-Export
-const currentFileName = ref('');
-const showExportDialog = ref(false);
-const exportDialogFilename = ref('');
-
-// ===== FORWARD/HANDOFF STATE (nach Download zu anderem Tool weiterleiten) =====
-const showForwardOffer = ref(false);
-const forwardCanvasSnapshot = ref(null); // Kopie des exportierten Canvas
-const forwardFilename = ref('');
+const currentFileName = ref(''); // Dateiname ohne Endung (für Export und Ebenen)
 
 // ===== TEXT INTERACTION STATE =====
 const selectedTextId = ref(null);
@@ -557,17 +547,8 @@ const isPanning = ref(false);
 const panStart = ref({ x: 0, y: 0 });
 const isSpacePressed = ref(false);
 
-// ===== PREVIEW MODAL STATE =====
-const showPreviewModal = ref(false);
-const originalPreviewSrc = ref('');
-const editedPreviewSrc = ref('');
-
 // ===== COLLAGE MODE STATE =====
 const isCollageMode = ref(false);
-
-// ===== DETACH STATE (Bild vom Hintergrund lösen) =====
-// true, wenn das Basisbild als frei bewegliche Ebene "abgelöst" wurde
-const detachedFromBackground = ref(false);
 
 // ===== DRAG & DROP STATE =====
 const isDraggingFile = ref(false);
@@ -586,31 +567,18 @@ const filterManagement = useFilterManagement({
 });
 const { filters, background, sectionsOpen, currentPreset } = filterManagement;
 
-// Image History Composable
-const imageHistory = useImageHistory({
-  maxHistorySize: 50,
-  onRestore: (state) => restoreState(state),
-});
-const { history, historyIndex, canUndo, canRedo } = imageHistory;
-
 // Resize Manager Composable
 const resizeManager = useResizeManager({
   getCurrentDimensions: () => ({
     width: canvas.value?.width || 0,
     height: canvas.value?.height || 0,
   }),
-  onResize: (dimensions) => {
+  onResize: () => {
     // Resize wird in applyResize() gehandhabt
   },
 });
 const { resizeWidth, resizeHeight, maintainAspectRatio, naturalWidth, naturalHeight } =
   resizeManager;
-
-// Aktuell im Dropdown gewähltes Größen-Preset ('' = keines)
-const selectedPreset = ref('');
-
-// Maximale Kantenlänge für Größenänderungen (identisch zur Live-Vorschau)
-const MAX_RESIZE_DIMENSION = 10000;
 
 // Image Layer Interaction Composable (für Collage-Modus)
 const layerInteraction = useImageLayerInteraction(canvas);
@@ -626,7 +594,7 @@ const canvasRenderer = useCanvasRenderer({
   background,
   selectedTextId,
 });
-const { renderImage: _renderImageCore, renderImageForExport, drawTextSelection } = canvasRenderer;
+const { renderImage: _renderImageCore, renderImageForExport } = canvasRenderer;
 
 const {
   imageWidth,
@@ -643,9 +611,94 @@ function renderImage() {
   updateImageDimensions();
 }
 
+// Gemeinsame Undo/Redo-Historie (Bild, Filter, Transform, Texte, Crop)
+const { canUndo, canRedo, saveHistory, undo, redo, resetHistory } = useEditorHistory({
+  canvas,
+  currentImage,
+  selectedTextId,
+  filters,
+  background,
+  imageStore,
+  filterManagement,
+  transform,
+  resizeManager,
+  crop,
+  renderImage,
+  updateImageInfo,
+});
+
+// Größe ändern: Live-Vorschau, Presets, Anwenden
+const { selectedPreset, onResizeChange, applySocialPreset, applyResize } = useEditorResize({
+  canvas,
+  currentImage,
+  resizeManager,
+  renderImage,
+  updateImageSize,
+  saveHistory,
+  t,
+});
+
+// Bild vom Hintergrund lösen / wieder verbinden
+const { detachedFromBackground, handleToggleDetach } = useEditorDetach({
+  canvas,
+  currentImage,
+  originalImage,
+  isCollageMode,
+  background,
+  currentFileName,
+  imageStore,
+  filterManagement,
+  transform,
+  resizeManager,
+  renderImage,
+  renderImageForExport,
+  updateImageInfo,
+  saveHistory,
+  t,
+});
+
+// Export-Dialog, Drucken, Weiterleitung an andere Kodini-Tools
+const {
+  exportQuality,
+  isExporting,
+  exportTransparent,
+  showExportDialog,
+  exportDialogFilename,
+  showForwardOffer,
+  downloadImage,
+  confirmExport,
+  printCurrentImage,
+  forwardTo,
+  dismissForwardOffer,
+} = useEditorExport({
+  canvas,
+  outputFormat,
+  currentFileName,
+  imageStore,
+  renderImage,
+  renderImageForExport,
+  t,
+});
+
+// Vorher/Nachher-Vorschau
+const {
+  showPreviewModal,
+  originalPreviewSrc,
+  editedPreviewSrc,
+  openPreview,
+  handleLayerPreview,
+  closePreview,
+} = useEditorPreview({
+  canvas,
+  currentImage,
+  originalImageDataUrl,
+  imageStore,
+  renderImage,
+  renderImageForExport,
+});
+
 // Image Loader Composable
 const {
-  loadFileIntoEditor,
   handleFileSelect,
   handleDragLeave,
   handleFileDrop,
@@ -740,44 +793,6 @@ const panelCropDimensions = computed(() => {
 
 // Image info (reactive refs statt computed für bessere Kontrolle)
 // Bild-Infos (Breite/Höhe/Dateigröße) siehe useImageInfo-Composable oben.
-
-// Live-Vorschau: Das Bild im Canvas reagiert schon während des Tippens auf die
-// Werte in den "Grösse ändern"-Feldern (Breite/Höhe) sowie auf Presets. Die
-// endgültige Übernahme (History + Toast) erfolgt weiterhin über "Anwenden".
-let resizePreviewTimer = null;
-watch([resizeWidth, resizeHeight], ([newWidth, newHeight]) => {
-  if (!canvas.value || !currentImage.value) return;
-
-  // Leere oder ungültige Eingaben ignorieren (z.B. während des Tippens)
-  if (!newWidth || !newHeight) return;
-  if (newWidth < 1 || newHeight < 1 || newWidth > 10000 || newHeight > 10000) return;
-
-  // Keine Änderung gegenüber der aktuellen Canvas-Größe → nichts tun
-  // (verhindert überflüssiges Neuzeichnen z.B. nach initFromDimensions)
-  if (canvas.value.width === newWidth && canvas.value.height === newHeight) return;
-
-  // Neuzeichnen leicht entprellen, damit schnelles Tippen den Canvas bei
-  // großen Bildern nicht überlastet – fühlt sich trotzdem unmittelbar an.
-  if (resizePreviewTimer) clearTimeout(resizePreviewTimer);
-  resizePreviewTimer = setTimeout(() => {
-    if (!canvas.value || !currentImage.value) return;
-    canvas.value.width = newWidth;
-    canvas.value.height = newHeight;
-    renderImage();
-  }, 100);
-});
-
-// Die Preset-Auswahl gilt nur, solange die Maße auch wirklich zum Preset
-// passen. Manuelle Eingaben, Undo/Redo, Zuschnitt oder ein neues Bild setzen
-// das Dropdown daher automatisch auf "Preset wählen..." zurück.
-watch([resizeWidth, resizeHeight], ([newWidth, newHeight]) => {
-  if (!selectedPreset.value) return;
-
-  const preset = resizeManager.presetSizes[selectedPreset.value];
-  if (!preset || preset.width !== newWidth || preset.height !== newHeight) {
-    selectedPreset.value = '';
-  }
-});
 
 // Methods
 function triggerFileInput() {
@@ -875,8 +890,7 @@ async function resetFilters() {
   updateImageInfo();
 
   // History zurücksetzen und neuen Startpunkt setzen
-  history.value = [];
-  historyIndex.value = -1;
+  resetHistory();
   saveHistory();
 
   console.log('✅ Bild auf Originalzustand zurückgesetzt');
@@ -936,21 +950,7 @@ async function clearImage() {
   }
 
   // Filter zurücksetzen
-  filters.value = {
-    brightness: 100,
-    contrast: 100,
-    saturation: 100,
-    blur: 0,
-    hue: 0,
-    sepia: 0,
-    grayscale: 0,
-    invert: 0,
-    exposure: 0,
-    highlights: 0,
-    shadows: 0,
-    sharpness: 0,
-    vignette: 0,
-  };
+  filters.value = { ...DEFAULT_FILTERS };
   currentPreset.value = null;
 
   // Crop-Modus über Composable zurücksetzen
@@ -960,8 +960,7 @@ async function clearImage() {
   transform.resetTransforms();
 
   // History zurücksetzen
-  history.value = [];
-  historyIndex.value = -1;
+  resetHistory();
 
   // Resize-Werte zurücksetzen
   resizeWidth.value = null;
@@ -995,448 +994,6 @@ function handlePresetApply(preset) {
 
   // Speichere in History
   saveHistory();
-}
-
-function onResizeChange(dimension) {
-  // Verwende resizeManager Composable
-  resizeManager.onDimensionChange(dimension);
-}
-
-/**
- * Übernimmt eine neue Bildgröße endgültig: Canvas anpassen, neu zeichnen,
- * Basiswerte aktualisieren und einen History-Eintrag schreiben (Undo/Redo).
- * @param {number} width - Neue Breite in Pixeln
- * @param {number} height - Neue Höhe in Pixeln
- */
-function commitResize(width, height) {
-  if (!canvas.value || !currentImage.value) return;
-
-  // Ausstehende Live-Vorschau verwerfen – die Größe wird jetzt direkt gesetzt
-  if (resizePreviewTimer) {
-    clearTimeout(resizePreviewTimer);
-    resizePreviewTimer = null;
-  }
-
-  canvas.value.width = width;
-  canvas.value.height = height;
-  renderImage();
-  updateImageSize(); // Dateigröße neu berechnen nach Resize
-
-  // Basiswerte (u. a. Seitenverhältnis) auf die neue Größe setzen. Die
-  // Originalgröße des Bildes bleibt erhalten, damit "Ohne Preset" weiterhin
-  // dorthin zurückführt.
-  resizeManager.initFromDimensions(width, height, { natural: false });
-
-  saveHistory();
-
-  // Toast-Benachrichtigung
-  if (window.$toast) {
-    window.$toast.success(t('toast.editor.resizeSuccess', { width, height }));
-  }
-}
-
-function applySocialPreset(presetName) {
-  if (!canvas.value || !currentImage.value) return;
-
-  // Platzhalter "Preset wählen..." → keine Änderung
-  if (!presetName) {
-    selectedPreset.value = '';
-    return;
-  }
-
-  // "Ohne Preset" → zurück auf die Originalgröße des geladenen Bildes
-  if (presetName === 'none') {
-    selectedPreset.value = '';
-
-    const width = naturalWidth.value;
-    const height = naturalHeight.value;
-    if (!width || !height) return;
-
-    // Originalgröße ist bereits übernommen – nur die Eingabefelder angleichen
-    if (
-      resizeManager.originalWidth.value === width &&
-      resizeManager.originalHeight.value === height &&
-      canvas.value.width === width &&
-      canvas.value.height === height
-    ) {
-      resizeManager.resetToOriginal();
-      return;
-    }
-
-    commitResize(width, height);
-    return;
-  }
-
-  const preset = resizeManager.presetSizes[presetName];
-  if (!preset) return;
-
-  selectedPreset.value = presetName;
-  commitResize(preset.width, preset.height);
-}
-
-function applyResize() {
-  if (!canvas.value || !currentImage.value) return;
-
-  const width = Math.round(Number(resizeWidth.value));
-  const height = Math.round(Number(resizeHeight.value));
-
-  // Leere oder unsinnige Eingaben abfangen, bevor der Canvas zerstört wird
-  if (
-    !Number.isFinite(width) ||
-    !Number.isFinite(height) ||
-    width < 1 ||
-    height < 1 ||
-    width > MAX_RESIZE_DIMENSION ||
-    height > MAX_RESIZE_DIMENSION
-  ) {
-    if (window.$toast) {
-      window.$toast.error(t('toast.editor.resizeInvalid', { max: MAX_RESIZE_DIMENSION }));
-    }
-    return;
-  }
-
-  // Größe ist bereits übernommen (z. B. direkt nach einem Preset) → keinen
-  // zweiten, identischen History-Eintrag anlegen. Der Canvas wird bewusst
-  // mitgeprüft, weil die Live-Vorschau ihn unabhängig verändert haben kann.
-  if (
-    width === resizeManager.originalWidth.value &&
-    height === resizeManager.originalHeight.value &&
-    canvas.value.width === width &&
-    canvas.value.height === height
-  ) {
-    return;
-  }
-
-  commitResize(width, height);
-}
-
-// ===== Bild vom Hintergrund lösen (zuschaltbar) =====
-// Wandelt das fest im Canvas verankerte Basisbild in eine frei bewegliche Ebene um
-// (nutzt das bestehende Ebenen-/Collage-System) und wieder zurück.
-function handleToggleDetach() {
-  if (detachedFromBackground.value) {
-    reattachImageToBackground();
-  } else {
-    detachImageFromBackground();
-  }
-}
-
-async function detachImageFromBackground() {
-  if (!canvas.value || !currentImage.value || isCollageMode.value) return;
-
-  const canvasW = canvas.value.width;
-  const canvasH = canvas.value.height;
-
-  // Aktuell bearbeitetes Basisbild (mit Filtern/Transformationen, ohne Text) auf
-  // transparentem Grund in eine Data-URL "backen".
-  renderImageForExport(true, false);
-  const bakedUrl = canvas.value.toDataURL('image/png');
-
-  // Hintergrundfarbe des Canvas mit dem Hintergrund-Panel synchronisieren, damit
-  // der Collage-Renderer denselben Hintergrund zeigt.
-  imageStore.canvasBackgroundColor =
-    background.value.opacity > 0 ? background.value.color : 'transparent';
-
-  // Store-Canvas initialisieren (für Layer-Interaktion & Store-History)
-  imageStore.initCanvas(canvas.value);
-
-  try {
-    // Bild als frei bewegliche Ebene hinzufügen und exakt über den Canvas legen
-    const layer = await imageStore.addImageLayer({
-      url: bakedUrl,
-      name: currentFileName.value || t('editor.detach.layerName', 'Bild'),
-    });
-    imageStore.updateImageLayer(layer.id, {
-      x: 0,
-      y: 0,
-      width: canvasW,
-      height: canvasH,
-      originalWidth: canvasW,
-      originalHeight: canvasH,
-    });
-    imageStore.selectImageLayer(layer.id);
-  } catch (error) {
-    console.error('❌ Ablösen vom Hintergrund fehlgeschlagen:', error);
-    if (window.$toast) {
-      window.$toast.error(t('toast.editor.detachFailed', 'Ablösen fehlgeschlagen'));
-    }
-    return;
-  }
-
-  // Filter/Transformationen sind nun in der Ebene eingebacken → Basiswerte
-  // neutralisieren (Hintergrund bleibt als Canvas-Backdrop erhalten)
-  filterManagement.resetFilters();
-  transform.resetTransforms();
-
-  detachedFromBackground.value = true;
-  isCollageMode.value = true;
-
-  renderImage();
-  updateImageInfo();
-  saveHistory();
-
-  if (window.$toast) {
-    window.$toast.success(
-      t('toast.editor.imageDetached', 'Bild vom Hintergrund gelöst – jetzt frei verschiebbar')
-    );
-  }
-}
-
-async function reattachImageToBackground() {
-  if (!canvas.value) return;
-
-  const canvasW = canvas.value.width;
-  const canvasH = canvas.value.height;
-
-  // Aktuelle Ebene(n) ohne Text-Overlays transparent in eine Data-URL backen.
-  // Text bleibt als eigene, editierbare Ebene erhalten.
-  renderImageForExport(true, false);
-  const flatUrl = canvas.value.toDataURL('image/png');
-
-  let img;
-  try {
-    img = new Image();
-    await new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = reject;
-      img.src = flatUrl;
-    });
-  } catch (error) {
-    console.error('❌ Zurückverbinden mit dem Hintergrund fehlgeschlagen:', error);
-    if (window.$toast) {
-      window.$toast.error(t('toast.editor.reattachFailed', 'Verbinden fehlgeschlagen'));
-    }
-    return;
-  }
-
-  // Ebenen entfernen und zurück in den Einzelbild-Modus wechseln
-  imageStore.clearImageLayers();
-  imageStore.selectImageLayer(null);
-  detachedFromBackground.value = false;
-  isCollageMode.value = false;
-
-  currentImage.value = img;
-  originalImage.value = originalImage.value || img;
-  canvas.value.width = canvasW;
-  canvas.value.height = canvasH;
-  resizeManager.initFromDimensions(canvasW, canvasH);
-
-  renderImage();
-  updateImageInfo();
-  saveHistory();
-
-  if (window.$toast) {
-    window.$toast.success(
-      t('toast.editor.imageReattached', 'Bild wieder mit dem Hintergrund verbunden')
-    );
-  }
-}
-
-// Live-Hintergrund im abgelösten Zustand: Änderungen im Hintergrund-Panel wirken
-// sich auch im Ebenen-Modus auf den Canvas-Hintergrund aus.
-watch(
-  () => [background.value.color, background.value.opacity],
-  () => {
-    if (!detachedFromBackground.value) return;
-    imageStore.canvasBackgroundColor =
-      background.value.opacity > 0 ? background.value.color : 'transparent';
-    renderImage();
-  }
-);
-
-// ===== Export mit Dateiname-Dialog =====
-async function downloadImage() {
-  if (!canvas.value) return;
-  exportDialogFilename.value = currentFileName.value || 'image';
-  showExportDialog.value = true;
-}
-
-async function confirmExport() {
-  showExportDialog.value = false;
-  const filename = exportDialogFilename.value.trim() || currentFileName.value || 'image';
-
-  isExporting.value = true;
-
-  try {
-    const useTransparent = outputFormat.value === 'png' && exportTransparent.value;
-    renderImageForExport(useTransparent);
-
-    const result = await exportImage(canvas.value, outputFormat.value, filename, {
-      quality: exportQuality.value / 100,
-      texts: imageStore.texts || [],
-    });
-
-    console.log('✅ Export erfolgreich:', result);
-
-    // Snapshot des exportierten Canvas sichern, solange der Export-Render aktiv ist.
-    // Wird für die optionale Weiterleitung an ein anderes Kodini-Tool genutzt.
-    try {
-      const snap = document.createElement('canvas');
-      snap.width = canvas.value.width;
-      snap.height = canvas.value.height;
-      snap.getContext('2d').drawImage(canvas.value, 0, 0);
-      forwardCanvasSnapshot.value = snap;
-      forwardFilename.value = filename;
-      showForwardOffer.value = true;
-    } catch (snapErr) {
-      console.warn('[Handoff] Snapshot für Weiterleitung fehlgeschlagen:', snapErr);
-    }
-
-    if (window.$toast) {
-      window.$toast.success(
-        `Bild erfolgreich als ${result.format.toUpperCase()} exportiert` +
-          (result.size ? ` (${result.size})` : '')
-      );
-    }
-  } catch (error) {
-    console.error('❌ Export fehlgeschlagen:', error);
-
-    if (window.$toast) {
-      window.$toast.error(`Export fehlgeschlagen: ${error.message}`);
-    }
-  } finally {
-    isExporting.value = false;
-    renderImage();
-  }
-}
-
-// ===== Drucken =====
-async function printCurrentImage() {
-  if (!canvas.value) return;
-
-  let dataUrl = '';
-  try {
-    // Ohne Auswahl-Markierung rendern (wie beim Export), Hintergrund wie konfiguriert
-    renderImageForExport();
-    dataUrl = canvas.value.toDataURL('image/png');
-  } catch (error) {
-    console.error('❌ Druck-Rendering fehlgeschlagen:', error);
-  } finally {
-    // On-Screen-Canvas wieder mit Auswahl-Markierung herstellen
-    renderImage();
-  }
-
-  try {
-    await printImage(dataUrl, currentFileName.value || 'image');
-  } catch (error) {
-    console.error('❌ Drucken fehlgeschlagen:', error);
-    if (window.$toast) {
-      window.$toast.error(t('toast.editor.printFailed', 'Drucken fehlgeschlagen'));
-    }
-  }
-}
-
-// ===== Weiterleitung an anderes Kodini-Tool (Color-Extractor / Visualizer) =====
-function forwardTo(target) {
-  const snap = forwardCanvasSnapshot.value;
-  showForwardOffer.value = false;
-
-  if (!snap) return;
-
-  const name = forwardFilename.value || 'image';
-  const url = prepareHandoff([{ name, canvas: snap }], target, 'bildkonverter');
-
-  if (url) {
-    // Cross-App-Navigation: die Tools liegen unter unterschiedlichen Base-Pfaden,
-    // daher vollständiger Seitenwechsel statt Vue-Router.
-    window.location.href = url;
-  } else if (window.$toast) {
-    window.$toast.error('Weiterleitung fehlgeschlagen');
-  }
-}
-
-function dismissForwardOffer() {
-  showForwardOffer.value = false;
-  forwardCanvasSnapshot.value = null;
-}
-
-function saveHistory() {
-  if (!canvas.value) return;
-
-  // Das rohe Bild (ohne Transforms) für verlässliches Undo/Redo speichern
-  let rawImageSrc = null;
-  if (currentImage.value) {
-    if (currentImage.value.src && currentImage.value.src.startsWith('data:')) {
-      rawImageSrc = currentImage.value.src;
-    } else {
-      // Blob-URL o.ä.: als Data-URL über Hilfs-Canvas sichern
-      const tmpCanvas = document.createElement('canvas');
-      tmpCanvas.width = canvas.value.width;
-      tmpCanvas.height = canvas.value.height;
-      tmpCanvas
-        .getContext('2d')
-        .drawImage(currentImage.value, 0, 0, tmpCanvas.width, tmpCanvas.height);
-      rawImageSrc = tmpCanvas.toDataURL('image/png');
-    }
-  }
-
-  // Verwende das History Composable
-  imageHistory.saveState({
-    imageData: canvas.value.toDataURL(),
-    rawImageSrc,
-    filters: { ...filters.value },
-    background: { ...background.value },
-    transforms: { ...transform.transforms.value },
-    // Texte in die gemeinsame Historie aufnehmen, damit Undo/Redo den
-    // gesamten Editor-Zustand umfasst (nicht nur Bild/Filter/Transform)
-    texts: JSON.parse(JSON.stringify(imageStore.texts || [])),
-    selectedTextId: selectedTextId.value,
-    width: canvas.value.width,
-    height: canvas.value.height,
-    // Originalgröße des Bildes mitsichern, damit "Ohne Preset" auch nach
-    // Undo/Redo das richtige Ziel hat
-    naturalWidth: naturalWidth.value,
-    naturalHeight: naturalHeight.value,
-    hasCropped: crop.hasCropped.value,
-  });
-}
-
-function undo() {
-  imageHistory.undo();
-}
-
-function redo() {
-  imageHistory.redo();
-}
-
-function restoreState(state) {
-  // rawImageSrc enthält das rohe Bild ohne gebackene Transforms → für renderImage() verwenden
-  // imageData ist der gerenderte Canvas-Snapshot (Fallback)
-  const srcToLoad = state.rawImageSrc || state.imageData;
-  const img = new Image();
-  img.onload = () => {
-    canvas.value.width = state.width;
-    canvas.value.height = state.height;
-    currentImage.value = img;
-    resizeManager.initFromDimensions(state.width, state.height, { natural: false });
-    resizeManager.setNaturalSize(
-      state.naturalWidth || state.width,
-      state.naturalHeight || state.height
-    );
-    // Verwende filterManagement für konsistenten State
-    if (state.filters) {
-      filterManagement.importState({
-        filters: state.filters,
-        background: state.background,
-      });
-    }
-    // Transform-State wiederherstellen (inkl. borderRadius für Kreis-Zuschnitt)
-    if (state.transforms) {
-      transform.transforms.value = { ...state.transforms };
-    }
-    // Texte wiederherstellen (gemeinsame Historie)
-    if (state.texts) {
-      imageStore.texts = JSON.parse(JSON.stringify(state.texts));
-    }
-    selectedTextId.value = state.selectedTextId ?? null;
-    // Crop-State zurücksetzen wenn der gespeicherte State kein Zuschnitt war
-    if (!state.hasCropped) {
-      crop.resetCropState();
-    }
-    updateImageInfo();
-    renderImage();
-  };
-  img.src = srcToLoad;
 }
 
 // ===== CROP FUNCTIONS (jetzt über useCrop Composable) =====
@@ -1546,7 +1103,6 @@ const {
 
 const {
   addText,
-  updateSelectedText,
   handleTextContentUpdate,
   handleTextFontSizeUpdate,
   handleTextColorUpdate,
@@ -1613,64 +1169,6 @@ watch(
   },
   { deep: true }
 );
-
-// ===== PREVIEW FUNCTIONS =====
-
-function openPreview() {
-  if (!currentImage.value || !canvas.value) return;
-
-  // Rendere die Canvas mit allen aktuellen Änderungen neu
-  renderImage();
-
-  // Warte kurz, damit das Rendering abgeschlossen ist, dann aktualisiere die Preview-Bilder
-  setTimeout(() => {
-    // Aktualisiere Original-Preview
-    originalPreviewSrc.value = originalImageDataUrl.value || imageStore.workingUrl || '';
-
-    // Bearbeitetes Preview OHNE Auswahl-Markierung rendern, damit der
-    // Text-Auswahlrahmen nicht in der Vorschau erscheint.
-    if (canvas.value) {
-      renderImageForExport();
-      editedPreviewSrc.value = canvas.value.toDataURL('image/png');
-      // On-Screen-Canvas wieder mit Auswahl-Markierung herstellen
-      renderImage();
-    }
-
-    // Öffne das Modal
-    showPreviewModal.value = true;
-  }, 100);
-}
-
-function closePreview() {
-  showPreviewModal.value = false;
-}
-
-// Preview Handler für LayerControlPanel (Collage-Modus)
-function handleLayerPreview() {
-  if (!canvas.value) return;
-
-  // Rendere die Canvas mit allen aktuellen Änderungen neu
-  renderImage();
-
-  // Warte kurz, damit das Rendering abgeschlossen ist
-  setTimeout(() => {
-    // Im Collage-Modus: Erstes Layer-Bild als "Original" verwenden
-    if (imageStore.imageLayers.length > 0) {
-      originalPreviewSrc.value = imageStore.imageLayers[0].url || '';
-    } else {
-      originalPreviewSrc.value = '';
-    }
-
-    // Bearbeitetes Preview OHNE Auswahl-Markierung rendern
-    if (canvas.value) {
-      renderImageForExport();
-      editedPreviewSrc.value = canvas.value.toDataURL('image/png');
-      renderImage();
-    }
-
-    showPreviewModal.value = true;
-  }, 100);
-}
 
 // ===========================
 
