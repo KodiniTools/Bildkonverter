@@ -493,7 +493,6 @@ import { useCrop, ASPECT_RATIO_PRESETS } from '@/composables/useCrop';
 import { useTransform } from '@/composables/useTransform';
 import { useFilterManagement } from '@/composables/useFilterManagement';
 import { useImageHistory } from '@/composables/useImageHistory';
-import { useTextHistory } from '@/composables/useTextHistory';
 import { useResizeManager } from '@/composables/useResizeManager';
 import { useImageLayerInteraction } from '@/composables/useImageLayerInteraction';
 import { useCanvasRenderer } from '@/composables/useCanvasRenderer';
@@ -593,20 +592,6 @@ const imageHistory = useImageHistory({
   onRestore: (state) => restoreState(state),
 });
 const { history, historyIndex, canUndo, canRedo } = imageHistory;
-
-// Text History Composable (separate History für Text mit 50 Schritten)
-const textHistory = useTextHistory({
-  getTexts: () => imageStore.texts,
-  setTexts: (texts) => {
-    imageStore.texts = texts;
-  },
-  getSelectedTextId: () => selectedTextId.value,
-  setSelectedTextId: (id) => {
-    selectedTextId.value = id;
-  },
-});
-const { canUndoText, canRedoText, saveTextHistory, initTextHistory, undoText, redoText } =
-  textHistory;
 
 // Resize Manager Composable
 const resizeManager = useResizeManager({
@@ -805,8 +790,8 @@ async function loadImage(img) {
   // Reset Crop-Zustand über Composable
   crop.resetCropState();
 
-  // Initialisiere Transform-History für neues Bild
-  transform.initTransformHistory();
+  // Transformationen für neues Bild zurücksetzen
+  transform.resetTransforms();
 
   // Warte bis Vue das Canvas gerendert hat
   await nextTick();
@@ -829,7 +814,6 @@ async function loadImage(img) {
   renderImage();
   updateImageInfo();
   saveHistory();
-  initTextHistory(); // Initialisiere Text-History für neues Bild
 }
 
 async function resetFilters() {
@@ -1555,8 +1539,6 @@ const {
   handleFlipHorizontal,
   handleFlipVertical,
   handleResetPan,
-  handleUndoTransform,
-  handleRedoTransform,
   handleCommitTransform,
 } = useTransformHandlers({ transform, renderImage, t, saveHistory });
 
@@ -1584,9 +1566,6 @@ const {
   handleDeleteText,
   handleDeleteTextById,
   handleDeselectText,
-  handleSaveTextHistory,
-  handleUndoText,
-  handleRedoText,
 } = useEditorText({
   currentImage,
   canvas,
@@ -1594,9 +1573,6 @@ const {
   selectedTextId,
   renderImage,
   saveHistory,
-  saveTextHistory,
-  undoText,
-  redoText,
 });
 
 const {
@@ -1714,8 +1690,6 @@ const { handleKeydown, handleKeyup } = useEditorKeyboard({
   renderImage,
   undo,
   redo,
-  handleUndoTransform,
-  handleRedoTransform,
   handleFlipHorizontal,
   handleFlipVertical,
   handleRotate90,

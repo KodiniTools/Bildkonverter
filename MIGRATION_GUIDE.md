@@ -61,8 +61,8 @@ imageStore.setFilter('brightness', 120)
   - Text-Elemente
   - History (Undo/Redo)
 
-- ✅ **presetsStore** - Filter-Presets
-  - 8 Standard-Presets
+- ✅ **FilterPresets.vue** - Filter-Presets (kein eigener Store)
+  - Standard-Presets
   - Custom Presets
   - Import/Export
   - LocalStorage-Persistierung
@@ -166,13 +166,12 @@ Das Projekt enthält **3 umfassende Dokumentations-Dateien:**
 
 **Stores:**
 - ✅ imageStore (Bildbearbeitung)
-- ✅ presetsStore (Filter-Presets)
 - ✅ settingsStore (App-Einstellungen)
 
 **Komponenten:**
 - ✅ App.vue (Root)
 - ✅ HomeView.vue
-- ✅ ImageUpload.vue
+- ✅ useImageLoader.js (Upload)
 
 **Utils:**
 - ✅ validationUtils.js (migriert)

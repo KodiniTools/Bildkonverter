@@ -1,7 +1,7 @@
 /**
  * useTransform.js - Composable für Transformationen
  * Deckkraft, Rotation, Drehen, Spiegeln, Zoom, Pan, etc.
- * Mit Undo/Redo History
+ * Undo/Redo läuft über die gemeinsame Editor-Historie (useImageHistory).
  */
 
 import { ref, computed } from 'vue';
@@ -34,94 +34,6 @@ export function useTransform() {
   // State
   const transforms = ref({ ...DEFAULT_TRANSFORMS });
 
-  // History für Undo/Redo
-  const transformHistory = ref([]);
-  const historyIndex = ref(-1);
-  const MAX_HISTORY = 50;
-
-  // History-Funktionen
-
-  /**
-   * Speichert aktuellen Zustand in History
-   */
-  function saveToHistory() {
-    // Entferne alle Einträge nach dem aktuellen Index (bei Redo-Überschreibung)
-    if (historyIndex.value < transformHistory.value.length - 1) {
-      transformHistory.value = transformHistory.value.slice(0, historyIndex.value + 1);
-    }
-
-    // Kopiere aktuellen Zustand
-    const snapshot = JSON.parse(JSON.stringify(transforms.value));
-
-    // Prüfe ob sich etwas geändert hat
-    const lastEntry = transformHistory.value[transformHistory.value.length - 1];
-    if (lastEntry && JSON.stringify(lastEntry) === JSON.stringify(snapshot)) {
-      return; // Keine Änderung, nicht speichern
-    }
-
-    transformHistory.value.push(snapshot);
-
-    // Begrenze History-Größe
-    if (transformHistory.value.length > MAX_HISTORY) {
-      transformHistory.value.shift();
-    } else {
-      historyIndex.value++;
-    }
-  }
-
-  /**
-   * Undo - Gehe einen Schritt zurück
-   */
-  function undoTransform() {
-    if (!canUndoTransform.value) return false;
-
-    historyIndex.value--;
-    const previousState = transformHistory.value[historyIndex.value];
-    if (previousState) {
-      transforms.value = JSON.parse(JSON.stringify(previousState));
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Redo - Gehe einen Schritt vorwärts
-   */
-  function redoTransform() {
-    if (!canRedoTransform.value) return false;
-
-    historyIndex.value++;
-    const nextState = transformHistory.value[historyIndex.value];
-    if (nextState) {
-      transforms.value = JSON.parse(JSON.stringify(nextState));
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Initialisiere History (beim Laden eines neuen Bildes)
-   */
-  function initTransformHistory() {
-    transformHistory.value = [JSON.parse(JSON.stringify(DEFAULT_TRANSFORMS))];
-    historyIndex.value = 0;
-    transforms.value = { ...DEFAULT_TRANSFORMS };
-  }
-
-  /**
-   * Prüfe ob Undo möglich ist
-   */
-  const canUndoTransform = computed(() => {
-    return historyIndex.value > 0;
-  });
-
-  /**
-   * Prüfe ob Redo möglich ist
-   */
-  const canRedoTransform = computed(() => {
-    return historyIndex.value < transformHistory.value.length - 1;
-  });
-
   // Computed - CSS Transform String
   const transformStyle = computed(() => {
     const parts = [];
@@ -149,20 +61,17 @@ export function useTransform() {
 
   // Methods
 
-  // Methods (mit automatischer History-Speicherung bei wichtigen Änderungen)
-
   /**
    * Setze Deckkraft
    */
-  function setOpacity(value, saveHistory = false) {
+  function setOpacity(value) {
     transforms.value.opacity = Math.max(0, Math.min(100, value));
-    if (saveHistory) saveToHistory();
   }
 
   /**
    * Setze Rotation
    */
-  function setRotation(degrees, saveHistory = false) {
+  function setRotation(degrees) {
     transforms.value.rotation = degrees;
     // Normalisiere auf -180 bis +180
     while (transforms.value.rotation > 180) {
@@ -171,7 +80,6 @@ export function useTransform() {
     while (transforms.value.rotation < -180) {
       transforms.value.rotation += 360;
     }
-    if (saveHistory) saveToHistory();
   }
 
   /**
@@ -207,7 +115,6 @@ export function useTransform() {
    */
   function flipHorizontal() {
     transforms.value.flipHorizontal = !transforms.value.flipHorizontal;
-    saveToHistory();
   }
 
   /**
@@ -215,20 +122,18 @@ export function useTransform() {
    */
   function flipVertical() {
     transforms.value.flipVertical = !transforms.value.flipVertical;
-    saveToHistory();
   }
 
   /**
    * Setze Zoom/Skalierung
    */
-  function setScale(value, saveHistory = false) {
+  function setScale(value) {
     transforms.value.scale = Math.max(10, Math.min(200, value));
     // Bei Zoom <= 100% Pan zurücksetzen
     if (transforms.value.scale <= 100) {
       transforms.value.panX = 0;
       transforms.value.panY = 0;
     }
-    if (saveHistory) saveToHistory();
   }
 
   /**
@@ -272,96 +177,78 @@ export function useTransform() {
   /**
    * Setze Ecken-Rundung
    */
-  function setBorderRadius(value, saveHistory = false) {
+  function setBorderRadius(value) {
     transforms.value.borderRadius = Math.max(0, Math.min(50, value));
-    if (saveHistory) saveToHistory();
   }
 
   /**
    * Setze Rahmen-Dicke
    */
-  function setBorderWidth(value, saveHistory = false) {
+  function setBorderWidth(value) {
     transforms.value.borderWidth = Math.max(0, Math.min(20, value));
-    if (saveHistory) saveToHistory();
   }
 
   /**
    * Setze Rahmen-Farbe
    */
-  function setBorderColor(color, saveHistory = false) {
+  function setBorderColor(color) {
     transforms.value.borderColor = color;
-    if (saveHistory) saveToHistory();
   }
 
   /**
    * Setze Schlagschatten aktiviert/deaktiviert
    */
-  function setShadowEnabled(enabled, saveHistory = false) {
+  function setShadowEnabled(enabled) {
     transforms.value.shadowEnabled = enabled;
-    if (saveHistory) saveToHistory();
   }
 
   /**
    * Setze Schlagschatten X-Offset
    */
-  function setShadowOffsetX(value, saveHistory = false) {
+  function setShadowOffsetX(value) {
     transforms.value.shadowOffsetX = Math.max(-50, Math.min(50, value));
-    if (saveHistory) saveToHistory();
   }
 
   /**
    * Setze Schlagschatten Y-Offset
    */
-  function setShadowOffsetY(value, saveHistory = false) {
+  function setShadowOffsetY(value) {
     transforms.value.shadowOffsetY = Math.max(-50, Math.min(50, value));
-    if (saveHistory) saveToHistory();
   }
 
   /**
    * Setze Schlagschatten Blur
    */
-  function setShadowBlur(value, saveHistory = false) {
+  function setShadowBlur(value) {
     transforms.value.shadowBlur = Math.max(0, Math.min(100, value));
-    if (saveHistory) saveToHistory();
   }
 
   /**
    * Setze Schlagschatten Farbe
    */
-  function setShadowColor(color, saveHistory = false) {
+  function setShadowColor(color) {
     transforms.value.shadowColor = color;
-    if (saveHistory) saveToHistory();
   }
 
   /**
    * Setze Schlagschatten Deckkraft
    */
-  function setShadowOpacity(value, saveHistory = false) {
+  function setShadowOpacity(value) {
     transforms.value.shadowOpacity = Math.max(0, Math.min(100, value));
-    if (saveHistory) saveToHistory();
   }
 
   /**
    * Setze Skew X (horizontale Neigung)
    */
-  function setSkewX(value, saveHistory = false) {
+  function setSkewX(value) {
     transforms.value.skewX = Math.max(-45, Math.min(45, value));
-    if (saveHistory) saveToHistory();
   }
 
   /**
    * Setze Skew Y (vertikale Neigung)
    */
-  function setSkewY(value, saveHistory = false) {
+  function setSkewY(value) {
     transforms.value.skewY = Math.max(-45, Math.min(45, value));
-    if (saveHistory) saveToHistory();
-  }
-
-  /**
-   * Speichere aktuellen Zustand manuell (für Slider-Ende-Events)
-   */
-  function commitTransform() {
-    saveToHistory();
   }
 
   /**
@@ -523,11 +410,8 @@ export function useTransform() {
   /**
    * Alle Transformationen zurücksetzen
    */
-  function resetTransforms(addToHistory = true) {
+  function resetTransforms() {
     transforms.value = { ...DEFAULT_TRANSFORMS };
-    if (addToHistory) {
-      saveToHistory();
-    }
   }
 
   /**
@@ -586,10 +470,6 @@ export function useTransform() {
     hasShadow,
     hasSkew,
 
-    // History State
-    canUndoTransform,
-    canRedoTransform,
-
     // Methods
     setOpacity,
     setRotation,
@@ -619,12 +499,5 @@ export function useTransform() {
     applyToCanvas,
     applyPermanently,
     resetTransforms,
-
-    // History Methods
-    saveToHistory,
-    undoTransform,
-    redoTransform,
-    initTransformHistory,
-    commitTransform,
   };
 }

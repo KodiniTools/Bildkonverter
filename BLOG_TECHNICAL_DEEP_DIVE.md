@@ -52,8 +52,7 @@ Bildkonverter Pro ist mehr als nur ein Bildbearbeitungstool - es ist ein Showcas
 /src
 ├── /api                    # Backend-Integration
 │   └── api.js             # API-Client fur Server-Konvertierung
-├── /assets                 # Statische Ressourcen
-│   └── /fonts/main.js     # Audio Visualizer Modul
+├── /assets                 # Statische Ressourcen (Fonts, Bilder)
 ├── /components             # Vue-Komponenten
 │   ├── /dev               # Entwicklungstools
 │   ├── /editor            # Editor-spezifische Komponenten
@@ -65,14 +64,13 @@ Bildkonverter Pro ist mehr als nur ein Bildbearbeitungstool - es ist ein Showcas
 │   ├── useCrop.js         # Crop-Tool Logik
 │   ├── useFilterManagement.js
 │   ├── useImageHistory.js  # Undo/Redo
-│   ├── useTextInteraction.js
+│   ├── useTransform.js
 │   └── ...
 ├── /i18n                   # Ubersetzungen (DE/EN)
 ├── /router                 # Vue Router Konfiguration
 ├── /stores                 # Pinia Stores
 │   ├── imageStore.js      # Hauptstore fur Bildbearbeitung
 │   ├── settingsStore.js   # App-Einstellungen
-│   ├── presetsStore.js    # Filter-Presets
 │   └── galleryStore.js    # Bildergalerie
 ├── /styles                 # SCSS Stylesheets
 ├── /utils                  # Hilfsfunktionen
@@ -319,11 +317,11 @@ export function useFilterManagement(options = {}) {
 }
 ```
 
-#### Beispiel: useTextInteraction.js
+#### Beispiel: Text-Interaktion auf dem Canvas (vereinfacht, heute Teil von `useCanvasInteraction.js`)
 
 ```javascript
-// composables/useTextInteraction.js
-export function useTextInteraction(canvasRef, imageStore) {
+// composables/editor/useCanvasInteraction.js (vereinfachter Auszug)
+export function useCanvasInteraction(canvasRef, imageStore) {
   const isDragging = ref(false)
   const isResizing = ref(false)
   const dragStart = ref({ x: 0, y: 0 })

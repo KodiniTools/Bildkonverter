@@ -120,12 +120,8 @@ server {
 
 ### 1.3 Vite-Konfiguration bereinigen
 
-**Problem:** Zwei widersprueuchliche Vite-Konfigurationen existieren:
-- `vite.config.js` mit `base: '/bildkonverter/'`
-- `vite.config.ts` mit `base: '/bilderseriebearbeiten/'`
-
-**Empfehlung:** Eine der beiden entfernen oder konsolidieren. Die `deploy-check.js` prueft
-`vite.config.ts`, aber Vite verwendet standardmaessig `.js` wenn beide vorhanden sind.
+**Erledigt:** Die widerspruechliche `vite.config.ts` (`base: '/bilderseriebearbeiten/'`) wurde
+entfernt. Massgeblich ist allein `vite.config.js` mit `base: '/bildkonverter/'`.
 
 ### 1.4 Performance-Optimierungen
 

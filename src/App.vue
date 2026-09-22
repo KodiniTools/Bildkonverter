@@ -427,7 +427,6 @@ function handleOffline() {
 
 <style lang="scss">
 @use '@/styles/variables' as *;
-@use '@/styles/global';
 
 #app {
   // min-height etwas größer als Viewport, damit Seite immer scrollbar ist

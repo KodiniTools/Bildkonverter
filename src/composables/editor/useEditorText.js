@@ -1,9 +1,9 @@
 /**
  * useEditorText
  *
- * Bündelt das Erstellen, Aktualisieren, Löschen und die History der
- * Text-Ebenen im Editor. Ausgelagert aus EditorView.vue. Verhalten
- * unverändert.
+ * Bündelt das Erstellen, Aktualisieren und Löschen der Text-Ebenen im
+ * Editor. Ausgelagert aus EditorView.vue. Undo/Redo läuft über die
+ * gemeinsame Editor-Historie (saveHistory), nicht über eine eigene Text-History.
  *
  * @param {object}   deps
  * @param {import('vue').Ref} deps.currentImage    Aktuell geladenes Bild
@@ -12,9 +12,6 @@
  * @param {import('vue').Ref} deps.selectedTextId  ID des selektierten Textes
  * @param {Function} deps.renderImage              Rendert das Canvas neu
  * @param {Function} deps.saveHistory              Speichert allgemeine History
- * @param {Function} deps.saveTextHistory          Speichert Text-History
- * @param {Function} deps.undoText                 Text-Undo
- * @param {Function} deps.redoText                 Text-Redo
  */
 export function useEditorText({
   currentImage,
@@ -23,9 +20,6 @@ export function useEditorText({
   selectedTextId,
   renderImage,
   saveHistory,
-  saveTextHistory,
-  undoText,
-  redoText,
 }) {
   function addText() {
     if (!currentImage.value) return;
@@ -127,16 +121,6 @@ export function useEditorText({
     }
   }
 
-  const handleSaveTextHistory = () => saveTextHistory();
-  const handleUndoText = () => {
-    undoText();
-    renderImage();
-  };
-  const handleRedoText = () => {
-    redoText();
-    renderImage();
-  };
-
   return {
     addText,
     updateSelectedText,
@@ -159,8 +143,5 @@ export function useEditorText({
     handleDeleteText,
     handleDeleteTextById,
     handleDeselectText,
-    handleSaveTextHistory,
-    handleUndoText,
-    handleRedoText,
   };
 }

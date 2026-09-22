@@ -181,9 +181,9 @@ cd /opt/bildkonverter && git checkout <commit> && sudo ./deploy.sh
 
 ## Hinweis zu Altlasten im Repository
 
-`vite.config.ts`, `deploy-check.js` und `deploy-to-server.ps1` stammen aus dem
-Schwesterprojekt *bilderseriebearbeiten* und nennen den base-Pfad
-`/bilderseriebearbeiten/`. Maßgeblich ist `vite.config.js` – Vite bevorzugt die
-`.js`-Variante, der Build verwendet also korrekt `/bildkonverter/`. Für das
-Deployment sind die drei Dateien ohne Bedeutung; `deploy-check.js` würde bei
+`deploy-check.js` und `deploy-to-server.ps1` stammen aus dem Schwesterprojekt
+*bilderseriebearbeiten* und nennen den base-Pfad `/bilderseriebearbeiten/`.
+Die ebenfalls von dort stammende `vite.config.ts` wurde entfernt; maßgeblich ist
+`vite.config.js`, der Build verwendet `/bildkonverter/`. Für das Deployment sind
+die beiden verbliebenen Dateien ohne Bedeutung; `deploy-check.js` würde bei
 einem Aufruf allerdings irreführende Fehler melden.
