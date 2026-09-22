@@ -328,10 +328,7 @@ export function useCanvasRenderer({
    * Normal-Modus: Hintergrund, transformiertes Hauptbild mit Schatten,
    * Rahmen und abgerundeten Ecken, Vignette und Texte.
    */
-  function renderSingleImage(
-    ctx,
-    { showSelection, forceTransparent, includeTexts, applyVignette }
-  ) {
+  function renderSingleImage(ctx, { showSelection, forceTransparent, includeTexts }) {
     const tf = transform.transforms.value;
     ctx.clearRect(0, 0, canvas.value.width, canvas.value.height);
 
@@ -471,8 +468,8 @@ export function useCanvasRenderer({
       ctx.restore();
     }
 
-    // Vignette-Overlay
-    if (applyVignette && filters.value.vignette > 0) {
+    // Vignette-Overlay (Teil des Bildes, daher auch im Export)
+    if (filters.value.vignette > 0) {
       ctx.save();
       const vignetteStrength = filters.value.vignette / 100;
       const cx = canvas.value.width / 2;
@@ -512,7 +509,6 @@ export function useCanvasRenderer({
    * @param {boolean} opts.showSelection    Auswahl-Rahmen für Ebene/Text zeichnen (nur Vorschau)
    * @param {boolean} opts.forceTransparent Hintergrund weglassen (transparenter Export)
    * @param {boolean} opts.includeTexts     Text-Ebenen mitzeichnen
-   * @param {boolean} opts.applyVignette    Vignette-Overlay zeichnen (bisher nur in der Vorschau)
    */
   function renderScene(opts) {
     if (!canvas.value) return;
@@ -527,28 +523,17 @@ export function useCanvasRenderer({
     renderSingleImage(ctx, opts);
   }
 
-  // Vorschau: mit Auswahl-Markierungen, Hintergrund, Texten und Vignette
+  // Vorschau: mit Auswahl-Markierungen, Hintergrund und Texten
   function renderImage() {
-    renderScene({
-      showSelection: true,
-      forceTransparent: false,
-      includeTexts: true,
-      applyVignette: true,
-    });
+    renderScene({ showSelection: true, forceTransparent: false, includeTexts: true });
   }
 
   // Export: ohne Auswahl-Markierungen.
   // forceTransparent=true lässt den Hintergrund weg (z.B. PNG mit Transparenz).
   // includeTexts=false backt nur das Bild/die Ebenen ohne Text-Overlays (z.B. beim
   // "Bild vom Hintergrund lösen", damit Text als separate Ebene erhalten bleibt).
-  // Hinweis: Die Vignette wurde im Export-Pfad nie gezeichnet; das bleibt hier so.
   function renderImageForExport(forceTransparent = false, includeTexts = true) {
-    renderScene({
-      showSelection: false,
-      forceTransparent,
-      includeTexts,
-      applyVignette: false,
-    });
+    renderScene({ showSelection: false, forceTransparent, includeTexts });
   }
 
   return {
