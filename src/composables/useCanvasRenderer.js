@@ -121,295 +121,247 @@ export function useCanvasRenderer({
     // Note: imageWidth/imageHeight refs live in EditorView; this composable calls this as a side-effect marker
   }
 
-  function renderImage() {
-    // Im Collage-Modus benutze den imageStore zum Zeichnen
-    if (isCollageMode.value && imageStore.hasImageLayers) {
-      if (!canvas.value) return;
+  // Wandelt eine Hex-Farbe (#rrggbb) in einen rgba()-String mit Deckkraft um
+  function hexToRgba(hex, alpha) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
 
-      const ctx = canvas.value.getContext('2d');
-      ctx.clearRect(0, 0, canvas.value.width, canvas.value.height);
+  // Setzt Canvas-Schatten auf die Werte eines Layers (Collage-Modus)
+  function applyLayerShadow(ctx, layer) {
+    ctx.shadowColor = hexToRgba(
+      layer.shadow.color || '#000000',
+      (layer.shadow.opacity || 50) / 100
+    );
+    ctx.shadowBlur = layer.shadow.blur || 10;
+    ctx.shadowOffsetX = layer.shadow.offsetX || 5;
+    ctx.shadowOffsetY = layer.shadow.offsetY || 5;
+  }
 
-      // Hintergrund zeichnen (Canvas-Hintergrundfarbe aus imageStore für Collage-Modus)
-      const bgColor = imageStore.canvasBackgroundColor;
-      if (bgColor && bgColor !== 'transparent') {
-        ctx.save();
-        ctx.fillStyle = bgColor;
-        ctx.fillRect(0, 0, canvas.value.width, canvas.value.height);
-        ctx.restore();
-      }
+  function clearShadow(ctx) {
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+  }
 
-      // Layer direkt zeichnen (ohne Canvas zu löschen)
-      imageStore.imageLayers.forEach((layer) => {
-        if (!layer.visible) return;
-        if (!layer.image || !layer.image.complete) {
-          console.warn(`Layer "${layer.name}" hat kein gültiges Bild`);
-          return;
-        }
+  /**
+   * Zeichnet eine einzelne Bild-Ebene (Collage-Modus) mit Deckkraft, Filtern,
+   * Rotation, Spiegelung, Schatten, abgerundeten Ecken und Umrandung.
+   */
+  function drawImageLayer(ctx, layer) {
+    ctx.save();
 
-        ctx.save();
+    // Deckkraft
+    ctx.globalAlpha = layer.opacity / 100;
 
-        // Deckkraft
-        ctx.globalAlpha = layer.opacity / 100;
+    // Echte, pixelbasierte Tonwert-Anpassungen (Helligkeit, Kontrast,
+    // Sättigung) werden in die Ebenen-Quelle gebacken; Effekt-Filter
+    // (Graustufen, Sepia) bleiben CSS-Filter – wie beim Hauptbild.
+    const { el: layerSource, cssFilter: layerCssFilter } = getAdjustedImage(
+      layer.image,
+      layer.filters
+    );
+    ctx.filter = layerCssFilter;
 
-        // Echte, pixelbasierte Tonwert-Anpassungen (Helligkeit, Kontrast,
-        // Sättigung) werden in die Ebenen-Quelle gebacken; Effekt-Filter
-        // (Graustufen, Sepia) bleiben CSS-Filter – wie beim Hauptbild.
-        const { el: layerSource, cssFilter: layerCssFilter } = getAdjustedImage(
-          layer.image,
-          layer.filters
-        );
-        ctx.filter = layerCssFilter;
-
-        // Rotation um Mittelpunkt
-        if (layer.rotation !== 0) {
-          const centerX = layer.x + layer.width / 2;
-          const centerY = layer.y + layer.height / 2;
-          ctx.translate(centerX, centerY);
-          ctx.rotate((layer.rotation * Math.PI) / 180);
-          ctx.translate(-centerX, -centerY);
-        }
-
-        // Spiegelung (horizontal und/oder vertikal)
-        if (layer.flipX || layer.flipY) {
-          const centerX = layer.x + layer.width / 2;
-          const centerY = layer.y + layer.height / 2;
-          ctx.translate(centerX, centerY);
-          ctx.scale(layer.flipX ? -1 : 1, layer.flipY ? -1 : 1);
-          ctx.translate(-centerX, -centerY);
-        }
-
-        // Schlagschatten für Layer - MUSS VOR dem Clipping gezeichnet werden
-        const hasShadow = layer.shadow && layer.shadow.enabled;
-        const borderRadiusPercent = layer.border?.radius || 0;
-
-        if (hasShadow && borderRadiusPercent > 0) {
-          // Bei abgerundeten Ecken: Schatten als separate Form zeichnen
-          ctx.save();
-          const shadowOpacity = (layer.shadow.opacity || 50) / 100;
-          const hexColor = layer.shadow.color || '#000000';
-          const r = parseInt(hexColor.slice(1, 3), 16);
-          const g = parseInt(hexColor.slice(3, 5), 16);
-          const b = parseInt(hexColor.slice(5, 7), 16);
-
-          ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${shadowOpacity})`;
-          ctx.shadowBlur = layer.shadow.blur || 10;
-          ctx.shadowOffsetX = layer.shadow.offsetX || 5;
-          ctx.shadowOffsetY = layer.shadow.offsetY || 5;
-
-          // Schattenform als abgerundetes Rechteck zeichnen
-          const rx = layer.x;
-          const ry = layer.y;
-          const rw = layer.width;
-          const rh = layer.height;
-          const minDimension = Math.min(rw, rh);
-          const rad = (borderRadiusPercent / 100) * (minDimension / 2);
-
-          // WICHTIG: Muss mit deckender Farbe gefüllt werden, damit Schatten sichtbar ist
-          // Die Form wird später vom geclippten Bild überdeckt
-          ctx.fillStyle = '#ffffff';
-          ctx.beginPath();
-          ctx.moveTo(rx + rad, ry);
-          ctx.lineTo(rx + rw - rad, ry);
-          ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + rad);
-          ctx.lineTo(rx + rw, ry + rh - rad);
-          ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - rad, ry + rh);
-          ctx.lineTo(rx + rad, ry + rh);
-          ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - rad);
-          ctx.lineTo(rx, ry + rad);
-          ctx.quadraticCurveTo(rx, ry, rx + rad, ry);
-          ctx.closePath();
-          ctx.fill();
-          ctx.restore();
-        } else if (hasShadow) {
-          // Ohne Radius: Schatten normal setzen
-          const shadowOpacity = (layer.shadow.opacity || 50) / 100;
-          const hexColor = layer.shadow.color || '#000000';
-          const r = parseInt(hexColor.slice(1, 3), 16);
-          const g = parseInt(hexColor.slice(3, 5), 16);
-          const b = parseInt(hexColor.slice(5, 7), 16);
-          ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${shadowOpacity})`;
-          ctx.shadowBlur = layer.shadow.blur || 10;
-          ctx.shadowOffsetX = layer.shadow.offsetX || 5;
-          ctx.shadowOffsetY = layer.shadow.offsetY || 5;
-        }
-
-        // Umrandung mit Radius
-        const borderWidth = layer.border?.width || 0;
-
-        if (borderRadiusPercent > 0) {
-          // Clipping-Pfad für abgerundete Ecken
-          ctx.save();
-
-          // Schatten zurücksetzen für geclipptes Bild (wurde bereits separat gezeichnet)
-          ctx.shadowColor = 'transparent';
-          ctx.shadowBlur = 0;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-
-          ctx.beginPath();
-          const rx = layer.x;
-          const ry = layer.y;
-          const rw = layer.width;
-          const rh = layer.height;
-          // Konvertiere Prozent in Pixel (basierend auf kleinerer Dimension)
-          const minDimension = Math.min(rw, rh);
-          const rad = (borderRadiusPercent / 100) * (minDimension / 2);
-          ctx.moveTo(rx + rad, ry);
-          ctx.lineTo(rx + rw - rad, ry);
-          ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + rad);
-          ctx.lineTo(rx + rw, ry + rh - rad);
-          ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - rad, ry + rh);
-          ctx.lineTo(rx + rad, ry + rh);
-          ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - rad);
-          ctx.lineTo(rx, ry + rad);
-          ctx.quadraticCurveTo(rx, ry, rx + rad, ry);
-          ctx.closePath();
-          ctx.clip();
-
-          // Bild zeichnen (innerhalb des Clipping-Pfads)
-          ctx.drawImage(layerSource, layer.x, layer.y, layer.width, layer.height);
-
-          ctx.restore();
-
-          // Schatten zurücksetzen für Umrandung
-          ctx.shadowColor = 'transparent';
-          ctx.shadowBlur = 0;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-
-          // Umrandung zeichnen (außerhalb des Clips)
-          if (borderWidth > 0) {
-            ctx.strokeStyle = layer.border?.color || '#000000';
-            ctx.lineWidth = borderWidth;
-            ctx.beginPath();
-            ctx.moveTo(rx + rad, ry);
-            ctx.lineTo(rx + rw - rad, ry);
-            ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + rad);
-            ctx.lineTo(rx + rw, ry + rh - rad);
-            ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - rad, ry + rh);
-            ctx.lineTo(rx + rad, ry + rh);
-            ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - rad);
-            ctx.lineTo(rx, ry + rad);
-            ctx.quadraticCurveTo(rx, ry, rx + rad, ry);
-            ctx.closePath();
-            ctx.stroke();
-          }
-        } else {
-          // Bild ohne abgerundete Ecken zeichnen
-          ctx.drawImage(layerSource, layer.x, layer.y, layer.width, layer.height);
-
-          // Schatten zurücksetzen für Umrandung
-          ctx.shadowColor = 'transparent';
-          ctx.shadowBlur = 0;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-
-          // Rechteckige Umrandung zeichnen
-          if (borderWidth > 0) {
-            ctx.strokeStyle = layer.border?.color || '#000000';
-            ctx.lineWidth = borderWidth;
-            ctx.strokeRect(layer.x, layer.y, layer.width, layer.height);
-          }
-        }
-
-        ctx.restore();
-
-        // Auswahl-Rahmen zeichnen
-        if (layer.id === imageStore.selectedLayerId) {
-          drawLayerSelection(ctx, layer);
-        }
-      });
-
-      // Texte zeichnen
-      ctx.filter = 'none';
-      if (imageStore.texts && imageStore.texts.length > 0) {
-        imageStore.texts.forEach((text) => {
-          ctx.save();
-          const opacity = text.opacity !== undefined ? text.opacity : 100;
-          ctx.globalAlpha = opacity / 100;
-          const fontSize = text.fontSize || text.size || 32;
-          ctx.font = buildTextFontString(text);
-          ctx.fillStyle = text.color || '#000000';
-          ctx.textBaseline = 'top';
-
-          // Rotation + Neigung um den Textmittelpunkt
-          applyTextTransform(ctx, text);
-
-          // Schatten
-          if (text.shadowBlur && text.shadowBlur > 0) {
-            ctx.shadowColor = text.shadowColor || '#000000';
-            ctx.shadowBlur = text.shadowBlur;
-            ctx.shadowOffsetX = text.shadowOffsetX || 2;
-            ctx.shadowOffsetY = text.shadowOffsetY || 2;
-          }
-
-          // Text mit Kontur (Stroke) zeichnen
-          if (text.strokeWidth && text.strokeWidth > 0) {
-            ctx.strokeStyle = text.strokeColor || '#000000';
-            ctx.lineWidth = text.strokeWidth;
-            ctx.lineJoin = 'round';
-            ctx.strokeText(text.content || text.txt || '', text.x || 0, text.y || 0);
-          }
-
-          // Text füllen
-          ctx.fillText(text.content || text.txt || '', text.x || 0, text.y || 0);
-
-          // Auswahl-Rahmen für selektierten Text
-          if (text.id === selectedTextId.value) {
-            ctx.shadowColor = 'transparent';
-            ctx.shadowBlur = 0;
-            const metrics = ctx.measureText(text.content || text.txt || '');
-            ctx.strokeStyle = '#007bff';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([5, 5]);
-            ctx.strokeRect((text.x || 0) - 4, (text.y || 0) - 4, metrics.width + 8, fontSize + 8);
-            ctx.setLineDash([]);
-          }
-
-          ctx.restore();
-        });
-      }
-
-      return;
+    // Rotation um Mittelpunkt
+    if (layer.rotation !== 0) {
+      const centerX = layer.x + layer.width / 2;
+      const centerY = layer.y + layer.height / 2;
+      ctx.translate(centerX, centerY);
+      ctx.rotate((layer.rotation * Math.PI) / 180);
+      ctx.translate(-centerX, -centerY);
     }
 
-    if (!canvas.value || !currentImage.value) return;
+    // Spiegelung (horizontal und/oder vertikal)
+    if (layer.flipX || layer.flipY) {
+      const centerX = layer.x + layer.width / 2;
+      const centerY = layer.y + layer.height / 2;
+      ctx.translate(centerX, centerY);
+      ctx.scale(layer.flipX ? -1 : 1, layer.flipY ? -1 : 1);
+      ctx.translate(-centerX, -centerY);
+    }
 
-    const ctx = canvas.value.getContext('2d');
+    const hasShadow = layer.shadow && layer.shadow.enabled;
+    const borderRadiusPercent = layer.border?.radius || 0;
+    const borderWidth = layer.border?.width || 0;
+    // Radius in Pixeln (Prozent bezogen auf die halbe kleinere Kante)
+    const rad = (borderRadiusPercent / 100) * (Math.min(layer.width, layer.height) / 2);
+
+    // Schlagschatten - MUSS VOR dem Clipping gezeichnet werden
+    if (hasShadow && borderRadiusPercent > 0) {
+      // Bei abgerundeten Ecken: Schatten als separate, deckend gefüllte Form,
+      // die später vom geclippten Bild überdeckt wird
+      ctx.save();
+      applyLayerShadow(ctx, layer);
+      ctx.fillStyle = '#ffffff';
+      roundedRect(ctx, layer.x, layer.y, layer.width, layer.height, rad);
+      ctx.fill();
+      ctx.restore();
+    } else if (hasShadow) {
+      // Ohne Radius: Schatten direkt am gezeichneten Bild
+      applyLayerShadow(ctx, layer);
+    }
+
+    if (borderRadiusPercent > 0) {
+      // Bild innerhalb eines abgerundeten Clipping-Pfads zeichnen
+      ctx.save();
+      clearShadow(ctx);
+      roundedRect(ctx, layer.x, layer.y, layer.width, layer.height, rad);
+      ctx.clip();
+      ctx.drawImage(layerSource, layer.x, layer.y, layer.width, layer.height);
+      ctx.restore();
+
+      clearShadow(ctx);
+      if (borderWidth > 0) {
+        ctx.strokeStyle = layer.border?.color || '#000000';
+        ctx.lineWidth = borderWidth;
+        roundedRect(ctx, layer.x, layer.y, layer.width, layer.height, rad);
+        ctx.stroke();
+      }
+    } else {
+      ctx.drawImage(layerSource, layer.x, layer.y, layer.width, layer.height);
+
+      clearShadow(ctx);
+      if (borderWidth > 0) {
+        ctx.strokeStyle = layer.border?.color || '#000000';
+        ctx.lineWidth = borderWidth;
+        ctx.strokeRect(layer.x, layer.y, layer.width, layer.height);
+      }
+    }
+
+    ctx.restore();
+  }
+
+  /**
+   * Zeichnet eine Text-Ebene mit Deckkraft, Rotation/Neigung, Schatten und Kontur.
+   * @param {boolean} inlineSelection Auswahl-Rahmen direkt im transformierten
+   *   Kontext mitzeichnen (Collage-Vorschau)
+   */
+  function drawTextLayer(ctx, text, inlineSelection = false) {
+    ctx.save();
+
+    const opacity = text.opacity !== undefined ? text.opacity : 100;
+    ctx.globalAlpha = opacity / 100;
+    ctx.font = buildTextFontString(text);
+    ctx.fillStyle = text.color || '#000000';
+    ctx.textBaseline = 'top';
+
+    // Rotation + Neigung um den Textmittelpunkt
+    applyTextTransform(ctx, text);
+
+    // Schatten
+    if (text.shadowBlur && text.shadowBlur > 0) {
+      ctx.shadowColor = text.shadowColor || '#000000';
+      ctx.shadowBlur = text.shadowBlur;
+      ctx.shadowOffsetX = text.shadowOffsetX || 2;
+      ctx.shadowOffsetY = text.shadowOffsetY || 2;
+    }
+
+    const content = text.content || text.txt || '';
+    const x = text.x || 0;
+    const y = text.y || 0;
+
+    // Kontur (Stroke)
+    if (text.strokeWidth && text.strokeWidth > 0) {
+      ctx.strokeStyle = text.strokeColor || '#000000';
+      ctx.lineWidth = text.strokeWidth;
+      ctx.lineJoin = 'round';
+      ctx.strokeText(content, x, y);
+    }
+
+    ctx.fillText(content, x, y);
+
+    if (inlineSelection && text.id === selectedTextId.value) {
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      const metrics = ctx.measureText(content);
+      const fontSize = text.fontSize || text.size || 32;
+      ctx.strokeStyle = '#007bff';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.strokeRect(x - 4, y - 4, metrics.width + 8, fontSize + 8);
+      ctx.setLineDash([]);
+    }
+
+    ctx.restore();
+  }
+
+  /**
+   * Collage-Modus: Canvas-Hintergrund, alle sichtbaren Bild-Ebenen und Texte.
+   */
+  function renderCollage(ctx, { showSelection, forceTransparent, includeTexts }) {
     ctx.clearRect(0, 0, canvas.value.width, canvas.value.height);
 
-    // Berechne Shadow-Padding wenn Schatten aktiviert ist
-    let shadowPadding = 0;
-    if (transform.transforms.value.shadowEnabled) {
-      const offsetX = Math.abs(transform.transforms.value.shadowOffsetX);
-      const offsetY = Math.abs(transform.transforms.value.shadowOffsetY);
-      const blur = transform.transforms.value.shadowBlur;
-      // Padding = max(offset) + blur + extra margin
-      shadowPadding = Math.max(offsetX, offsetY) + blur + 10;
+    // Hintergrund (Canvas-Hintergrundfarbe aus dem imageStore)
+    const bgColor = imageStore.canvasBackgroundColor;
+    if (!forceTransparent && bgColor && bgColor !== 'transparent') {
+      ctx.save();
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, canvas.value.width, canvas.value.height);
+      ctx.restore();
     }
 
-    // Berechne Skew-Padding damit das geskewte Bild nicht abgeschnitten wird
+    imageStore.imageLayers.forEach((layer) => {
+      if (!layer.visible) return;
+      if (!layer.image || !layer.image.complete) {
+        if (showSelection) console.warn(`Layer "${layer.name}" hat kein gültiges Bild`);
+        return;
+      }
+
+      drawImageLayer(ctx, layer);
+
+      if (showSelection && layer.id === imageStore.selectedLayerId) {
+        drawLayerSelection(ctx, layer);
+      }
+    });
+
+    ctx.filter = 'none';
+    if (includeTexts && imageStore.texts && imageStore.texts.length > 0) {
+      imageStore.texts.forEach((text) => drawTextLayer(ctx, text, showSelection));
+    }
+  }
+
+  /**
+   * Normal-Modus: Hintergrund, transformiertes Hauptbild mit Schatten,
+   * Rahmen und abgerundeten Ecken, Vignette und Texte.
+   */
+  function renderSingleImage(
+    ctx,
+    { showSelection, forceTransparent, includeTexts, applyVignette }
+  ) {
+    const tf = transform.transforms.value;
+    ctx.clearRect(0, 0, canvas.value.width, canvas.value.height);
+
+    // Shadow-Padding, damit der Schatten nicht abgeschnitten wird
+    let shadowPadding = 0;
+    if (tf.shadowEnabled) {
+      const offsetX = Math.abs(tf.shadowOffsetX);
+      const offsetY = Math.abs(tf.shadowOffsetY);
+      // Padding = max(offset) + blur + extra margin
+      shadowPadding = Math.max(offsetX, offsetY) + tf.shadowBlur + 10;
+    }
+
+    // Skew-Padding, damit das geneigte Bild nicht abgeschnitten wird
     let skewPadX = 0;
     let skewPadY = 0;
-    if (transform.transforms.value.skewX !== 0 || transform.transforms.value.skewY !== 0) {
+    if (tf.skewX !== 0 || tf.skewY !== 0) {
       skewPadX = Math.ceil(
-        (Math.abs(Math.tan((transform.transforms.value.skewX * Math.PI) / 180)) *
-          canvas.value.height) /
-          2
+        (Math.abs(Math.tan((tf.skewX * Math.PI) / 180)) * canvas.value.height) / 2
       );
       skewPadY = Math.ceil(
-        (Math.abs(Math.tan((transform.transforms.value.skewY * Math.PI) / 180)) *
-          canvas.value.width) /
-          2
+        (Math.abs(Math.tan((tf.skewY * Math.PI) / 180)) * canvas.value.width) / 2
       );
     }
 
-    // Berechne Rotations-Padding damit das rotierte Bild nicht abgeschnitten wird
+    // Rotations-Padding, damit das rotierte Bild nicht abgeschnitten wird.
     // Einheitlicher Skalierungsfaktor bewahrt das Seitenverhältnis (auch bei Rechtecken)
     let rotPadX = 0;
     let rotPadY = 0;
-    if (transform.transforms.value.rotation !== 0) {
-      const radians = (transform.transforms.value.rotation * Math.PI) / 180;
+    if (tf.rotation !== 0) {
+      const radians = (tf.rotation * Math.PI) / 180;
       const cos = Math.abs(Math.cos(radians));
       const sin = Math.abs(Math.sin(radians));
       const w = canvas.value.width - (shadowPadding + skewPadX) * 2;
@@ -421,7 +373,7 @@ export function useCanvasRenderer({
       rotPadY = Math.ceil((h * (1 - scale)) / 2);
     }
 
-    // Berechne Bildbereich mit Padding (Shadow + Skew + Rotation)
+    // Bildbereich mit Padding (Shadow + Skew + Rotation)
     const totalPadX = shadowPadding + skewPadX + rotPadX;
     const totalPadY = shadowPadding + skewPadY + rotPadY;
     const drawX = totalPadX;
@@ -429,8 +381,8 @@ export function useCanvasRenderer({
     const drawWidth = canvas.value.width - totalPadX * 2;
     const drawHeight = canvas.value.height - totalPadY * 2;
 
-    // Hintergrund zeichnen (unterste Ebene)
-    if (background.value.opacity > 0) {
+    // Hintergrund (unterste Ebene)
+    if (!forceTransparent && background.value.opacity > 0) {
       ctx.save();
       ctx.globalAlpha = background.value.opacity / 100;
       ctx.fillStyle = background.value.color;
@@ -438,130 +390,96 @@ export function useCanvasRenderer({
       ctx.restore();
     }
 
-    // Wende Transformationen an (temporär für Vorschau)
+    // Transformationen (temporär, wird am Ende wieder zurückgenommen)
     const restoreTransform = transform.applyToCanvas(canvas.value, ctx);
 
-    // Echte Tonwert-Anpassungen (Belichtung, Helligkeit, Kontrast,
-    // Lichter, Schatten, Sättigung) werden pixelbasiert in die
-    // Zeichenquelle gebacken. Die verbleibenden Effekt-Filter (Blur,
-    // Farbton, Sepia, Graustufen, Invertieren) bleiben CSS-Filter.
+    // Echte Tonwert-Anpassungen (Belichtung, Helligkeit, Kontrast, Lichter,
+    // Schatten, Sättigung) werden pixelbasiert in die Zeichenquelle gebacken.
+    // Die verbleibenden Effekt-Filter (Blur, Farbton, Sepia, Graustufen,
+    // Invertieren) bleiben CSS-Filter.
     const { el: adjustedSource, cssFilter: filterString } = getAdjustedImage(
       currentImage.value,
       filters.value
     );
-
     ctx.filter = filterString;
 
-    // Berechne BorderRadius in Pixeln für den Zeichenbereich
-    const getBorderRadiusForDraw = () => {
-      const radiusPercent = transform.transforms.value.borderRadius;
-      const minDimension = Math.min(drawWidth, drawHeight);
-      return (radiusPercent / 100) * minDimension;
+    const isCircle = tf.borderRadius >= 50;
+    const isRounded = tf.borderRadius > 0;
+    const radiusPx = (tf.borderRadius / 100) * Math.min(drawWidth, drawHeight);
+    const centerX = drawX + drawWidth / 2;
+    const centerY = drawY + drawHeight / 2;
+    const circleRadius = Math.min(drawWidth, drawHeight) / 2;
+
+    // Baut den Pfad der Bildform (Kreis, abgerundetes Rechteck oder Rechteck)
+    const tracePath = () => {
+      if (isCircle) {
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, circleRadius, 0, Math.PI * 2);
+      } else {
+        roundedRect(ctx, drawX, drawY, drawWidth, drawHeight, radiusPx);
+      }
     };
 
     // Schlagschatten (Drop Shadow) - muss VOR dem Clipping gezeichnet werden
-    if (transform.transforms.value.shadowEnabled) {
+    if (tf.shadowEnabled) {
       ctx.save();
-      // Reset filter für Schatten
       ctx.filter = 'none';
+      ctx.shadowColor = hexToRgba(tf.shadowColor, tf.shadowOpacity / 100);
+      ctx.shadowBlur = tf.shadowBlur;
+      ctx.shadowOffsetX = tf.shadowOffsetX;
+      ctx.shadowOffsetY = tf.shadowOffsetY;
 
-      // Berechne Schatten-Farbe mit Deckkraft
-      const shadowOpacity = transform.transforms.value.shadowOpacity / 100;
-      const shadowColor = transform.transforms.value.shadowColor;
-      // Konvertiere Hex zu RGBA
-      const r = parseInt(shadowColor.slice(1, 3), 16);
-      const g = parseInt(shadowColor.slice(3, 5), 16);
-      const b = parseInt(shadowColor.slice(5, 7), 16);
-
-      ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${shadowOpacity})`;
-      ctx.shadowBlur = transform.transforms.value.shadowBlur;
-      ctx.shadowOffsetX = transform.transforms.value.shadowOffsetX;
-      ctx.shadowOffsetY = transform.transforms.value.shadowOffsetY;
-
-      // Zeichne die Schatten-Form (abhängig von borderRadius) - mit Padding
-      ctx.fillStyle = 'rgba(0, 0, 0, 1)'; // Nur für die Schatten-Silhouette
-      if (transform.transforms.value.borderRadius >= 50) {
-        // Kreis-Schatten
-        const centerX = drawX + drawWidth / 2;
-        const centerY = drawY + drawHeight / 2;
-        const radius = Math.min(drawWidth, drawHeight) / 2;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (transform.transforms.value.borderRadius > 0) {
-        // Abgerundetes Rechteck-Schatten
-        roundedRect(ctx, drawX, drawY, drawWidth, drawHeight, getBorderRadiusForDraw());
+      // Schatten-Silhouette in der Form des Bildes (mit Padding)
+      ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+      if (isRounded) {
+        tracePath();
         ctx.fill();
       } else {
-        // Normales Rechteck-Schatten
         ctx.fillRect(drawX, drawY, drawWidth, drawHeight);
       }
       ctx.restore();
 
-      // Filter wieder anwenden
       ctx.filter = filterString;
     }
 
-    // Border Radius (abgerundete Ecken)
-    if (transform.transforms.value.borderRadius > 0) {
+    // Abgerundete Ecken / Kreis als Clipping-Pfad
+    if (isRounded) {
       ctx.save();
-      if (transform.transforms.value.borderRadius >= 50) {
-        // Vollständiger Kreis-Clip (50% = perfekter Kreis)
-        const centerX = drawX + drawWidth / 2;
-        const centerY = drawY + drawHeight / 2;
-        const radius = Math.min(drawWidth, drawHeight) / 2;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-        ctx.clip();
-      } else {
-        roundedRect(ctx, drawX, drawY, drawWidth, drawHeight, getBorderRadiusForDraw());
-        ctx.clip();
-      }
+      tracePath();
+      ctx.clip();
     }
 
     ctx.drawImage(adjustedSource, drawX, drawY, drawWidth, drawHeight);
 
-    // Border zeichnen
-    if (transform.transforms.value.borderWidth > 0) {
-      ctx.strokeStyle = transform.transforms.value.borderColor;
-      ctx.lineWidth = transform.transforms.value.borderWidth;
-      if (transform.transforms.value.borderRadius >= 50) {
-        // Vollständiger Kreis (50% = perfekter Kreis)
-        const centerX = drawX + drawWidth / 2;
-        const centerY = drawY + drawHeight / 2;
-        const radius =
-          Math.min(drawWidth, drawHeight) / 2 - transform.transforms.value.borderWidth / 2;
+    // Rahmen
+    if (tf.borderWidth > 0) {
+      ctx.strokeStyle = tf.borderColor;
+      ctx.lineWidth = tf.borderWidth;
+      if (isCircle) {
         ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        ctx.arc(centerX, centerY, circleRadius - tf.borderWidth / 2, 0, Math.PI * 2);
         ctx.stroke();
-      } else if (transform.transforms.value.borderRadius > 0) {
-        roundedRect(ctx, drawX, drawY, drawWidth, drawHeight, getBorderRadiusForDraw());
+      } else if (isRounded) {
+        roundedRect(ctx, drawX, drawY, drawWidth, drawHeight, radiusPx);
         ctx.stroke();
       } else {
         ctx.strokeRect(drawX, drawY, drawWidth, drawHeight);
       }
     }
 
-    if (transform.transforms.value.borderRadius > 0) {
+    if (isRounded) {
       ctx.restore();
     }
 
-    // Vignette-Effekt anwenden
-    if (filters.value.vignette > 0) {
+    // Vignette-Overlay
+    if (applyVignette && filters.value.vignette > 0) {
       ctx.save();
       const vignetteStrength = filters.value.vignette / 100;
-      const centerX = canvas.value.width / 2;
-      const centerY = canvas.value.height / 2;
-      const radius = Math.max(centerX, centerY) * (1.5 - vignetteStrength * 0.5);
+      const cx = canvas.value.width / 2;
+      const cy = canvas.value.height / 2;
+      const radius = Math.max(cx, cy) * (1.5 - vignetteStrength * 0.5);
 
-      const gradient = ctx.createRadialGradient(
-        centerX,
-        centerY,
-        radius * 0.3,
-        centerX,
-        centerY,
-        radius
-      );
+      const gradient = ctx.createRadialGradient(cx, cy, radius * 0.3, cx, cy, radius);
       gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
       gradient.addColorStop(0.5, `rgba(0, 0, 0, ${vignetteStrength * 0.3})`);
       gradient.addColorStop(1, `rgba(0, 0, 0, ${vignetteStrength * 0.8})`);
@@ -571,481 +489,66 @@ export function useCanvasRenderer({
       ctx.restore();
     }
 
-    // Reset filter for texts
+    // Filter zurücksetzen und Transformation zurücknehmen, bevor Texte gezeichnet werden
     ctx.filter = 'none';
-
-    // Restore Transform
     if (restoreTransform) {
       restoreTransform();
     }
 
-    // Draw texts from imageStore (ohne Auswahl-Markierung für sauberen Export)
-    if (imageStore.texts && imageStore.texts.length > 0) {
-      imageStore.texts.forEach((text) => {
-        ctx.save();
-
-        // Deckkraft anwenden
-        const opacity = text.opacity !== undefined ? text.opacity : 100;
-        ctx.globalAlpha = opacity / 100;
-
-        ctx.font = buildTextFontString(text);
-        ctx.fillStyle = text.color || '#000000';
-        ctx.textBaseline = 'top';
-
-        // Schatten anwenden
-        if (text.shadowBlur && text.shadowBlur > 0) {
-          ctx.shadowColor = text.shadowColor || '#000000';
-          ctx.shadowBlur = text.shadowBlur;
-          ctx.shadowOffsetX = text.shadowOffsetX || 2;
-          ctx.shadowOffsetY = text.shadowOffsetY || 2;
-        }
-
-        // Rotation + Neigung um den Textmittelpunkt
-        applyTextTransform(ctx, text);
-
-        // Umrandung (Stroke) zeichnen
-        if (text.strokeWidth && text.strokeWidth > 0) {
-          ctx.strokeStyle = text.strokeColor || '#000000';
-          ctx.lineWidth = text.strokeWidth;
-          ctx.lineJoin = 'round';
-          ctx.strokeText(text.content || text.txt || '', text.x || 0, text.y || 0);
-        }
-
-        // Text füllen
-        ctx.fillText(text.content || text.txt || '', text.x || 0, text.y || 0);
-        ctx.restore();
-      });
+    if (includeTexts && imageStore.texts && imageStore.texts.length > 0) {
+      imageStore.texts.forEach((text) => drawTextLayer(ctx, text));
     }
 
-    // Text-Auswahl separat zeichnen (nur für Vorschau, nicht auf Canvas für Export)
-    drawTextSelection();
+    // Text-Auswahl als Overlay (nur Vorschau)
+    if (showSelection) {
+      drawTextSelection();
+    }
   }
 
-  // Rendert Bild ohne Auswahl-Markierung (für Export)
-  // includeTexts=false backt nur das Bild/die Ebenen ohne Text-Overlays (z.B. beim
-  // "Bild vom Hintergrund lösen", damit Text als separate Ebene erhalten bleibt)
-  function renderImageForExport(forceTransparent = false, includeTexts = true) {
-    // Im Collage-Modus: Zeichne Layer direkt ohne Auswahl-Markierung
+  /**
+   * Gemeinsamer Render-Pfad für Vorschau und Export.
+   *
+   * @param {Object}  opts
+   * @param {boolean} opts.showSelection    Auswahl-Rahmen für Ebene/Text zeichnen (nur Vorschau)
+   * @param {boolean} opts.forceTransparent Hintergrund weglassen (transparenter Export)
+   * @param {boolean} opts.includeTexts     Text-Ebenen mitzeichnen
+   * @param {boolean} opts.applyVignette    Vignette-Overlay zeichnen (bisher nur in der Vorschau)
+   */
+  function renderScene(opts) {
+    if (!canvas.value) return;
+    const ctx = canvas.value.getContext('2d');
+
     if (isCollageMode.value && imageStore.hasImageLayers) {
-      const ctx = canvas.value.getContext('2d');
-      ctx.clearRect(0, 0, canvas.value.width, canvas.value.height);
-
-      // Hintergrund zeichnen (nur wenn nicht transparent forciert wird)
-      const bgColor = imageStore.canvasBackgroundColor;
-      if (!forceTransparent && bgColor && bgColor !== 'transparent') {
-        ctx.save();
-        ctx.fillStyle = bgColor;
-        ctx.fillRect(0, 0, canvas.value.width, canvas.value.height);
-        ctx.restore();
-      }
-
-      // Layer direkt zeichnen (ohne Auswahl-Markierung für Export)
-      imageStore.imageLayers.forEach((layer) => {
-        if (!layer.visible) return;
-        if (!layer.image || !layer.image.complete) return;
-
-        ctx.save();
-
-        // Deckkraft
-        ctx.globalAlpha = layer.opacity / 100;
-
-        // Echte, pixelbasierte Tonwert-Anpassungen (Helligkeit, Kontrast,
-        // Sättigung) werden in die Ebenen-Quelle gebacken; Effekt-Filter
-        // (Graustufen, Sepia) bleiben CSS-Filter – wie beim Hauptbild.
-        const { el: layerSource, cssFilter: layerCssFilter } = getAdjustedImage(
-          layer.image,
-          layer.filters
-        );
-        ctx.filter = layerCssFilter;
-
-        // Rotation um Mittelpunkt
-        if (layer.rotation !== 0) {
-          const centerX = layer.x + layer.width / 2;
-          const centerY = layer.y + layer.height / 2;
-          ctx.translate(centerX, centerY);
-          ctx.rotate((layer.rotation * Math.PI) / 180);
-          ctx.translate(-centerX, -centerY);
-        }
-
-        // Spiegelung (horizontal und/oder vertikal)
-        if (layer.flipX || layer.flipY) {
-          const centerX = layer.x + layer.width / 2;
-          const centerY = layer.y + layer.height / 2;
-          ctx.translate(centerX, centerY);
-          ctx.scale(layer.flipX ? -1 : 1, layer.flipY ? -1 : 1);
-          ctx.translate(-centerX, -centerY);
-        }
-
-        // Schlagschatten für Layer - MUSS VOR dem Clipping gezeichnet werden
-        const hasShadow = layer.shadow && layer.shadow.enabled;
-        const borderRadiusPercent = layer.border?.radius || 0;
-
-        if (hasShadow && borderRadiusPercent > 0) {
-          // Bei abgerundeten Ecken: Schatten als separate Form zeichnen
-          ctx.save();
-          const shadowOpacity = (layer.shadow.opacity || 50) / 100;
-          const hexColor = layer.shadow.color || '#000000';
-          const r = parseInt(hexColor.slice(1, 3), 16);
-          const g = parseInt(hexColor.slice(3, 5), 16);
-          const b = parseInt(hexColor.slice(5, 7), 16);
-
-          ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${shadowOpacity})`;
-          ctx.shadowBlur = layer.shadow.blur || 10;
-          ctx.shadowOffsetX = layer.shadow.offsetX || 5;
-          ctx.shadowOffsetY = layer.shadow.offsetY || 5;
-
-          // Schattenform als abgerundetes Rechteck zeichnen
-          const rx = layer.x;
-          const ry = layer.y;
-          const rw = layer.width;
-          const rh = layer.height;
-          const minDimension = Math.min(rw, rh);
-          const rad = (borderRadiusPercent / 100) * (minDimension / 2);
-
-          // WICHTIG: Muss mit deckender Farbe gefüllt werden, damit Schatten sichtbar ist
-          ctx.fillStyle = '#ffffff';
-          ctx.beginPath();
-          ctx.moveTo(rx + rad, ry);
-          ctx.lineTo(rx + rw - rad, ry);
-          ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + rad);
-          ctx.lineTo(rx + rw, ry + rh - rad);
-          ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - rad, ry + rh);
-          ctx.lineTo(rx + rad, ry + rh);
-          ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - rad);
-          ctx.lineTo(rx, ry + rad);
-          ctx.quadraticCurveTo(rx, ry, rx + rad, ry);
-          ctx.closePath();
-          ctx.fill();
-          ctx.restore();
-        } else if (hasShadow) {
-          const shadowOpacity = (layer.shadow.opacity || 50) / 100;
-          const hexColor = layer.shadow.color || '#000000';
-          const r = parseInt(hexColor.slice(1, 3), 16);
-          const g = parseInt(hexColor.slice(3, 5), 16);
-          const b = parseInt(hexColor.slice(5, 7), 16);
-          ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${shadowOpacity})`;
-          ctx.shadowBlur = layer.shadow.blur || 10;
-          ctx.shadowOffsetX = layer.shadow.offsetX || 5;
-          ctx.shadowOffsetY = layer.shadow.offsetY || 5;
-        }
-
-        // Umrandung mit Radius
-        const borderWidth = layer.border?.width || 0;
-
-        if (borderRadiusPercent > 0) {
-          // Clipping-Pfad für abgerundete Ecken
-          ctx.save();
-
-          // Schatten zurücksetzen für geclipptes Bild
-          ctx.shadowColor = 'transparent';
-          ctx.shadowBlur = 0;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-
-          ctx.beginPath();
-          const rx = layer.x;
-          const ry = layer.y;
-          const rw = layer.width;
-          const rh = layer.height;
-          const minDimension = Math.min(rw, rh);
-          const rad = (borderRadiusPercent / 100) * (minDimension / 2);
-          ctx.moveTo(rx + rad, ry);
-          ctx.lineTo(rx + rw - rad, ry);
-          ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + rad);
-          ctx.lineTo(rx + rw, ry + rh - rad);
-          ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - rad, ry + rh);
-          ctx.lineTo(rx + rad, ry + rh);
-          ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - rad);
-          ctx.lineTo(rx, ry + rad);
-          ctx.quadraticCurveTo(rx, ry, rx + rad, ry);
-          ctx.closePath();
-          ctx.clip();
-
-          ctx.drawImage(layerSource, layer.x, layer.y, layer.width, layer.height);
-          ctx.restore();
-
-          // Schatten zurücksetzen für Umrandung
-          ctx.shadowColor = 'transparent';
-          ctx.shadowBlur = 0;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-
-          if (borderWidth > 0) {
-            ctx.strokeStyle = layer.border?.color || '#000000';
-            ctx.lineWidth = borderWidth;
-            ctx.beginPath();
-            ctx.moveTo(rx + rad, ry);
-            ctx.lineTo(rx + rw - rad, ry);
-            ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + rad);
-            ctx.lineTo(rx + rw, ry + rh - rad);
-            ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - rad, ry + rh);
-            ctx.lineTo(rx + rad, ry + rh);
-            ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - rad);
-            ctx.lineTo(rx, ry + rad);
-            ctx.quadraticCurveTo(rx, ry, rx + rad, ry);
-            ctx.closePath();
-            ctx.stroke();
-          }
-        } else {
-          ctx.drawImage(layerSource, layer.x, layer.y, layer.width, layer.height);
-
-          ctx.shadowColor = 'transparent';
-          ctx.shadowBlur = 0;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-
-          if (borderWidth > 0) {
-            ctx.strokeStyle = layer.border?.color || '#000000';
-            ctx.lineWidth = borderWidth;
-            ctx.strokeRect(layer.x, layer.y, layer.width, layer.height);
-          }
-        }
-
-        ctx.restore();
-      });
-
-      // Texte zeichnen für Export
-      ctx.filter = 'none';
-      if (includeTexts && imageStore.texts && imageStore.texts.length > 0) {
-        imageStore.texts.forEach((text) => {
-          ctx.save();
-          const opacity = text.opacity !== undefined ? text.opacity : 100;
-          ctx.globalAlpha = opacity / 100;
-          ctx.font = buildTextFontString(text);
-          ctx.fillStyle = text.color || '#000000';
-          ctx.textBaseline = 'top';
-
-          // Rotation + Neigung um den Textmittelpunkt
-          applyTextTransform(ctx, text);
-
-          // Schatten
-          if (text.shadowBlur && text.shadowBlur > 0) {
-            ctx.shadowColor = text.shadowColor || '#000000';
-            ctx.shadowBlur = text.shadowBlur;
-            ctx.shadowOffsetX = text.shadowOffsetX || 2;
-            ctx.shadowOffsetY = text.shadowOffsetY || 2;
-          }
-
-          // Text mit Kontur (Stroke) zeichnen
-          if (text.strokeWidth && text.strokeWidth > 0) {
-            ctx.strokeStyle = text.strokeColor || '#000000';
-            ctx.lineWidth = text.strokeWidth;
-            ctx.lineJoin = 'round';
-            ctx.strokeText(text.content || text.txt || '', text.x || 0, text.y || 0);
-          }
-
-          // Text füllen
-          ctx.fillText(text.content || text.txt || '', text.x || 0, text.y || 0);
-          ctx.restore();
-        });
-      }
-
+      renderCollage(ctx, opts);
       return;
     }
 
-    if (!canvas.value || !currentImage.value) return;
+    if (!currentImage.value) return;
+    renderSingleImage(ctx, opts);
+  }
 
-    const ctx = canvas.value.getContext('2d');
-    ctx.clearRect(0, 0, canvas.value.width, canvas.value.height);
+  // Vorschau: mit Auswahl-Markierungen, Hintergrund, Texten und Vignette
+  function renderImage() {
+    renderScene({
+      showSelection: true,
+      forceTransparent: false,
+      includeTexts: true,
+      applyVignette: true,
+    });
+  }
 
-    // Berechne Shadow-Padding wenn Schatten aktiviert ist
-    let shadowPadding = 0;
-    if (transform.transforms.value.shadowEnabled) {
-      const offsetX = Math.abs(transform.transforms.value.shadowOffsetX);
-      const offsetY = Math.abs(transform.transforms.value.shadowOffsetY);
-      const blur = transform.transforms.value.shadowBlur;
-      shadowPadding = Math.max(offsetX, offsetY) + blur + 10;
-    }
-
-    // Berechne Skew-Padding damit das geskewte Bild nicht abgeschnitten wird
-    let skewPadX = 0;
-    let skewPadY = 0;
-    if (transform.transforms.value.skewX !== 0 || transform.transforms.value.skewY !== 0) {
-      skewPadX = Math.ceil(
-        (Math.abs(Math.tan((transform.transforms.value.skewX * Math.PI) / 180)) *
-          canvas.value.height) /
-          2
-      );
-      skewPadY = Math.ceil(
-        (Math.abs(Math.tan((transform.transforms.value.skewY * Math.PI) / 180)) *
-          canvas.value.width) /
-          2
-      );
-    }
-
-    // Berechne Rotations-Padding damit das rotierte Bild nicht abgeschnitten wird
-    // Einheitlicher Skalierungsfaktor bewahrt das Seitenverhältnis (auch bei Rechtecken)
-    let rotPadX = 0;
-    let rotPadY = 0;
-    if (transform.transforms.value.rotation !== 0) {
-      const radians = (transform.transforms.value.rotation * Math.PI) / 180;
-      const cos = Math.abs(Math.cos(radians));
-      const sin = Math.abs(Math.sin(radians));
-      const w = canvas.value.width - (shadowPadding + skewPadX) * 2;
-      const h = canvas.value.height - (shadowPadding + skewPadY) * 2;
-      const rotatedW = w * cos + h * sin;
-      const rotatedH = w * sin + h * cos;
-      const scale = Math.min(w / rotatedW, h / rotatedH);
-      rotPadX = Math.ceil((w * (1 - scale)) / 2);
-      rotPadY = Math.ceil((h * (1 - scale)) / 2);
-    }
-
-    // Berechne Bildbereich mit Padding (Shadow + Skew + Rotation)
-    const totalPadX = shadowPadding + skewPadX + rotPadX;
-    const totalPadY = shadowPadding + skewPadY + rotPadY;
-    const drawX = totalPadX;
-    const drawY = totalPadY;
-    const drawWidth = canvas.value.width - totalPadX * 2;
-    const drawHeight = canvas.value.height - totalPadY * 2;
-
-    // Hintergrund zeichnen (nur wenn nicht transparent forciert wird)
-    if (!forceTransparent && background.value.opacity > 0) {
-      ctx.save();
-      ctx.globalAlpha = background.value.opacity / 100;
-      ctx.fillStyle = background.value.color;
-      ctx.fillRect(0, 0, canvas.value.width, canvas.value.height);
-      ctx.restore();
-    }
-
-    // Transformationen
-    const restoreTransform = transform.applyToCanvas(canvas.value, ctx);
-
-    // Filter: echte Tonwert-Anpassungen in die Quelle backen,
-    // Effekt-Filter als CSS anwenden (identisch zur Vorschau).
-    const { el: adjustedSource, cssFilter: filterString } = getAdjustedImage(
-      currentImage.value,
-      filters.value
-    );
-    ctx.filter = filterString;
-
-    // Berechne BorderRadius in Pixeln für den Zeichenbereich
-    const getBorderRadiusForDraw = () => {
-      const radiusPercent = transform.transforms.value.borderRadius;
-      const minDimension = Math.min(drawWidth, drawHeight);
-      return (radiusPercent / 100) * minDimension;
-    };
-
-    // Schlagschatten (Drop Shadow) für Export
-    if (transform.transforms.value.shadowEnabled) {
-      ctx.save();
-      ctx.filter = 'none';
-
-      const shadowOpacity = transform.transforms.value.shadowOpacity / 100;
-      const shadowColor = transform.transforms.value.shadowColor;
-      const r = parseInt(shadowColor.slice(1, 3), 16);
-      const g = parseInt(shadowColor.slice(3, 5), 16);
-      const b = parseInt(shadowColor.slice(5, 7), 16);
-
-      ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${shadowOpacity})`;
-      ctx.shadowBlur = transform.transforms.value.shadowBlur;
-      ctx.shadowOffsetX = transform.transforms.value.shadowOffsetX;
-      ctx.shadowOffsetY = transform.transforms.value.shadowOffsetY;
-
-      ctx.fillStyle = 'rgba(0, 0, 0, 1)';
-      if (transform.transforms.value.borderRadius >= 50) {
-        const centerX = drawX + drawWidth / 2;
-        const centerY = drawY + drawHeight / 2;
-        const radius = Math.min(drawWidth, drawHeight) / 2;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (transform.transforms.value.borderRadius > 0) {
-        roundedRect(ctx, drawX, drawY, drawWidth, drawHeight, getBorderRadiusForDraw());
-        ctx.fill();
-      } else {
-        ctx.fillRect(drawX, drawY, drawWidth, drawHeight);
-      }
-      ctx.restore();
-      ctx.filter = filterString;
-    }
-
-    // Border Radius
-    if (transform.transforms.value.borderRadius > 0) {
-      ctx.save();
-      if (transform.transforms.value.borderRadius >= 50) {
-        // Vollständiger Kreis-Clip (50% = perfekter Kreis)
-        const centerX = drawX + drawWidth / 2;
-        const centerY = drawY + drawHeight / 2;
-        const radius = Math.min(drawWidth, drawHeight) / 2;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-        ctx.clip();
-      } else {
-        roundedRect(ctx, drawX, drawY, drawWidth, drawHeight, getBorderRadiusForDraw());
-        ctx.clip();
-      }
-    }
-
-    ctx.drawImage(adjustedSource, drawX, drawY, drawWidth, drawHeight);
-
-    // Border
-    if (transform.transforms.value.borderWidth > 0) {
-      ctx.strokeStyle = transform.transforms.value.borderColor;
-      ctx.lineWidth = transform.transforms.value.borderWidth;
-      if (transform.transforms.value.borderRadius >= 50) {
-        // Vollständiger Kreis (50% = perfekter Kreis)
-        const centerX = drawX + drawWidth / 2;
-        const centerY = drawY + drawHeight / 2;
-        const radius =
-          Math.min(drawWidth, drawHeight) / 2 - transform.transforms.value.borderWidth / 2;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-        ctx.stroke();
-      } else if (transform.transforms.value.borderRadius > 0) {
-        roundedRect(ctx, drawX, drawY, drawWidth, drawHeight, getBorderRadiusForDraw());
-        ctx.stroke();
-      } else {
-        ctx.strokeRect(drawX, drawY, drawWidth, drawHeight);
-      }
-    }
-
-    if (transform.transforms.value.borderRadius > 0) {
-      ctx.restore();
-    }
-
-    ctx.filter = 'none';
-
-    if (restoreTransform) {
-      restoreTransform();
-    }
-
-    // Texte OHNE Auswahl-Markierung (mit Rotation, Deckkraft, Umrandung und Schatten)
-    if (includeTexts && imageStore.texts && imageStore.texts.length > 0) {
-      imageStore.texts.forEach((text) => {
-        ctx.save();
-
-        // Deckkraft anwenden
-        const opacity = text.opacity !== undefined ? text.opacity : 100;
-        ctx.globalAlpha = opacity / 100;
-
-        ctx.font = buildTextFontString(text);
-        ctx.fillStyle = text.color || '#000000';
-        ctx.textBaseline = 'top';
-
-        // Schatten anwenden
-        if (text.shadowBlur && text.shadowBlur > 0) {
-          ctx.shadowColor = text.shadowColor || '#000000';
-          ctx.shadowBlur = text.shadowBlur;
-          ctx.shadowOffsetX = text.shadowOffsetX || 2;
-          ctx.shadowOffsetY = text.shadowOffsetY || 2;
-        }
-
-        // Rotation + Neigung um den Textmittelpunkt
-        applyTextTransform(ctx, text);
-
-        // Umrandung (Stroke) zeichnen
-        if (text.strokeWidth && text.strokeWidth > 0) {
-          ctx.strokeStyle = text.strokeColor || '#000000';
-          ctx.lineWidth = text.strokeWidth;
-          ctx.lineJoin = 'round';
-          ctx.strokeText(text.content || text.txt || '', text.x || 0, text.y || 0);
-        }
-
-        // Text füllen
-        ctx.fillText(text.content || text.txt || '', text.x || 0, text.y || 0);
-        ctx.restore();
-      });
-    }
+  // Export: ohne Auswahl-Markierungen.
+  // forceTransparent=true lässt den Hintergrund weg (z.B. PNG mit Transparenz).
+  // includeTexts=false backt nur das Bild/die Ebenen ohne Text-Overlays (z.B. beim
+  // "Bild vom Hintergrund lösen", damit Text als separate Ebene erhalten bleibt).
+  // Hinweis: Die Vignette wurde im Export-Pfad nie gezeichnet; das bleibt hier so.
+  function renderImageForExport(forceTransparent = false, includeTexts = true) {
+    renderScene({
+      showSelection: false,
+      forceTransparent,
+      includeTexts,
+      applyVignette: false,
+    });
   }
 
   return {
