@@ -1,4 +1,5 @@
 import { ApiClient } from '@/api/api';
+import { needsBackendPreview, readFileAsDataURL, loadImage } from '@/utils/fileUtils';
 
 export function useImageLoader({
   currentImageFormat,
@@ -9,12 +10,6 @@ export function useImageLoader({
   currentFileName,
   onImageReady,
 }) {
-  function needsBackendPreview(file) {
-    const unsupportedTypes = ['image/tiff', 'image/heic', 'image/heif'];
-    if (unsupportedTypes.includes(file.type)) return true;
-    return /\.(tiff?|heic|heif)$/i.test(file.name);
-  }
-
   async function loadFileIntoEditor(file) {
     const fileType = file.type ? file.type.split('/')[1] : file.name.split('.').pop().toLowerCase();
     currentImageFormat.value = fileType === 'jpeg' ? 'jpg' : fileType;
@@ -25,19 +20,10 @@ export function useImageLoader({
       const pngBlob = await ApiClient.convertImage(file, 'png', file.name, {});
       imageUrl = URL.createObjectURL(pngBlob);
     } else {
-      imageUrl = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target.result);
-        reader.readAsDataURL(file);
-      });
+      imageUrl = await readFileAsDataURL(file);
     }
 
-    const img = await new Promise((resolve, reject) => {
-      const i = new Image();
-      i.onload = () => resolve(i);
-      i.onerror = () => reject(new Error('Bild konnte nicht geladen werden'));
-      i.src = imageUrl;
-    });
+    const img = await loadImage(imageUrl);
 
     originalImageDataUrl.value = imageUrl;
     originalImage.value = img;

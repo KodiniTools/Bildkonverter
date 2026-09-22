@@ -169,6 +169,14 @@ import { useI18n } from 'vue-i18n';
 import { formatConversions } from '@/router/index.js';
 import { FORMAT_INFO } from '@/utils/exportUtils';
 import { ApiClient } from '@/api/api';
+import {
+  isImageFile,
+  needsBackendPreview,
+  readFileAsDataURL,
+  loadImage,
+  formatSize,
+} from '@/utils/fileUtils';
+import { drawImageToCanvas, convertCanvasToFormat } from '@/utils/conversionUtils';
 
 const { t } = useI18n({ useScope: 'global' });
 
@@ -257,12 +265,6 @@ function handleFileSelect(event) {
   if (file) startConversion(file);
 }
 
-function isImageFile(file) {
-  if (file.type.startsWith('image/')) return true;
-  // Fallback: check extension when MIME type is missing (common for TIFF/HEIC)
-  return /\.(jpe?g|png|gif|webp|bmp|svg|tiff?|heic|heif)$/i.test(file.name);
-}
-
 function handleDrop(event) {
   event.preventDefault();
   isDragging.value = false;
@@ -272,111 +274,6 @@ function handleDrop(event) {
   } else if (file) {
     window.$toast?.warning(t('toast.batch.noImages'));
   }
-}
-
-function loadImage(src) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('Bild konnte nicht geladen werden'));
-    img.src = src;
-  });
-}
-
-function canvasToBlob(canvas, mimeType, quality) {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => {
-        if (blob) resolve(blob);
-        else reject(new Error('Konvertierung fehlgeschlagen'));
-      },
-      mimeType,
-      quality
-    );
-  });
-}
-
-function readFileAsDataURL(file) {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = (e) => resolve(e.target.result);
-    reader.readAsDataURL(file);
-  });
-}
-
-/**
- * Converts an image to PDF using jsPDF (dynamic import)
- */
-async function convertToPDF(canvas, img) {
-  const { jsPDF } = await import('jspdf');
-  const aspectRatio = canvas.width / canvas.height;
-  const a4Width = 210;
-  const a4Height = 297;
-  let orientation, width, height, x, y;
-
-  if (aspectRatio > 1) {
-    orientation = 'landscape';
-    width = a4Height - 20;
-    height = width / aspectRatio;
-    x = 10;
-    y = (a4Width - height) / 2;
-  } else {
-    orientation = 'portrait';
-    width = a4Width - 20;
-    height = width / aspectRatio;
-    x = 10;
-    y = (a4Height - height) / 2;
-    if (height > a4Height - 20) {
-      height = a4Height - 20;
-      width = height * aspectRatio;
-      x = (a4Width - width) / 2;
-      y = 10;
-    }
-  }
-
-  const pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4', compress: true });
-  const imgData = canvas.toDataURL('image/jpeg', 0.92);
-  pdf.addImage(imgData, 'JPEG', x, y, width, height, undefined, 'FAST');
-  return pdf.output('blob');
-}
-
-/**
- * Converts raster image to SVG.
- * Tries backend vectorization (potrace/vtracer) first,
- * falls back to SVG wrapper with embedded raster image.
- */
-async function convertToSVG(canvas, filename) {
-  // Try backend vectorization first
-  try {
-    const sourceBlob = await canvasToBlob(canvas, 'image/png', 1);
-    const svgBlob = await ApiClient.convertImage(sourceBlob, 'svg', filename, {});
-    // Verify we got valid SVG back
-    if (svgBlob && svgBlob.size > 0) {
-      return svgBlob;
-    }
-  } catch (error) {
-    console.warn('Backend-SVG nicht verfügbar, verwende Client-Fallback:', error.message);
-  }
-
-  // Fallback: SVG wrapper with embedded raster
-  const dataURL = canvas.toDataURL('image/png');
-  const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-     width="${canvas.width}" height="${canvas.height}"
-     viewBox="0 0 ${canvas.width} ${canvas.height}">
-  <image width="${canvas.width}" height="${canvas.height}" xlink:href="${dataURL}"/>
-</svg>`;
-  return new Blob([svgContent], { type: 'image/svg+xml' });
-}
-
-/**
- * Checks if a file format cannot be displayed natively in the browser
- */
-function needsBackendPreview(file) {
-  const unsupportedTypes = ['image/tiff', 'image/heic', 'image/heif'];
-  if (unsupportedTypes.includes(file.type)) return true;
-  // Fallback: check extension (some OS don't set MIME correctly)
-  return /\.(tiff?|heic|heif)$/i.test(file.name);
 }
 
 async function startConversion(file) {
@@ -401,66 +298,18 @@ async function startConversion(file) {
 
     sourcePreview.value = previewUrl;
 
-    // Load image onto canvas
+    // Bild in Originalgröße auf einen Canvas zeichnen (weißer Grund für JPG/BMP/PDF)
     const img = await loadImage(previewUrl);
-
-    const canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    const ctx = canvas.getContext('2d');
-
     const format = outputFormat.value;
+    const canvas = drawImageToCanvas(img, { width: img.width, height: img.height }, format);
 
-    // White background for formats without transparency
-    if (format === 'jpg' || format === 'bmp' || format === 'pdf') {
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-
-    ctx.drawImage(img, 0, 0);
-
-    const formatInfo = FORMAT_INFO[format];
-
-    if (format === 'pdf') {
-      // PDF conversion via jsPDF
-      const blob = await convertToPDF(canvas, img);
-      convertedBlob.value = blob;
-      convertedSize.value = blob.size;
-      convertedUrl.value = URL.createObjectURL(blob);
-    } else if (format === 'svg') {
-      // SVG conversion (backend vectorization with client fallback)
-      const blob = await convertToSVG(canvas, file.name);
-      convertedBlob.value = blob;
-      convertedSize.value = blob.size;
-      convertedUrl.value = URL.createObjectURL(blob);
-    } else if (formatInfo && formatInfo.requiresBackend) {
-      // Backend conversion (TIFF, GIF, HEIF)
-      const sourceBlob = await canvasToBlob(canvas, 'image/png', 1);
-      const resultBlob = await ApiClient.convertImage(sourceBlob, format, file.name, {
-        quality: 0.92,
-      });
-      convertedBlob.value = resultBlob;
-      convertedSize.value = resultBlob.size;
-      convertedUrl.value = URL.createObjectURL(resultBlob);
-    } else {
-      // Client-side raster conversion (PNG, JPG, WebP, BMP)
-      let mimeType = 'image/png';
-      let quality = undefined;
-      if (format === 'jpg') {
-        mimeType = 'image/jpeg';
-        quality = 0.92;
-      } else if (format === 'webp') {
-        mimeType = 'image/webp';
-        quality = 0.85;
-      } else if (format === 'bmp') {
-        mimeType = 'image/bmp';
-      }
-
-      const blob = await canvasToBlob(canvas, mimeType, quality);
-      convertedBlob.value = blob;
-      convertedSize.value = blob.size;
-      convertedUrl.value = URL.createObjectURL(blob);
-    }
+    // PDF/SVG/Backend/Client-Raster – Qualität: WebP 0.85, sonst 0.92
+    const blob = await convertCanvasToFormat(canvas, format, file.name, {
+      quality: format === 'webp' ? 0.85 : 0.92,
+    });
+    convertedBlob.value = blob;
+    convertedSize.value = blob.size;
+    convertedUrl.value = URL.createObjectURL(blob);
 
     window.$toast?.success(
       t('toast.conversion.success', {
@@ -503,13 +352,6 @@ function resetConverter() {
   convertedBlob.value = null;
   convertedSize.value = 0;
   if (fileInput.value) fileInput.value.value = '';
-}
-
-function formatSize(bytes) {
-  if (!bytes) return '0 B';
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i];
 }
 </script>
 

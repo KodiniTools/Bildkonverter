@@ -67,6 +67,7 @@ src/
 │   └── ui/
 │       └── ToastContainer.vue    # Toast-Benachrichtigungen
 ├── composables/                  # Vue 3 Composition Functions
+│   ├── useBatchConversion.js     # Batch-Konverter: Dateien, Verarbeitung, Download
 │   ├── useCanvasRenderer.js      # Canvas-Rendering (roundedRect, Selektionsrahmen)
 │   ├── useCrop.js                # Crop-Logik mit Vorschau
 │   ├── useFilterManagement.js    # Filter-State & Validierung
@@ -93,7 +94,10 @@ src/
 │   ├── global.scss               # Reset, Typografie, Utility-Klassen
 │   └── main.scss                 # SCSS-Einstiegspunkt
 ├── utils/
-│   ├── exportUtils.js            # FORMAT_INFO-Mapping & Export-Hilfsfunktionen
+│   ├── conversionUtils.js        # Canvas → PNG/JPG/WebP/BMP/PDF/SVG, A4-Layout, Backend-Formate
+│   ├── exportUtils.js            # ExportManager (Download-Export im Editor)
+│   ├── fileUtils.js              # Endungslisten (inkl. RAW), isImageFile, Vorschau-Helfer, formatSize
+│   ├── formatInfo.js             # FORMAT_INFO-Mapping aller Export-Formate
 │   ├── textUtils.js              # Text-Messung, Bounding-Box, Kollisionserkennung
 │   └── validationUtils.js        # Datei- & Filter-Validierung
 ├── views/

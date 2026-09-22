@@ -96,7 +96,11 @@
             @click="createCollage"
           >
             <i class="fas fa-layer-group"></i>
-            <span>{{ $t('gallery.buttons.createCollage', 'Collage') }} ({{ galleryStore.selectedImageIds.length }})</span>
+            <span
+              >{{ $t('gallery.buttons.createCollage', 'Collage') }} ({{
+                galleryStore.selectedImageIds.length
+              }})</span
+            >
           </button>
         </template>
       </div>
@@ -200,7 +204,9 @@
               class="gallery-card__name"
               :title="image.name"
               @dblclick.stop="startRename(image)"
-            >{{ image.name }}</div>
+            >
+              {{ image.name }}
+            </div>
             <input
               v-else
               :data-rename-id="image.id"
@@ -221,7 +227,9 @@
             </button>
           </div>
           <div class="gallery-card__meta">
-            <span><i class="fas fa-expand-arrows-alt"></i> {{ image.width }} × {{ image.height }}</span>
+            <span
+              ><i class="fas fa-expand-arrows-alt"></i> {{ image.width }} × {{ image.height }}</span
+            >
             <span><i class="fas fa-file"></i> {{ formatSize(image.size) }}</span>
           </div>
           <div class="gallery-card__date">
@@ -247,9 +255,14 @@
             <div class="preview-modal__info">
               <h3>{{ previewImage.name }}</h3>
               <div class="preview-modal__meta">
-                <span><i class="fas fa-ruler-combined"></i> {{ previewImage.width }} × {{ previewImage.height }}px</span>
+                <span
+                  ><i class="fas fa-ruler-combined"></i> {{ previewImage.width }} ×
+                  {{ previewImage.height }}px</span
+                >
                 <span><i class="fas fa-file"></i> {{ formatSize(previewImage.size) }}</span>
-                <span><i class="fas fa-calendar"></i> {{ formatDate(previewImage.uploadedAt) }}</span>
+                <span
+                  ><i class="fas fa-calendar"></i> {{ formatDate(previewImage.uploadedAt) }}</span
+                >
               </div>
             </div>
             <div class="preview-modal__actions">
@@ -278,6 +291,7 @@ import { useImageStore } from '@/stores/imageStore';
 import { useConfirm } from '@/composables/useConfirm';
 import HandoffReceiver from '@/components/features/HandoffReceiver.vue';
 import { handoffImageToCanvas } from '@/lib/core/handoff';
+import { formatSize } from '@/utils/fileUtils';
 
 const { t } = useI18n({ useScope: 'global' });
 const router = useRouter();
@@ -315,7 +329,10 @@ function handlePaste(e) {
         addImageToGallery(namedFile)
           .then(() => {
             added++;
-            if (window.$toast) window.$toast.success(t('toast.gallery.pasted', 'Bild aus Zwischenablage hinzugefügt'));
+            if (window.$toast)
+              window.$toast.success(
+                t('toast.gallery.pasted', 'Bild aus Zwischenablage hinzugefügt')
+              );
           })
           .catch((err) => console.error('Paste error:', err));
       }
@@ -354,13 +371,21 @@ function handleHandoffDismiss() {}
 
 // ===== UPLOAD =====
 
-function triggerFileInput() { fileInput.value?.click(); }
-function triggerFolderInput() { folderInput.value?.click(); }
+function triggerFileInput() {
+  fileInput.value?.click();
+}
+function triggerFolderInput() {
+  folderInput.value?.click();
+}
 
 async function handleFolderSelect(event) {
   const files = Array.from(event.target.files).filter((f) => f.type.startsWith('image/'));
   for (const file of files) {
-    try { await addImageToGallery(file); } catch (err) { console.error(err); }
+    try {
+      await addImageToGallery(file);
+    } catch (err) {
+      console.error(err);
+    }
   }
   event.target.value = '';
 }
@@ -428,8 +453,12 @@ function createThumbnail(img, maxWidth, maxHeight) {
 
 // ===== PREVIEW =====
 
-function openPreview(image) { previewImage.value = image; }
-function closePreview() { previewImage.value = null; }
+function openPreview(image) {
+  previewImage.value = image;
+}
+function closePreview() {
+  previewImage.value = null;
+}
 
 async function openInEditor() {
   const selected = galleryStore.selectedImage();
@@ -489,12 +518,15 @@ async function deleteAllImages() {
   const count = galleryStore.images.length;
   if (count === 0) return;
   const imageWord = count === 1 ? t('gallery.imageCount.single') : t('gallery.imageCount.plural');
-  const confirmed = await confirmDialog(t('gallery.confirmDeleteAll', { count, images: imageWord }), {
-    title: t('gallery.deleteAllTitle', 'Alle Bilder löschen?'),
-    confirmText: t('confirm.delete', 'Löschen'),
-    cancelText: t('confirm.cancel', 'Abbrechen'),
-    variant: 'danger',
-  });
+  const confirmed = await confirmDialog(
+    t('gallery.confirmDeleteAll', { count, images: imageWord }),
+    {
+      title: t('gallery.deleteAllTitle', 'Alle Bilder löschen?'),
+      confirmText: t('confirm.delete', 'Löschen'),
+      cancelText: t('confirm.cancel', 'Abbrechen'),
+      variant: 'danger',
+    }
+  );
   if (!confirmed) return;
   galleryStore.images.map((img) => img.id).forEach((id) => galleryStore.removeImage(id));
 }
@@ -504,16 +536,6 @@ function downloadImage(image) {
   link.href = image.url;
   link.download = image.name;
   link.click();
-}
-
-// ===== UTILS =====
-
-function formatSize(bytes) {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 }
 
 function formatDate(date) {
@@ -543,7 +565,9 @@ async function createCollage() {
   const selectedImages = galleryStore.selectedImages;
   if (selectedImages.length < 2) {
     if (window.$toast) {
-      window.$toast.warning(t('gallery.errors.minTwoImages', 'Bitte wählen Sie mindestens 2 Bilder aus'));
+      window.$toast.warning(
+        t('gallery.errors.minTwoImages', 'Bitte wählen Sie mindestens 2 Bilder aus')
+      );
     }
     return;
   }
@@ -555,7 +579,9 @@ async function createCollage() {
   } catch (error) {
     console.error('Fehler beim Erstellen der Collage:', error);
     if (window.$toast) {
-      window.$toast.error(t('gallery.errors.collageError', 'Fehler beim Erstellen der Collage') + ': ' + error.message);
+      window.$toast.error(
+        t('gallery.errors.collageError', 'Fehler beim Erstellen der Collage') + ': ' + error.message
+      );
     }
   }
 }
@@ -666,7 +692,9 @@ async function createCollage() {
   transition: all 0.15s ease;
   white-space: nowrap;
 
-  i { font-size: 0.85rem; }
+  i {
+    font-size: 0.85rem;
+  }
 
   &:hover {
     border-color: var(--color-primary);
@@ -677,28 +705,41 @@ async function createCollage() {
     background: var(--color-primary);
     border-color: var(--color-primary);
     color: white;
-    &:hover { background: var(--color-primary-dark, #003971); border-color: var(--color-primary-dark, #003971); color: white; }
+    &:hover {
+      background: var(--color-primary-dark, #003971);
+      border-color: var(--color-primary-dark, #003971);
+      color: white;
+    }
   }
 
   &--accent {
     background: var(--color-accent);
     border-color: var(--color-accent);
     color: white;
-    &:hover { opacity: 0.88; color: white; }
+    &:hover {
+      opacity: 0.88;
+      color: white;
+    }
   }
 
   &--danger {
     background: var(--color-danger, #dc2626);
     border-color: var(--color-danger, #dc2626);
     color: white;
-    &:hover { opacity: 0.85; color: white; }
+    &:hover {
+      opacity: 0.85;
+      color: white;
+    }
   }
 
   &--danger-ghost {
     background: transparent;
     border-color: var(--color-danger, #dc2626);
     color: var(--color-danger, #dc2626);
-    &:hover { background: var(--color-danger, #dc2626); color: white; }
+    &:hover {
+      background: var(--color-danger, #dc2626);
+      color: white;
+    }
   }
 
   &--active {
@@ -719,7 +760,9 @@ async function createCollage() {
   margin-bottom: 1.25rem;
   padding: 0 0.25rem;
 
-  i { opacity: 0.6; }
+  i {
+    opacity: 0.6;
+  }
 
   kbd {
     display: inline-flex;
@@ -809,12 +852,18 @@ async function createCollage() {
   gap: 1.25rem;
 
   /* Slim scrollbar */
-  &::-webkit-scrollbar { width: 6px; }
-  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
   &::-webkit-scrollbar-thumb {
     background: var(--color-border);
     border-radius: 3px;
-    &:hover { background: var(--color-primary); }
+    &:hover {
+      background: var(--color-primary);
+    }
   }
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
@@ -880,7 +929,9 @@ async function createCollage() {
       transition: transform 0.3s ease;
     }
 
-    &:hover img { transform: scale(1.04); }
+    &:hover img {
+      transform: scale(1.04);
+    }
   }
 
   &__select-dot {
@@ -897,7 +948,10 @@ async function createCollage() {
     transition: all 0.2s ease;
     backdrop-filter: blur(4px);
 
-    i { color: rgba(255,255,255,0.75); font-size: 1.1rem; }
+    i {
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 1.1rem;
+    }
   }
 
   &__checkbox {
@@ -915,9 +969,15 @@ async function createCollage() {
     backdrop-filter: blur(4px);
     cursor: pointer;
 
-    i { color: white; font-size: 1.2rem; }
+    i {
+      color: white;
+      font-size: 1.2rem;
+    }
 
-    &:hover { background: var(--color-primary); transform: scale(1.08); }
+    &:hover {
+      background: var(--color-primary);
+      transform: scale(1.08);
+    }
   }
 
   &__preview-btn {
@@ -938,10 +998,15 @@ async function createCollage() {
     transition: all 0.2s ease;
     backdrop-filter: blur(4px);
 
-    &:hover { background: var(--color-primary); transform: scale(1.1); }
+    &:hover {
+      background: var(--color-primary);
+      transform: scale(1.1);
+    }
   }
 
-  &__thumb:hover &__preview-btn { opacity: 1; }
+  &__thumb:hover &__preview-btn {
+    opacity: 1;
+  }
 
   // Info section
   &__info {
@@ -1019,7 +1084,10 @@ async function createCollage() {
       display: flex;
       align-items: center;
       gap: 0.3rem;
-      i { opacity: 0.6; font-size: 0.7rem; }
+      i {
+        opacity: 0.6;
+        font-size: 0.7rem;
+      }
     }
   }
 
@@ -1030,13 +1098,24 @@ async function createCollage() {
     display: flex;
     align-items: center;
     gap: 0.3rem;
-    i { font-size: 0.68rem; opacity: 0.6; }
+    i {
+      font-size: 0.68rem;
+      opacity: 0.6;
+    }
   }
 
   @media (max-width: 768px) {
-    &__thumb { aspect-ratio: 1; }
-    &__preview-btn { opacity: 1; }
-    &__select-dot, &__checkbox { width: 36px; height: 36px; }
+    &__thumb {
+      aspect-ratio: 1;
+    }
+    &__preview-btn {
+      opacity: 1;
+    }
+    &__select-dot,
+    &__checkbox {
+      width: 36px;
+      height: 36px;
+    }
   }
 }
 
@@ -1052,7 +1131,9 @@ async function createCollage() {
   z-index: 10000;
   padding: 2rem;
 
-  @media (max-width: 768px) { padding: 0.5rem; }
+  @media (max-width: 768px) {
+    padding: 0.5rem;
+  }
 }
 
 .preview-modal {
@@ -1085,7 +1166,10 @@ async function createCollage() {
     transition: all 0.2s ease;
     backdrop-filter: blur(4px);
 
-    &:hover { background: var(--color-danger, #dc2626); transform: scale(1.1); }
+    &:hover {
+      background: var(--color-danger, #dc2626);
+      transform: scale(1.1);
+    }
   }
 
   &__image {
@@ -1107,7 +1191,9 @@ async function createCollage() {
 
     @media (max-width: 768px) {
       padding: 1rem;
-      img { max-height: 40vh; }
+      img {
+        max-height: 40vh;
+      }
     }
   }
 
@@ -1127,7 +1213,11 @@ async function createCollage() {
   }
 
   &__info {
-    h3 { font-size: 1rem; font-weight: 700; margin: 0 0 0.5rem 0; }
+    h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem 0;
+    }
   }
 
   &__meta {
@@ -1141,7 +1231,9 @@ async function createCollage() {
       display: flex;
       align-items: center;
       gap: 0.35rem;
-      i { opacity: 0.65; }
+      i {
+        opacity: 0.65;
+      }
     }
   }
 
@@ -1152,7 +1244,10 @@ async function createCollage() {
 
     @media (max-width: 768px) {
       width: 100%;
-      .btn { flex: 1; justify-content: center; }
+      .btn {
+        flex: 1;
+        justify-content: center;
+      }
     }
   }
 }

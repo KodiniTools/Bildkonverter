@@ -280,23 +280,19 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useConfirm } from '@/composables/useConfirm';
-import { FORMAT_INFO } from '@/utils/exportUtils';
-import { ApiClient } from '@/api/api';
+import { useBatchConversion } from '@/composables/useBatchConversion';
+import { formatSize } from '@/utils/fileUtils';
 
 const { t } = useI18n({ useScope: 'global' });
 const { confirm: confirmDialog } = useConfirm();
 
-// State
+// UI-State
 const fileInput = ref(null);
 const isDragging = ref(false);
-const files = ref([]);
-const processedFiles = ref([]);
-const isProcessing = ref(false);
 const previewingFile = ref(null);
-const downloadReady = ref(false);
 
 const settings = ref({
   format: 'jpg',
@@ -305,20 +301,30 @@ const settings = ref({
   height: null,
   maintainAspect: true,
   prefix: '',
-  pdfMode: 'single', // 'single' = each image as individual PDF, 'merged' = all in one PDF
+  pdfMode: 'single', // 'single' = jedes Bild als eigenes PDF, 'merged' = alle in einem PDF
 });
 
-// Computed: check if there are files that can be converted
-const hasConvertableFiles = computed(() => {
-  return files.value.some((f) => f.status !== 'completed');
-});
+const {
+  files,
+  processedFiles,
+  isProcessing,
+  downloadReady,
+  referenceAspectRatio,
+  hasConvertableFiles,
+  hasCompletedFiles,
+  processedCount,
+  overallProgress,
+  addFiles,
+  startProcessing,
+  removeFile,
+  clearAll,
+  resetConversion,
+  downloadFile,
+  downloadAll,
+  downloadAsZip,
+} = useBatchConversion({ settings, t, confirm: confirmDialog });
 
-const hasCompletedFiles = computed(() => {
-  return files.value.some((f) => f.status === 'completed');
-});
-
-// Aspect ratio: use the first uploaded image as reference
-const referenceAspectRatio = ref(null);
+// Seitenverhältnis: das erste hochgeladene Bild dient als Referenz
 const isUpdatingDimension = ref(false);
 
 function onWidthInput() {
@@ -343,7 +349,7 @@ function onHeightInput() {
   isUpdatingDimension.value = false;
 }
 
-// When maintainAspect is toggled on, recalculate height from current width
+// Beim Einschalten von "Seitenverhältnis beibehalten" die Höhe aus der Breite ableiten
 watch(
   () => settings.value.maintainAspect,
   (newVal) => {
@@ -356,660 +362,28 @@ watch(
   }
 );
 
-// Computed
-const overallProgress = computed(() => {
-  if (files.value.length === 0) return 0;
-  const total = files.value.reduce((sum, file) => sum + (file.progress || 0), 0);
-  return Math.round(total / files.value.length);
-});
-
-const processedCount = computed(() => {
-  return files.value.filter((f) => f.status === 'completed').length;
-});
-
-// Methods
+// Upload
 function triggerFileInput() {
   fileInput.value?.click();
 }
 
 function handleFileSelect(event) {
-  const selectedFiles = Array.from(event.target.files);
-  addFiles(selectedFiles);
+  addFiles(Array.from(event.target.files));
 }
 
 function handleDrop(event) {
   event.preventDefault();
   isDragging.value = false;
-
-  const droppedFiles = Array.from(event.dataTransfer.files);
-  addFiles(droppedFiles);
+  addFiles(Array.from(event.dataTransfer.files));
 }
 
-/**
- * Checks if a file format cannot be displayed natively in the browser
- */
-function needsBackendPreview(file) {
-  const unsupportedTypes = ['image/tiff', 'image/heic', 'image/heif'];
-  if (unsupportedTypes.includes(file.type)) return true;
-  return /\.(tiff?|heic|heif|cr2|cr3|nef|arw|dng|raf|orf|rw2|pef|x3f)$/i.test(file.name);
-}
-
-function isImageFile(file) {
-  if (file.type.startsWith('image/')) return true;
-  return /\.(jpe?g|png|gif|webp|bmp|svg|tiff?|heic|heif|cr2|cr3|nef|arw|dng|raf|orf|rw2|pef|x3f)$/i.test(file.name);
-}
-
-async function addFiles(fileList) {
-  const imageFiles = fileList.filter((f) => isImageFile(f));
-
-  if (imageFiles.length === 0) {
-    window.$toast?.warning(t('toast.batch.noImages'));
-    return;
-  }
-
-  for (const file of imageFiles) {
-    let preview;
-    if (needsBackendPreview(file)) {
-      // Browser can't display TIFF/HEIC – convert to PNG via backend for preview
-      const pngBlob = await ApiClient.convertImage(file, 'png', file.name, {});
-      preview = URL.createObjectURL(pngBlob);
-    } else {
-      preview = await createPreview(file);
-    }
-    const dimensions = await getImageDimensions(preview);
-
-    files.value.push({
-      id: `${file.name}-${Date.now()}-${Math.random()}`,
-      file,
-      name: file.name,
-      size: file.size,
-      preview,
-      width: dimensions.width,
-      height: dimensions.height,
-      status: 'pending',
-      progress: 0,
-      processedPreview: null,
-      processedBlob: null,
-      processedSize: 0,
-      error: null,
-    });
-  }
-
-  // Set reference aspect ratio from first image for maintain-aspect-ratio calculations
-  if (!referenceAspectRatio.value && files.value.length > 0) {
-    const first = files.value[0];
-    if (first.width && first.height) {
-      referenceAspectRatio.value = first.width / first.height;
-    }
-  }
-
-  window.$toast?.success(t('toast.batch.filesAdded', { count: imageFiles.length }));
-}
-
-function createPreview(file) {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = (e) => resolve(e.target.result);
-    reader.readAsDataURL(file);
-  });
-}
-
-function getImageDimensions(src) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => resolve({ width: img.width, height: img.height });
-    img.src = src;
-  });
-}
-
-async function startProcessing() {
-  isProcessing.value = true;
-  downloadReady.value = false;
-
-  // Reset all files to pending for re-conversion support (Schritt 4)
-  files.value.forEach((f) => {
-    f.status = 'pending';
-    f.progress = 0;
-    if (f.processedPreview && f.processedPreview.startsWith('blob:')) {
-      URL.revokeObjectURL(f.processedPreview);
-    }
-    f.processedBlob = null;
-    f.processedPreview = null;
-    f.processedSize = 0;
-    f.error = null;
-  });
-  processedFiles.value = [];
-
-  const pendingFiles = files.value.filter((f) => f.status !== 'completed');
-  window.$toast?.info(t('toast.batch.processingStarted', { count: pendingFiles.length }));
-
-  let errorCount = 0;
-
-  // For merged PDF mode, collect canvases first
-  const isMergedPdf = settings.value.format === 'pdf' && settings.value.pdfMode === 'merged';
-  const canvasesForMerge = [];
-
-  for (const file of files.value) {
-    file.status = 'processing';
-    file.progress = 0;
-
-    try {
-      if (isMergedPdf) {
-        // Prepare canvas but don't convert to PDF yet
-        const canvas = await prepareCanvas(file);
-        canvasesForMerge.push({ file, canvas });
-        file.status = 'completed';
-        file.progress = 100;
-      } else {
-        await processFile(file);
-        file.status = 'completed';
-        file.progress = 100;
-        processedFiles.value.push(file);
-      }
-    } catch (error) {
-      file.status = 'error';
-      file.error = error.message;
-      errorCount++;
-      window.$toast?.error(t('toast.batch.fileError', { name: file.name, error: error.message }));
-    }
-  }
-
-  // Merged PDF: combine all canvases into a single PDF
-  if (isMergedPdf && canvasesForMerge.length > 0) {
-    try {
-      const mergedBlob = await convertToMergedPDF(canvasesForMerge.map((c) => c.canvas));
-      // Store the merged PDF in a virtual "merged" entry and in each file for download
-      const mergedFile = {
-        id: 'merged-pdf',
-        name: t('batch.mergedPdfFilename'),
-        processedBlob: mergedBlob,
-        processedSize: mergedBlob.size,
-        processedPreview: null,
-        isMerged: true,
-      };
-      processedFiles.value = [mergedFile];
-
-      // Also set individual files as completed with reference to merged
-      canvasesForMerge.forEach(({ file }) => {
-        file.processedBlob = mergedBlob;
-        file.processedSize = mergedBlob.size;
-        file.processedPreview = file.preview;
-      });
-    } catch (error) {
-      window.$toast?.error(t('toast.batch.fileError', { name: 'PDF', error: error.message }));
-      errorCount++;
-    }
-  }
-
-  isProcessing.value = false;
-  downloadReady.value = processedFiles.value.length > 0;
-
-  // Summary toast
-  const successCount = isMergedPdf ? canvasesForMerge.length : processedFiles.value.length;
-  const totalCount = pendingFiles.length;
-  if (errorCount === 0) {
-    window.$toast?.success(t('toast.batch.processingCompleteAll', { count: successCount }));
-  } else {
-    window.$toast?.warning(
-      t('toast.batch.processingComplete', { success: successCount, total: totalCount })
-    );
-  }
-}
-
-/**
- * Loads an image element from a data URL
- */
-function loadImage(src) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('Bild konnte nicht geladen werden'));
-    img.src = src;
-  });
-}
-
-/**
- * Converts a canvas to a Blob
- */
-function canvasToBlob(canvas, mimeType, quality) {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => {
-        if (blob) resolve(blob);
-        else reject(new Error('Canvas-zu-Blob-Konvertierung fehlgeschlagen'));
-      },
-      mimeType,
-      quality
-    );
-  });
-}
-
-/**
- * Prepares a canvas for a file (used in merged PDF mode)
- */
-async function prepareCanvas(file) {
-  const format = settings.value.format;
-  const targetWidth = settings.value.width;
-  const targetHeight = settings.value.height;
-  const maintainAspect = settings.value.maintainAspect;
-
-  file.progress = 10;
-  const img = await loadImage(file.preview);
-  file.progress = 30;
-
-  let drawWidth = img.width;
-  let drawHeight = img.height;
-
-  if (targetWidth || targetHeight) {
-    if (targetWidth && targetHeight && !maintainAspect) {
-      drawWidth = targetWidth;
-      drawHeight = targetHeight;
-    } else if (targetWidth && targetHeight) {
-      const ratio = Math.min(targetWidth / img.width, targetHeight / img.height);
-      drawWidth = Math.round(img.width * ratio);
-      drawHeight = Math.round(img.height * ratio);
-    } else if (targetWidth) {
-      const ratio = targetWidth / img.width;
-      drawWidth = targetWidth;
-      drawHeight = maintainAspect ? Math.round(img.height * ratio) : img.height;
-    } else if (targetHeight) {
-      const ratio = targetHeight / img.height;
-      drawHeight = targetHeight;
-      drawWidth = maintainAspect ? Math.round(img.width * ratio) : img.width;
-    }
-  }
-
-  const canvas = document.createElement('canvas');
-  canvas.width = drawWidth;
-  canvas.height = drawHeight;
-  const ctx = canvas.getContext('2d');
-
-  if (format === 'jpg' || format === 'bmp' || format === 'pdf') {
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, drawWidth, drawHeight);
-  }
-
-  ctx.drawImage(img, 0, 0, drawWidth, drawHeight);
-  file.progress = 80;
-  file.processedPreview = file.preview;
-  return canvas;
-}
-
-/**
- * Converts multiple canvases into a single merged PDF (one image per page)
- */
-async function convertToMergedPDF(canvases) {
-  const { jsPDF } = await import('jspdf');
-  const a4Width = 210;
-  const a4Height = 297;
-
-  let pdf = null;
-
-  for (let i = 0; i < canvases.length; i++) {
-    const canvas = canvases[i];
-    const aspectRatio = canvas.width / canvas.height;
-    let orientation, width, height, x, y;
-
-    if (aspectRatio > 1) {
-      orientation = 'landscape';
-      width = a4Height - 20;
-      height = width / aspectRatio;
-      x = 10;
-      y = (a4Width - height) / 2;
-    } else {
-      orientation = 'portrait';
-      width = a4Width - 20;
-      height = width / aspectRatio;
-      x = 10;
-      y = (a4Height - height) / 2;
-      if (height > a4Height - 20) {
-        height = a4Height - 20;
-        width = height * aspectRatio;
-        x = (a4Width - width) / 2;
-        y = 10;
-      }
-    }
-
-    if (i === 0) {
-      pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4', compress: true });
-    } else {
-      pdf.addPage('a4', orientation);
-    }
-
-    const imgData = canvas.toDataURL('image/jpeg', 0.92);
-    pdf.addImage(imgData, 'JPEG', x, y, width, height, undefined, 'FAST');
-  }
-
-  return pdf.output('blob');
-}
-
-/**
- * Converts canvas to PDF using jsPDF (dynamic import)
- */
-async function convertToPDF(canvas) {
-  const { jsPDF } = await import('jspdf');
-  const aspectRatio = canvas.width / canvas.height;
-  const a4Width = 210;
-  const a4Height = 297;
-  let orientation, width, height, x, y;
-
-  if (aspectRatio > 1) {
-    orientation = 'landscape';
-    width = a4Height - 20;
-    height = width / aspectRatio;
-    x = 10;
-    y = (a4Width - height) / 2;
-  } else {
-    orientation = 'portrait';
-    width = a4Width - 20;
-    height = width / aspectRatio;
-    x = 10;
-    y = (a4Height - height) / 2;
-    if (height > a4Height - 20) {
-      height = a4Height - 20;
-      width = height * aspectRatio;
-      x = (a4Width - width) / 2;
-      y = 10;
-    }
-  }
-
-  const pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4', compress: true });
-  const imgData = canvas.toDataURL('image/jpeg', 0.92);
-  pdf.addImage(imgData, 'JPEG', x, y, width, height, undefined, 'FAST');
-  return pdf.output('blob');
-}
-
-/**
- * Converts canvas to SVG (backend vectorization with client fallback)
- */
-async function convertToSVG(canvas, filename) {
-  // Try backend vectorization first
-  try {
-    const sourceBlob = await canvasToBlob(canvas, 'image/png', 1);
-    const svgBlob = await ApiClient.convertImage(sourceBlob, 'svg', filename, {});
-    if (svgBlob && svgBlob.size > 0) {
-      return svgBlob;
-    }
-  } catch (error) {
-    console.warn('Backend-SVG nicht verfügbar, verwende Client-Fallback:', error.message);
-  }
-
-  // Fallback: SVG wrapper with embedded raster
-  const dataURL = canvas.toDataURL('image/png');
-  const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-     width="${canvas.width}" height="${canvas.height}"
-     viewBox="0 0 ${canvas.width} ${canvas.height}">
-  <image width="${canvas.width}" height="${canvas.height}" xlink:href="${dataURL}"/>
-</svg>`;
-  return new Blob([svgContent], { type: 'image/svg+xml' });
-}
-
-/**
- * Real image conversion using Canvas API
- */
-async function processFile(file) {
-  const format = settings.value.format;
-  const quality = settings.value.quality / 100;
-  const targetWidth = settings.value.width;
-  const targetHeight = settings.value.height;
-  const maintainAspect = settings.value.maintainAspect;
-
-  file.progress = 10;
-
-  // Load source image onto canvas
-  const img = await loadImage(file.preview);
-  file.progress = 30;
-
-  // Calculate target dimensions
-  let drawWidth = img.width;
-  let drawHeight = img.height;
-
-  if (targetWidth || targetHeight) {
-    if (targetWidth && targetHeight && !maintainAspect) {
-      drawWidth = targetWidth;
-      drawHeight = targetHeight;
-    } else if (targetWidth && targetHeight) {
-      // Maintain aspect ratio, fit within the given bounds
-      const ratio = Math.min(targetWidth / img.width, targetHeight / img.height);
-      drawWidth = Math.round(img.width * ratio);
-      drawHeight = Math.round(img.height * ratio);
-    } else if (targetWidth) {
-      const ratio = targetWidth / img.width;
-      drawWidth = targetWidth;
-      drawHeight = maintainAspect ? Math.round(img.height * ratio) : img.height;
-    } else if (targetHeight) {
-      const ratio = targetHeight / img.height;
-      drawHeight = targetHeight;
-      drawWidth = maintainAspect ? Math.round(img.width * ratio) : img.width;
-    }
-  }
-
-  // Create canvas with target dimensions
-  const canvas = document.createElement('canvas');
-  canvas.width = drawWidth;
-  canvas.height = drawHeight;
-  const ctx = canvas.getContext('2d');
-
-  // For JPEG/BMP/PDF: add white background (no transparency support)
-  if (format === 'jpg' || format === 'bmp' || format === 'pdf') {
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, drawWidth, drawHeight);
-  }
-
-  // Draw the image
-  ctx.drawImage(img, 0, 0, drawWidth, drawHeight);
-  file.progress = 60;
-
-  // Format-specific conversion
-  if (format === 'pdf') {
-    // PDF conversion via jsPDF
-    const blob = await convertToPDF(canvas);
-    file.progress = 90;
-    file.processedBlob = blob;
-    file.processedSize = blob.size;
-    file.processedPreview = file.preview; // Use original preview for PDF
-  } else if (format === 'svg') {
-    // SVG conversion (backend vectorization with client fallback)
-    const blob = await convertToSVG(canvas, file.name);
-    file.progress = 90;
-    file.processedBlob = blob;
-    file.processedSize = blob.size;
-    file.processedPreview = URL.createObjectURL(blob);
-  } else {
-    // Get format info
-    const formatInfo = FORMAT_INFO[format];
-
-    // Check if backend format is needed
-    if (formatInfo && formatInfo.requiresBackend) {
-      // Backend-based conversion (TIFF, GIF, HEIF)
-      const sourceBlob = await canvasToBlob(canvas, 'image/png', 1);
-      file.progress = 70;
-      const convertedBlob = await ApiClient.convertImage(sourceBlob, format, file.name, {
-        quality,
-      });
-      file.progress = 90;
-
-      file.processedBlob = convertedBlob;
-      file.processedSize = convertedBlob.size;
-      file.processedPreview = URL.createObjectURL(convertedBlob);
-    } else {
-      // Client-side conversion (PNG, JPG, WebP, BMP)
-      let mimeType = 'image/png';
-      if (format === 'jpg') mimeType = 'image/jpeg';
-      else if (format === 'webp') mimeType = 'image/webp';
-      else if (format === 'bmp') mimeType = 'image/bmp';
-
-      const useQuality = format === 'jpg' || format === 'webp' ? quality : undefined;
-      const blob = await canvasToBlob(canvas, mimeType, useQuality);
-      file.progress = 90;
-
-      file.processedBlob = blob;
-      file.processedSize = blob.size;
-      file.processedPreview = URL.createObjectURL(blob);
-    }
-  }
-
-  file.progress = 100;
-}
-
-function removeFile(fileId) {
-  const file = files.value.find((f) => f.id === fileId);
-  if (!file) return;
-  const fileName = file.name;
-  if (file.processedPreview && file.processedPreview.startsWith('blob:')) {
-    URL.revokeObjectURL(file.processedPreview);
-  }
-  const index = files.value.findIndex((f) => f.id === fileId);
-  if (index !== -1) {
-    files.value.splice(index, 1);
-  }
-  window.$toast?.info(t('toast.batch.fileRemoved', { name: fileName }));
-}
-
-async function clearAll() {
-  const confirmed = await confirmDialog(t('batch.confirmClear'), {
-    title: t('batch.clearAllTitle', 'Alle Dateien entfernen?'),
-    confirmText: t('confirm.delete', 'Entfernen'),
-    cancelText: t('confirm.cancel', 'Abbrechen'),
-    variant: 'warning',
-  });
-  if (confirmed) {
-    files.value.forEach((f) => {
-      if (f.processedPreview && f.processedPreview.startsWith('blob:')) {
-        URL.revokeObjectURL(f.processedPreview);
-      }
-    });
-    files.value = [];
-    processedFiles.value = [];
-    referenceAspectRatio.value = null;
-    window.$toast?.info(t('toast.batch.cleared'));
-  }
-}
-
-function getOutputFilename(file) {
-  const prefix = settings.value.prefix || '';
-  const format = settings.value.format;
-  const ext = FORMAT_INFO[format]?.extension || format;
-  const baseName = file.name.replace(/\.[^.]+$/, '');
-  return `${prefix}${baseName}.${ext}`;
-}
-
-function downloadFile(file, showToast = true) {
-  if (!file.processedBlob) return;
-
-  const url = URL.createObjectURL(file.processedBlob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = file.isMerged
-    ? (settings.value.prefix || '') + 'merged.pdf'
-    : getOutputFilename(file);
-  link.style.display = 'none';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-  // Reset download button color after download (Schritt 3)
-  downloadReady.value = false;
-
-  if (showToast) {
-    window.$toast?.success(t('toast.batch.downloadStarted'));
-  }
-}
-
-function downloadAll() {
-  const isMergedPdf = settings.value.format === 'pdf' && settings.value.pdfMode === 'merged';
-
-  if (isMergedPdf && processedFiles.value.length === 1 && processedFiles.value[0].isMerged) {
-    // Download the single merged PDF
-    downloadFile(processedFiles.value[0]);
-    return;
-  }
-
-  window.$toast?.info(t('toast.batch.downloadAllStarted', { count: processedFiles.value.length }));
-  processedFiles.value.forEach((file, index) => {
-    setTimeout(() => downloadFile(file, false), index * 200);
-  });
-
-  // Reset download button color after download (Schritt 3)
-  downloadReady.value = false;
-}
-
-/**
- * Downloads all processed files as a ZIP archive (Schritt 2)
- */
-async function downloadAsZip() {
-  const JSZip = (await import('jszip')).default;
-  const zip = new JSZip();
-
-  const isMergedPdf = settings.value.format === 'pdf' && settings.value.pdfMode === 'merged';
-
-  if (isMergedPdf && processedFiles.value.length === 1 && processedFiles.value[0].isMerged) {
-    zip.file((settings.value.prefix || '') + 'merged.pdf', processedFiles.value[0].processedBlob);
-  } else {
-    for (const file of processedFiles.value) {
-      if (file.processedBlob) {
-        const filename = file.isMerged
-          ? (settings.value.prefix || '') + 'merged.pdf'
-          : getOutputFilename(file);
-        zip.file(filename, file.processedBlob);
-      }
-    }
-  }
-
-  window.$toast?.info(t('toast.batch.zipCreating'));
-
-  const zipBlob = await zip.generateAsync({ type: 'blob' });
-  const url = URL.createObjectURL(zipBlob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = (settings.value.prefix || 'batch_') + 'images.zip';
-  link.style.display = 'none';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-  // Reset download button color after download (Schritt 3)
-  downloadReady.value = false;
-
-  window.$toast?.success(t('toast.batch.zipDownloaded'));
-}
-
-/**
- * Resets conversion state but keeps uploaded files (Schritt 5)
- */
-function resetConversion() {
-  files.value.forEach((f) => {
-    if (f.processedPreview && f.processedPreview.startsWith('blob:')) {
-      URL.revokeObjectURL(f.processedPreview);
-    }
-    f.status = 'pending';
-    f.progress = 0;
-    f.processedBlob = null;
-    f.processedPreview = null;
-    f.processedSize = 0;
-    f.error = null;
-  });
-  processedFiles.value = [];
-  downloadReady.value = false;
-  window.$toast?.info(t('toast.batch.conversionReset'));
-}
-
+// Vorschau-Modal
 function previewFile(file) {
   previewingFile.value = file;
 }
 
 function closePreview() {
   previewingFile.value = null;
-}
-
-function formatSize(bytes) {
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  if (bytes === 0) return '0 B';
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i];
 }
 </script>
 

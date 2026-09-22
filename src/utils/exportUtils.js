@@ -13,157 +13,15 @@
  */
 
 import { ApiClient } from '@/api/api';
+import { FORMAT_INFO, SUPPORTED_FORMATS, CLIENT_FORMATS, BACKEND_FORMATS } from './formatInfo';
+import {
+  calculatePdfLayout,
+  createSvgWrapper,
+  canvasToBlob as canvasToBlobUtil,
+} from './conversionUtils';
 
-/**
- * Format-Informationen
- */
-export const FORMAT_INFO = {
-  png: {
-    name: 'PNG',
-    description: 'Lossless, with transparency',
-    extension: 'png',
-    mimeType: 'image/png',
-    supportsQuality: false,
-    requiresBackend: false,
-    maxSize: '500MB',
-    recommended: 'Logos, UI, Screenshots',
-    icon: '🖼️',
-  },
-  jpeg: {
-    name: 'JPEG',
-    description: 'Lossy, small file size',
-    extension: 'jpg',
-    mimeType: 'image/jpeg',
-    supportsQuality: true,
-    requiresBackend: false,
-    maxSize: '500MB',
-    recommended: 'Photos, Images',
-    icon: '📷',
-  },
-  jpg: {
-    name: 'JPG',
-    description: 'Lossy, small file size',
-    extension: 'jpg',
-    mimeType: 'image/jpeg',
-    supportsQuality: true,
-    requiresBackend: false,
-    maxSize: '500MB',
-    recommended: 'Photos, Images',
-    icon: '📷',
-  },
-  webp: {
-    name: 'WebP',
-    description: 'Modern, efficient, small',
-    extension: 'webp',
-    mimeType: 'image/webp',
-    supportsQuality: true,
-    requiresBackend: false,
-    maxSize: '500MB',
-    recommended: 'Web, modern browsers',
-    icon: '🌐',
-  },
-  tiff: {
-    name: 'TIFF',
-    description: 'Professional format',
-    extension: 'tiff',
-    mimeType: 'image/tiff',
-    supportsQuality: false,
-    requiresBackend: true,
-    maxSize: '1GB',
-    recommended: 'Print, Archiving',
-    icon: '📄',
-  },
-  tif: {
-    name: 'TIF',
-    description: 'Professional format',
-    extension: 'tif',
-    mimeType: 'image/tiff',
-    supportsQuality: false,
-    requiresBackend: true,
-    maxSize: '1GB',
-    recommended: 'Print, Archiving',
-    icon: '📄',
-  },
-  heif: {
-    name: 'HEIF',
-    description: 'Modern, high efficiency',
-    extension: 'heif',
-    mimeType: 'image/heif',
-    supportsQuality: true,
-    requiresBackend: true,
-    maxSize: '500MB',
-    recommended: 'Photos (newer devices)',
-    icon: '📱',
-  },
-  heic: {
-    name: 'HEIC',
-    description: 'Modern, high efficiency (Apple)',
-    extension: 'heic',
-    mimeType: 'image/heic',
-    supportsQuality: true,
-    requiresBackend: true,
-    maxSize: '500MB',
-    recommended: 'iOS, macOS',
-    icon: '🍎',
-  },
-  gif: {
-    name: 'GIF',
-    description: 'Single-frame GIF',
-    extension: 'gif',
-    mimeType: 'image/gif',
-    supportsQuality: false,
-    requiresBackend: true,
-    maxSize: '500MB',
-    recommended: 'Compatibility, Retro',
-    icon: '🎨',
-  },
-  pdf: {
-    name: 'PDF',
-    description: 'Document, A4 format',
-    extension: 'pdf',
-    mimeType: 'application/pdf',
-    supportsQuality: false,
-    requiresBackend: false,
-    maxSize: '500MB',
-    recommended: 'Documents, Print',
-    icon: '📑',
-  },
-  svg: {
-    name: 'SVG',
-    description: 'Scalable Vector Graphics',
-    extension: 'svg',
-    mimeType: 'image/svg+xml',
-    supportsQuality: false,
-    requiresBackend: true,
-    clientFallback: true,
-    maxSize: '100MB',
-    recommended: 'Logos, Icons, Web Graphics',
-    icon: '✏️',
-  },
-};
+export { FORMAT_INFO, SUPPORTED_FORMATS, CLIENT_FORMATS, BACKEND_FORMATS };
 
-/**
- * Alle unterstützten Formate
- */
-export const SUPPORTED_FORMATS = Object.keys(FORMAT_INFO);
-
-/**
- * Client-side Formate (ohne Backend)
- */
-export const CLIENT_FORMATS = SUPPORTED_FORMATS.filter(
-  (format) => !FORMAT_INFO[format].requiresBackend
-);
-
-/**
- * Backend-Formate (benötigen API-Call)
- */
-export const BACKEND_FORMATS = SUPPORTED_FORMATS.filter(
-  (format) => FORMAT_INFO[format].requiresBackend
-);
-
-/**
- * Export Manager Class
- */
 export class ExportManager {
   constructor() {
     this.jsPDF = null;
@@ -472,54 +330,14 @@ export class ExportManager {
    * Erstellt einen SVG-Wrapper mit eingebettetem Rasterbild (Fallback)
    */
   createSVGWrapper(canvas) {
-    const dataURL = canvas.toDataURL('image/png');
-    const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-     width="${canvas.width}" height="${canvas.height}"
-     viewBox="0 0 ${canvas.width} ${canvas.height}">
-  <image width="${canvas.width}" height="${canvas.height}" xlink:href="${dataURL}"/>
-</svg>`;
-    return new Blob([svgContent], { type: 'image/svg+xml' });
+    return createSvgWrapper(canvas);
   }
 
   /**
-   * Berechnet PDF-Dimensionen
+   * Berechnet PDF-Dimensionen (A4, 10 mm Rand)
    */
   calculatePDFDimensions(canvas) {
-    const aspectRatio = canvas.width / canvas.height;
-    let format, orientation, width, height, x, y;
-
-    // A4-Maße in mm
-    const a4Width = 210;
-    const a4Height = 297;
-
-    if (aspectRatio > 1) {
-      // Querformat
-      orientation = 'landscape';
-      format = 'a4';
-      width = a4Height - 20; // Rand
-      height = width / aspectRatio;
-      x = 10;
-      y = (a4Width - height) / 2;
-    } else {
-      // Hochformat
-      orientation = 'portrait';
-      format = 'a4';
-      width = a4Width - 20; // Rand
-      height = width / aspectRatio;
-      x = 10;
-      y = (a4Height - height) / 2;
-
-      // Wenn Bild zu hoch, anpassen
-      if (height > a4Height - 20) {
-        height = a4Height - 20;
-        width = height * aspectRatio;
-        x = (a4Width - width) / 2;
-        y = 10;
-      }
-    }
-
-    return { orientation, format, width, height, x, y };
+    return calculatePdfLayout(canvas);
   }
 
   /**
@@ -545,16 +363,7 @@ export class ExportManager {
    * Konvertiert Canvas zu Blob
    */
   canvasToBlob(canvas, type = 'image/png', quality = 0.92) {
-    return new Promise((resolve, reject) => {
-      canvas.toBlob(
-        (blob) => {
-          if (blob) resolve(blob);
-          else reject(new Error('Canvas-zu-Blob-Konvertierung fehlgeschlagen'));
-        },
-        type,
-        quality
-      );
-    });
+    return canvasToBlobUtil(canvas, type, quality);
   }
 
   /**
