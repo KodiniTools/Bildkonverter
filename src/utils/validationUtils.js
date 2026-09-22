@@ -4,6 +4,8 @@
  * Zentrale Validierungsfunktionen für das gesamte Projekt
  */
 
+import { RAW_EXTENSIONS, IMAGE_EXTENSIONS } from '@/utils/fileUtils';
+
 export class ValidationUtils {
   /**
    * Validiert eine hochgeladene Bild-Datei
@@ -57,7 +59,7 @@ export class ValidationUtils {
     ];
 
     // RAW-Dateiendungen (werden per Extension erkannt, da MIME-Typ oft fehlt)
-    const rawExtensions = ['.cr2', '.cr3', '.nef', '.arw', '.dng', '.raf', '.orf', '.rw2', '.pef', '.x3f'];
+    const rawExtensions = RAW_EXTENSIONS.map((ext) => `.${ext}`);
     const extension = file.name.toLowerCase().match(/\.[^.]+$/);
     const isRawByExtension = extension && rawExtensions.includes(extension[0]);
 
@@ -67,21 +69,8 @@ export class ValidationUtils {
       );
     }
 
-    // Dateiendung prüfen
-    const allowedExtensions = [
-      '.jpg',
-      '.jpeg',
-      '.png',
-      '.webp',
-      '.gif',
-      '.bmp',
-      '.svg',
-      '.tiff',
-      '.tif',
-      '.heic',
-      '.heif',
-      ...rawExtensions,
-    ];
+    // Dateiendung prüfen (gemeinsame Liste aus fileUtils)
+    const allowedExtensions = IMAGE_EXTENSIONS.map((ext) => `.${ext}`);
 
     if (!extension || !allowedExtensions.includes(extension[0])) {
       errors.push('Ungültige Dateiendung');
