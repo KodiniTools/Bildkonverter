@@ -404,7 +404,25 @@ npm run lint          # ESLint-Prüfung
 npm run lint:fix      # ESLint-Fehler automatisch beheben
 npm run format        # Prettier-Formatierung anwenden
 npm run format:check  # Prettier-Formatierung prüfen
+npm test              # Unit- und Browser-Tests (Vitest)
+npm run test:unit     # nur Unit-Tests (happy-dom)
+npm run test:browser  # nur Browser-Tests (Chromium via Playwright)
 ```
+
+---
+
+## Tests (`tests/`, `vitest.config.js`)
+
+Zwei Vitest-Projekte:
+
+| Projekt | Umgebung | Inhalt |
+|---------|----------|--------|
+| `unit` | happy-dom | `fileUtils`, `conversionUtils` (Zielgröße, A4-Layout), i18n-Konsistenz (gleicher Schlüsselsatz de/en, jeder referenzierte Schlüssel existiert, kein Schlüssel verwaist), `GuideSectionHeader` mit Vue Test Utils |
+| `browser` | Chromium (Vitest Browser Mode, Playwright) | `useCanvasRenderer` (Vorschau vs. Export pixelgenau, Auswahlrahmen, Vignette, Transparenz, Texte, Collage), `useBatchConversion` (JPG/WebP/PNG, Skalierung, PDF einzeln und gesamt, SVG-Fallback ohne Backend, Fehlerpfad, Reset/Entfernen/Leeren) |
+
+Die Browser-Tests brauchen einen echten 2D-Canvas und laufen deshalb nicht in jsdom/happy-dom.
+`vitest.config.js` sucht Chromium über Playwright, ersatzweise unter `PLAYWRIGHT_BROWSERS_PATH`
+oder per `VITEST_CHROMIUM`.
 
 ---
 
