@@ -7,6 +7,7 @@ import i18n from './i18n';
 
 // Globale Styles
 import './styles/main.scss';
+import { logger } from '@/utils/logger';
 
 /**
  * Vue App Initialisierung
@@ -20,16 +21,16 @@ app.use(i18n);
 
 // Globale Fehlerbehandlung
 app.config.errorHandler = (err, instance, info) => {
-  console.error('❌ Vue Error:', err);
-  console.error('Component:', instance);
-  console.error('Info:', info);
+  logger.error('❌ Vue Error:', err);
+  logger.error('Component:', instance);
+  logger.error('Info:', info);
 };
 
 // Globale Warn-Handler (nur in Development)
 if (import.meta.env.DEV) {
   app.config.warnHandler = (msg, instance, trace) => {
-    console.warn('⚠️ Vue Warning:', msg);
-    console.warn('Trace:', trace);
+    logger.warn('⚠️ Vue Warning:', msg);
+    logger.warn('Trace:', trace);
   };
 }
 
@@ -41,6 +42,6 @@ if (import.meta.env.DEV) {
 // Mount App
 app.mount('#app');
 
-console.log('✅ Vue Bildkonverter Pro erfolgreich geladen');
-console.log('🔧 Environment:', import.meta.env.MODE);
-console.log('📦 Version:', import.meta.env.VITE_APP_VERSION || '3.0.0');
+logger.log('✅ Vue Bildkonverter Pro erfolgreich geladen');
+logger.log('🔧 Environment:', import.meta.env.MODE);
+logger.log('📦 Version:', import.meta.env.VITE_APP_VERSION || '3.0.0');

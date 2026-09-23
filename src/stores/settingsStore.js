@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { i18n } from '@/i18n';
+import { logger } from '@/utils/logger';
 
 /**
  * Settings Store - Verwaltet App-Einstellungen
@@ -76,7 +77,7 @@ export const useSettingsStore = defineStore('settings', () => {
    */
   function setTheme(newTheme) {
     if (!availableThemes.value.includes(newTheme)) {
-      console.warn(`Ungültiges Theme: ${newTheme}`);
+      logger.warn(`Ungültiges Theme: ${newTheme}`);
       return;
     }
 
@@ -94,7 +95,7 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.setItem('theme', newTheme);
     localStorage.setItem('bildkonverter-theme', newTheme);
 
-    console.log(`🎨 Theme geändert: ${newTheme}`);
+    logger.log(`🎨 Theme geändert: ${newTheme}`);
   }
 
   /**
@@ -110,7 +111,7 @@ export const useSettingsStore = defineStore('settings', () => {
    */
   function setLocale(newLocale) {
     if (!availableLocales.value.includes(newLocale)) {
-      console.warn(`Ungültige Sprache: ${newLocale}`);
+      logger.warn(`Ungültige Sprache: ${newLocale}`);
       return;
     }
 
@@ -124,7 +125,7 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.setItem('locale', newLocale);
     localStorage.setItem('bildkonverter-locale', newLocale);
 
-    console.log(
+    logger.log(
       `🌍 Sprache geändert: ${newLocale}, i18n.global.locale: ${i18n.global.locale.value}`
     );
   }
@@ -142,14 +143,14 @@ export const useSettingsStore = defineStore('settings', () => {
    */
   function setPerformanceMode(mode) {
     if (!performanceModes.value.includes(mode)) {
-      console.warn(`Ungültiger Performance-Modus: ${mode}`);
+      logger.warn(`Ungültiger Performance-Modus: ${mode}`);
       return;
     }
 
     performanceMode.value = mode;
     localStorage.setItem('bildkonverter-performance', mode);
 
-    console.log(`⚡ Performance-Modus: ${mode}`);
+    logger.log(`⚡ Performance-Modus: ${mode}`);
   }
 
   /**
@@ -158,7 +159,7 @@ export const useSettingsStore = defineStore('settings', () => {
   function setDefaultExportQuality(quality) {
     const numQuality = parseInt(quality);
     if (numQuality < 1 || numQuality > 100) {
-      console.warn(`Ungültige Qualität: ${quality}`);
+      logger.warn(`Ungültige Qualität: ${quality}`);
       return;
     }
 
@@ -171,7 +172,7 @@ export const useSettingsStore = defineStore('settings', () => {
    */
   function setDefaultExportFormat(format) {
     if (!exportFormats.value.includes(format)) {
-      console.warn(`Ungültiges Format: ${format}`);
+      logger.warn(`Ungültiges Format: ${format}`);
       return;
     }
 
@@ -195,7 +196,7 @@ export const useSettingsStore = defineStore('settings', () => {
   function setGridSize(size) {
     const numSize = parseInt(size);
     if (numSize < 5 || numSize > 100) {
-      console.warn(`Ungültige Grid-Größe: ${size}`);
+      logger.warn(`Ungültige Grid-Größe: ${size}`);
       return;
     }
 
@@ -214,7 +215,7 @@ export const useSettingsStore = defineStore('settings', () => {
   function setAutoSaveInterval(interval) {
     const numInterval = parseInt(interval);
     if (numInterval < 5000 || numInterval > 300000) {
-      console.warn(`Ungültiges Auto-Save-Intervall: ${interval}`);
+      logger.warn(`Ungültiges Auto-Save-Intervall: ${interval}`);
       return;
     }
 
@@ -236,7 +237,7 @@ export const useSettingsStore = defineStore('settings', () => {
   function setDebugMode(enabled) {
     debugMode.value = enabled;
     document.body.classList.toggle('debug-mode', enabled);
-    console.log(`🐛 Debug-Modus: ${enabled ? 'aktiviert' : 'deaktiviert'}`);
+    logger.log(`🐛 Debug-Modus: ${enabled ? 'aktiviert' : 'deaktiviert'}`);
   }
 
   function toggleDebugMode() {
@@ -260,7 +261,7 @@ export const useSettingsStore = defineStore('settings', () => {
   function setToastDuration(duration) {
     const numDuration = parseInt(duration);
     if (numDuration < 1000 || numDuration > 10000) {
-      console.warn(`Ungültige Toast-Dauer: ${duration}`);
+      logger.warn(`Ungültige Toast-Dauer: ${duration}`);
       return;
     }
 
@@ -277,7 +278,7 @@ export const useSettingsStore = defineStore('settings', () => {
       'bottom-right',
     ];
     if (!validPositions.includes(position)) {
-      console.warn(`Ungültige Toast-Position: ${position}`);
+      logger.warn(`Ungültige Toast-Position: ${position}`);
       return;
     }
 
@@ -319,7 +320,7 @@ export const useSettingsStore = defineStore('settings', () => {
     setToastDuration(3000);
     setToastPosition('top-right');
 
-    console.log('🔄 Alle Einstellungen zurückgesetzt');
+    logger.log('🔄 Alle Einstellungen zurückgesetzt');
   }
 
   /**
@@ -362,9 +363,9 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settings.toastDuration) setToastDuration(settings.toastDuration);
       if (settings.toastPosition) setToastPosition(settings.toastPosition);
 
-      console.log('✅ Einstellungen importiert');
+      logger.log('✅ Einstellungen importiert');
     } catch (error) {
-      console.error('❌ Fehler beim Import der Einstellungen:', error);
+      logger.error('❌ Fehler beim Import der Einstellungen:', error);
       throw error;
     }
   }
@@ -388,7 +389,7 @@ export const useSettingsStore = defineStore('settings', () => {
   // Das stellt sicher, dass i18n und Store von Anfang an synchron sind
   i18n.global.locale.value = locale.value;
   document.documentElement.setAttribute('lang', locale.value);
-  console.log(`🌍 Store initialisiert mit Sprache: ${locale.value}`);
+  logger.log(`🌍 Store initialisiert mit Sprache: ${locale.value}`);
 
   // ===== RETURN =====
   return {

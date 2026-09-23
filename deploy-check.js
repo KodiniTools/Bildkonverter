@@ -146,7 +146,7 @@ console.log('');
 // Check 7: Build-Größe
 console.log(`${YELLOW}[7/7] Prüfe Build-Größe...${RESET}`);
 if (fs.existsSync('./dist')) {
-  function getDirectorySize(dirPath) {
+  const getDirectorySize = (dirPath) => {
     let size = 0;
     const files = fs.readdirSync(dirPath);
 
@@ -162,7 +162,7 @@ if (fs.existsSync('./dist')) {
     });
 
     return size;
-  }
+  };
 
   const sizeBytes = getDirectorySize('./dist');
   const sizeMB = (sizeBytes / 1024 / 1024).toFixed(2);

@@ -14,18 +14,18 @@
 
 ## Tech-Stack
 
-| Schicht | Technologie | Version |
-|---------|-------------|---------|
-| Framework | Vue 3 (Composition API) | ^3.4 |
-| Build-Tool | Vite | ^5.1 |
-| State Management | Pinia | ^2.1 |
-| Routing | Vue Router | ^4.3 |
-| Internationalisierung | Vue i18n | ^9.10 |
-| CSS | SCSS | ^1.71 |
-| PDF-Export | jsPDF | ^2.5 |
-| ZIP-Export | JSZip | ^3.10 |
-| Utilities | @vueuse/core | ^10.9 |
-| Konfetti | canvas-confetti | ^1.9 |
+| Schicht               | Technologie             | Version |
+| --------------------- | ----------------------- | ------- |
+| Framework             | Vue 3 (Composition API) | ^3.4    |
+| Build-Tool            | Vite                    | ^5.1    |
+| State Management      | Pinia                   | ^2.1    |
+| Routing               | Vue Router              | ^4.3    |
+| Internationalisierung | Vue i18n                | ^9.10   |
+| CSS                   | SCSS                    | ^1.71   |
+| PDF-Export            | jsPDF                   | ^2.5    |
+| ZIP-Export            | JSZip                   | ^3.10   |
+| Utilities             | @vueuse/core            | ^10.9   |
+| Konfetti              | canvas-confetti         | ^1.9    |
 
 **Dev-Dependencies:** ESLint, Prettier, `@vitejs/plugin-vue`
 
@@ -114,6 +114,7 @@ src/
 │   ├── exportUtils.js            # ExportManager (Download-Export im Editor)
 │   ├── fileUtils.js              # Endungslisten (inkl. RAW), isImageFile, Vorschau-Helfer, formatSize
 │   ├── formatInfo.js             # FORMAT_INFO-Mapping aller Export-Formate
+│   ├── logger.js                 # Konsolenausgabe: log/info/debug nur im Dev-Modus, warn/error immer
 │   ├── textUtils.js              # Text-Messung, Bounding-Box, Kollisionserkennung
 │   └── validationUtils.js        # Validierung hochgeladener Bilddateien
 ├── views/
@@ -136,22 +137,23 @@ src/
 
 **Datei:** `src/router/index.js`
 
-| Pfad | Komponente | Name |
-|------|-----------|------|
-| `/` | HomeView | home |
-| `/editor` | EditorView | editor |
-| `/batch` | BatchView | batch |
-| `/gallery` | GalleryView | gallery |
-| `/guide` | GuideView | guide |
-| `/faq` | FaqView | faq |
-| `/about` | AboutView | about |
+| Pfad                  | Komponente           | Name              |
+| --------------------- | -------------------- | ----------------- |
+| `/`                   | HomeView             | home              |
+| `/editor`             | EditorView           | editor            |
+| `/batch`              | BatchView            | batch             |
+| `/gallery`            | GalleryView          | gallery           |
+| `/guide`              | GuideView            | guide             |
+| `/faq`                | FaqView              | faq               |
+| `/about`              | AboutView            | about             |
 | `/konvertieren/:pair` | FormatConversionView | format-conversion |
-| `/:pathMatch(.*)* ` | NotFoundView | not-found |
+| `/:pathMatch(.*)* `   | NotFoundView         | not-found         |
 
 **Unterstützte Format-Paare (`:pair`):**  
 `heic-zu-jpg`, `png-zu-webp`, `jpg-zu-webp`, `webp-zu-png`, `jpg-zu-png`, `png-zu-jpg`, `tiff-zu-jpg`, `bmp-zu-webp`, `gif-zu-webp`, `heic-zu-png`, `webp-zu-jpg`, `svg-zu-png`, `jpg-zu-pdf`, `png-zu-svg`
 
 **Navigation Guards:**
+
 - Handoff-Weiterleitung (KodiniTools-Protokoll, `?handoff=kodinitools`)
 - Dynamische SEO-Meta-Tags für Konvertierungsseiten
 - `robots: noindex` für 404-Seite
@@ -185,6 +187,7 @@ canvasBackgroundColor
 registrierten Historie gespiegelt: `canUndo`, `canRedo`, `historyIndex`, `historyLength`
 
 **Actions:**
+
 - `initCanvas()`, `loadImageFromFile()` – TIFF/HEIC/RAW werden an die Backend-API delegiert
 - `draw()` – schnelle Zwischenansicht (Bild oder Ebenen plus Texte) nach Store-Aktionen
 - Text: `addText()`, `updateText()`, `deleteText()`
@@ -278,13 +281,14 @@ Import/Export und die `localStorage`-Persistenz liegen vollständig in der Kompo
 
 **Endpunkte:**
 
-| Methode | Pfad | Beschreibung |
-|---------|------|-------------|
-| `POST` | `/convert-image` | Bildkonvertierung (TIFF, HEIC, RAW, SVG) |
-| `GET` | `/formats` | Unterstützte Formate abrufen |
-| `POST` | `/upload` | Bild hochladen |
+| Methode | Pfad             | Beschreibung                             |
+| ------- | ---------------- | ---------------------------------------- |
+| `POST`  | `/convert-image` | Bildkonvertierung (TIFF, HEIC, RAW, SVG) |
+| `GET`   | `/formats`       | Unterstützte Formate abrufen             |
+| `POST`  | `/upload`        | Bild hochladen                           |
 
 **Schlüsselmethoden:**
+
 - `ApiClient.convertImage(blob, format, filename, options)` – FormData-Upload mit Quality-Option
 - `ApiClient.checkBackendAvailability()` – Health-Check mit 5s Timeout
 
@@ -300,23 +304,23 @@ Datenarrays (z.B. Guide-Features) oder über Template-Präfixe wie `guide.filter
 
 **Top-Level-Schlüssel:**
 
-| Schlüssel | Bereich |
-|-----------|---------|
-| `nav.*` | Navigation |
-| `home.*` | Startseite (Features, Konvertierungen, weitere Tools) |
-| `faq.*` | FAQ-Seite |
-| `conversion.*` | Konvertierungs-Landingpages und Widget |
-| `editor.*` | Editor (Toolbar, Sidebar, Formate, Ablösen) |
-| `transform.*`, `textPanel.*`, `textModal.*` | Transformationen, Text-Panel, Text-Dialog |
-| `layerPanel.*` | Ebenen-Panel im Collage-Modus |
-| `filters.*`, `presets.*` | Filter- und Preset-Namen |
-| `shortcuts.*` | Tastaturkürzel-Übersicht |
-| `batch.*` | Stapelverarbeitung |
-| `gallery.*` | Galerie |
-| `guide.*` | Anleitung |
-| `about.*`, `notFound.*` | Über-Seite, 404 |
-| `toast.*`, `confirm.*`, `common.*` | Benachrichtigungen, Bestätigungsdialoge, gemeinsame Beschriftungen |
-| `handoff.*` | Cross-Tool-Übergabe |
+| Schlüssel                                   | Bereich                                                            |
+| ------------------------------------------- | ------------------------------------------------------------------ |
+| `nav.*`                                     | Navigation                                                         |
+| `home.*`                                    | Startseite (Features, Konvertierungen, weitere Tools)              |
+| `faq.*`                                     | FAQ-Seite                                                          |
+| `conversion.*`                              | Konvertierungs-Landingpages und Widget                             |
+| `editor.*`                                  | Editor (Toolbar, Sidebar, Formate, Ablösen)                        |
+| `transform.*`, `textPanel.*`, `textModal.*` | Transformationen, Text-Panel, Text-Dialog                          |
+| `layerPanel.*`                              | Ebenen-Panel im Collage-Modus                                      |
+| `filters.*`, `presets.*`                    | Filter- und Preset-Namen                                           |
+| `shortcuts.*`                               | Tastaturkürzel-Übersicht                                           |
+| `batch.*`                                   | Stapelverarbeitung                                                 |
+| `gallery.*`                                 | Galerie                                                            |
+| `guide.*`                                   | Anleitung                                                          |
+| `about.*`, `notFound.*`                     | Über-Seite, 404                                                    |
+| `toast.*`, `confirm.*`, `common.*`          | Benachrichtigungen, Bestätigungsdialoge, gemeinsame Beschriftungen |
+| `handoff.*`                                 | Cross-Tool-Übergabe                                                |
 
 **Sprachumschaltung:** Über `settingsStore.setLocale()` – wird mit dem SSI-globalen Navigationselement synchronisiert.
 
@@ -343,6 +347,7 @@ Die App ist in ein serverseitiges Include-System eingebettet:
 - Cookie-Banner: `/partials/cookie-banner.html`
 
 Vue überwacht folgende Custom Events des SSI-Headers:
+
 - `locale-changed`, `language-changed` → Sprache umschalten ohne Reload
 - `theme-changed` → Theme-Wechsel
 
@@ -363,7 +368,7 @@ SSI-Header-Elemente mit `data-lang-de` / `data-lang-en` werden automatisch über
 ## Validierung (`src/utils/validationUtils.js`)
 
 ```js
-ValidationUtils.validateImageFile(file)
+ValidationUtils.validateImageFile(file);
 // Max. 50 MB, Min. 1 KB
 // Erlaubte MIME-Typen: JPEG, PNG, WebP, GIF, BMP, SVG, TIFF, HEIC/HEIF, RAW
 // Endungen aus fileUtils (IMAGE_EXTENSIONS)
@@ -375,27 +380,27 @@ ValidationUtils.validateImageFile(file)
 
 `FORMAT_INFO`-Map mit Metadaten pro Format:
 
-| Format | Qualitätseinstellung | Backend erforderlich |
-|--------|---------------------|----------------------|
-| PNG | Nein (verlustfrei) | Nein |
-| JPEG | Ja (0–100) | Nein |
-| WebP | Ja (0–100) | Nein |
-| TIFF | Ja | Ja |
-| GIF | Nein | Nein (einfach) / Ja (animiert) |
-| HEIF | Ja | Ja |
-| PDF | Nein | Nein (jsPDF) |
+| Format | Qualitätseinstellung | Backend erforderlich           |
+| ------ | -------------------- | ------------------------------ |
+| PNG    | Nein (verlustfrei)   | Nein                           |
+| JPEG   | Ja (0–100)           | Nein                           |
+| WebP   | Ja (0–100)           | Nein                           |
+| TIFF   | Ja                   | Ja                             |
+| GIF    | Nein                 | Nein (einfach) / Ja (animiert) |
+| HEIF   | Ja                   | Ja                             |
+| PDF    | Nein                 | Nein (jsPDF)                   |
 
 ---
 
 ## Tastaturkürzel (Editor)
 
-| Kürzel | Aktion |
-|--------|--------|
-| `Ctrl + Z` | Rückgängig (Undo) |
-| `Ctrl + Y` / `Ctrl + Shift + Z` | Wiederholen (Redo) |
-| `Ctrl + V` | Bild aus Zwischenablage einfügen |
-| `T` | Text hinzufügen |
-| `Esc` | Zuschneiden abbrechen / Dialog schließen |
+| Kürzel                          | Aktion                                   |
+| ------------------------------- | ---------------------------------------- |
+| `Ctrl + Z`                      | Rückgängig (Undo)                        |
+| `Ctrl + Y` / `Ctrl + Shift + Z` | Wiederholen (Redo)                       |
+| `Ctrl + V`                      | Bild aus Zwischenablage einfügen         |
+| `T`                             | Text hinzufügen                          |
+| `Esc`                           | Zuschneiden abbrechen / Dialog schließen |
 
 ---
 
@@ -410,6 +415,9 @@ npm run lint:fix      # ESLint-Fehler automatisch beheben
 npm run format        # Prettier-Formatierung anwenden
 npm run format:check  # Prettier-Formatierung prüfen
 npm test              # Unit- und Browser-Tests (Vitest)
+# Erwartung vor jedem Merge: lint und format:check ohne Meldung, test grün.
+# App-Code schreibt nicht direkt auf die Konsole (ESLint no-console = error),
+# sondern über src/utils/logger.js; Node-Skripte und Tests sind davon ausgenommen.
 npm run test:unit     # nur Unit-Tests (happy-dom)
 npm run test:browser  # nur Browser-Tests (Chromium via Playwright)
 ```
@@ -420,9 +428,9 @@ npm run test:browser  # nur Browser-Tests (Chromium via Playwright)
 
 Zwei Vitest-Projekte:
 
-| Projekt | Umgebung | Inhalt |
-|---------|----------|--------|
-| `unit` | happy-dom | `fileUtils`, `conversionUtils` (Zielgröße, A4-Layout), i18n-Konsistenz (gleicher Schlüsselsatz de/en, jeder referenzierte Schlüssel existiert, kein Schlüssel verwaist), `GuideSectionHeader` und die Sidebar-Panels (`AdjustmentsPanel`, `LightColorPanel`, `EffectsPanel`, `BackgroundPanel`: Ereignisse statt Prop-Mutation) mit Vue Test Utils |
+| Projekt   | Umgebung                                   | Inhalt                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| --------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `unit`    | happy-dom                                  | `fileUtils`, `conversionUtils` (Zielgröße, A4-Layout), i18n-Konsistenz (gleicher Schlüsselsatz de/en, jeder referenzierte Schlüssel existiert, kein Schlüssel verwaist), `GuideSectionHeader` und die Sidebar-Panels (`AdjustmentsPanel`, `LightColorPanel`, `EffectsPanel`, `BackgroundPanel`: Ereignisse statt Prop-Mutation) mit Vue Test Utils                                                                                                                                                                                                                                                                                                                                |
 | `browser` | Chromium (Vitest Browser Mode, Playwright) | `useCanvasRenderer` (Vorschau vs. Export pixelgenau, Auswahlrahmen, Vignette, Transparenz, Texte, Collage), `useBatchConversion` (JPG/WebP/PNG, Skalierung, PDF einzeln und gesamt, SVG-Fallback ohne Backend, Fehlerpfad, Reset/Entfernen/Leeren), `useEditorHistory` (Snapshot inkl. Ebenen-Modus, Undo/Redo mit vollständiger Wiederherstellung, Wechsel zwischen Einzelbild und Ebenen, Redo-Zweig, Reset, Store-Registrierung), `imageStore` (Delegation der Historie, Ebenen-Serialisierung), `useEditorResize` (Live-Vorschau mit Entprellung, Presets, Anwenden, Validierung), `useEditorDetach` (Ablösen als Ebene, Fehlerpfad, Verbinden, Umschalten, Hintergrund-Sync) |
 
 Die Browser-Tests brauchen einen echten 2D-Canvas und laufen deshalb nicht in jsdom/happy-dom.
@@ -446,10 +454,10 @@ oder per `VITEST_CHROMIUM`.
 
 Keine `.env`-Datei. Konfiguration erfolgt via Vite-Umgebungsvariablen:
 
-| Variable | Verwendung |
-|----------|-----------|
-| `import.meta.env.PROD` | Produktionsmodus-Check |
-| `import.meta.env.DEV` | Entwicklungsmodus |
+| Variable                   | Verwendung                     |
+| -------------------------- | ------------------------------ |
+| `import.meta.env.PROD`     | Produktionsmodus-Check         |
+| `import.meta.env.DEV`      | Entwicklungsmodus              |
 | `import.meta.env.BASE_URL` | Basis-Pfad (`/bildkonverter/`) |
 
 ---

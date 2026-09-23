@@ -209,8 +209,8 @@
             </div>
             <input
               v-else
-              :data-rename-id="image.id"
               v-model="editingName"
+              :data-rename-id="image.id"
               class="gallery-card__name-input"
               @keydown.enter.stop="confirmRename(image)"
               @keydown.escape.stop="cancelRename()"
@@ -292,6 +292,7 @@ import { useConfirm } from '@/composables/useConfirm';
 import HandoffReceiver from '@/components/features/HandoffReceiver.vue';
 import { handoffImageToCanvas } from '@/lib/core/handoff';
 import { formatSize } from '@/utils/fileUtils';
+import { logger } from '@/utils/logger';
 
 const { t } = useI18n({ useScope: 'global' });
 const router = useRouter();
@@ -318,7 +319,6 @@ function handlePaste(e) {
   const items = e.clipboardData?.items;
   if (!items) return;
 
-  let added = 0;
   for (const item of items) {
     if (item.type.startsWith('image/')) {
       e.preventDefault();
@@ -328,13 +328,12 @@ function handlePaste(e) {
         const namedFile = new File([file], name, { type: item.type });
         addImageToGallery(namedFile)
           .then(() => {
-            added++;
             if (window.$toast)
               window.$toast.success(
                 t('toast.gallery.pasted', 'Bild aus Zwischenablage hinzugefügt')
               );
           })
-          .catch((err) => console.error('Paste error:', err));
+          .catch((err) => logger.error('Paste error:', err));
       }
     }
   }
@@ -362,7 +361,7 @@ async function handleHandoffAccept(images) {
         file: null,
       });
     } catch (error) {
-      console.error(`[Handoff] Fehler beim Import von ${img.name}:`, error);
+      logger.error(`[Handoff] Fehler beim Import von ${img.name}:`, error);
     }
   }
 }
@@ -384,7 +383,7 @@ async function handleFolderSelect(event) {
     try {
       await addImageToGallery(file);
     } catch (err) {
-      console.error(err);
+      logger.error(err);
     }
   }
   event.target.value = '';
@@ -396,7 +395,7 @@ async function handleFileSelect(event) {
     try {
       await addImageToGallery(file);
     } catch (error) {
-      console.error(`Fehler beim Laden von ${file.name}:`, error);
+      logger.error(`Fehler beim Laden von ${file.name}:`, error);
       if (window.$toast) {
         window.$toast.error(t('gallery.uploadError', { name: file.name }) + ': ' + error.message);
       }
@@ -577,7 +576,7 @@ async function createCollage() {
     galleryStore.deselectAllImages();
     await router.push({ path: '/editor', query: { collageMode: 'true' } });
   } catch (error) {
-    console.error('Fehler beim Erstellen der Collage:', error);
+    logger.error('Fehler beim Erstellen der Collage:', error);
     if (window.$toast) {
       window.$toast.error(
         t('gallery.errors.collageError', 'Fehler beim Erstellen der Collage') + ': ' + error.message

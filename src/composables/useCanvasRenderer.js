@@ -5,6 +5,7 @@
 
 import { buildTextFontString, applyTextTransform } from '@/utils/textRender';
 import { getAdjustedImage } from '@/utils/imageAdjustments';
+import { logger } from '@/utils/logger';
 
 /**
  * Zeichnet den Auswahl-Rahmen mit Resize-Handles für eine Bild-Ebene.
@@ -311,7 +312,7 @@ export function useCanvasRenderer({
     imageStore.imageLayers.forEach((layer) => {
       if (!layer.visible) return;
       if (!layer.image || !layer.image.complete) {
-        if (showSelection) console.warn(`Layer "${layer.name}" hat kein gültiges Bild`);
+        if (showSelection) logger.warn(`Layer "${layer.name}" hat kein gültiges Bild`);
         return;
       }
 

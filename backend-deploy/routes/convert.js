@@ -174,14 +174,26 @@ async function checkPotraceAvailable() {
 // ---------------------------------------------------------------------------
 
 const RAW_EXTENSIONS = new Set([
-  'cr2', 'cr3', 'nef', 'arw', 'dng', 'raf', 'orf', 'rw2', 'pef', 'x3f',
+  'cr2',
+  'cr3',
+  'nef',
+  'arw',
+  'dng',
+  'raf',
+  'orf',
+  'rw2',
+  'pef',
+  'x3f',
 ]);
 
 /**
  * Erkennt ob eine Datei ein RAW-Kameraformat ist (anhand der Dateiendung)
  */
 function isRawFile(originalname) {
-  const ext = path.extname(originalname || '').slice(1).toLowerCase();
+  const ext = path
+    .extname(originalname || '')
+    .slice(1)
+    .toLowerCase();
   return RAW_EXTENSIONS.has(ext);
 }
 
@@ -200,11 +212,10 @@ async function convertRawToBuffer(rawBuffer, originalname) {
   try {
     await writeFile(inputPath, rawBuffer);
 
-    const { stdout } = await runCommand(
-      'dcraw',
-      ['-c', '-w', '-T', '-q', '3', inputPath],
-      { encoding: 'buffer', maxBuffer: 300 * 1024 * 1024 }
-    );
+    const { stdout } = await runCommand('dcraw', ['-c', '-w', '-T', '-q', '3', inputPath], {
+      encoding: 'buffer',
+      maxBuffer: 300 * 1024 * 1024,
+    });
 
     return Buffer.from(stdout);
   } finally {
@@ -260,7 +271,9 @@ router.get('/formats', (_req, res) => {
         'tiff',
         'heic',
         'heif',
-        ...(dcrawAvailable ? ['cr2', 'cr3', 'nef', 'arw', 'dng', 'raf', 'orf', 'rw2', 'pef', 'x3f'] : []),
+        ...(dcrawAvailable
+          ? ['cr2', 'cr3', 'nef', 'arw', 'dng', 'raf', 'orf', 'rw2', 'pef', 'x3f']
+          : []),
       ],
     },
     features: {
@@ -318,7 +331,8 @@ router.post('/convert-image', upload.single('image'), async (req, res) => {
     if (isRawFile(req.file.originalname)) {
       if (!dcrawAvailable) {
         return res.status(501).json({
-          error: 'RAW-Konvertierung nicht verfügbar. dcraw ist nicht installiert. (apt install dcraw)',
+          error:
+            'RAW-Konvertierung nicht verfügbar. dcraw ist nicht installiert. (apt install dcraw)',
         });
       }
       try {

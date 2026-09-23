@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 /**
  * imageAdjustments.js
  *
@@ -248,7 +249,7 @@ export function getAdjustedImage(image, filters) {
     return { el: off, cssFilter: effect };
   } catch (e) {
     // z. B. SecurityError bei Cross-Origin-Bildern → CSS-Näherung
-    console.warn('Pixelbasierte Anpassung nicht möglich, nutze CSS-Näherung:', e);
+    logger.warn('Pixelbasierte Anpassung nicht möglich, nutze CSS-Näherung:', e);
     return { el: image, cssFilter: buildApproxFilterString(filters) };
   }
 }

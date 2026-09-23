@@ -33,14 +33,14 @@ Bildkonverter Pro ist mehr als nur ein Bildbearbeitungstool - es ist ein Showcas
 
 ### Technologie-Stack
 
-| Technologie | Version | Verwendungszweck |
-|-------------|---------|------------------|
-| Vue.js | 3.4.21 | Reaktives UI-Framework |
-| Pinia | 2.1.7 | State Management |
-| Vue Router | 4.3.0 | SPA-Navigation |
-| Vue i18n | 9.10.2 | Internationalisierung |
-| Vite | 5.x | Build-Tool & Dev-Server |
-| jsPDF | 2.5.2 | PDF-Export |
+| Technologie | Version | Verwendungszweck        |
+| ----------- | ------- | ----------------------- |
+| Vue.js      | 3.4.21  | Reaktives UI-Framework  |
+| Pinia       | 2.1.7   | State Management        |
+| Vue Router  | 4.3.0   | SPA-Navigation          |
+| Vue i18n    | 9.10.2  | Internationalisierung   |
+| Vite        | 5.x     | Build-Tool & Dev-Server |
+| jsPDF       | 2.5.2   | PDF-Export              |
 
 ---
 
@@ -124,20 +124,22 @@ Die Anwendung nutzt durchgangig die moderne `<script setup>` Syntax, die Vue 3.2
 <script>
 export default {
   data() {
-    return { count: 0 }
+    return { count: 0 };
   },
   methods: {
-    increment() { this.count++ }
-  }
-}
+    increment() {
+      this.count++;
+    },
+  },
+};
 </script>
 
 <!-- Composition API mit script setup (modern) -->
 <script setup>
-import { ref } from 'vue'
+import { ref } from 'vue';
 
-const count = ref(0)
-const increment = () => count.value++
+const count = ref(0);
+const increment = () => count.value++;
 </script>
 ```
 
@@ -147,12 +149,12 @@ const increment = () => count.value++
 
 ```javascript
 // ref() - Fur primitive Werte und einzelne Referenzen
-const isLoading = ref(false)
-const selectedTextId = ref(null)
-const imageWidth = ref(800)
+const isLoading = ref(false);
+const selectedTextId = ref(null);
+const imageWidth = ref(800);
 
 // Zugriff uber .value
-isLoading.value = true
+isLoading.value = true;
 
 // reactive() - Fur komplexe Objekte
 const filters = reactive({
@@ -160,21 +162,21 @@ const filters = reactive({
   contrast: 100,
   saturation: 100,
   grayscale: 0,
-  sepia: 0
-})
+  sepia: 0,
+});
 
 // Direkter Zugriff
-filters.brightness = 120
+filters.brightness = 120;
 ```
 
 **Wann was verwenden?**
 
-| Situation | Empfehlung | Grund |
-|-----------|------------|-------|
-| Primitive Werte (number, string, boolean) | `ref()` | Einfache Handhabung |
-| Komplexe Objekte mit vielen Eigenschaften | `reactive()` | Kein `.value` notig |
-| Arrays | `ref()` | Bessere Ersetzbarkeit |
-| Nullable/undefined Werte | `ref()` | Kann komplett ersetzt werden |
+| Situation                                 | Empfehlung   | Grund                        |
+| ----------------------------------------- | ------------ | ---------------------------- |
+| Primitive Werte (number, string, boolean) | `ref()`      | Einfache Handhabung          |
+| Komplexe Objekte mit vielen Eigenschaften | `reactive()` | Kein `.value` notig          |
+| Arrays                                    | `ref()`      | Bessere Ersetzbarkeit        |
+| Nullable/undefined Werte                  | `ref()`      | Kann komplett ersetzt werden |
 
 ### 3.3 Computed Properties
 
@@ -182,24 +184,26 @@ Computed Properties sind gecachte, abgeleitete Werte:
 
 ```javascript
 // imageStore.js
-const hasImage = computed(() => !!originalImage.value)
+const hasImage = computed(() => !!originalImage.value);
 
 const hasActiveFilters = computed(() => {
-  return filters.brightness !== 100 ||
-         filters.contrast !== 100 ||
-         filters.saturation !== 100 ||
-         filters.grayscale > 0 ||
-         filters.sepia > 0
-})
+  return (
+    filters.brightness !== 100 ||
+    filters.contrast !== 100 ||
+    filters.saturation !== 100 ||
+    filters.grayscale > 0 ||
+    filters.sepia > 0
+  );
+});
 
 // Mit Getter und Setter
 const selectedText = computed({
-  get: () => texts.value.find(t => t.id === selectedTextId.value),
+  get: () => texts.value.find((t) => t.id === selectedTextId.value),
   set: (newText) => {
-    const index = texts.value.findIndex(t => t.id === newText.id)
-    if (index !== -1) texts.value[index] = newText
-  }
-})
+    const index = texts.value.findIndex((t) => t.id === newText.id);
+    if (index !== -1) texts.value[index] = newText;
+  },
+});
 ```
 
 ### 3.4 Watchers fur Seiteneffekte
@@ -207,32 +211,29 @@ const selectedText = computed({
 ```javascript
 // Einfacher Watch
 watch(selectedTextId, (newId, oldId) => {
-  console.log(`Text selection changed: ${oldId} -> ${newId}`)
-})
+  console.log(`Text selection changed: ${oldId} -> ${newId}`);
+});
 
 // Watch mit Optionen
 watch(
   () => filters.brightness,
   (newValue) => {
-    draw() // Canvas neu zeichnen
+    draw(); // Canvas neu zeichnen
   },
   { immediate: true } // Sofort ausfuhren
-)
+);
 
 // Mehrere Quellen beobachten
-watch(
-  [() => filters.brightness, () => filters.contrast],
-  ([brightness, contrast]) => {
-    console.log('Filter changed:', { brightness, contrast })
-    draw()
-  }
-)
+watch([() => filters.brightness, () => filters.contrast], ([brightness, contrast]) => {
+  console.log('Filter changed:', { brightness, contrast });
+  draw();
+});
 
 // watchEffect - automatische Dependency-Erkennung
 watchEffect(() => {
   // Wird ausgefuhrt wenn sich brightness ODER contrast andert
-  document.title = `Brightness: ${filters.brightness}%`
-})
+  document.title = `Brightness: ${filters.brightness}%`;
+});
 ```
 
 ### 3.5 Composables - Wiederverwendbare Logik
@@ -243,7 +244,7 @@ Composables sind das Herzstuck der Composition API. Sie kapseln wiederverwendbar
 
 ```javascript
 // composables/useFilterManagement.js
-import { ref, computed } from 'vue'
+import { ref, computed } from 'vue';
 
 const DEFAULT_FILTERS = {
   brightness: 100,
@@ -253,55 +254,53 @@ const DEFAULT_FILTERS = {
   sepia: 0,
   sharpen: 0,
   blur: 0,
-  hue: 0
-}
+  hue: 0,
+};
 
 export function useFilterManagement(options = {}) {
-  const { onFilterChange } = options
+  const { onFilterChange } = options;
 
   // State
-  const filters = ref({ ...DEFAULT_FILTERS })
+  const filters = ref({ ...DEFAULT_FILTERS });
   const background = ref({
     color: '#ffffff',
     opacity: 100,
-    transparent: false
-  })
+    transparent: false,
+  });
 
   // Computed
   const hasActiveFilters = computed(() => {
-    return Object.keys(DEFAULT_FILTERS).some(
-      key => filters.value[key] !== DEFAULT_FILTERS[key]
-    )
-  })
+    return Object.keys(DEFAULT_FILTERS).some((key) => filters.value[key] !== DEFAULT_FILTERS[key]);
+  });
 
   const filterString = computed(() => {
-    const parts = []
+    const parts = [];
     if (filters.value.brightness !== 100) {
-      parts.push(`brightness(${filters.value.brightness}%)`)
+      parts.push(`brightness(${filters.value.brightness}%)`);
     }
     if (filters.value.contrast !== 100) {
-      parts.push(`contrast(${filters.value.contrast}%)`)
+      parts.push(`contrast(${filters.value.contrast}%)`);
     }
     // ... weitere Filter
-    return parts.join(' ') || 'none'
-  })
+    return parts.join(' ') || 'none';
+  });
 
   // Actions
   function setFilter(name, value) {
     if (name in filters.value) {
-      filters.value[name] = value
-      onFilterChange?.()
+      filters.value[name] = value;
+      onFilterChange?.();
     }
   }
 
   function resetFilters() {
-    filters.value = { ...DEFAULT_FILTERS }
-    onFilterChange?.()
+    filters.value = { ...DEFAULT_FILTERS };
+    onFilterChange?.();
   }
 
   function applyPreset(preset) {
-    filters.value = { ...DEFAULT_FILTERS, ...preset.filters }
-    onFilterChange?.()
+    filters.value = { ...DEFAULT_FILTERS, ...preset.filters };
+    onFilterChange?.();
   }
 
   return {
@@ -312,8 +311,8 @@ export function useFilterManagement(options = {}) {
     setFilter,
     resetFilters,
     applyPreset,
-    DEFAULT_FILTERS
-  }
+    DEFAULT_FILTERS,
+  };
 }
 ```
 
@@ -322,101 +321,100 @@ export function useFilterManagement(options = {}) {
 ```javascript
 // composables/editor/useCanvasInteraction.js (vereinfachter Auszug)
 export function useCanvasInteraction(canvasRef, imageStore) {
-  const isDragging = ref(false)
-  const isResizing = ref(false)
-  const dragStart = ref({ x: 0, y: 0 })
-  const selectedTextId = ref(null)
+  const isDragging = ref(false);
+  const isResizing = ref(false);
+  const dragStart = ref({ x: 0, y: 0 });
+  const selectedTextId = ref(null);
 
   // Koordinaten-Umrechnung DOM -> Canvas
   function getCanvasPosition(event) {
-    const rect = canvasRef.value.getBoundingClientRect()
-    const scaleX = imageStore.imageWidth / rect.width
-    const scaleY = imageStore.imageHeight / rect.height
+    const rect = canvasRef.value.getBoundingClientRect();
+    const scaleX = imageStore.imageWidth / rect.width;
+    const scaleY = imageStore.imageHeight / rect.height;
 
     return {
       x: (event.clientX - rect.left) * scaleX,
-      y: (event.clientY - rect.top) * scaleY
-    }
+      y: (event.clientY - rect.top) * scaleY,
+    };
   }
 
   // Text an Position finden
   function findTextAtPosition(x, y) {
-    const texts = imageStore.texts
+    const texts = imageStore.texts;
     // Von oben nach unten durchsuchen (letzter = oberster)
     for (let i = texts.length - 1; i >= 0; i--) {
-      const text = texts[i]
-      const bounds = getTextBounds(text)
+      const text = texts[i];
+      const bounds = getTextBounds(text);
 
-      if (x >= bounds.left && x <= bounds.right &&
-          y >= bounds.top && y <= bounds.bottom) {
-        return i
+      if (x >= bounds.left && x <= bounds.right && y >= bounds.top && y <= bounds.bottom) {
+        return i;
       }
     }
-    return -1
+    return -1;
   }
 
   // Mouse Event Handler
   function handleMouseDown(event) {
-    const pos = getCanvasPosition(event)
-    const textIndex = findTextAtPosition(pos.x, pos.y)
+    const pos = getCanvasPosition(event);
+    const textIndex = findTextAtPosition(pos.x, pos.y);
 
     if (textIndex !== -1) {
-      selectedTextId.value = imageStore.texts[textIndex].id
-      isDragging.value = true
-      dragStart.value = pos
+      selectedTextId.value = imageStore.texts[textIndex].id;
+      isDragging.value = true;
+      dragStart.value = pos;
 
       // Doppelklick-Erkennung fur Textbearbeitung
       if (event.detail === 2) {
-        openTextEditor(selectedTextId.value)
-        isDragging.value = false
+        openTextEditor(selectedTextId.value);
+        isDragging.value = false;
       }
     } else {
-      selectedTextId.value = null
+      selectedTextId.value = null;
     }
   }
 
   function handleMouseMove(event) {
-    if (!isDragging.value || selectedTextId.value === null) return
+    if (!isDragging.value || selectedTextId.value === null) return;
 
-    const pos = getCanvasPosition(event)
-    const deltaX = pos.x - dragStart.value.x
-    const deltaY = pos.y - dragStart.value.y
+    const pos = getCanvasPosition(event);
+    const deltaX = pos.x - dragStart.value.x;
+    const deltaY = pos.y - dragStart.value.y;
 
     imageStore.updateText(selectedTextId.value, {
       x: imageStore.getTextById(selectedTextId.value).x + deltaX,
-      y: imageStore.getTextById(selectedTextId.value).y + deltaY
-    })
+      y: imageStore.getTextById(selectedTextId.value).y + deltaY,
+    });
 
-    dragStart.value = pos
+    dragStart.value = pos;
   }
 
   function handleMouseUp() {
     if (isDragging.value) {
-      isDragging.value = false
-      imageStore.saveState('Text verschoben', 'text-move')
+      isDragging.value = false;
+      imageStore.saveState('Text verschoben', 'text-move');
     }
   }
 
   // Event Listener registrieren
   onMounted(() => {
-    const canvas = canvasRef.value
-    canvas.addEventListener('mousedown', handleMouseDown)
-    canvas.addEventListener('mousemove', handleMouseMove)
-    canvas.addEventListener('mouseup', handleMouseUp)
-  })
+    const canvas = canvasRef.value;
+    canvas.addEventListener('mousedown', handleMouseDown);
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mouseup', handleMouseUp);
+  });
 
   onUnmounted(() => {
-    const canvas = canvasRef.value
-    canvas.removeEventListener('mousedown', handleMouseDown)
-    canvas.removeEventListener('mousemove', handleMouseMove)
-    canvas.removeEventListener('mouseup', handleMouseUp)
-  })
+    const canvas = canvasRef.value;
+    canvas.removeEventListener('mousedown', handleMouseDown);
+    canvas.removeEventListener('mousemove', handleMouseMove);
+    canvas.removeEventListener('mouseup', handleMouseUp);
+  });
 
   return {
     selectedTextId,
     isDragging,
-    isResizing
-  }
+    isResizing,
+  };
 }
 ```
 
@@ -424,17 +422,17 @@ export function useCanvasInteraction(canvasRef, imageStore) {
 
 ```javascript
 // Parent-Komponente
-import { provide } from 'vue'
+import { provide } from 'vue';
 
-const imageStore = useImageStore()
-provide('imageStore', imageStore)
-provide('canvasContext', ctx)
+const imageStore = useImageStore();
+provide('imageStore', imageStore);
+provide('canvasContext', ctx);
 
 // Child-Komponente (beliebig tief verschachtelt)
-import { inject } from 'vue'
+import { inject } from 'vue';
 
-const imageStore = inject('imageStore')
-const ctx = inject('canvasContext')
+const imageStore = inject('imageStore');
+const ctx = inject('canvasContext');
 ```
 
 ---
@@ -443,32 +441,32 @@ const ctx = inject('canvasContext')
 
 ### 4.1 Warum Pinia statt Vuex?
 
-| Feature | Vuex | Pinia |
-|---------|------|-------|
-| Mutations | Erforderlich | Nicht notig |
-| TypeScript | Komplex | Native Unterstutzung |
-| Modules | Namespace-basiert | Unabhangige Stores |
-| DevTools | Ja | Ja + bessere Integration |
-| Composition API | Eingeschrankt | Vollstandig |
-| Bundle Size | ~10KB | ~1KB |
+| Feature         | Vuex              | Pinia                    |
+| --------------- | ----------------- | ------------------------ |
+| Mutations       | Erforderlich      | Nicht notig              |
+| TypeScript      | Komplex           | Native Unterstutzung     |
+| Modules         | Namespace-basiert | Unabhangige Stores       |
+| DevTools        | Ja                | Ja + bessere Integration |
+| Composition API | Eingeschrankt     | Vollstandig              |
+| Bundle Size     | ~10KB             | ~1KB                     |
 
 ### 4.2 Store-Definition mit Composition API
 
 ```javascript
 // stores/imageStore.js
-import { defineStore } from 'pinia'
-import { ref, reactive, computed } from 'vue'
+import { defineStore } from 'pinia';
+import { ref, reactive, computed } from 'vue';
 
 export const useImageStore = defineStore('image', () => {
   // ============================================
   // STATE
   // ============================================
 
-  const canvas = ref(null)
-  const ctx = ref(null)
-  const originalImage = ref(null)
-  const imageWidth = ref(800)
-  const imageHeight = ref(600)
+  const canvas = ref(null);
+  const ctx = ref(null);
+  const originalImage = ref(null);
+  const imageWidth = ref(800);
+  const imageHeight = ref(600);
 
   const filters = reactive({
     brightness: 100,
@@ -477,172 +475,170 @@ export const useImageStore = defineStore('image', () => {
     grayscale: 0,
     sepia: 0,
     sharpen: 0,
-    blur: 0
-  })
+    blur: 0,
+  });
 
-  const texts = ref([])
-  const imageLayers = ref([])
-  const selectedTextId = ref(null)
-  const selectedLayerId = ref(null)
+  const texts = ref([]);
+  const imageLayers = ref([]);
+  const selectedTextId = ref(null);
+  const selectedLayerId = ref(null);
 
   // History fur Undo/Redo
-  const history = ref([])
-  const historyIndex = ref(-1)
-  const maxHistoryStates = 50
+  const history = ref([]);
+  const historyIndex = ref(-1);
+  const maxHistoryStates = 50;
 
   // ============================================
   // COMPUTED (Getters)
   // ============================================
 
-  const hasImage = computed(() => !!originalImage.value)
+  const hasImage = computed(() => !!originalImage.value);
 
-  const canUndo = computed(() => historyIndex.value > 0)
-  const canRedo = computed(() => historyIndex.value < history.value.length - 1)
+  const canUndo = computed(() => historyIndex.value > 0);
+  const canRedo = computed(() => historyIndex.value < history.value.length - 1);
 
   const hasActiveFilters = computed(() => {
-    return filters.brightness !== 100 ||
-           filters.contrast !== 100 ||
-           filters.saturation !== 100 ||
-           filters.grayscale > 0 ||
-           filters.sepia > 0
-  })
+    return (
+      filters.brightness !== 100 ||
+      filters.contrast !== 100 ||
+      filters.saturation !== 100 ||
+      filters.grayscale > 0 ||
+      filters.sepia > 0
+    );
+  });
 
   const selectedText = computed(() => {
-    if (selectedTextId.value === null) return null
-    return texts.value.find(t => t.id === selectedTextId.value)
-  })
+    if (selectedTextId.value === null) return null;
+    return texts.value.find((t) => t.id === selectedTextId.value);
+  });
 
   // ============================================
   // ACTIONS
   // ============================================
 
   function initCanvas(canvasElement) {
-    canvas.value = canvasElement
+    canvas.value = canvasElement;
     ctx.value = canvasElement.getContext('2d', {
       willReadFrequently: true, // Optimierung fur haufiges Auslesen
-      alpha: true
-    })
+      alpha: true,
+    });
   }
 
   async function loadImageFromFile(file) {
     return new Promise((resolve, reject) => {
       // Validierung
-      const validation = validateImageFile(file)
+      const validation = validateImageFile(file);
       if (!validation.isValid) {
-        reject(new Error(validation.errors.join(', ')))
-        return
+        reject(new Error(validation.errors.join(', ')));
+        return;
       }
 
-      const reader = new FileReader()
+      const reader = new FileReader();
 
       reader.onload = (e) => {
-        const img = new Image()
+        const img = new Image();
 
         img.onload = () => {
-          originalImage.value = img
-          imageWidth.value = img.width
-          imageHeight.value = img.height
+          originalImage.value = img;
+          imageWidth.value = img.width;
+          imageHeight.value = img.height;
 
           // Canvas-Grosse anpassen
-          canvas.value.width = img.width
-          canvas.value.height = img.height
+          canvas.value.width = img.width;
+          canvas.value.height = img.height;
 
           // Filter zurucksetzen
-          resetFilters()
+          resetFilters();
 
           // Zeichnen
-          draw()
+          draw();
 
           // History initialisieren
-          saveState('Bild geladen', 'image-load')
+          saveState('Bild geladen', 'image-load');
 
-          resolve(img)
-        }
+          resolve(img);
+        };
 
-        img.onerror = () => reject(new Error('Bild konnte nicht geladen werden'))
-        img.src = e.target.result
-      }
+        img.onerror = () => reject(new Error('Bild konnte nicht geladen werden'));
+        img.src = e.target.result;
+      };
 
-      reader.onerror = () => reject(new Error('Datei konnte nicht gelesen werden'))
-      reader.readAsDataURL(file)
-    })
+      reader.onerror = () => reject(new Error('Datei konnte nicht gelesen werden'));
+      reader.readAsDataURL(file);
+    });
   }
 
   function setFilter(name, value) {
-    if (!(name in filters)) return
+    if (!(name in filters)) return;
 
     // Wert validieren und begrenzen
-    const validated = validateFilterValue(name, value)
-    filters[name] = validated.value
+    const validated = validateFilterValue(name, value);
+    filters[name] = validated.value;
 
-    draw()
+    draw();
   }
 
   function resetFilters() {
-    filters.brightness = 100
-    filters.contrast = 100
-    filters.saturation = 100
-    filters.grayscale = 0
-    filters.sepia = 0
-    filters.sharpen = 0
-    filters.blur = 0
+    filters.brightness = 100;
+    filters.contrast = 100;
+    filters.saturation = 100;
+    filters.grayscale = 0;
+    filters.sepia = 0;
+    filters.sharpen = 0;
+    filters.blur = 0;
 
-    draw()
+    draw();
   }
 
   function draw() {
-    if (!ctx.value) return
+    if (!ctx.value) return;
 
-    const c = ctx.value
+    const c = ctx.value;
 
     // Canvas leeren
-    c.clearRect(0, 0, canvas.value.width, canvas.value.height)
+    c.clearRect(0, 0, canvas.value.width, canvas.value.height);
 
     // Modus: Collage mit Layern
     if (imageLayers.value.length > 0) {
-      drawImageLayers(c)
+      drawImageLayers(c);
     }
     // Modus: Einzelbild mit Filtern
     else if (originalImage.value) {
       // Filter-String aufbauen
-      c.filter = buildFilterString()
-      c.drawImage(
-        originalImage.value,
-        0, 0,
-        imageWidth.value, imageHeight.value
-      )
+      c.filter = buildFilterString();
+      c.drawImage(originalImage.value, 0, 0, imageWidth.value, imageHeight.value);
     }
 
     // Filter zurucksetzen fur Text
-    c.filter = 'none'
+    c.filter = 'none';
 
     // Texte zeichnen
-    drawTexts(c)
+    drawTexts(c);
   }
 
   function buildFilterString() {
-    const parts = []
+    const parts = [];
 
     if (filters.brightness !== 100) {
-      parts.push(`brightness(${filters.brightness}%)`)
+      parts.push(`brightness(${filters.brightness}%)`);
     }
     if (filters.contrast !== 100) {
-      parts.push(`contrast(${filters.contrast}%)`)
+      parts.push(`contrast(${filters.contrast}%)`);
     }
     if (filters.saturation !== 100) {
-      parts.push(`saturate(${filters.saturation}%)`)
+      parts.push(`saturate(${filters.saturation}%)`);
     }
     if (filters.grayscale > 0) {
-      parts.push(`grayscale(${filters.grayscale}%)`)
+      parts.push(`grayscale(${filters.grayscale}%)`);
     }
     if (filters.sepia > 0) {
-      parts.push(`sepia(${filters.sepia}%)`)
+      parts.push(`sepia(${filters.sepia}%)`);
     }
     if (filters.blur > 0) {
-      parts.push(`blur(${filters.blur}px)`)
+      parts.push(`blur(${filters.blur}px)`);
     }
 
-    return parts.length > 0 ? parts.join(' ') : 'none'
+    return parts.length > 0 ? parts.join(' ') : 'none';
   }
 
   // ============================================
@@ -662,85 +658,85 @@ export const useImageStore = defineStore('image', () => {
       opacity: 100,
       rotation: 0,
       shadow: false,
-      align: 'center'
-    }
+      align: 'center',
+    };
 
     const newText = {
       ...defaultText,
       ...textData,
-      id: Date.now() + Math.random()
-    }
+      id: Date.now() + Math.random(),
+    };
 
-    texts.value.push(newText)
-    selectedTextId.value = newText.id
+    texts.value.push(newText);
+    selectedTextId.value = newText.id;
 
-    draw()
-    saveState('Text hinzugefugt', 'text-add')
+    draw();
+    saveState('Text hinzugefugt', 'text-add');
 
-    return newText
+    return newText;
   }
 
   function updateText(textId, updates) {
-    const index = texts.value.findIndex(t => t.id === textId)
-    if (index === -1) return
+    const index = texts.value.findIndex((t) => t.id === textId);
+    if (index === -1) return;
 
     texts.value[index] = {
       ...texts.value[index],
-      ...updates
-    }
+      ...updates,
+    };
 
-    draw()
+    draw();
   }
 
   function deleteText(textId) {
-    const index = texts.value.findIndex(t => t.id === textId)
-    if (index === -1) return
+    const index = texts.value.findIndex((t) => t.id === textId);
+    if (index === -1) return;
 
-    texts.value.splice(index, 1)
+    texts.value.splice(index, 1);
 
     if (selectedTextId.value === textId) {
-      selectedTextId.value = null
+      selectedTextId.value = null;
     }
 
-    draw()
-    saveState('Text geloscht', 'text-delete')
+    draw();
+    saveState('Text geloscht', 'text-delete');
   }
 
   function drawTexts(context) {
-    texts.value.forEach(text => {
-      context.save()
+    texts.value.forEach((text) => {
+      context.save();
 
       // Font zusammenbauen
-      const fontStyle = text.italic ? 'italic' : 'normal'
-      const fontWeight = text.bold ? 'bold' : 'normal'
-      context.font = `${fontStyle} ${fontWeight} ${text.fontSize}px ${text.fontFamily}`
+      const fontStyle = text.italic ? 'italic' : 'normal';
+      const fontWeight = text.bold ? 'bold' : 'normal';
+      context.font = `${fontStyle} ${fontWeight} ${text.fontSize}px ${text.fontFamily}`;
 
       // Farbe und Transparenz
-      context.fillStyle = text.color
-      context.globalAlpha = text.opacity / 100
-      context.textAlign = text.align || 'center'
-      context.textBaseline = 'middle'
+      context.fillStyle = text.color;
+      context.globalAlpha = text.opacity / 100;
+      context.textAlign = text.align || 'center';
+      context.textBaseline = 'middle';
 
       // Rotation
       if (text.rotation) {
-        context.translate(text.x, text.y)
-        context.rotate((text.rotation * Math.PI) / 180)
-        context.translate(-text.x, -text.y)
+        context.translate(text.x, text.y);
+        context.rotate((text.rotation * Math.PI) / 180);
+        context.translate(-text.x, -text.y);
       }
 
       // Schatten
       if (text.shadow) {
-        context.shadowColor = 'rgba(0, 0, 0, 0.5)'
-        context.shadowBlur = 4
-        context.shadowOffsetX = 2
-        context.shadowOffsetY = 2
+        context.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        context.shadowBlur = 4;
+        context.shadowOffsetX = 2;
+        context.shadowOffsetY = 2;
       }
 
       // Text zeichnen
-      context.fillText(text.content, text.x, text.y)
+      context.fillText(text.content, text.x, text.y);
 
-      context.restore()
-    })
+      context.restore();
+    });
   }
 
   // ============================================
@@ -749,7 +745,7 @@ export const useImageStore = defineStore('image', () => {
 
   function saveState(description, type) {
     // Alles nach aktuellem Index entfernen
-    history.value = history.value.slice(0, historyIndex.value + 1)
+    history.value = history.value.slice(0, historyIndex.value + 1);
 
     // Neuen State speichern
     const state = {
@@ -759,46 +755,46 @@ export const useImageStore = defineStore('image', () => {
       imageLayers: JSON.parse(JSON.stringify(imageLayers.value)),
       timestamp: Date.now(),
       description,
-      type
-    }
+      type,
+    };
 
-    history.value.push(state)
+    history.value.push(state);
 
     // Maximum einhalten
     if (history.value.length > maxHistoryStates) {
-      history.value.shift()
+      history.value.shift();
     } else {
-      historyIndex.value++
+      historyIndex.value++;
     }
   }
 
   function undo() {
-    if (!canUndo.value) return
+    if (!canUndo.value) return;
 
-    historyIndex.value--
-    restoreState(history.value[historyIndex.value])
+    historyIndex.value--;
+    restoreState(history.value[historyIndex.value]);
   }
 
   function redo() {
-    if (!canRedo.value) return
+    if (!canRedo.value) return;
 
-    historyIndex.value++
-    restoreState(history.value[historyIndex.value])
+    historyIndex.value++;
+    restoreState(history.value[historyIndex.value]);
   }
 
   function restoreState(state) {
     // Filter wiederherstellen
-    Object.assign(filters, state.filters)
+    Object.assign(filters, state.filters);
 
     // Texte wiederherstellen
-    texts.value = JSON.parse(JSON.stringify(state.texts))
+    texts.value = JSON.parse(JSON.stringify(state.texts));
 
     // Bild aus DataURL laden
-    const img = new Image()
+    const img = new Image();
     img.onload = () => {
-      ctx.value.drawImage(img, 0, 0)
-    }
-    img.src = state.canvasData
+      ctx.value.drawImage(img, 0, 0);
+    };
+    img.src = state.canvasData;
   }
 
   // ============================================
@@ -838,9 +834,9 @@ export const useImageStore = defineStore('image', () => {
     deleteText,
     saveState,
     undo,
-    redo
-  }
-})
+    redo,
+  };
+});
 ```
 
 ### 4.3 Store-Persistierung mit LocalStorage
@@ -849,41 +845,35 @@ export const useImageStore = defineStore('image', () => {
 // stores/settingsStore.js
 export const useSettingsStore = defineStore('settings', () => {
   // State aus LocalStorage initialisieren
-  const theme = ref(
-    localStorage.getItem('bildkonverter-theme') || 'light'
-  )
-  const locale = ref(
-    localStorage.getItem('bildkonverter-locale') || 'de'
-  )
-  const exportQuality = ref(
-    parseInt(localStorage.getItem('bildkonverter-quality')) || 95
-  )
+  const theme = ref(localStorage.getItem('bildkonverter-theme') || 'light');
+  const locale = ref(localStorage.getItem('bildkonverter-locale') || 'de');
+  const exportQuality = ref(parseInt(localStorage.getItem('bildkonverter-quality')) || 95);
 
   // Computed
-  const isDarkMode = computed(() => theme.value === 'dark')
+  const isDarkMode = computed(() => theme.value === 'dark');
 
   // Actions mit Persistierung
   function setTheme(newTheme) {
-    theme.value = newTheme
-    localStorage.setItem('bildkonverter-theme', newTheme)
+    theme.value = newTheme;
+    localStorage.setItem('bildkonverter-theme', newTheme);
 
     // DOM aktualisieren
-    document.documentElement.setAttribute('data-theme', newTheme)
+    document.documentElement.setAttribute('data-theme', newTheme);
   }
 
   function setLocale(newLocale) {
-    locale.value = newLocale
-    localStorage.setItem('bildkonverter-locale', newLocale)
+    locale.value = newLocale;
+    localStorage.setItem('bildkonverter-locale', newLocale);
   }
 
   function setExportQuality(quality) {
-    exportQuality.value = quality
-    localStorage.setItem('bildkonverter-quality', quality.toString())
+    exportQuality.value = quality;
+    localStorage.setItem('bildkonverter-quality', quality.toString());
   }
 
   // Initialisierung beim App-Start
   function initialize() {
-    document.documentElement.setAttribute('data-theme', theme.value)
+    document.documentElement.setAttribute('data-theme', theme.value);
   }
 
   return {
@@ -894,9 +884,9 @@ export const useSettingsStore = defineStore('settings', () => {
     setTheme,
     setLocale,
     setExportQuality,
-    initialize
-  }
-})
+    initialize,
+  };
+});
 ```
 
 ---
@@ -907,22 +897,22 @@ export const useSettingsStore = defineStore('settings', () => {
 
 ```javascript
 // Canvas-Element initialisieren
-const canvas = document.getElementById('editor-canvas')
+const canvas = document.getElementById('editor-canvas');
 const ctx = canvas.getContext('2d', {
-  willReadFrequently: true,  // Optimiert fur ImageData-Zugriffe
-  alpha: true,               // Transparenz aktivieren
-  desynchronized: false      // Synchron mit DOM (Standard)
-})
+  willReadFrequently: true, // Optimiert fur ImageData-Zugriffe
+  alpha: true, // Transparenz aktivieren
+  desynchronized: false, // Synchron mit DOM (Standard)
+});
 
 // Canvas-Grosse setzen (nicht CSS-Grosse!)
-canvas.width = 1920
-canvas.height = 1080
+canvas.width = 1920;
+canvas.height = 1080;
 
 // Skalierung fur HiDPI-Displays
-const dpr = window.devicePixelRatio || 1
-canvas.width = width * dpr
-canvas.height = height * dpr
-ctx.scale(dpr, dpr)
+const dpr = window.devicePixelRatio || 1;
+canvas.width = width * dpr;
+canvas.height = height * dpr;
+ctx.scale(dpr, dpr);
 ```
 
 ### 5.2 CSS-Filter auf Canvas
@@ -932,51 +922,51 @@ Die einfachste Methode fur Bildfilter ist die CSS-Filter-Eigenschaft des Canvas-
 ```javascript
 function applyFilters(ctx, image, filters) {
   // Filter-String zusammenbauen
-  const filterParts = []
+  const filterParts = [];
 
   // Helligkeit (0% = schwarz, 100% = normal, 200% = doppelt hell)
   if (filters.brightness !== 100) {
-    filterParts.push(`brightness(${filters.brightness}%)`)
+    filterParts.push(`brightness(${filters.brightness}%)`);
   }
 
   // Kontrast
   if (filters.contrast !== 100) {
-    filterParts.push(`contrast(${filters.contrast}%)`)
+    filterParts.push(`contrast(${filters.contrast}%)`);
   }
 
   // Sattigung
   if (filters.saturation !== 100) {
-    filterParts.push(`saturate(${filters.saturation}%)`)
+    filterParts.push(`saturate(${filters.saturation}%)`);
   }
 
   // Graustufen
   if (filters.grayscale > 0) {
-    filterParts.push(`grayscale(${filters.grayscale}%)`)
+    filterParts.push(`grayscale(${filters.grayscale}%)`);
   }
 
   // Sepia
   if (filters.sepia > 0) {
-    filterParts.push(`sepia(${filters.sepia}%)`)
+    filterParts.push(`sepia(${filters.sepia}%)`);
   }
 
   // Weichzeichner
   if (filters.blur > 0) {
-    filterParts.push(`blur(${filters.blur}px)`)
+    filterParts.push(`blur(${filters.blur}px)`);
   }
 
   // Farbton-Rotation (hue-rotate)
   if (filters.hue !== 0) {
-    filterParts.push(`hue-rotate(${filters.hue}deg)`)
+    filterParts.push(`hue-rotate(${filters.hue}deg)`);
   }
 
   // Filter anwenden
-  ctx.filter = filterParts.length > 0 ? filterParts.join(' ') : 'none'
+  ctx.filter = filterParts.length > 0 ? filterParts.join(' ') : 'none';
 
   // Bild zeichnen
-  ctx.drawImage(image, 0, 0)
+  ctx.drawImage(image, 0, 0);
 
   // Filter zurucksetzen
-  ctx.filter = 'none'
+  ctx.filter = 'none';
 }
 ```
 
@@ -987,45 +977,42 @@ Fur komplexere Filter (z.B. Scharfen) benotigen wir direkten Pixelzugriff:
 ```javascript
 function sharpenImage(ctx, width, height, amount) {
   // Pixel-Daten auslesen
-  const imageData = ctx.getImageData(0, 0, width, height)
-  const data = imageData.data // Uint8ClampedArray: [R,G,B,A, R,G,B,A, ...]
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const data = imageData.data; // Uint8ClampedArray: [R,G,B,A, R,G,B,A, ...]
 
   // Kopie fur Originalwerte
-  const original = new Uint8ClampedArray(data)
+  const original = new Uint8ClampedArray(data);
 
   // Scharfungs-Kernel (Laplace)
-  const kernel = [
-     0, -1,  0,
-    -1,  5, -1,
-     0, -1,  0
-  ]
+  const kernel = [0, -1, 0, -1, 5, -1, 0, -1, 0];
 
   // Kernel uber alle Pixel anwenden
   for (let y = 1; y < height - 1; y++) {
     for (let x = 1; x < width - 1; x++) {
-      const idx = (y * width + x) * 4
+      const idx = (y * width + x) * 4;
 
-      for (let c = 0; c < 3; c++) { // RGB, nicht Alpha
-        let sum = 0
+      for (let c = 0; c < 3; c++) {
+        // RGB, nicht Alpha
+        let sum = 0;
 
         // 3x3 Nachbarschaft
         for (let ky = -1; ky <= 1; ky++) {
           for (let kx = -1; kx <= 1; kx++) {
-            const kidx = ((y + ky) * width + (x + kx)) * 4
-            const kpos = (ky + 1) * 3 + (kx + 1)
-            sum += original[kidx + c] * kernel[kpos]
+            const kidx = ((y + ky) * width + (x + kx)) * 4;
+            const kpos = (ky + 1) * 3 + (kx + 1);
+            sum += original[kidx + c] * kernel[kpos];
           }
         }
 
         // Mit Originalwert interpolieren
-        const sharpened = original[idx + c] + (sum - original[idx + c]) * (amount / 100)
-        data[idx + c] = Math.min(255, Math.max(0, sharpened))
+        const sharpened = original[idx + c] + (sum - original[idx + c]) * (amount / 100);
+        data[idx + c] = Math.min(255, Math.max(0, sharpened));
       }
     }
   }
 
   // Pixel zuruckschreiben
-  ctx.putImageData(imageData, 0, 0)
+  ctx.putImageData(imageData, 0, 0);
 }
 ```
 
@@ -1034,25 +1021,25 @@ function sharpenImage(ctx, width, height, amount) {
 ```javascript
 function drawImageLayers(ctx) {
   // Layer von unten nach oben zeichnen
-  imageLayers.value.forEach(layer => {
-    if (!layer.visible) return
+  imageLayers.value.forEach((layer) => {
+    if (!layer.visible) return;
 
-    ctx.save()
+    ctx.save();
 
     // Transparenz
-    ctx.globalAlpha = layer.opacity / 100
+    ctx.globalAlpha = layer.opacity / 100;
 
     // Layer-spezifische Filter
-    ctx.filter = buildLayerFilterString(layer.filters)
+    ctx.filter = buildLayerFilterString(layer.filters);
 
     // Transformation: Rotation um Mittelpunkt
     if (layer.rotation !== 0) {
-      const centerX = layer.x + layer.width / 2
-      const centerY = layer.y + layer.height / 2
+      const centerX = layer.x + layer.width / 2;
+      const centerY = layer.y + layer.height / 2;
 
-      ctx.translate(centerX, centerY)
-      ctx.rotate((layer.rotation * Math.PI) / 180)
-      ctx.translate(-centerX, -centerY)
+      ctx.translate(centerX, centerY);
+      ctx.rotate((layer.rotation * Math.PI) / 180);
+      ctx.translate(-centerX, -centerY);
     }
 
     // Spiegelung
@@ -1060,57 +1047,43 @@ function drawImageLayers(ctx) {
       ctx.translate(
         layer.flipH ? layer.x + layer.width : 0,
         layer.flipV ? layer.y + layer.height : 0
-      )
-      ctx.scale(
-        layer.flipH ? -1 : 1,
-        layer.flipV ? -1 : 1
-      )
+      );
+      ctx.scale(layer.flipH ? -1 : 1, layer.flipV ? -1 : 1);
     }
 
     // Bild zeichnen
-    ctx.drawImage(
-      layer.image,
-      layer.x,
-      layer.y,
-      layer.width,
-      layer.height
-    )
+    ctx.drawImage(layer.image, layer.x, layer.y, layer.width, layer.height);
 
-    ctx.restore()
+    ctx.restore();
 
     // Auswahlrahmen zeichnen wenn selektiert
     if (layer.id === selectedLayerId.value) {
-      drawSelectionHandles(ctx, layer)
+      drawSelectionHandles(ctx, layer);
     }
-  })
+  });
 }
 
 function drawSelectionHandles(ctx, layer) {
-  const handleSize = 10
+  const handleSize = 10;
   const handles = [
     { x: layer.x, y: layer.y }, // top-left
     { x: layer.x + layer.width, y: layer.y }, // top-right
     { x: layer.x + layer.width, y: layer.y + layer.height }, // bottom-right
-    { x: layer.x, y: layer.y + layer.height } // bottom-left
-  ]
+    { x: layer.x, y: layer.y + layer.height }, // bottom-left
+  ];
 
   // Rahmen
-  ctx.strokeStyle = '#3b82f6'
-  ctx.lineWidth = 2
-  ctx.setLineDash([5, 5])
-  ctx.strokeRect(layer.x, layer.y, layer.width, layer.height)
-  ctx.setLineDash([])
+  ctx.strokeStyle = '#3b82f6';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5, 5]);
+  ctx.strokeRect(layer.x, layer.y, layer.width, layer.height);
+  ctx.setLineDash([]);
 
   // Griffe
-  ctx.fillStyle = '#3b82f6'
-  handles.forEach(handle => {
-    ctx.fillRect(
-      handle.x - handleSize / 2,
-      handle.y - handleSize / 2,
-      handleSize,
-      handleSize
-    )
-  })
+  ctx.fillStyle = '#3b82f6';
+  handles.forEach((handle) => {
+    ctx.fillRect(handle.x - handleSize / 2, handle.y - handleSize / 2, handleSize, handleSize);
+  });
 }
 ```
 
@@ -1124,50 +1097,50 @@ function exportCanvas(canvas, format, quality = 0.95, filename = 'image') {
       png: 'image/png',
       jpg: 'image/jpeg',
       jpeg: 'image/jpeg',
-      webp: 'image/webp'
-    }
+      webp: 'image/webp',
+    };
 
-    const mimeType = mimeTypes[format] || 'image/png'
+    const mimeType = mimeTypes[format] || 'image/png';
 
     // Canvas zu Blob konvertieren
     canvas.toBlob(
       (blob) => {
         if (!blob) {
-          reject(new Error('Konvertierung fehlgeschlagen'))
-          return
+          reject(new Error('Konvertierung fehlgeschlagen'));
+          return;
         }
 
         // Download triggern
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.href = url
-        link.download = `${filename}.${format}`
-        link.click()
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${filename}.${format}`;
+        link.click();
 
         // Cleanup
-        URL.revokeObjectURL(url)
+        URL.revokeObjectURL(url);
 
-        resolve(blob)
+        resolve(blob);
       },
       mimeType,
       quality
-    )
-  })
+    );
+  });
 }
 
 // PDF-Export mit jsPDF
 async function exportAsPDF(canvas, filename) {
-  const { jsPDF } = await import('jspdf')
+  const { jsPDF } = await import('jspdf');
 
-  const imgData = canvas.toDataURL('image/jpeg', 0.95)
+  const imgData = canvas.toDataURL('image/jpeg', 0.95);
   const pdf = new jsPDF({
     orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
     unit: 'px',
-    format: [canvas.width, canvas.height]
-  })
+    format: [canvas.width, canvas.height],
+  });
 
-  pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height)
-  pdf.save(`${filename}.pdf`)
+  pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
+  pdf.save(`${filename}.pdf`);
 }
 ```
 
@@ -1204,62 +1177,62 @@ Die Web Audio API bietet eine leistungsstarke Moglichkeit, Audio im Browser zu v
 class AudioAnalyzer {
   constructor() {
     // AudioContext erstellen
-    this.audioContext = new (window.AudioContext || window.webkitAudioContext)()
+    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
     // AnalyserNode fur Frequenzanalyse
-    this.analyser = this.audioContext.createAnalyser()
-    this.analyser.fftSize = 2048  // Frequenzauflosung (Potenz von 2)
-    this.analyser.smoothingTimeConstant = 0.8  // Glattung (0-1)
+    this.analyser = this.audioContext.createAnalyser();
+    this.analyser.fftSize = 2048; // Frequenzauflosung (Potenz von 2)
+    this.analyser.smoothingTimeConstant = 0.8; // Glattung (0-1)
 
     // Buffer fur Frequenzdaten
-    this.bufferLength = this.analyser.frequencyBinCount  // = fftSize / 2
-    this.dataArray = new Uint8Array(this.bufferLength)
-    this.floatDataArray = new Float32Array(this.bufferLength)
+    this.bufferLength = this.analyser.frequencyBinCount; // = fftSize / 2
+    this.dataArray = new Uint8Array(this.bufferLength);
+    this.floatDataArray = new Float32Array(this.bufferLength);
   }
 
   // Audio-Element verbinden
   connectAudioElement(audioElement) {
     // MediaElementSource erstellen
-    const source = this.audioContext.createMediaElementSource(audioElement)
+    const source = this.audioContext.createMediaElementSource(audioElement);
 
     // Verketten: Source -> Analyser -> Destination
-    source.connect(this.analyser)
-    this.analyser.connect(this.audioContext.destination)
+    source.connect(this.analyser);
+    this.analyser.connect(this.audioContext.destination);
 
-    return source
+    return source;
   }
 
   // Audio-Datei laden
   async loadAudioFile(file) {
-    const arrayBuffer = await file.arrayBuffer()
-    const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer)
+    const arrayBuffer = await file.arrayBuffer();
+    const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
 
     // BufferSource erstellen
-    const source = this.audioContext.createBufferSource()
-    source.buffer = audioBuffer
+    const source = this.audioContext.createBufferSource();
+    source.buffer = audioBuffer;
 
-    source.connect(this.analyser)
-    this.analyser.connect(this.audioContext.destination)
+    source.connect(this.analyser);
+    this.analyser.connect(this.audioContext.destination);
 
-    return source
+    return source;
   }
 
   // Frequenzdaten abrufen (0-255)
   getFrequencyData() {
-    this.analyser.getByteFrequencyData(this.dataArray)
-    return this.dataArray
+    this.analyser.getByteFrequencyData(this.dataArray);
+    return this.dataArray;
   }
 
   // Frequenzdaten in Dezibel (-Infinity bis 0)
   getFloatFrequencyData() {
-    this.analyser.getFloatFrequencyData(this.floatDataArray)
-    return this.floatDataArray
+    this.analyser.getFloatFrequencyData(this.floatDataArray);
+    return this.floatDataArray;
   }
 
   // Wellenform-Daten (Zeitdomane)
   getTimeDomainData() {
-    this.analyser.getByteTimeDomainData(this.dataArray)
-    return this.dataArray
+    this.analyser.getByteTimeDomainData(this.dataArray);
+    return this.dataArray;
   }
 }
 ```
@@ -1269,40 +1242,40 @@ class AudioAnalyzer {
 ```javascript
 class AudioVisualizer {
   constructor(canvas, analyzer) {
-    this.canvas = canvas
-    this.ctx = canvas.getContext('2d')
-    this.analyzer = analyzer
-    this.isRunning = false
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.analyzer = analyzer;
+    this.isRunning = false;
   }
 
   // Balken-Visualisierung
   drawBars() {
-    const frequencyData = this.analyzer.getFrequencyData()
-    const { width, height } = this.canvas
+    const frequencyData = this.analyzer.getFrequencyData();
+    const { width, height } = this.canvas;
 
-    this.ctx.clearRect(0, 0, width, height)
+    this.ctx.clearRect(0, 0, width, height);
 
-    const barCount = 64
-    const barWidth = width / barCount
-    const barSpacing = 2
+    const barCount = 64;
+    const barWidth = width / barCount;
+    const barSpacing = 2;
 
     for (let i = 0; i < barCount; i++) {
       // Frequenzbereich samplen
-      const start = Math.floor(i * frequencyData.length / barCount)
-      const end = Math.floor((i + 1) * frequencyData.length / barCount)
+      const start = Math.floor((i * frequencyData.length) / barCount);
+      const end = Math.floor(((i + 1) * frequencyData.length) / barCount);
 
-      let sum = 0
+      let sum = 0;
       for (let j = start; j < end; j++) {
-        sum += frequencyData[j]
+        sum += frequencyData[j];
       }
-      const average = sum / (end - start)
+      const average = sum / (end - start);
 
       // Balkenhohe berechnen
-      const barHeight = (average / 255) * height * 0.9
+      const barHeight = (average / 255) * height * 0.9;
 
       // Farbe basierend auf Frequenz
-      const hue = (i / barCount) * 240  // Blau -> Rot
-      this.ctx.fillStyle = `hsl(${hue}, 80%, 50%)`
+      const hue = (i / barCount) * 240; // Blau -> Rot
+      this.ctx.fillStyle = `hsl(${hue}, 80%, 50%)`;
 
       // Balken zeichnen
       this.ctx.fillRect(
@@ -1310,107 +1283,107 @@ class AudioVisualizer {
         height - barHeight,
         barWidth - barSpacing,
         barHeight
-      )
+      );
     }
   }
 
   // Wellenform-Visualisierung
   drawWaveform() {
-    const timeDomainData = this.analyzer.getTimeDomainData()
-    const { width, height } = this.canvas
+    const timeDomainData = this.analyzer.getTimeDomainData();
+    const { width, height } = this.canvas;
 
-    this.ctx.clearRect(0, 0, width, height)
+    this.ctx.clearRect(0, 0, width, height);
 
-    this.ctx.beginPath()
-    this.ctx.strokeStyle = '#3b82f6'
-    this.ctx.lineWidth = 2
+    this.ctx.beginPath();
+    this.ctx.strokeStyle = '#3b82f6';
+    this.ctx.lineWidth = 2;
 
-    const sliceWidth = width / timeDomainData.length
-    let x = 0
+    const sliceWidth = width / timeDomainData.length;
+    let x = 0;
 
     for (let i = 0; i < timeDomainData.length; i++) {
-      const v = timeDomainData[i] / 128.0  // 0-2 normalisieren
-      const y = v * height / 2
+      const v = timeDomainData[i] / 128.0; // 0-2 normalisieren
+      const y = (v * height) / 2;
 
       if (i === 0) {
-        this.ctx.moveTo(x, y)
+        this.ctx.moveTo(x, y);
       } else {
-        this.ctx.lineTo(x, y)
+        this.ctx.lineTo(x, y);
       }
 
-      x += sliceWidth
+      x += sliceWidth;
     }
 
-    this.ctx.stroke()
+    this.ctx.stroke();
   }
 
   // Kreisformige Visualisierung
   drawCircular() {
-    const frequencyData = this.analyzer.getFrequencyData()
-    const { width, height } = this.canvas
+    const frequencyData = this.analyzer.getFrequencyData();
+    const { width, height } = this.canvas;
 
-    this.ctx.clearRect(0, 0, width, height)
+    this.ctx.clearRect(0, 0, width, height);
 
-    const centerX = width / 2
-    const centerY = height / 2
-    const baseRadius = Math.min(width, height) / 4
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const baseRadius = Math.min(width, height) / 4;
 
-    const bars = 180
+    const bars = 180;
 
     for (let i = 0; i < bars; i++) {
-      const angle = (i / bars) * Math.PI * 2
+      const angle = (i / bars) * Math.PI * 2;
 
       // Frequenzwert
-      const freqIndex = Math.floor(i * frequencyData.length / bars)
-      const value = frequencyData[freqIndex] / 255
+      const freqIndex = Math.floor((i * frequencyData.length) / bars);
+      const value = frequencyData[freqIndex] / 255;
 
       // Linienenden berechnen
-      const innerRadius = baseRadius
-      const outerRadius = baseRadius + value * baseRadius
+      const innerRadius = baseRadius;
+      const outerRadius = baseRadius + value * baseRadius;
 
-      const x1 = centerX + Math.cos(angle) * innerRadius
-      const y1 = centerY + Math.sin(angle) * innerRadius
-      const x2 = centerX + Math.cos(angle) * outerRadius
-      const y2 = centerY + Math.sin(angle) * outerRadius
+      const x1 = centerX + Math.cos(angle) * innerRadius;
+      const y1 = centerY + Math.sin(angle) * innerRadius;
+      const x2 = centerX + Math.cos(angle) * outerRadius;
+      const y2 = centerY + Math.sin(angle) * outerRadius;
 
       // Linie zeichnen
-      const hue = (i / bars) * 360
-      this.ctx.strokeStyle = `hsl(${hue}, 100%, ${50 + value * 30}%)`
-      this.ctx.lineWidth = 3
-      this.ctx.beginPath()
-      this.ctx.moveTo(x1, y1)
-      this.ctx.lineTo(x2, y2)
-      this.ctx.stroke()
+      const hue = (i / bars) * 360;
+      this.ctx.strokeStyle = `hsl(${hue}, 100%, ${50 + value * 30}%)`;
+      this.ctx.lineWidth = 3;
+      this.ctx.beginPath();
+      this.ctx.moveTo(x1, y1);
+      this.ctx.lineTo(x2, y2);
+      this.ctx.stroke();
     }
   }
 
   // Animation Loop
   start(visualizationType = 'bars') {
-    this.isRunning = true
+    this.isRunning = true;
 
     const animate = () => {
-      if (!this.isRunning) return
+      if (!this.isRunning) return;
 
       switch (visualizationType) {
         case 'bars':
-          this.drawBars()
-          break
+          this.drawBars();
+          break;
         case 'waveform':
-          this.drawWaveform()
-          break
+          this.drawWaveform();
+          break;
         case 'circular':
-          this.drawCircular()
-          break
+          this.drawCircular();
+          break;
       }
 
-      requestAnimationFrame(animate)
-    }
+      requestAnimationFrame(animate);
+    };
 
-    animate()
+    animate();
   }
 
   stop() {
-    this.isRunning = false
+    this.isRunning = false;
   }
 }
 ```
@@ -1420,64 +1393,64 @@ class AudioVisualizer {
 ```javascript
 class CanvasRecorder {
   constructor(canvas, audioContext) {
-    this.canvas = canvas
-    this.audioContext = audioContext
-    this.mediaRecorder = null
-    this.chunks = []
+    this.canvas = canvas;
+    this.audioContext = audioContext;
+    this.mediaRecorder = null;
+    this.chunks = [];
   }
 
   async startRecording(audioSource) {
     // Canvas-Stream erstellen (30 fps)
-    const canvasStream = this.canvas.captureStream(30)
+    const canvasStream = this.canvas.captureStream(30);
 
     // Audio-Stream erstellen
-    const audioDestination = this.audioContext.createMediaStreamDestination()
-    audioSource.connect(audioDestination)
+    const audioDestination = this.audioContext.createMediaStreamDestination();
+    audioSource.connect(audioDestination);
 
     // Streams kombinieren
     const combinedStream = new MediaStream([
       ...canvasStream.getVideoTracks(),
-      ...audioDestination.stream.getAudioTracks()
-    ])
+      ...audioDestination.stream.getAudioTracks(),
+    ]);
 
     // MediaRecorder konfigurieren
-    const mimeType = this.getSupportedMimeType()
+    const mimeType = this.getSupportedMimeType();
     this.mediaRecorder = new MediaRecorder(combinedStream, {
       mimeType,
-      videoBitsPerSecond: 5000000  // 5 Mbps
-    })
+      videoBitsPerSecond: 5000000, // 5 Mbps
+    });
 
-    this.chunks = []
+    this.chunks = [];
 
     this.mediaRecorder.ondataavailable = (event) => {
       if (event.data.size > 0) {
-        this.chunks.push(event.data)
+        this.chunks.push(event.data);
       }
-    }
+    };
 
-    this.mediaRecorder.start(100)  // Alle 100ms ein Chunk
+    this.mediaRecorder.start(100); // Alle 100ms ein Chunk
   }
 
   stopRecording() {
     return new Promise((resolve) => {
       this.mediaRecorder.onstop = () => {
         const blob = new Blob(this.chunks, {
-          type: this.mediaRecorder.mimeType
-        })
+          type: this.mediaRecorder.mimeType,
+        });
 
         // Download triggern
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `visualization_${Date.now()}.webm`
-        a.click()
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `visualization_${Date.now()}.webm`;
+        a.click();
 
-        URL.revokeObjectURL(url)
-        resolve(blob)
-      }
+        URL.revokeObjectURL(url);
+        resolve(blob);
+      };
 
-      this.mediaRecorder.stop()
-    })
+      this.mediaRecorder.stop();
+    });
   }
 
   getSupportedMimeType() {
@@ -1485,16 +1458,16 @@ class CanvasRecorder {
       'video/webm;codecs=vp9,opus',
       'video/webm;codecs=vp8,opus',
       'video/webm',
-      'video/mp4'
-    ]
+      'video/mp4',
+    ];
 
     for (const type of types) {
       if (MediaRecorder.isTypeSupported(type)) {
-        return type
+        return type;
       }
     }
 
-    throw new Error('Kein unterstütztes Video-Format gefunden')
+    throw new Error('Kein unterstütztes Video-Format gefunden');
   }
 }
 ```
@@ -1505,95 +1478,95 @@ class CanvasRecorder {
 // Vollstandige Integration
 class AudioVisualizerApp {
   constructor() {
-    this.canvas = document.getElementById('visualizer')
-    this.fileInput = document.getElementById('audio-input')
-    this.playButton = document.getElementById('play-btn')
-    this.recordButton = document.getElementById('record-btn')
+    this.canvas = document.getElementById('visualizer');
+    this.fileInput = document.getElementById('audio-input');
+    this.playButton = document.getElementById('play-btn');
+    this.recordButton = document.getElementById('record-btn');
 
-    this.analyzer = new AudioAnalyzer()
-    this.visualizer = new AudioVisualizer(this.canvas, this.analyzer)
-    this.recorder = new CanvasRecorder(this.canvas, this.analyzer.audioContext)
+    this.analyzer = new AudioAnalyzer();
+    this.visualizer = new AudioVisualizer(this.canvas, this.analyzer);
+    this.recorder = new CanvasRecorder(this.canvas, this.analyzer.audioContext);
 
-    this.audioSource = null
-    this.isPlaying = false
-    this.isRecording = false
+    this.audioSource = null;
+    this.isPlaying = false;
+    this.isRecording = false;
 
-    this.setupEventListeners()
+    this.setupEventListeners();
   }
 
   setupEventListeners() {
     this.fileInput.addEventListener('change', async (e) => {
-      const file = e.target.files[0]
+      const file = e.target.files[0];
       if (file) {
-        await this.loadAudio(file)
+        await this.loadAudio(file);
       }
-    })
+    });
 
     this.playButton.addEventListener('click', () => {
       if (this.isPlaying) {
-        this.stop()
+        this.stop();
       } else {
-        this.play()
+        this.play();
       }
-    })
+    });
 
     this.recordButton.addEventListener('click', async () => {
       if (this.isRecording) {
-        await this.stopRecording()
+        await this.stopRecording();
       } else {
-        await this.startRecording()
+        await this.startRecording();
       }
-    })
+    });
   }
 
   async loadAudio(file) {
     // AudioContext muss durch User-Interaktion aktiviert werden
     if (this.analyzer.audioContext.state === 'suspended') {
-      await this.analyzer.audioContext.resume()
+      await this.analyzer.audioContext.resume();
     }
 
-    this.audioSource = await this.analyzer.loadAudioFile(file)
+    this.audioSource = await this.analyzer.loadAudioFile(file);
   }
 
   play() {
-    if (!this.audioSource) return
+    if (!this.audioSource) return;
 
-    this.audioSource.start(0)
-    this.visualizer.start('circular')
-    this.isPlaying = true
+    this.audioSource.start(0);
+    this.visualizer.start('circular');
+    this.isPlaying = true;
 
     this.audioSource.onended = () => {
-      this.stop()
-    }
+      this.stop();
+    };
   }
 
   stop() {
-    this.audioSource?.stop()
-    this.visualizer.stop()
-    this.isPlaying = false
+    this.audioSource?.stop();
+    this.visualizer.stop();
+    this.isPlaying = false;
   }
 
   async startRecording() {
-    if (!this.audioSource) return
+    if (!this.audioSource) return;
 
-    await this.recorder.startRecording(this.audioSource)
-    this.isRecording = true
+    await this.recorder.startRecording(this.audioSource);
+    this.isRecording = true;
 
     // Auch Wiedergabe starten
-    this.play()
+    this.play();
   }
 
   async stopRecording() {
-    this.stop()
-    await this.recorder.stopRecording()
-    this.isRecording = false
+    this.stop();
+    await this.recorder.stopRecording();
+    this.isRecording = false;
   }
 }
 
 // Initialisierung
 document.addEventListener('DOMContentLoaded', () => {
-  new AudioVisualizerApp()
-})
+  new AudioVisualizerApp();
+});
 ```
 
 ---
@@ -1605,72 +1578,77 @@ document.addEventListener('DOMContentLoaded', () => {
 ```javascript
 // Datei-Auswahl und Validierung
 async function handleFileInput(event) {
-  const files = event.target.files
+  const files = event.target.files;
 
   for (const file of files) {
     // Validierung
-    const validation = validateFile(file)
+    const validation = validateFile(file);
     if (!validation.isValid) {
-      console.error(validation.errors)
-      continue
+      console.error(validation.errors);
+      continue;
     }
 
     // Datei verarbeiten
     if (file.type.startsWith('image/')) {
-      await processImage(file)
+      await processImage(file);
     } else if (file.type.startsWith('audio/')) {
-      await processAudio(file)
+      await processAudio(file);
     }
   }
 }
 
 function validateFile(file) {
-  const errors = []
+  const errors = [];
 
   // Grossenbegrenzung (50MB)
-  const maxSize = 50 * 1024 * 1024
+  const maxSize = 50 * 1024 * 1024;
   if (file.size > maxSize) {
-    errors.push(`Datei zu gross: ${formatBytes(file.size)} (max ${formatBytes(maxSize)})`)
+    errors.push(`Datei zu gross: ${formatBytes(file.size)} (max ${formatBytes(maxSize)})`);
   }
 
   // Minimalgrossse (1KB)
   if (file.size < 1024) {
-    errors.push('Datei zu klein')
+    errors.push('Datei zu klein');
   }
 
   // MIME-Type prufen
   const allowedTypes = [
-    'image/jpeg', 'image/png', 'image/webp', 'image/gif',
-    'audio/mpeg', 'audio/wav', 'audio/ogg'
-  ]
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'image/gif',
+    'audio/mpeg',
+    'audio/wav',
+    'audio/ogg',
+  ];
   if (!allowedTypes.includes(file.type)) {
-    errors.push(`Nicht unterstützter Dateityp: ${file.type}`)
+    errors.push(`Nicht unterstützter Dateityp: ${file.type}`);
   }
 
   return {
     isValid: errors.length === 0,
-    errors
-  }
+    errors,
+  };
 }
 
 // Datei als DataURL lesen
 function readAsDataURL(file) {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = (e) => resolve(e.target.result)
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 // Datei als ArrayBuffer lesen
 function readAsArrayBuffer(file) {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = (e) => resolve(e.target.result)
-    reader.onerror = reject
-    reader.readAsArrayBuffer(file)
-  })
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
 }
 ```
 
@@ -1680,34 +1658,33 @@ function readAsArrayBuffer(file) {
 // Drag & Drop fur Bildupload
 function setupDragAndDrop(dropZone) {
   // Verhindern, dass der Browser die Datei offnet
-  ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((event) => {
     dropZone.addEventListener(event, (e) => {
-      e.preventDefault()
-      e.stopPropagation()
-    })
-  })
+      e.preventDefault();
+      e.stopPropagation();
+    });
+  });
 
   // Visuelle Ruckmeldung
-  ;['dragenter', 'dragover'].forEach(event => {
+  ['dragenter', 'dragover'].forEach((event) => {
     dropZone.addEventListener(event, () => {
-      dropZone.classList.add('drag-active')
-    })
-  })
-
-  ;['dragleave', 'drop'].forEach(event => {
+      dropZone.classList.add('drag-active');
+    });
+  });
+  ['dragleave', 'drop'].forEach((event) => {
     dropZone.addEventListener(event, () => {
-      dropZone.classList.remove('drag-active')
-    })
-  })
+      dropZone.classList.remove('drag-active');
+    });
+  });
 
   // Drop verarbeiten
   dropZone.addEventListener('drop', async (e) => {
-    const files = e.dataTransfer.files
+    const files = e.dataTransfer.files;
 
     for (const file of files) {
-      await processFile(file)
+      await processFile(file);
     }
-  })
+  });
 }
 ```
 
@@ -1717,47 +1694,47 @@ function setupDragAndDrop(dropZone) {
 // Blob erstellen
 function createImageBlob(canvas, type = 'image/png', quality = 0.95) {
   return new Promise((resolve) => {
-    canvas.toBlob(resolve, type, quality)
-  })
+    canvas.toBlob(resolve, type, quality);
+  });
 }
 
 // Object URL Management
 class ObjectURLManager {
   constructor() {
-    this.urls = new Set()
+    this.urls = new Set();
   }
 
   create(blob) {
-    const url = URL.createObjectURL(blob)
-    this.urls.add(url)
-    return url
+    const url = URL.createObjectURL(blob);
+    this.urls.add(url);
+    return url;
   }
 
   revoke(url) {
-    URL.revokeObjectURL(url)
-    this.urls.delete(url)
+    URL.revokeObjectURL(url);
+    this.urls.delete(url);
   }
 
   revokeAll() {
-    this.urls.forEach(url => URL.revokeObjectURL(url))
-    this.urls.clear()
+    this.urls.forEach((url) => URL.revokeObjectURL(url));
+    this.urls.clear();
   }
 }
 
 // Verwendung
-const urlManager = new ObjectURLManager()
+const urlManager = new ObjectURLManager();
 
 // URL erstellen
-const blob = await createImageBlob(canvas)
-const url = urlManager.create(blob)
+const blob = await createImageBlob(canvas);
+const url = urlManager.create(blob);
 
 // In img-Element verwenden
-const img = document.createElement('img')
-img.src = url
+const img = document.createElement('img');
+img.src = url;
 img.onload = () => {
   // URL kann freigegeben werden nachdem das Bild geladen ist
-  urlManager.revoke(url)
-}
+  urlManager.revoke(url);
+};
 ```
 
 ### 7.4 LocalStorage und SessionStorage
@@ -1766,87 +1743,85 @@ img.onload = () => {
 // Storage-Wrapper mit JSON-Serialisierung
 class StorageManager {
   constructor(storage = localStorage, prefix = 'app') {
-    this.storage = storage
-    this.prefix = prefix
+    this.storage = storage;
+    this.prefix = prefix;
   }
 
   getKey(key) {
-    return `${this.prefix}-${key}`
+    return `${this.prefix}-${key}`;
   }
 
   get(key, defaultValue = null) {
     try {
-      const item = this.storage.getItem(this.getKey(key))
-      return item ? JSON.parse(item) : defaultValue
+      const item = this.storage.getItem(this.getKey(key));
+      return item ? JSON.parse(item) : defaultValue;
     } catch {
-      return defaultValue
+      return defaultValue;
     }
   }
 
   set(key, value) {
     try {
-      this.storage.setItem(this.getKey(key), JSON.stringify(value))
-      return true
+      this.storage.setItem(this.getKey(key), JSON.stringify(value));
+      return true;
     } catch (e) {
       // QuotaExceededError behandeln
       if (e.name === 'QuotaExceededError') {
-        console.warn('LocalStorage voll')
-        this.cleanup()
-        return false
+        console.warn('LocalStorage voll');
+        this.cleanup();
+        return false;
       }
-      throw e
+      throw e;
     }
   }
 
   remove(key) {
-    this.storage.removeItem(this.getKey(key))
+    this.storage.removeItem(this.getKey(key));
   }
 
   clear() {
     // Nur eigene Keys loschen
-    const keysToRemove = []
+    const keysToRemove = [];
     for (let i = 0; i < this.storage.length; i++) {
-      const key = this.storage.key(i)
+      const key = this.storage.key(i);
       if (key.startsWith(this.prefix)) {
-        keysToRemove.push(key)
+        keysToRemove.push(key);
       }
     }
-    keysToRemove.forEach(key => this.storage.removeItem(key))
+    keysToRemove.forEach((key) => this.storage.removeItem(key));
   }
 
   cleanup() {
     // Alteste Eintrage loschen wenn Platz knapp
-    const items = []
+    const items = [];
     for (let i = 0; i < this.storage.length; i++) {
-      const key = this.storage.key(i)
+      const key = this.storage.key(i);
       if (key.startsWith(this.prefix)) {
-        const value = this.get(key.replace(`${this.prefix}-`, ''))
+        const value = this.get(key.replace(`${this.prefix}-`, ''));
         if (value?.timestamp) {
-          items.push({ key, timestamp: value.timestamp })
+          items.push({ key, timestamp: value.timestamp });
         }
       }
     }
 
     // Nach Alter sortieren und alteste loschen
-    items.sort((a, b) => a.timestamp - b.timestamp)
-    const toDelete = items.slice(0, Math.ceil(items.length / 2))
-    toDelete.forEach(item => this.storage.removeItem(item.key))
+    items.sort((a, b) => a.timestamp - b.timestamp);
+    const toDelete = items.slice(0, Math.ceil(items.length / 2));
+    toDelete.forEach((item) => this.storage.removeItem(item.key));
   }
 }
 
 // Verwendung in der App
-const storage = new StorageManager(localStorage, 'bildkonverter')
+const storage = new StorageManager(localStorage, 'bildkonverter');
 
 // Einstellungen speichern
-storage.set('theme', 'dark')
-storage.set('recentFiles', ['file1.jpg', 'file2.png'])
-storage.set('customPresets', [
-  { id: 1, name: 'Mein Preset', filters: { brightness: 120 } }
-])
+storage.set('theme', 'dark');
+storage.set('recentFiles', ['file1.jpg', 'file2.png']);
+storage.set('customPresets', [{ id: 1, name: 'Mein Preset', filters: { brightness: 120 } }]);
 
 // Einstellungen laden
-const theme = storage.get('theme', 'light')
-const recentFiles = storage.get('recentFiles', [])
+const theme = storage.get('theme', 'light');
+const recentFiles = storage.get('recentFiles', []);
 ```
 
 ### 7.5 Clipboard API
@@ -1855,41 +1830,41 @@ const recentFiles = storage.get('recentFiles', [])
 // Bild in Zwischenablage kopieren
 async function copyCanvasToClipboard(canvas) {
   try {
-    const blob = await new Promise(resolve => {
-      canvas.toBlob(resolve, 'image/png')
-    })
+    const blob = await new Promise((resolve) => {
+      canvas.toBlob(resolve, 'image/png');
+    });
 
     await navigator.clipboard.write([
       new ClipboardItem({
-        'image/png': blob
-      })
-    ])
+        'image/png': blob,
+      }),
+    ]);
 
-    return true
+    return true;
   } catch (err) {
-    console.error('Kopieren fehlgeschlagen:', err)
-    return false
+    console.error('Kopieren fehlgeschlagen:', err);
+    return false;
   }
 }
 
 // Bild aus Zwischenablage einfugen
 async function pasteImageFromClipboard() {
   try {
-    const items = await navigator.clipboard.read()
+    const items = await navigator.clipboard.read();
 
     for (const item of items) {
       for (const type of item.types) {
         if (type.startsWith('image/')) {
-          const blob = await item.getType(type)
-          return blob
+          const blob = await item.getType(type);
+          return blob;
         }
       }
     }
 
-    return null
+    return null;
   } catch (err) {
-    console.error('Einfugen fehlgeschlagen:', err)
-    return null
+    console.error('Einfugen fehlgeschlagen:', err);
+    return null;
   }
 }
 ```
@@ -1903,58 +1878,55 @@ async function pasteImageFromClipboard() {
 ```javascript
 // 1. willReadFrequently fur haufiges Auslesen
 const ctx = canvas.getContext('2d', {
-  willReadFrequently: true  // Optimiert getImageData()
-})
+  willReadFrequently: true, // Optimiert getImageData()
+});
 
 // 2. Offscreen Canvas fur Hintergrundverarbeitung
 function processInBackground(imageData) {
-  const offscreen = new OffscreenCanvas(
-    imageData.width,
-    imageData.height
-  )
-  const ctx = offscreen.getContext('2d')
-  ctx.putImageData(imageData, 0, 0)
+  const offscreen = new OffscreenCanvas(imageData.width, imageData.height);
+  const ctx = offscreen.getContext('2d');
+  ctx.putImageData(imageData, 0, 0);
 
   // Filter anwenden ohne das sichtbare Canvas zu blockieren
   // ...
 
-  return ctx.getImageData(0, 0, offscreen.width, offscreen.height)
+  return ctx.getImageData(0, 0, offscreen.width, offscreen.height);
 }
 
 // 3. requestAnimationFrame fur flussige Animationen
 function animateCanvas() {
-  let animationId = null
+  let animationId = null;
 
   function render(timestamp) {
     // Logik nur wenn notig ausfuhren
     if (needsUpdate) {
-      draw()
-      needsUpdate = false
+      draw();
+      needsUpdate = false;
     }
 
-    animationId = requestAnimationFrame(render)
+    animationId = requestAnimationFrame(render);
   }
 
   // Starten
-  animationId = requestAnimationFrame(render)
+  animationId = requestAnimationFrame(render);
 
   // Stoppen
-  return () => cancelAnimationFrame(animationId)
+  return () => cancelAnimationFrame(animationId);
 }
 
 // 4. Dirty Regions - nur geanderte Bereiche neu zeichnen
 function drawDirtyRegions(dirtyRects) {
-  dirtyRects.forEach(rect => {
-    ctx.save()
-    ctx.beginPath()
-    ctx.rect(rect.x, rect.y, rect.width, rect.height)
-    ctx.clip()
+  dirtyRects.forEach((rect) => {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(rect.x, rect.y, rect.width, rect.height);
+    ctx.clip();
 
     // Nur diesen Bereich neu zeichnen
-    drawRegion(rect)
+    drawRegion(rect);
 
-    ctx.restore()
-  })
+    ctx.restore();
+  });
 }
 ```
 
@@ -1962,28 +1934,28 @@ function drawDirtyRegions(dirtyRects) {
 
 ```javascript
 // 1. shallowRef fur grosse Objekte
-import { shallowRef } from 'vue'
+import { shallowRef } from 'vue';
 
 // Statt ref() - keine tiefe Reaktivitat
-const largeImageData = shallowRef(null)
+const largeImageData = shallowRef(null);
 
 // Manuell Trigger bei Anderungen
 function updateImageData(newData) {
-  largeImageData.value = newData
-  triggerRef(largeImageData)
+  largeImageData.value = newData;
+  triggerRef(largeImageData);
 }
 
 // 2. markRaw fur nicht-reaktive Objekte
-import { markRaw } from 'vue'
+import { markRaw } from 'vue';
 
-const canvas = markRaw(document.getElementById('canvas'))
-const image = markRaw(new Image())
+const canvas = markRaw(document.getElementById('canvas'));
+const image = markRaw(new Image());
 
 // 3. computed mit Cache
 const expensiveComputation = computed(() => {
   // Wird nur bei Anderung der Dependencies neu berechnet
-  return heavyCalculation(filters.value)
-})
+  return heavyCalculation(filters.value);
+});
 
 // 4. v-memo fur Listen-Rendering
 // In Template:
@@ -1998,29 +1970,30 @@ const routes = [
   {
     path: '/',
     name: 'home',
-    component: () => import('./views/HomeView.vue')
+    component: () => import('./views/HomeView.vue'),
   },
   {
     path: '/editor',
     name: 'editor',
     // Mit Webpack Magic Comments
-    component: () => import(
-      /* webpackChunkName: "editor" */
-      './views/EditorView.vue'
-    )
-  }
-]
+    component: () =>
+      import(
+        /* webpackChunkName: "editor" */
+        './views/EditorView.vue'
+      ),
+  },
+];
 
 // Komponenten Lazy Loading
-import { defineAsyncComponent } from 'vue'
+import { defineAsyncComponent } from 'vue';
 
 const HeavyComponent = defineAsyncComponent({
   loader: () => import('./HeavyComponent.vue'),
   loadingComponent: LoadingSpinner,
   errorComponent: ErrorDisplay,
-  delay: 200,  // Zeige Loading erst nach 200ms
-  timeout: 10000
-})
+  delay: 200, // Zeige Loading erst nach 200ms
+  timeout: 10000,
+});
 ```
 
 ### 8.4 Debouncing und Throttling
@@ -2028,35 +2001,35 @@ const HeavyComponent = defineAsyncComponent({
 ```javascript
 // Debounce - wartet bis Aktivitat endet
 function debounce(fn, delay) {
-  let timeoutId = null
+  let timeoutId = null;
 
-  return function(...args) {
-    clearTimeout(timeoutId)
-    timeoutId = setTimeout(() => fn.apply(this, args), delay)
-  }
+  return function (...args) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn.apply(this, args), delay);
+  };
 }
 
 // Throttle - maximal einmal pro Intervall
 function throttle(fn, limit) {
-  let inThrottle = false
+  let inThrottle = false;
 
-  return function(...args) {
+  return function (...args) {
     if (!inThrottle) {
-      fn.apply(this, args)
-      inThrottle = true
-      setTimeout(() => inThrottle = false, limit)
+      fn.apply(this, args);
+      inThrottle = true;
+      setTimeout(() => (inThrottle = false), limit);
     }
-  }
+  };
 }
 
 // Verwendung
 const debouncedFilter = debounce((value) => {
-  imageStore.setFilter('brightness', value)
-}, 100)
+  imageStore.setFilter('brightness', value);
+}, 100);
 
 const throttledMouseMove = throttle((event) => {
-  handleTextDrag(event)
-}, 16)  // ~60fps
+  handleTextDrag(event);
+}, 16); // ~60fps
 ```
 
 ---
@@ -2065,14 +2038,14 @@ const throttledMouseMove = throttle((event) => {
 
 ### 9.1 Zusammenfassung der Architekturentscheidungen
 
-| Entscheidung | Begrundung |
-|--------------|------------|
-| **Vue 3 Composition API** | Bessere Code-Organisation, TypeScript-Unterstutzung, wiederverwendbare Composables |
-| **Pinia statt Vuex** | Einfachere API, keine Mutations notig, bessere TypeScript-Integration |
-| **Canvas-basiertes Rendering** | Direkte Pixelmanipulation, CSS-Filter, Layer-System moglich |
-| **Client-Side Processing** | Datenschutz, keine Server-Abhangigkeit, sofortiges Feedback |
-| **LocalStorage Persistenz** | Schneller Zugriff, keine Datenbank notig fur Einstellungen |
-| **Composables fur Logik** | Wiederverwendbar, testbar, modulare Funktionalitat |
+| Entscheidung                   | Begrundung                                                                         |
+| ------------------------------ | ---------------------------------------------------------------------------------- |
+| **Vue 3 Composition API**      | Bessere Code-Organisation, TypeScript-Unterstutzung, wiederverwendbare Composables |
+| **Pinia statt Vuex**           | Einfachere API, keine Mutations notig, bessere TypeScript-Integration              |
+| **Canvas-basiertes Rendering** | Direkte Pixelmanipulation, CSS-Filter, Layer-System moglich                        |
+| **Client-Side Processing**     | Datenschutz, keine Server-Abhangigkeit, sofortiges Feedback                        |
+| **LocalStorage Persistenz**    | Schneller Zugriff, keine Datenbank notig fur Einstellungen                         |
+| **Composables fur Logik**      | Wiederverwendbar, testbar, modulare Funktionalitat                                 |
 
 ### 9.2 Best Practices
 
@@ -2091,14 +2064,11 @@ composables/
 ```javascript
 // Zentrales Error Handling
 function handleError(error, context) {
-  console.error(`[${context}]`, error)
+  console.error(`[${context}]`, error);
 
   // User-freundliche Nachricht anzeigen
   if (window.$toast) {
-    window.$toast.error(
-      getUserFriendlyMessage(error),
-      'Fehler'
-    )
+    window.$toast.error(getUserFriendlyMessage(error), 'Fehler');
   }
 
   // Optional: Error Tracking
@@ -2108,9 +2078,9 @@ function handleError(error, context) {
 // In Komponenten
 async function loadImage(file) {
   try {
-    await imageStore.loadImageFromFile(file)
+    await imageStore.loadImageFromFile(file);
   } catch (error) {
-    handleError(error, 'ImageUpload.loadImage')
+    handleError(error, 'ImageUpload.loadImage');
   }
 }
 ```
@@ -2168,7 +2138,7 @@ Bildkonverter Pro demonstriert, wie moderne Web-Technologien zusammenarbeiten ko
 
 ---
 
-*Dieses Dokument wurde fur Entwickler erstellt, die moderne Web-Technologien verstehen und anwenden mochten. Die gezeigten Patterns und Techniken konnen als Referenz fur eigene Projekte dienen.*
+_Dieses Dokument wurde fur Entwickler erstellt, die moderne Web-Technologien verstehen und anwenden mochten. Die gezeigten Patterns und Techniken konnen als Referenz fur eigene Projekte dienen._
 
 **Version:** 1.0.0
 **Letzte Aktualisierung:** Januar 2026

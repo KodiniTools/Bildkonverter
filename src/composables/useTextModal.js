@@ -6,6 +6,7 @@
 
 import { ref, readonly } from 'vue';
 import { useImageStore } from '@/stores/imageStore';
+import { logger } from '@/utils/logger';
 
 // Globaler State (außerhalb der Funktion für Singleton-Pattern)
 const isModalOpen = ref(false);
@@ -43,7 +44,7 @@ export function useTextModal() {
     const text = imageStore.texts.find((t) => t.id === textId);
 
     if (!text) {
-      console.warn(`Text mit ID ${textId} nicht gefunden`);
+      logger.warn(`Text mit ID ${textId} nicht gefunden`);
       return;
     }
 
@@ -78,7 +79,7 @@ export function useTextModal() {
 
       closeModal();
     } catch (error) {
-      console.error('Fehler beim Speichern des Textes:', error);
+      logger.error('Fehler beim Speichern des Textes:', error);
       throw error;
     }
   }
@@ -97,7 +98,7 @@ export function useTextModal() {
       imageStore.addText(textData);
       imageStore.saveState('Text hinzugefügt', 'text');
     } catch (error) {
-      console.error('Fehler beim Hinzufügen des Textes:', error);
+      logger.error('Fehler beim Hinzufügen des Textes:', error);
       throw error;
     }
   }
@@ -111,7 +112,7 @@ export function useTextModal() {
       imageStore.saveState('Text gelöscht', 'text');
       closeModal();
     } catch (error) {
-      console.error('Fehler beim Löschen des Textes:', error);
+      logger.error('Fehler beim Löschen des Textes:', error);
       throw error;
     }
   }

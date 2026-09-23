@@ -4,12 +4,12 @@ Der Bildkonverter wird **auf dem Server aus dem Git-Repository gebaut** und nur 
 fertige `dist/` ins Webroot kopiert. Quellcode und `node_modules` liegen dabei
 außerhalb des öffentlich erreichbaren Verzeichnisses.
 
-| | |
-|---|---|
-| Zielverzeichnis | `/var/www/kodinitools.com/bildkonverter` |
-| Öffentliche URL | `https://www.kodinitools.com/bildkonverter/` |
+|                   |                                               |
+| ----------------- | --------------------------------------------- |
+| Zielverzeichnis   | `/var/www/kodinitools.com/bildkonverter`      |
+| Öffentliche URL   | `https://www.kodinitools.com/bildkonverter/`  |
 | Build-Verzeichnis | `/opt/bildkonverter` (Clone + `node_modules`) |
-| Backups | `/var/backups/bildkonverter/` (letzte 5) |
+| Backups           | `/var/backups/bildkonverter/` (letzte 5)      |
 
 Der Pfad `/bildkonverter/` ist in `vite.config.js` als `base` fest verdrahtet und
 muss zum Ordnernamen im Webroot passen – sonst laden die Assets nicht.
@@ -182,7 +182,7 @@ cd /opt/bildkonverter && git checkout <commit> && sudo ./deploy.sh
 ## Hinweis zu Altlasten im Repository
 
 `deploy-check.js` und `deploy-to-server.ps1` stammen aus dem Schwesterprojekt
-*bilderseriebearbeiten* und nennen den base-Pfad `/bilderseriebearbeiten/`.
+_bilderseriebearbeiten_ und nennen den base-Pfad `/bilderseriebearbeiten/`.
 Die ebenfalls von dort stammende `vite.config.ts` wurde entfernt; maßgeblich ist
 `vite.config.js`, der Build verwendet `/bildkonverter/`. Für das Deployment sind
 die beiden verbliebenen Dateien ohne Bedeutung; `deploy-check.js` würde bei

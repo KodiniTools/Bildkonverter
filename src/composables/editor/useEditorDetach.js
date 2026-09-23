@@ -26,6 +26,7 @@
  */
 import { ref, watch } from 'vue';
 import { loadImage } from '@/utils/fileUtils';
+import { logger } from '@/utils/logger';
 
 export function useEditorDetach({
   canvas,
@@ -87,7 +88,7 @@ export function useEditorDetach({
       });
       imageStore.selectImageLayer(layer.id);
     } catch (error) {
-      console.error('❌ Ablösen vom Hintergrund fehlgeschlagen:', error);
+      logger.error('❌ Ablösen vom Hintergrund fehlgeschlagen:', error);
       if (window.$toast) {
         window.$toast.error(t('toast.editor.detachFailed', 'Ablösen fehlgeschlagen'));
       }
@@ -128,7 +129,7 @@ export function useEditorDetach({
     try {
       img = await loadImage(flatUrl);
     } catch (error) {
-      console.error('❌ Zurückverbinden mit dem Hintergrund fehlgeschlagen:', error);
+      logger.error('❌ Zurückverbinden mit dem Hintergrund fehlgeschlagen:', error);
       if (window.$toast) {
         window.$toast.error(t('toast.editor.reattachFailed', 'Verbinden fehlgeschlagen'));
       }

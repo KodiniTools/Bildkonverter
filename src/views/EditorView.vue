@@ -428,9 +428,9 @@
               class="export-dialog__input"
               type="text"
               :placeholder="$t('editor.toolbar.download')"
+              autofocus
               @keydown.enter="confirmExport"
               @keydown.escape="showExportDialog = false"
-              autofocus
             />
             <span class="export-dialog__ext">.{{ outputFormat }}</span>
           </div>
@@ -526,6 +526,7 @@ import { useEditorResize } from '@/composables/editor/useEditorResize';
 import { useEditorDetach } from '@/composables/editor/useEditorDetach';
 import { useEditorExport } from '@/composables/editor/useEditorExport';
 import { useEditorPreview } from '@/composables/editor/useEditorPreview';
+import { logger } from '@/utils/logger';
 
 const { t } = useI18n({ useScope: 'global' });
 const route = useRoute();
@@ -837,7 +838,7 @@ async function loadImage(img) {
 
   // Prüfe ob canvas bereit ist
   if (!canvas.value) {
-    console.warn('⚠️ Canvas noch nicht initialisiert, warte...');
+    logger.warn('⚠️ Canvas noch nicht initialisiert, warte...');
     setTimeout(() => loadImage(img), 50);
     return;
   }
@@ -917,7 +918,7 @@ async function resetFilters() {
   resetHistory();
   saveHistory();
 
-  console.log('✅ Bild auf Originalzustand zurückgesetzt');
+  logger.log('✅ Bild auf Originalzustand zurückgesetzt');
 
   if (window.$toast) {
     window.$toast.success(t('toast.editor.imageReset', 'Bild zurückgesetzt'));
@@ -1006,7 +1007,7 @@ async function clearImage() {
     fileInput.value.value = '';
   }
 
-  console.log('🗑️ Bild erfolgreich gelöscht');
+  logger.log('🗑️ Bild erfolgreich gelöscht');
   if (window.$toast) {
     window.$toast.success(t('toast.editor.imageDeleted'));
   }
@@ -1258,9 +1259,9 @@ onMounted(async () => {
       renderImage();
       updateImageInfo();
       saveHistory('Collage geladen');
-      console.log(`✅ Collage-Modus aktiviert mit ${imageStore.imageLayerCount} Layern`);
+      logger.log(`✅ Collage-Modus aktiviert mit ${imageStore.imageLayerCount} Layern`);
     } else {
-      console.error('❌ Canvas nicht gefunden im Collage-Modus');
+      logger.error('❌ Canvas nicht gefunden im Collage-Modus');
     }
     return;
   }
@@ -1284,7 +1285,7 @@ watch(
   async (newId, oldId) => {
     // Nur laden wenn sich die ID geändert hat und eine neue ID vorhanden ist
     if (newId && newId !== oldId) {
-      console.log('🔄 Galerie-Bild-ID geändert:', newId);
+      logger.log('🔄 Galerie-Bild-ID geändert:', newId);
       await loadGalleryImage(newId, t);
     }
   }

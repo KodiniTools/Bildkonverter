@@ -3,23 +3,23 @@
     <div class="header-container">
       <!-- Navigation -->
       <nav class="header-nav">
-        <template v-for="route in routes" :key="route.path">
+        <template v-for="navItem in routes" :key="navItem.path">
           <a
-            v-if="route.external"
-            :href="route.path"
+            v-if="navItem.external"
+            :href="navItem.path"
             class="nav-link"
             target="_blank"
             rel="noopener noreferrer"
           >
-            {{ $t(route.label) }}
+            {{ $t(navItem.label) }}
           </a>
           <router-link
             v-else
-            :to="route.path"
+            :to="navItem.path"
             class="nav-link"
-            :class="{ active: isActiveRoute(route.path) }"
+            :class="{ active: isActiveRoute(navItem.path) }"
           >
-            {{ $t(route.label) }}
+            {{ $t(navItem.label) }}
           </router-link>
         </template>
       </nav>
@@ -40,25 +40,25 @@
     <!-- Mobile Navigation -->
     <transition name="slide-down">
       <nav v-if="isMobileMenuOpen" class="mobile-nav">
-        <template v-for="route in routes" :key="route.path">
+        <template v-for="navItem in routes" :key="navItem.path">
           <a
-            v-if="route.external"
-            :href="route.path"
+            v-if="navItem.external"
+            :href="navItem.path"
             class="mobile-nav-link"
             target="_blank"
             rel="noopener noreferrer"
             @click="closeMobileMenu"
           >
-            {{ $t(route.label) }}
+            {{ $t(navItem.label) }}
           </a>
           <router-link
             v-else
-            :to="route.path"
+            :to="navItem.path"
             class="mobile-nav-link"
-            :class="{ active: isActiveRoute(route.path) }"
+            :class="{ active: isActiveRoute(navItem.path) }"
             @click="closeMobileMenu"
           >
-            {{ $t(route.label) }}
+            {{ $t(navItem.label) }}
           </router-link>
         </template>
       </nav>

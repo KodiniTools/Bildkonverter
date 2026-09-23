@@ -15,36 +15,38 @@ Das neue Projekt befindet sich in: `/mnt/user-data/outputs/vue-bildkonverter/`
 ### Von Klassen-basiert zu Store-basiert
 
 **ALT (JavaScript):**
+
 ```javascript
 class ImageConverter {
   constructor() {
-    this.filters = { brightness: 100 }
+    this.filters = { brightness: 100 };
   }
   setFilter(name, value) {
-    this.filters[name] = value
+    this.filters[name] = value;
   }
 }
 
-const converter = new ImageConverter()
-converter.setFilter('brightness', 120)
+const converter = new ImageConverter();
+converter.setFilter('brightness', 120);
 ```
 
 **NEU (Vue + Pinia):**
+
 ```javascript
 // Store Definition
 export const useImageStore = defineStore('image', () => {
-  const filters = reactive({ brightness: 100 })
-  
+  const filters = reactive({ brightness: 100 });
+
   function setFilter(name, value) {
-    filters[name] = value
+    filters[name] = value;
   }
-  
-  return { filters, setFilter }
-})
+
+  return { filters, setFilter };
+});
 
 // Verwendung in Komponente
-const imageStore = useImageStore()
-imageStore.setFilter('brightness', 120)
+const imageStore = useImageStore();
+imageStore.setFilter('brightness', 120);
 ```
 
 ---
@@ -76,10 +78,12 @@ imageStore.setFilter('brightness', 120)
 ### 2. **Zweisprachigkeit (Vue i18n)**
 
 **Vollständige Übersetzungen:**
+
 - 🇩🇪 Deutsch (Standard)
 - 🇬🇧 Englisch
 
 **Über 200+ Übersetzungs-Keys** für:
+
 - UI-Elemente
 - Fehlermeldungen
 - Validierungen
@@ -87,6 +91,7 @@ imageStore.setFilter('brightness', 120)
 - Toast-Benachrichtigungen
 
 **Verwendung:**
+
 ```vue
 <template>
   <h1>{{ $t('app.title') }}</h1>
@@ -97,6 +102,7 @@ imageStore.setFilter('brightness', 120)
 ### 3. **Modernes Component-System**
 
 **Komponenten-Hierarchie:**
+
 ```
 App.vue
 ├── AppHeader (Navigation, Theme-Toggle, Language-Switch)
@@ -110,6 +116,7 @@ App.vue
 ### 4. **SCSS Design System**
 
 **Zentrales Design-System mit:**
+
 - CSS Custom Properties (für Runtime-Änderungen)
 - SCSS Variables (für Build-Zeit)
 - Responsive Breakpoints
@@ -124,6 +131,7 @@ App.vue
 Das Projekt enthält **3 umfassende Dokumentations-Dateien:**
 
 ### 1. README.md (Haupt-Dokumentation)
+
 - ✅ Vue 3 Konzepte erklärt
 - ✅ Composition API vs Options API
 - ✅ Script Setup verstehen
@@ -135,6 +143,7 @@ Das Projekt enthält **3 umfassende Dokumentations-Dateien:**
 - ✅ Lernressourcen
 
 ### 2. QUICK_START.md
+
 - ✅ 3-Schritte Installation
 - ✅ Erste Komponente erstellen
 - ✅ Store verwenden
@@ -143,6 +152,7 @@ Das Projekt enthält **3 umfassende Dokumentations-Dateien:**
 - ✅ Debugging-Tipps
 
 ### 3. PROJECT_STRUCTURE.md
+
 - ✅ Vollständige Datei-Übersicht
 - ✅ Bereits erstellte Komponenten
 - ✅ Noch zu erstellende Komponenten
@@ -157,6 +167,7 @@ Das Projekt enthält **3 umfassende Dokumentations-Dateien:**
 ### ✅ Fertiggestellt (~35%)
 
 **Core-Infrastruktur:**
+
 - ✅ Vue 3 Setup mit Vite
 - ✅ Pinia State Management
 - ✅ Vue Router
@@ -165,18 +176,22 @@ Das Projekt enthält **3 umfassende Dokumentations-Dateien:**
 - ✅ TypeScript-ready (falls gewünscht)
 
 **Stores:**
+
 - ✅ imageStore (Bildbearbeitung)
 - ✅ settingsStore (App-Einstellungen)
 
 **Komponenten:**
+
 - ✅ App.vue (Root)
 - ✅ HomeView.vue
 - ✅ useImageLoader.js (Upload)
 
 **Utils:**
+
 - ✅ validationUtils.js (migriert)
 
 **Dokumentation:**
+
 - ✅ README.md (umfassend)
 - ✅ QUICK_START.md
 - ✅ PROJECT_STRUCTURE.md
@@ -184,12 +199,14 @@ Das Projekt enthält **3 umfassende Dokumentations-Dateien:**
 ### ⏳ Noch zu erstellen (~65%)
 
 **Views:**
+
 - ⏳ EditorView.vue
 - ⏳ SettingsView.vue
 - ⏳ AboutView.vue
 - ⏳ NotFoundView.vue
 
 **Feature-Komponenten:**
+
 - ⏳ ImageCanvas.vue
 - ⏳ FilterControls.vue
 - ⏳ FilterPresets.vue
@@ -198,16 +215,19 @@ Das Projekt enthält **3 umfassende Dokumentations-Dateien:**
 - ⏳ HistoryControls.vue
 
 **UI-Komponenten:**
+
 - ⏳ ToastContainer.vue
 - ⏳ Modal.vue
 - ⏳ Slider.vue
 - ⏳ ColorPicker.vue
 
 **Layout:**
+
 - ⏳ AppHeader.vue
 - ⏳ AppFooter.vue
 
 **Composables:**
+
 - ⏳ useCanvas.js
 - ⏳ useKeyboard.js
 - ⏳ useToast.js
@@ -238,6 +258,7 @@ npm run dev
 **Empfohlene Reihenfolge:**
 
 1. **EditorView.vue** - Basis-Layout
+
    ```vue
    <template>
      <div class="editor-view">
@@ -284,46 +305,49 @@ npm run dev
 ### 1. Reaktivität verstehen
 
 **ref() für primitive Werte:**
+
 ```javascript
-const count = ref(0)
-count.value++ // .value im Script
+const count = ref(0);
+count.value++; // .value im Script
 ```
 
 **reactive() für Objekte:**
+
 ```javascript
-const user = reactive({ name: 'Max' })
-user.name = 'Maria' // kein .value
+const user = reactive({ name: 'Max' });
+user.name = 'Maria'; // kein .value
 ```
 
 **computed() für berechnete Werte:**
+
 ```javascript
-const doubleCount = computed(() => count.value * 2)
+const doubleCount = computed(() => count.value * 2);
 ```
 
 ### 2. Store-Pattern
 
 **Alle State-Änderungen über Actions:**
+
 ```javascript
 // ❌ NICHT direkt
-imageStore.filters.brightness = 120
+imageStore.filters.brightness = 120;
 
 // ✅ Über Action
-imageStore.setFilter('brightness', 120)
+imageStore.setFilter('brightness', 120);
 ```
 
 ### 3. Component Communication
 
 **Parent → Child (Props):**
+
 ```vue
 <ChildComponent :title="myTitle" />
 ```
 
 **Child → Parent (Events):**
-```vue
-// Child
-emit('save', data)
 
-// Parent
+```vue
+// Child emit('save', data) // Parent
 <ChildComponent @save="handleSave" />
 ```
 
@@ -348,7 +372,7 @@ emit('save', data)
 .my-element {
   @include flex-center;
   padding: $spacing-md;
-  
+
   @include respond-to('md') {
     padding: $spacing-sm;
   }
@@ -364,7 +388,7 @@ emit('save', data)
 }
 
 // Oder spezifisch
-:root[data-theme="dark"] .my-element {
+:root[data-theme='dark'] .my-element {
   background: $dark-bg;
 }
 ```
@@ -386,7 +410,7 @@ touch src/components/features/MeineKomponente.vue
 
 ```vue
 <script setup>
-import MeineKomponente from '@/components/features/MeineKomponente.vue'
+import MeineKomponente from '@/components/features/MeineKomponente.vue';
 </script>
 
 <template>
@@ -398,15 +422,15 @@ import MeineKomponente from '@/components/features/MeineKomponente.vue'
 
 ```vue
 <script setup>
-import { useImageStore } from '@/stores/imageStore'
+import { useImageStore } from '@/stores/imageStore';
 
-const imageStore = useImageStore()
+const imageStore = useImageStore();
 
 // State lesen
-console.log(imageStore.filters)
+console.log(imageStore.filters);
 
 // Action aufrufen
-imageStore.setFilter('brightness', 120)
+imageStore.setFilter('brightness', 120);
 </script>
 ```
 
@@ -417,9 +441,9 @@ imageStore.setFilter('brightness', 120)
 const de = {
   meinFeature: {
     titel: 'Mein Feature',
-    beschreibung: 'Beschreibung'
-  }
-}
+    beschreibung: 'Beschreibung',
+  },
+};
 ```
 
 ```vue
@@ -441,19 +465,23 @@ const de = {
 ### Reactive State debuggen
 
 ```javascript
-import { watch } from 'vue'
+import { watch } from 'vue';
 
-watch(() => imageStore.filters, (newVal) => {
-  console.log('Filters changed:', newVal)
-}, { deep: true })
+watch(
+  () => imageStore.filters,
+  (newVal) => {
+    console.log('Filters changed:', newVal);
+  },
+  { deep: true }
+);
 ```
 
 ### Performance messen
 
 ```javascript
-console.time('operation')
+console.time('operation');
 // ... Code
-console.timeEnd('operation')
+console.timeEnd('operation');
 ```
 
 ---
@@ -523,8 +551,9 @@ console.timeEnd('operation')
 **Ursache:** ref() wurde nicht initialisiert oder falsch verwendet
 
 **Lösung:**
+
 ```javascript
-const myRef = ref(null) // Immer initialisieren
+const myRef = ref(null); // Immer initialisieren
 ```
 
 ### Problem: "Component not updating"
@@ -532,17 +561,19 @@ const myRef = ref(null) // Immer initialisieren
 **Ursache:** Nicht-reaktives Objekt oder Array
 
 **Lösung:**
+
 ```javascript
 // ❌ FALSCH
-const user = { name: 'Max' }
+const user = { name: 'Max' };
 
 // ✅ RICHTIG
-const user = reactive({ name: 'Max' })
+const user = reactive({ name: 'Max' });
 ```
 
 ### Problem: "Port already in use"
 
 **Lösung:**
+
 ```bash
 npm run dev -- --port 3000
 ```
@@ -550,6 +581,7 @@ npm run dev -- --port 3000
 ### Problem: "Module not found"
 
 **Lösung:**
+
 ```bash
 rm -rf node_modules
 npm install

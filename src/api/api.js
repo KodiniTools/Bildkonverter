@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 /**
  * API Configuration
  * Pfad: /src/api/api.js
@@ -65,7 +66,7 @@ export class ApiClient {
 
       return await response.blob();
     } catch (error) {
-      console.error('API-Fehler bei Bildkonvertierung:', error);
+      logger.error('API-Fehler bei Bildkonvertierung:', error);
       throw error;
     }
   }
@@ -81,7 +82,7 @@ export class ApiClient {
       });
       return response.ok;
     } catch (error) {
-      console.warn('Backend nicht erreichbar:', error);
+      logger.warn('Backend nicht erreichbar:', error);
       return false;
     }
   }

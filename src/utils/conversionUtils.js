@@ -8,6 +8,7 @@
 
 import { ApiClient } from '@/api/api';
 import { FORMAT_INFO } from '@/utils/formatInfo';
+import { logger } from '@/utils/logger';
 
 /** Formate ohne Transparenz, die einen weißen Hintergrund brauchen */
 export const OPAQUE_FORMATS = ['jpg', 'bmp', 'pdf'];
@@ -192,7 +193,7 @@ export async function convertCanvasToSvg(canvas, filename) {
       return svgBlob;
     }
   } catch (error) {
-    console.warn('Backend-SVG nicht verfügbar, verwende Client-Fallback:', error.message);
+    logger.warn('Backend-SVG nicht verfügbar, verwende Client-Fallback:', error.message);
   }
   return createSvgWrapper(canvas);
 }

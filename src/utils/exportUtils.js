@@ -19,6 +19,7 @@ import {
   createSvgWrapper,
   canvasToBlob as canvasToBlobUtil,
 } from './conversionUtils';
+import { logger } from '@/utils/logger';
 
 export { FORMAT_INFO, SUPPORTED_FORMATS, CLIENT_FORMATS, BACKEND_FORMATS };
 
@@ -37,10 +38,10 @@ export class ExportManager {
       // Dynamischer Import von jsPDF
       const { jsPDF } = await import('jspdf');
       this.jsPDF = jsPDF;
-      console.log('✅ jsPDF erfolgreich geladen');
+      logger.log('✅ jsPDF erfolgreich geladen');
       return true;
     } catch (error) {
-      console.warn('⚠️ jsPDF konnte nicht geladen werden:', error);
+      logger.warn('⚠️ jsPDF konnte nicht geladen werden:', error);
       return false;
     }
   }
@@ -118,7 +119,7 @@ export class ExportManager {
           return await this.exportPNG(canvas, filename, exportOptions);
       }
     } catch (error) {
-      console.error(`Export-Fehler (${format}):`, error);
+      logger.error(`Export-Fehler (${format}):`, error);
       throw new Error(`Export fehlgeschlagen: ${error.message}`);
     }
   }
@@ -136,14 +137,14 @@ export class ExportManager {
     }
 
     if (pixels > 10000 * 10000) {
-      console.warn('⚠️ Sehr großes Bild - Export kann länger dauern');
+      logger.warn('⚠️ Sehr großes Bild - Export kann länger dauern');
     }
   }
 
   /**
    * PNG Export
    */
-  async exportPNG(canvas, filename, options) {
+  async exportPNG(canvas, filename) {
     const dataURL = canvas.toDataURL('image/png');
     this.downloadDataURL(dataURL, `${filename}.png`);
 
@@ -246,7 +247,7 @@ export class ExportManager {
   /**
    * PDF Export (Client-side mit jsPDF)
    */
-  async exportPDF(canvas, filename, options) {
+  async exportPDF(canvas, filename) {
     if (!this.jsPDF) {
       await this.initializePDF();
       if (!this.jsPDF) {
@@ -311,7 +312,7 @@ export class ExportManager {
       const blob = await this.canvasToBlob(canvas, 'image/png');
       svgBlob = await ApiClient.convertImage(blob, 'svg', filename, options);
     } catch (error) {
-      console.warn('Backend-SVG nicht verfügbar, verwende Client-Fallback:', error.message);
+      logger.warn('Backend-SVG nicht verfügbar, verwende Client-Fallback:', error.message);
       // Fallback: SVG-Wrapper mit eingebettetem Rasterbild
       svgBlob = this.createSVGWrapper(canvas);
     }

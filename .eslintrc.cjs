@@ -15,6 +15,15 @@ module.exports = {
     'prettier/prettier': 'error',
     'vue/multi-word-component-names': 'off',
     'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-    'no-console': 'warn',
+    // App-Code nutzt den Logger (src/utils/logger.js), keine direkte Konsole
+    'no-console': 'error',
   },
+  overrides: [
+    {
+      // Node-Skripte und Tests dürfen direkt auf die Konsole schreiben
+      files: ['*.js', '*.cjs', '*.mjs', 'backend-deploy/**/*.js', 'tests/**/*.js'],
+      excludedFiles: ['src/**'],
+      rules: { 'no-console': 'off' },
+    },
+  ],
 };

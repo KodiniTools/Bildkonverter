@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 /**
  * KodiniTools Cross-Tool Handoff Protocol
  *
@@ -104,7 +105,7 @@ export function prepareHandoff(canvases, target, source = 'unknown') {
 
     // Safety check: warn if payload is huge (> 4 MB)
     if (json.length > 4 * 1024 * 1024) {
-      console.warn('[Handoff] Payload too large, reducing image count');
+      logger.warn('[Handoff] Payload too large, reducing image count');
       payload.images = images.slice(0, Math.max(1, Math.floor(images.length / 2)));
       json = JSON.stringify(payload);
     }
@@ -113,7 +114,7 @@ export function prepareHandoff(canvases, target, source = 'unknown') {
 
     const targetPath = TARGET_URLS[target];
     if (!targetPath) {
-      console.error(`[Handoff] Unknown target: ${target}`);
+      logger.error(`[Handoff] Unknown target: ${target}`);
       localStorage.removeItem(STORAGE_KEY);
       return null;
     }
@@ -122,7 +123,7 @@ export function prepareHandoff(canvases, target, source = 'unknown') {
     url.searchParams.set('handoff', 'kodinitools');
     return url.toString();
   } catch (e) {
-    console.error('[Handoff] Failed to store payload:', e);
+    logger.error('[Handoff] Failed to store payload:', e);
     localStorage.removeItem(STORAGE_KEY);
     return null;
   }

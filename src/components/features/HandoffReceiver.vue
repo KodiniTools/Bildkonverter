@@ -39,12 +39,9 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
 import { checkHandoff, consumeHandoff, dismissHandoff } from '@/lib/core/handoff';
 
 const emit = defineEmits(['accept', 'dismiss']);
-const route = useRoute();
-
 const handoffPayload = ref(null);
 
 const previewImages = computed(() => {

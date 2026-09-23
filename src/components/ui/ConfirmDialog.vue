@@ -50,9 +50,7 @@ const iconClass = computed(() => {
 });
 
 const confirmBtnClass = computed(() => {
-  return state.value.variant === 'danger'
-    ? 'confirm-btn--danger'
-    : 'confirm-btn--primary';
+  return state.value.variant === 'danger' ? 'confirm-btn--danger' : 'confirm-btn--primary';
 });
 </script>
 

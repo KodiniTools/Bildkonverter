@@ -18,6 +18,7 @@ import { ref } from 'vue';
 import { exportImage } from '@/utils/exportUtils';
 import { prepareHandoff } from '@/lib/core/handoff';
 import { printImage } from '@/utils/printUtils';
+import { logger } from '@/utils/logger';
 
 export function useEditorExport({
   canvas,
@@ -62,7 +63,7 @@ export function useEditorExport({
         texts: imageStore.texts || [],
       });
 
-      console.log('✅ Export erfolgreich:', result);
+      logger.log('✅ Export erfolgreich:', result);
 
       // Snapshot des exportierten Canvas sichern, solange der Export-Render aktiv ist.
       // Wird für die optionale Weiterleitung an ein anderes Kodini-Tool genutzt.
@@ -75,7 +76,7 @@ export function useEditorExport({
         forwardFilename.value = filename;
         showForwardOffer.value = true;
       } catch (snapErr) {
-        console.warn('[Handoff] Snapshot für Weiterleitung fehlgeschlagen:', snapErr);
+        logger.warn('[Handoff] Snapshot für Weiterleitung fehlgeschlagen:', snapErr);
       }
 
       if (window.$toast) {
@@ -85,7 +86,7 @@ export function useEditorExport({
         );
       }
     } catch (error) {
-      console.error('❌ Export fehlgeschlagen:', error);
+      logger.error('❌ Export fehlgeschlagen:', error);
 
       if (window.$toast) {
         window.$toast.error(`Export fehlgeschlagen: ${error.message}`);
@@ -106,7 +107,7 @@ export function useEditorExport({
       renderImageForExport();
       dataUrl = canvas.value.toDataURL('image/png');
     } catch (error) {
-      console.error('❌ Druck-Rendering fehlgeschlagen:', error);
+      logger.error('❌ Druck-Rendering fehlgeschlagen:', error);
     } finally {
       // On-Screen-Canvas wieder mit Auswahl-Markierung herstellen
       renderImage();
@@ -115,7 +116,7 @@ export function useEditorExport({
     try {
       await printImage(dataUrl, currentFileName.value || 'image');
     } catch (error) {
-      console.error('❌ Drucken fehlgeschlagen:', error);
+      logger.error('❌ Drucken fehlgeschlagen:', error);
       if (window.$toast) {
         window.$toast.error(t('toast.editor.printFailed', 'Drucken fehlgeschlagen'));
       }
