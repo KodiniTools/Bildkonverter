@@ -101,8 +101,8 @@ import { ref, watch } from 'vue';
 
 const props = defineProps({
   show: Boolean,
-  originalSrc: String,
-  editedSrc: String,
+  originalSrc: { type: String, default: '' },
+  editedSrc: { type: String, default: '' },
 });
 defineEmits(['close']);
 

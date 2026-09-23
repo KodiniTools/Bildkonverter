@@ -10,6 +10,7 @@ npm install
 ```
 
 **Das installiert:**
+
 - Vue 3
 - Pinia (State Management)
 - Vue Router
@@ -31,6 +32,7 @@ npm run dev
 **Der Server startet auf:** http://localhost:5173
 
 **Features:**
+
 - ⚡ Hot Module Replacement (HMR)
 - 🔥 Instant Updates
 - 🎯 Source Maps
@@ -51,24 +53,23 @@ npm run dev
 ### Vue Composition API verstehen
 
 **Basis-Beispiel:**
+
 ```vue
 <script setup>
-import { ref } from 'vue'
+import { ref } from 'vue';
 
 // Reaktive Variable erstellen
-const count = ref(0)
+const count = ref(0);
 
 // Funktion definieren
 function increment() {
-  count.value++ // .value ist wichtig im Script!
+  count.value++; // .value ist wichtig im Script!
 }
 </script>
 
 <template>
   <!-- Im Template kein .value nötig -->
-  <button @click="increment">
-    Count: {{ count }}
-  </button>
+  <button @click="increment">Count: {{ count }}</button>
 </template>
 ```
 
@@ -77,19 +78,21 @@ function increment() {
 ### Pinia Store verwenden
 
 **1. Store importieren:**
+
 ```javascript
-import { useImageStore } from '@/stores/imageStore'
+import { useImageStore } from '@/stores/imageStore';
 ```
 
 **2. Store in Komponente nutzen:**
+
 ```javascript
-const imageStore = useImageStore()
+const imageStore = useImageStore();
 
 // State lesen
-console.log(imageStore.filters.brightness)
+console.log(imageStore.filters.brightness);
 
 // State ändern via Action
-imageStore.setFilter('brightness', 120)
+imageStore.setFilter('brightness', 120);
 ```
 
 ---
@@ -97,6 +100,7 @@ imageStore.setFilter('brightness', 120)
 ### i18n (Übersetzungen) verwenden
 
 **Im Template:**
+
 ```vue
 <template>
   <h1>{{ $t('app.title') }}</h1>
@@ -105,14 +109,15 @@ imageStore.setFilter('brightness', 120)
 ```
 
 **Im Script:**
+
 ```vue
 <script setup>
-import { useI18n } from 'vue-i18n'
+import { useI18n } from 'vue-i18n';
 
-const { t, locale } = useI18n()
+const { t, locale } = useI18n();
 
-console.log(t('app.title'))
-locale.value = 'en' // Sprache ändern
+console.log(t('app.title'));
+locale.value = 'en'; // Sprache ändern
 </script>
 ```
 
@@ -128,6 +133,7 @@ touch src/components/features/MeineKomponente.vue
 ```
 
 **Komponenten-Template:**
+
 ```vue
 <template>
   <div class="meine-komponente">
@@ -137,18 +143,18 @@ touch src/components/features/MeineKomponente.vue
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref } from 'vue';
 
 // Props definieren
 const props = defineProps({
   title: {
     type: String,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
 // State
-const data = ref([])
+const data = ref([]);
 
 // Methods
 function loadData() {
@@ -159,7 +165,7 @@ function loadData() {
 <style lang="scss" scoped>
 .meine-komponente {
   padding: var(--spacing-md);
-  
+
   h2 {
     color: var(--color-primary);
   }
@@ -179,7 +185,7 @@ function loadData() {
 </template>
 
 <script setup>
-import MeineKomponente from '@/components/features/MeineKomponente.vue'
+import MeineKomponente from '@/components/features/MeineKomponente.vue';
 </script>
 ```
 
@@ -194,20 +200,21 @@ const de = {
   // ... existierende Übersetzungen
   meinBereich: {
     titel: 'Mein Titel',
-    beschreibung: 'Meine Beschreibung'
-  }
-}
+    beschreibung: 'Meine Beschreibung',
+  },
+};
 
 const en = {
   // ... existierende Übersetzungen
   meinBereich: {
     titel: 'My Title',
-    beschreibung: 'My Description'
-  }
-}
+    beschreibung: 'My Description',
+  },
+};
 ```
 
 **Verwendung:**
+
 ```vue
 <template>
   <h1>{{ $t('meinBereich.titel') }}</h1>
@@ -277,7 +284,7 @@ src/
 .my-element {
   color: $color-primary;
   padding: $spacing-md;
-  
+
   @include respond-to('md') {
     padding: $spacing-sm;
   }
@@ -306,11 +313,11 @@ src/
 ### Console Logging
 
 ```javascript
-import { watch } from 'vue'
+import { watch } from 'vue';
 
 watch(myRef, (newVal) => {
-  console.log('Wert geändert:', newVal)
-})
+  console.log('Wert geändert:', newVal);
+});
 ```
 
 ### Performance Monitoring
@@ -327,15 +334,15 @@ npm run dev
 ### ❌ FALSCH: .value vergessen
 
 ```javascript
-const count = ref(0)
-count++ // FEHLER!
+const count = ref(0);
+count++; // FEHLER!
 ```
 
 ### ✅ RICHTIG:
 
 ```javascript
-const count = ref(0)
-count.value++ // Korrekt!
+const count = ref(0);
+count.value++; // Korrekt!
 ```
 
 ---
@@ -343,15 +350,15 @@ count.value++ // Korrekt!
 ### ❌ FALSCH: Nicht-reaktives Objekt
 
 ```javascript
-const user = { name: 'Max' }
-user.name = 'Maria' // Nicht reaktiv!
+const user = { name: 'Max' };
+user.name = 'Maria'; // Nicht reaktiv!
 ```
 
 ### ✅ RICHTIG:
 
 ```javascript
-const user = reactive({ name: 'Max' })
-user.name = 'Maria' // Reaktiv!
+const user = reactive({ name: 'Max' });
+user.name = 'Maria'; // Reaktiv!
 ```
 
 ---
@@ -359,16 +366,16 @@ user.name = 'Maria' // Reaktiv!
 ### ❌ FALSCH: Props direkt mutieren
 
 ```javascript
-const props = defineProps(['title'])
-props.title = 'Neu' // FEHLER!
+const props = defineProps(['title']);
+props.title = 'Neu'; // FEHLER!
 ```
 
 ### ✅ RICHTIG:
 
 ```javascript
-const props = defineProps(['title'])
-const localTitle = ref(props.title)
-localTitle.value = 'Neu' // Korrekt!
+const props = defineProps(['title']);
+const localTitle = ref(props.title);
+localTitle.value = 'Neu'; // Korrekt!
 ```
 
 ---
@@ -376,16 +383,19 @@ localTitle.value = 'Neu' // Korrekt!
 ## 🎓 Lernressourcen
 
 ### Dokumentation
+
 - [Vue 3 Docs](https://vuejs.org/) - Offizielle Dokumentation
 - [Pinia Docs](https://pinia.vuejs.org/) - State Management
 - [Vue i18n Docs](https://vue-i18n.intlify.dev/) - Internationalisierung
 - [Vite Docs](https://vitejs.dev/) - Build Tool
 
 ### Video-Tutorials
+
 - [Vue Mastery](https://www.vuemastery.com/)
 - [Vue School](https://vueschool.io/)
 
 ### Interaktive Tutorials
+
 - [Vue.js Tutorial](https://vuejs.org/tutorial/)
 
 ---
@@ -395,17 +405,20 @@ localTitle.value = 'Neu' // Korrekt!
 ### Probleme beim Start?
 
 **1. Node.js Version prüfen:**
+
 ```bash
 node --version  # Sollte >= 18.0.0 sein
 ```
 
 **2. Dependencies neu installieren:**
+
 ```bash
 rm -rf node_modules
 npm install
 ```
 
 **3. Cache leeren:**
+
 ```bash
 rm -rf node_modules/.vite
 npm run dev
@@ -414,12 +427,14 @@ npm run dev
 ### Häufige Fehler
 
 **Port bereits in Verwendung:**
+
 ```bash
 # Anderen Port verwenden
 npm run dev -- --port 3000
 ```
 
 **Module nicht gefunden:**
+
 ```bash
 # Dependencies installieren
 npm install
@@ -441,6 +456,6 @@ Nach dem Quick Start:
 
 ## ✨ Viel Erfolg!
 
-Du hast jetzt alles, was du brauchst, um mit Vue 3 zu starten. 
+Du hast jetzt alles, was du brauchst, um mit Vue 3 zu starten.
 
 **Happy Coding! 🚀**

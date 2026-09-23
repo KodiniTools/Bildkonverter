@@ -12,6 +12,7 @@ import {
   normalizeText,
   validateText,
 } from '@/utils/textUtils';
+import { logger } from '@/utils/logger';
 
 /**
  * Image Store
@@ -88,7 +89,7 @@ export const useImageStore = defineStore('image', () => {
       willReadFrequently: true,
       alpha: true,
     });
-    console.log('✅ Canvas initialisiert');
+    logger.log('✅ Canvas initialisiert');
   }
 
   /**
@@ -117,7 +118,7 @@ export const useImageStore = defineStore('image', () => {
       isImageLoaded.value = true;
       return true;
     } catch (error) {
-      console.error('Fehler beim Laden:', error);
+      logger.error('Fehler beim Laden:', error);
       throw error;
     }
   }
@@ -289,7 +290,7 @@ export const useImageStore = defineStore('image', () => {
   function updateText(textId, updates) {
     const text = texts.value.find((t) => t.id === textId);
     if (!text) {
-      console.warn(`Text mit ID ${textId} nicht gefunden`);
+      logger.warn(`Text mit ID ${textId} nicht gefunden`);
       return;
     }
 
@@ -313,7 +314,7 @@ export const useImageStore = defineStore('image', () => {
     // Validierung
     const validation = validateText(text);
     if (!validation.isValid) {
-      console.warn('Text-Validierung fehlgeschlagen:', validation.errors);
+      logger.warn('Text-Validierung fehlgeschlagen:', validation.errors);
     }
 
     draw();
@@ -423,7 +424,7 @@ export const useImageStore = defineStore('image', () => {
       };
 
       img.onerror = (err) => {
-        console.error('Bild konnte nicht geladen werden:', imageData.url, err);
+        logger.error('Bild konnte nicht geladen werden:', imageData.url, err);
         reject(new Error(`Fehler beim Laden des Bildes: ${imageData.name}`));
       };
 
@@ -439,23 +440,23 @@ export const useImageStore = defineStore('image', () => {
     imageLayers.value = [];
     selectedLayerId.value = null;
 
-    console.log(`🖼️ Starte Hinzufügen von ${galleryImages.length} Bildern...`);
+    logger.log(`🖼️ Starte Hinzufügen von ${galleryImages.length} Bildern...`);
 
     const addedLayers = [];
 
     for (let i = 0; i < galleryImages.length; i++) {
       const imageData = galleryImages[i];
       try {
-        console.log(`  [${i + 1}/${galleryImages.length}] Lade: ${imageData.name}`);
+        logger.log(`  [${i + 1}/${galleryImages.length}] Lade: ${imageData.name}`);
         const layer = await addImageLayer(imageData);
         addedLayers.push(layer);
-        console.log(`  ✓ ${imageData.name} hinzugefügt`);
+        logger.log(`  ✓ ${imageData.name} hinzugefügt`);
       } catch (error) {
-        console.error(`  ✗ Fehler beim Hinzufügen von ${imageData.name}:`, error);
+        logger.error(`  ✗ Fehler beim Hinzufügen von ${imageData.name}:`, error);
       }
     }
 
-    console.log(`✅ ${addedLayers.length}/${galleryImages.length} Bilder hinzugefügt`);
+    logger.log(`✅ ${addedLayers.length}/${galleryImages.length} Bilder hinzugefügt`);
     return addedLayers;
   }
 
@@ -465,7 +466,7 @@ export const useImageStore = defineStore('image', () => {
   function updateImageLayer(layerId, updates) {
     const layer = imageLayers.value.find((l) => l.id === layerId);
     if (!layer) {
-      console.warn(`Layer mit ID ${layerId} nicht gefunden`);
+      logger.warn(`Layer mit ID ${layerId} nicht gefunden`);
       return;
     }
 
@@ -625,7 +626,7 @@ export const useImageStore = defineStore('image', () => {
         });
         restored.push({ ...layerData, image: img });
       } catch (e) {
-        console.warn('Layer konnte nicht wiederhergestellt werden:', e);
+        logger.warn('Layer konnte nicht wiederhergestellt werden:', e);
       }
     }
     imageLayers.value = restored;

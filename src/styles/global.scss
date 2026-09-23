@@ -16,7 +16,9 @@
 
 // ===== RESET & NORMALIZE =====
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -34,7 +36,9 @@
   pointer-events: auto;
 
   // Alle Links und interaktive Elemente in der externen Nav
-  a, button, [role="button"] {
+  a,
+  button,
+  [role='button'] {
     pointer-events: auto;
   }
 }
@@ -57,12 +61,19 @@ body {
   color: var(--color-text);
   background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-gradient) 100%);
   background-attachment: fixed;
-  transition: background 0.3s ease, color 0.3s ease;
+  transition:
+    background 0.3s ease,
+    color 0.3s ease;
 }
 
 // ===== TYPOGRAPHY =====
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: $font-weight-bold;
   line-height: $line-height-tight;
   margin-bottom: $spacing-md;
@@ -92,7 +103,7 @@ a {
   color: var(--color-primary);
   text-decoration: none;
   transition: color $transition-fast;
-  
+
   &:hover {
     color: $color-primary-dark;
   }
@@ -112,12 +123,12 @@ a {
   font-weight: $font-weight-medium;
   cursor: pointer;
   transition: all $transition-fast;
-  
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
-  
+
   &:focus-visible {
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
@@ -141,7 +152,7 @@ a {
   background: var(--color-bg-secondary);
   color: var(--color-text);
   border: 1px solid var(--color-border);
-  
+
   &:hover:not(:disabled) {
     background: var(--color-border);
   }
@@ -150,7 +161,7 @@ a {
 .btn-success {
   background: var(--color-success);
   color: #1a3a2a;
-  
+
   &:hover:not(:disabled) {
     filter: brightness(1.1);
     transform: translateY(-1px);
@@ -160,7 +171,7 @@ a {
 .btn-danger {
   background: var(--color-error);
   color: white;
-  
+
   &:hover:not(:disabled) {
     filter: brightness(1.1);
     transform: translateY(-1px);
@@ -179,7 +190,9 @@ a {
 
 // ===== INPUTS =====
 
-input, textarea, select {
+input,
+textarea,
+select {
   font-family: inherit;
   font-size: inherit;
   border: 1px solid var(--color-border);
@@ -188,13 +201,13 @@ input, textarea, select {
   background: var(--color-white);
   color: var(--color-text);
   transition: border-color $transition-fast;
-  
+
   &:focus {
     outline: none;
     border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(1, 79, 153, 0.1);
   }
-  
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -210,7 +223,7 @@ textarea {
 
 .card {
   @include card;
-  
+
   &-header {
     font-size: $font-size-lg;
     font-weight: $font-weight-semibold;
@@ -218,11 +231,11 @@ textarea {
     padding-bottom: $spacing-md;
     border-bottom: 1px solid var(--color-border);
   }
-  
+
   &-body {
     // Standardmäßig kein extra Padding
   }
-  
+
   &-footer {
     margin-top: $spacing-md;
     padding-top: $spacing-md;
@@ -233,24 +246,54 @@ textarea {
 // ===== UTILITY CLASSES =====
 
 // Spacing
-.m-0 { margin: 0; }
-.mt-sm { margin-top: $spacing-sm; }
-.mt-md { margin-top: $spacing-md; }
-.mt-lg { margin-top: $spacing-lg; }
-.mb-sm { margin-bottom: $spacing-sm; }
-.mb-md { margin-bottom: $spacing-md; }
-.mb-lg { margin-bottom: $spacing-lg; }
+.m-0 {
+  margin: 0;
+}
+.mt-sm {
+  margin-top: $spacing-sm;
+}
+.mt-md {
+  margin-top: $spacing-md;
+}
+.mt-lg {
+  margin-top: $spacing-lg;
+}
+.mb-sm {
+  margin-bottom: $spacing-sm;
+}
+.mb-md {
+  margin-bottom: $spacing-md;
+}
+.mb-lg {
+  margin-bottom: $spacing-lg;
+}
 
-.p-0 { padding: 0; }
-.p-sm { padding: $spacing-sm; }
-.p-md { padding: $spacing-md; }
-.p-lg { padding: $spacing-lg; }
+.p-0 {
+  padding: 0;
+}
+.p-sm {
+  padding: $spacing-sm;
+}
+.p-md {
+  padding: $spacing-md;
+}
+.p-lg {
+  padding: $spacing-lg;
+}
 
 // Display
-.d-none { display: none; }
-.d-block { display: block; }
-.d-flex { display: flex; }
-.d-grid { display: grid; }
+.d-none {
+  display: none;
+}
+.d-block {
+  display: block;
+}
+.d-flex {
+  display: flex;
+}
+.d-grid {
+  display: grid;
+}
 
 // Flex
 .flex-center {
@@ -265,14 +308,26 @@ textarea {
   flex-direction: column;
 }
 
-.gap-sm { gap: $spacing-sm; }
-.gap-md { gap: $spacing-md; }
-.gap-lg { gap: $spacing-lg; }
+.gap-sm {
+  gap: $spacing-sm;
+}
+.gap-md {
+  gap: $spacing-md;
+}
+.gap-lg {
+  gap: $spacing-lg;
+}
 
 // Text
-.text-center { text-align: center; }
-.text-left { text-align: left; }
-.text-right { text-align: right; }
+.text-center {
+  text-align: center;
+}
+.text-left {
+  text-align: left;
+}
+.text-right {
+  text-align: right;
+}
 
 .text-muted {
   color: var(--color-text-light);
@@ -321,7 +376,7 @@ textarea {
 ::-webkit-scrollbar-thumb {
   background: var(--color-border);
   border-radius: $border-radius-full;
-  
+
   &:hover {
     background: var(--color-text-light);
   }
@@ -375,7 +430,7 @@ textarea {
 .loading {
   position: relative;
   pointer-events: none;
-  
+
   &::after {
     content: '';
     position: absolute;
@@ -393,7 +448,7 @@ textarea {
 
 // ===== DARK MODE SPECIFIC =====
 
-:root[data-theme="dark"] {
+:root[data-theme='dark'] {
   .card {
     background: var(--color-card-bg, #{$dark-card-bg});
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
@@ -406,11 +461,11 @@ textarea {
   html {
     font-size: 14px;
   }
-  
+
   h1 {
     font-size: $font-size-2xl;
   }
-  
+
   h2 {
     font-size: $font-size-xl;
   }
@@ -460,11 +515,11 @@ textarea {
     box-shadow: none !important;
     text-shadow: none !important;
   }
-  
+
   a {
     text-decoration: underline;
   }
-  
+
   .no-print {
     display: none !important;
   }

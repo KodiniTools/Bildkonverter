@@ -20,16 +20,16 @@ Eine leistungsstarke, moderne Bildbearbeitungs-Anwendung für den Browser. Bearb
 
 ## Features
 
-| Funktion | Beschreibung |
-|---|---|
-| Editor | Vollständige Bildbearbeitung mit Filtern, Transformationen, Text |
-| Galerie | Lokale Bildverwaltung mit Multi-Select |
-| Collage-Modus | Mehrere Bilder als Ebenen kombinieren |
-| Stapelverarbeitung | Mehrere Bilder gleichzeitig konvertieren |
-| Format-Konvertierung | Dedizierte Seiten für Format-Paare (z.B. JPG → WebP) |
-| Datenschutz | Alle Bilder bleiben lokal – kein Cloud-Upload |
-| Mehrsprachig | Deutsch und Englisch |
-| Dark/Light Mode | Systemabhängig oder manuell wählbar |
+| Funktion             | Beschreibung                                                     |
+| -------------------- | ---------------------------------------------------------------- |
+| Editor               | Vollständige Bildbearbeitung mit Filtern, Transformationen, Text |
+| Galerie              | Lokale Bildverwaltung mit Multi-Select                           |
+| Collage-Modus        | Mehrere Bilder als Ebenen kombinieren                            |
+| Stapelverarbeitung   | Mehrere Bilder gleichzeitig konvertieren                         |
+| Format-Konvertierung | Dedizierte Seiten für Format-Paare (z.B. JPG → WebP)             |
+| Datenschutz          | Alle Bilder bleiben lokal – kein Cloud-Upload                    |
+| Mehrsprachig         | Deutsch und Englisch                                             |
+| Dark/Light Mode      | Systemabhängig oder manuell wählbar                              |
 
 ---
 
@@ -39,30 +39,30 @@ Der Editor ist das Herzstück der Anwendung. Bilder können per Datei-Dialog, Dr
 
 ### Eingabeformate
 
-| Format | Verarbeitung |
-|---|---|
-| JPEG, PNG, WebP, GIF, BMP, SVG | Direkt im Browser |
-| TIFF, HEIC, HEIF | Via Backend-API (serverseitige Konvertierung) |
+| Format                         | Verarbeitung                                  |
+| ------------------------------ | --------------------------------------------- |
+| JPEG, PNG, WebP, GIF, BMP, SVG | Direkt im Browser                             |
+| TIFF, HEIC, HEIF               | Via Backend-API (serverseitige Konvertierung) |
 
 ### Filter & Anpassungen
 
 Der Editor bietet 13 unabhängig einstellbare Filter:
 
-| Filter | Bereich | Beschreibung |
-|---|---|---|
-| Helligkeit | 0–200 % | Bild aufhellen oder abdunkeln |
-| Kontrast | 0–200 % | Kontrast verstärken oder abschwächen |
-| Sättigung | 0–200 % | Farbintensität von grau bis kräftig |
-| Belichtung | –100 bis +100 | Globale Belichtungskorrektur |
-| Lichter | –100 bis +100 | Helle Bildbereiche gezielt anpassen |
-| Schatten | –100 bis +100 | Dunkle Bildbereiche gezielt anpassen |
-| Farbton | –180 bis +180° | Gesamten Farbkreis verschieben |
-| Schärfe | 0–100 % | Bilddetails schärfen |
-| Weichzeichner | 0–20 px | Künstlerische Unschärfe |
-| Sepia / Wärme | 0–100 % | Warmton-Effekt |
-| Graustufen | 0–100 % | Teilweise oder vollständige Entsättigung |
-| Invertieren | 0–100 % | Farben umkehren |
-| Vignette | 0–100 % | Dunkle Randabschattung |
+| Filter        | Bereich        | Beschreibung                             |
+| ------------- | -------------- | ---------------------------------------- |
+| Helligkeit    | 0–200 %        | Bild aufhellen oder abdunkeln            |
+| Kontrast      | 0–200 %        | Kontrast verstärken oder abschwächen     |
+| Sättigung     | 0–200 %        | Farbintensität von grau bis kräftig      |
+| Belichtung    | –100 bis +100  | Globale Belichtungskorrektur             |
+| Lichter       | –100 bis +100  | Helle Bildbereiche gezielt anpassen      |
+| Schatten      | –100 bis +100  | Dunkle Bildbereiche gezielt anpassen     |
+| Farbton       | –180 bis +180° | Gesamten Farbkreis verschieben           |
+| Schärfe       | 0–100 %        | Bilddetails schärfen                     |
+| Weichzeichner | 0–20 px        | Künstlerische Unschärfe                  |
+| Sepia / Wärme | 0–100 %        | Warmton-Effekt                           |
+| Graustufen    | 0–100 %        | Teilweise oder vollständige Entsättigung |
+| Invertieren   | 0–100 %        | Farben umkehren                          |
+| Vignette      | 0–100 %        | Dunkle Randabschattung                   |
 
 ### Presets
 
@@ -133,15 +133,15 @@ Jede importierte Bilddatei wird als eigene Ebene geladen:
 
 ### Pro Ebene einstellbar
 
-| Eigenschaft | Optionen |
-|---|---|
-| Position | X/Y in Pixel |
-| Größe | Breite/Höhe mit optionalem Seitenverhältnis-Lock |
-| Rotation | –180° bis +180° |
-| Spiegelung | Horizontal, vertikal |
-| Deckkraft | 0–100 % |
-| Filter | Helligkeit, Kontrast, Sättigung, Graustufen |
-| Umrandung | Breite, Farbe, Radius |
+| Eigenschaft    | Optionen                                             |
+| -------------- | ---------------------------------------------------- |
+| Position       | X/Y in Pixel                                         |
+| Größe          | Breite/Höhe mit optionalem Seitenverhältnis-Lock     |
+| Rotation       | –180° bis +180°                                      |
+| Spiegelung     | Horizontal, vertikal                                 |
+| Deckkraft      | 0–100 %                                              |
+| Filter         | Helligkeit, Kontrast, Sättigung, Graustufen          |
+| Umrandung      | Breite, Farbe, Radius                                |
 | Schlagschatten | Aktivierbar mit Versatz, Unschärfe, Farbe, Deckkraft |
 
 ### Canvas-Hintergrund
@@ -168,16 +168,16 @@ Bilder per Datei-Dialog oder Drag & Drop hinzufügen (JPEG, PNG, WebP, GIF, BMP,
 
 ### Ausgabeformate
 
-| Format | Anmerkung |
-|---|---|
-| JPG | Qualität einstellbar |
-| PNG | Verlustfrei |
-| WebP | Qualität einstellbar |
-| GIF | |
-| BMP | |
-| TIFF | Via Backend-API |
-| PDF | Einzelne PDFs oder zusammengeführtes Dokument |
-| SVG | Via Backend-API |
+| Format | Anmerkung                                     |
+| ------ | --------------------------------------------- |
+| JPG    | Qualität einstellbar                          |
+| PNG    | Verlustfrei                                   |
+| WebP   | Qualität einstellbar                          |
+| GIF    |                                               |
+| BMP    |                                               |
+| TIFF   | Via Backend-API                               |
+| PDF    | Einzelne PDFs oder zusammengeführtes Dokument |
+| SVG    | Via Backend-API                               |
 
 ### Einstellungen
 
@@ -202,31 +202,31 @@ Unter `/konvertieren/:format-paar` (z.B. `/konvertieren/jpg-to-webp`) gibt es de
 
 ### Eingabe
 
-| Format | Editor | Batch | Konvertierung |
-|---|---|---|---|
-| JPEG / JPG | ✅ | ✅ | ✅ |
-| PNG | ✅ | ✅ | ✅ |
-| WebP | ✅ | ✅ | ✅ |
-| GIF | ✅ | ✅ | ✅ |
-| BMP | ✅ | ✅ | ✅ |
-| SVG | ✅ | ✅ | ✅ |
-| TIFF | ✅ (API) | ✅ (API) | ✅ (API) |
-| HEIC / HEIF | ✅ (API) | ✅ (API) | – |
-| RAW (CR2, CR3, NEF, ARW, DNG, RAF, ORF, RW2, PEF) | ✅ (API) | ✅ (API) | – |
+| Format                                            | Editor   | Batch    | Konvertierung |
+| ------------------------------------------------- | -------- | -------- | ------------- |
+| JPEG / JPG                                        | ✅       | ✅       | ✅            |
+| PNG                                               | ✅       | ✅       | ✅            |
+| WebP                                              | ✅       | ✅       | ✅            |
+| GIF                                               | ✅       | ✅       | ✅            |
+| BMP                                               | ✅       | ✅       | ✅            |
+| SVG                                               | ✅       | ✅       | ✅            |
+| TIFF                                              | ✅ (API) | ✅ (API) | ✅ (API)      |
+| HEIC / HEIF                                       | ✅ (API) | ✅ (API) | –             |
+| RAW (CR2, CR3, NEF, ARW, DNG, RAF, ORF, RW2, PEF) | ✅ (API) | ✅ (API) | –             |
 
 ### Ausgabe
 
-| Format | Editor | Batch |
-|---|---|---|
-| JPEG | ✅ | ✅ |
-| PNG | ✅ | ✅ |
-| WebP | ✅ | ✅ |
-| AVIF | ✅ | – |
-| GIF | – | ✅ |
-| BMP | – | ✅ |
-| TIFF | – | ✅ (API) |
-| PDF | – | ✅ |
-| SVG | – | ✅ (API) |
+| Format | Editor | Batch    |
+| ------ | ------ | -------- |
+| JPEG   | ✅     | ✅       |
+| PNG    | ✅     | ✅       |
+| WebP   | ✅     | ✅       |
+| AVIF   | ✅     | –        |
+| GIF    | –      | ✅       |
+| BMP    | –      | ✅       |
+| TIFF   | –      | ✅ (API) |
+| PDF    | –      | ✅       |
+| SVG    | –      | ✅ (API) |
 
 > **API** = Konvertierung erfolgt serverseitig über die Backend-API. Erfordert aktive Serververbindung.
 
@@ -236,13 +236,13 @@ Unter `/konvertieren/:format-paar` (z.B. `/konvertieren/jpg-to-webp`) gibt es de
 
 ### Editor
 
-| Kürzel | Aktion |
-|---|---|
-| `Ctrl + Z` | Rückgängig (Undo) |
-| `Ctrl + Y` / `Ctrl + Shift + Z` | Wiederholen (Redo) |
-| `Ctrl + V` | Bild aus Zwischenablage einfügen |
-| `T` | Text hinzufügen |
-| `Esc` | Zuschneiden abbrechen / Dialog schließen |
+| Kürzel                          | Aktion                                   |
+| ------------------------------- | ---------------------------------------- |
+| `Ctrl + Z`                      | Rückgängig (Undo)                        |
+| `Ctrl + Y` / `Ctrl + Shift + Z` | Wiederholen (Redo)                       |
+| `Ctrl + V`                      | Bild aus Zwischenablage einfügen         |
+| `T`                             | Text hinzufügen                          |
+| `Esc`                           | Zuschneiden abbrechen / Dialog schließen |
 
 ---
 
@@ -301,33 +301,33 @@ Für die Verarbeitung von TIFF, HEIC/HEIF, SVG und TIFF-Export wird eine Backend
 
 ### Frontend
 
-| Technologie | Zweck |
-|---|---|
-| Vue 3 | Reaktives UI-Framework (Composition API) |
-| Vite | Build-Tool und Dev-Server |
-| Pinia | State Management |
-| Vue Router | Client-seitiges Routing mit SEO-Metadaten |
-| Vue i18n | Mehrsprachigkeit (DE / EN) |
-| SCSS | Strukturiertes CSS mit Variablen und Verschachtelung |
+| Technologie | Zweck                                                |
+| ----------- | ---------------------------------------------------- |
+| Vue 3       | Reaktives UI-Framework (Composition API)             |
+| Vite        | Build-Tool und Dev-Server                            |
+| Pinia       | State Management                                     |
+| Vue Router  | Client-seitiges Routing mit SEO-Metadaten            |
+| Vue i18n    | Mehrsprachigkeit (DE / EN)                           |
+| SCSS        | Strukturiertes CSS mit Variablen und Verschachtelung |
 
 ### Browser-APIs
 
-| API | Verwendung |
-|---|---|
-| Canvas API | Bildverarbeitung und Rendering |
-| File API | Lokales Lesen von Bilddateien |
-| FileReader API | Base64-Konvertierung für Galerie |
-| Clipboard API | Einfügen aus Zwischenablage |
-| URL.createObjectURL | Effizientes Laden von Bildern |
+| API                 | Verwendung                       |
+| ------------------- | -------------------------------- |
+| Canvas API          | Bildverarbeitung und Rendering   |
+| File API            | Lokales Lesen von Bilddateien    |
+| FileReader API      | Base64-Konvertierung für Galerie |
+| Clipboard API       | Einfügen aus Zwischenablage      |
+| URL.createObjectURL | Effizientes Laden von Bildern    |
 
 ### Browser-Kompatibilität
 
-| Browser | Mindestversion |
-|---|---|
-| Chrome / Edge | 90+ |
-| Firefox | 88+ |
-| Safari | 14+ |
-| Opera | 76+ |
+| Browser       | Mindestversion |
+| ------------- | -------------- |
+| Chrome / Edge | 90+            |
+| Firefox       | 88+            |
+| Safari        | 14+            |
+| Opera         | 76+            |
 
 ---
 
@@ -339,7 +339,7 @@ Für die Verarbeitung von TIFF, HEIC/HEIF, SVG und TIFF-Export wird eine Backend
 - Undo/Redo History-Vorschau
 - KI-gestützte Filter und Bildverbesserungen
 - Progressive Web App (PWA) für Offline-Nutzung
-- RAW-Format-Unterstützung (CR2, NEF, ARW) ✅ *(implementiert, erfordert Backend)*
+- RAW-Format-Unterstützung (CR2, NEF, ARW) ✅ _(implementiert, erfordert Backend)_
 
 ---
 

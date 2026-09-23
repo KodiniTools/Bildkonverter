@@ -1,5 +1,6 @@
 import { ApiClient } from '@/api/api';
 import { needsBackendPreview, readFileAsDataURL, loadImage } from '@/utils/fileUtils';
+import { logger } from '@/utils/logger';
 
 export function useImageLoader({
   currentImageFormat,
@@ -32,14 +33,14 @@ export function useImageLoader({
     try {
       await imageStore.loadImageFromFile(file);
     } catch (err) {
-      console.warn('Store save failed:', err);
+      logger.warn('Store save failed:', err);
     }
   }
 
   function handleFileSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
-    loadFileIntoEditor(file).catch((err) => console.error('Fehler beim Laden:', err));
+    loadFileIntoEditor(file).catch((err) => logger.error('Fehler beim Laden:', err));
   }
 
   function handleDragLeave(event) {
@@ -58,7 +59,7 @@ export function useImageLoader({
       file.type.startsWith('image/') ||
       /\.(jpe?g|png|gif|webp|bmp|svg|tiff?|heic|heif)$/i.test(file.name);
     if (!isImage) return;
-    loadFileIntoEditor(file).catch((err) => console.error('Fehler beim Laden:', err));
+    loadFileIntoEditor(file).catch((err) => logger.error('Fehler beim Laden:', err));
   }
 
   function handlePaste(e) {
@@ -77,7 +78,7 @@ export function useImageLoader({
         const file = item.getAsFile();
         if (file) {
           loadFileIntoEditor(file).catch((err) =>
-            console.error('Fehler beim Einfügen aus Zwischenablage:', err)
+            logger.error('Fehler beim Einfügen aus Zwischenablage:', err)
           );
         }
         break;
@@ -109,7 +110,7 @@ export function useImageLoader({
         return true;
       }
     } catch (error) {
-      console.error('Fehler beim Laden aus Galerie:', error);
+      logger.error('Fehler beim Laden aus Galerie:', error);
       if (window.$toast) window.$toast.error(t('toast.editor.galleryError'));
     }
     return false;

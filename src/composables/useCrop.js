@@ -7,6 +7,7 @@ import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useConfirm } from '@/composables/useConfirm';
 import { getAdjustedImage } from '@/utils/imageAdjustments';
+import { logger } from '@/utils/logger';
 
 // Seitenverhältnis-Presets
 export const ASPECT_RATIO_PRESETS = [
@@ -17,9 +18,6 @@ export const ASPECT_RATIO_PRESETS = [
   { id: '16:9', label: '16:9', ratio: 16 / 9, icon: 'fa-tv' },
   { id: '9:16', label: '9:16', ratio: 9 / 16, icon: 'fa-mobile-alt' },
 ];
-
-// Resize-Handle Positionen
-const RESIZE_HANDLES = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
 
 export function useCrop() {
   const { t } = useI18n();
@@ -94,7 +92,7 @@ export function useCrop() {
       clearCropSelection();
       selectedAspectRatio.value = 'free';
     } else {
-      console.log('Crop-Modus aktiviert: Ziehen Sie einen Bereich auf');
+      logger.log('Crop-Modus aktiviert: Ziehen Sie einen Bereich auf');
       if (window.$toast) {
         window.$toast.info(t('toast.crop.modeActivated'));
       }
@@ -232,7 +230,6 @@ export function useCrop() {
 
     const preset = ASPECT_RATIO_PRESETS.find((p) => p.id === selectedAspectRatio.value);
     const ratio = preset?.ratio || null;
-    const box = normalizedCropBox.value;
 
     // Begrenze auf Canvas
     x = Math.max(0, Math.min(canvasSize.value.width, x));
@@ -370,7 +367,6 @@ export function useCrop() {
   }
 
   function setAspectRatio(ratioId) {
-    const previousRatio = selectedAspectRatio.value;
     selectedAspectRatio.value = ratioId;
 
     const preset = ASPECT_RATIO_PRESETS.find((p) => p.id === ratioId);
@@ -538,7 +534,7 @@ export function useCrop() {
 
     if (width < 10 || height < 10) {
       clearCropSelection();
-      console.warn('Crop-Bereich zu klein (mindestens 10x10 Pixel)');
+      logger.warn('Crop-Bereich zu klein (mindestens 10x10 Pixel)');
       if (window.$toast) {
         window.$toast.warning(t('toast.crop.tooSmall'), t('toast.crop.tooSmallDetail'));
       }
@@ -573,7 +569,7 @@ export function useCrop() {
           texts: imageStore ? [...imageStore.texts] : [],
           borderRadius: context.borderRadiusBeforeCrop ?? 0,
         };
-        console.log('Original-Bild (ohne Texte) vor Crop gespeichert');
+        logger.log('Original-Bild (ohne Texte) vor Crop gespeichert');
       }
 
       // cropStart und cropEnd sind bereits Canvas-Koordinaten (nicht Display-Koordinaten)
@@ -583,7 +579,7 @@ export function useCrop() {
       const cropWidth = width;
       const cropHeight = height;
 
-      console.log(`Crop-Bereich: x=${cropX}, y=${cropY}, w=${cropWidth}, h=${cropHeight}`);
+      logger.log(`Crop-Bereich: x=${cropX}, y=${cropY}, w=${cropWidth}, h=${cropHeight}`);
 
       // Validierung
       if (
@@ -592,7 +588,7 @@ export function useCrop() {
         cropX + cropWidth > canvas.value.width ||
         cropY + cropHeight > canvas.value.height
       ) {
-        console.error(
+        logger.error(
           `Crop außerhalb: Canvas=${canvas.value.width}x${canvas.value.height}, Crop=${cropX},${cropY},${cropWidth},${cropHeight}`
         );
         if (window.$toast) {
@@ -691,7 +687,7 @@ export function useCrop() {
           imageStore.deleteText(id);
         });
 
-        console.log(`Text-Positionen angepasst. ${textsToRemove.length} Texte entfernt.`);
+        logger.log(`Text-Positionen angepasst. ${textsToRemove.length} Texte entfernt.`);
       }
 
       // Lade das zugeschnittene Bild
@@ -707,7 +703,7 @@ export function useCrop() {
         // Markiere dass zugeschnitten wurde
         hasCropped.value = true;
 
-        console.log(`Bild zugeschnitten: ${cropCanvas.width}×${cropCanvas.height}px`);
+        logger.log(`Bild zugeschnitten: ${cropCanvas.width}×${cropCanvas.height}px`);
         if (window.$toast) {
           window.$toast.success(
             t('toast.crop.success', {
@@ -724,7 +720,7 @@ export function useCrop() {
       cropMode.value = false;
       clearCropSelection();
     } catch (error) {
-      console.error('Crop-Fehler:', error);
+      logger.error('Crop-Fehler:', error);
       if (window.$toast) {
         window.$toast.error(t('toast.crop.error'), error.message);
       }
@@ -764,7 +760,7 @@ export function useCrop() {
         // Füge Original-Texte wieder ein (behält IDs)
         imageStore.texts.splice(0, 0, ...beforeCropImage.value.texts);
 
-        console.log(`✅ ${imageStore.texts.length} Texte wiederhergestellt`);
+        logger.log(`✅ ${imageStore.texts.length} Texte wiederhergestellt`);
       }
 
       // Callback für externe Updates
@@ -776,7 +772,7 @@ export function useCrop() {
       hasCropped.value = false;
       beforeCropImage.value = null;
 
-      console.log('✅ Original-Bild erfolgreich wiederhergestellt');
+      logger.log('✅ Original-Bild erfolgreich wiederhergestellt');
       if (window.$toast) {
         window.$toast.success(t('toast.crop.undoSuccess'));
       }

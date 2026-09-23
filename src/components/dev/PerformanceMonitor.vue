@@ -50,7 +50,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 
 const isDevelopment = import.meta.env.DEV;
 const isVisible = ref(true);

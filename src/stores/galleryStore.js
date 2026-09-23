@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
+import { logger } from '@/utils/logger';
 
 /**
  * Gallery Store - Verwaltet die Galerie-Bilder persistent
@@ -28,7 +29,7 @@ export const useGalleryStore = defineStore('gallery', () => {
   // Actions
   function addImage(imageData) {
     images.value.push(imageData);
-    console.log(`✅ Bild zur Galerie hinzugefügt: ${imageData.name}`);
+    logger.log(`✅ Bild zur Galerie hinzugefügt: ${imageData.name}`);
   }
 
   function removeImage(imageId) {
@@ -43,7 +44,7 @@ export const useGalleryStore = defineStore('gallery', () => {
       if (multiIndex !== -1) {
         selectedImageIds.value.splice(multiIndex, 1);
       }
-      console.log('✅ Bild aus Galerie entfernt');
+      logger.log('✅ Bild aus Galerie entfernt');
     }
   }
 

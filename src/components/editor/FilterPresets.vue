@@ -43,6 +43,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useConfirm } from '@/composables/useConfirm';
+import { logger } from '@/utils/logger';
 
 const { t } = useI18n({ useScope: 'global' });
 const { confirm: confirmDialog } = useConfirm();
@@ -388,7 +389,7 @@ function importPresets() {
         window.$toast.success(t('toast.presets.imported', { count: imported.length }));
       }
     } catch (error) {
-      console.error('Import-Fehler:', error);
+      logger.error('Import-Fehler:', error);
       if (window.$toast) {
         window.$toast.error(t('toast.presets.importError'), error.message);
       }
@@ -402,7 +403,7 @@ function savePresetsToStorage() {
   try {
     localStorage.setItem('bildkonverter_filterPresets', JSON.stringify(customPresets.value));
   } catch (error) {
-    console.error('Fehler beim Speichern:', error);
+    logger.error('Fehler beim Speichern:', error);
   }
 }
 
@@ -413,7 +414,7 @@ function loadPresetsFromStorage() {
       customPresets.value = JSON.parse(stored);
     }
   } catch (error) {
-    console.error('Fehler beim Laden:', error);
+    logger.error('Fehler beim Laden:', error);
   }
 }
 

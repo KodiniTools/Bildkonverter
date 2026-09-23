@@ -3,7 +3,7 @@
  * Ermöglicht Drag, Resize und Auswahl von Bild-Layern in der Collage
  */
 
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import { useImageStore } from '@/stores/imageStore';
 
 export function useImageLayerInteraction(canvasRef) {

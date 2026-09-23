@@ -50,6 +50,7 @@ import KeyboardShortcuts from '@/components/features/KeyboardShortcuts.vue';
 import PerformanceMonitor from '@/components/dev/PerformanceMonitor.vue';
 import TextEditModal from '@/components/modals/TextEditModal.vue';
 import { useI18n } from 'vue-i18n';
+import { logger } from '@/utils/logger';
 
 // Stores & Composables
 const settings = useSettingsStore();
@@ -232,7 +233,7 @@ watch(
     translateExternalNav(newLocale);
     // SSI-Partials über Sprachwechsel informieren (cookie-banner, footer etc.)
     dispatchLanguageChanged(newLocale);
-    console.log('🌍 i18n locale geändert:', newLocale);
+    logger.log('🌍 i18n locale geändert:', newLocale);
   },
   { immediate: true }
 );
@@ -255,7 +256,7 @@ function handleTextSave(textData) {
   try {
     textModal.saveText(textData);
   } catch (error) {
-    console.error('❌ Fehler beim Speichern:', error);
+    logger.error('❌ Fehler beim Speichern:', error);
     if (window.$toast)
       window.$toast.error(
         t('toast.text.saveError', 'Fehler beim Speichern des Textes') + ': ' + error.message
@@ -269,7 +270,7 @@ function handleTextDelete() {
       textModal.deleteText(textModal.editingText.value.id);
     }
   } catch (error) {
-    console.error('❌ Fehler beim Löschen:', error);
+    logger.error('❌ Fehler beim Löschen:', error);
     if (window.$toast)
       window.$toast.error(
         t('toast.text.deleteError', 'Fehler beim Löschen des Textes') + ': ' + error.message
@@ -334,7 +335,7 @@ function syncExternalLangButtons(activeLang) {
 
 // Lifecycle
 onMounted(() => {
-  console.log('🚀 Vue Bildkonverter Pro gestartet');
+  logger.log('🚀 Vue Bildkonverter Pro gestartet');
 
   // Initiale Sprache setzen (redundant durch immediate: true im Watcher, aber sicherheitshalber)
   i18n.global.locale.value = settings.locale;
@@ -388,9 +389,9 @@ onMounted(() => {
 
   // Debug-Info
   if (settings.debugMode) {
-    console.log('📊 Debug-Modus aktiv');
-    console.log('🎨 Theme:', settings.theme);
-    console.log('🌐 Locale:', settings.locale);
+    logger.log('📊 Debug-Modus aktiv');
+    logger.log('🎨 Theme:', settings.theme);
+    logger.log('🌐 Locale:', settings.locale);
   }
 });
 

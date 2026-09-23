@@ -294,7 +294,6 @@ export function useCanvasInteraction({
   let touchLongPressTimer = null;
   let lastTouchTime = 0;
   let lastTouchEndPos = null;
-  let activeTouchCount = 0;
   let pinchStartDist = 0;
 
   function getPinchDistance(e) {
@@ -306,7 +305,6 @@ export function useCanvasInteraction({
 
   function onCanvasTouchStart(e) {
     e.preventDefault();
-    activeTouchCount = e.touches.length;
 
     if (e.touches.length === 2) {
       // Pinch-to-zoom vorbereiten
@@ -452,7 +450,6 @@ export function useCanvasInteraction({
     lastTouchEndPos = { x: clientX, y: clientY };
 
     pinchStartDist = 0;
-    activeTouchCount = 0;
 
     // Crop-Handler
     const cropHandled = crop.handleMouseUp();
