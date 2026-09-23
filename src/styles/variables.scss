@@ -14,7 +14,7 @@ $color-primary-dark: #003971;
 $color-accent: #c9984d;
 $color-accent-light: #f8e1a9;
 $color-accent-lighter: #f9f2d5;
-$color-bg-gradient: #F5F4D6;
+$color-bg-gradient: #f5f4d6;
 
 // Success, Warning, Error
 $color-success: #50e3c2;
@@ -53,42 +53,49 @@ $color-light-gold: rgba(201, 152, 77, 0.15);
 $color-medium-gold: rgba(201, 152, 77, 0.25);
 
 // ===== DARK MODE COLORS =====
-$dark-primary-bg: #091428;        // Sehr dunkles Navy (Seitenhintergrund)
-$dark-secondary-bg: #0E1C32;      // Dunkles Navy (Buttons/Controls)
-$dark-card-bg: #142640;            // Etwas helleres Navy (Karten)
-$dark-accent-primary: #c9984d;     // Gold (Hauptakzent)
-$dark-accent-secondary: #014f99;   // Blau (Gradienten)
-$dark-accent-tertiary: #f8e1a9;    // Helles Gold (Hover-Zustand)
-$dark-accent-text: #091428;        // Dunkles Navy (Text auf Gold-Buttons)
-$dark-text-primary: #f9f2d5;       // Warmes Creme (Haupttext)
-$dark-text-secondary: #f8e1a9;     // Helles Gold (Sekundärtext)
-$dark-text-muted: #7A8DA0;         // Gedämpftes Blaugrau
+$dark-primary-bg: #091428; // Sehr dunkles Navy (Seitenhintergrund)
+$dark-secondary-bg: #0e1c32; // Dunkles Navy (Buttons/Controls)
+$dark-card-bg: #142640; // Etwas helleres Navy (Karten)
+$dark-accent-primary: #c9984d; // Gold (Hauptakzent)
+$dark-accent-secondary: #014f99; // Blau (Gradienten)
+$dark-accent-tertiary: #f8e1a9; // Helles Gold (Hover-Zustand)
+$dark-accent-text: #091428; // Dunkles Navy (Text auf Gold-Buttons)
+$dark-text-primary: #f9f2d5; // Warmes Creme (Haupttext)
+$dark-text-secondary: #f8e1a9; // Helles Gold (Sekundärtext)
+$dark-text-muted: #7a8da0; // Gedämpftes Blaugrau
 $dark-border: #1c3a5e;
 
 // ===== SPACING =====
-$spacing-xs: 0.25rem;    // 4px
-$spacing-sm: 0.5rem;     // 8px
-$spacing-md: 1rem;       // 16px
-$spacing-lg: 1.5rem;     // 24px
-$spacing-xl: 2rem;       // 32px
-$spacing-2xl: 3rem;      // 48px
-$spacing-3xl: 4rem;      // 64px
+$spacing-xs: 0.25rem; // 4px
+$spacing-sm: 0.5rem; // 8px
+$spacing-md: 1rem; // 16px
+$spacing-lg: 1.5rem; // 24px
+$spacing-xl: 2rem; // 32px
+$spacing-2xl: 3rem; // 48px
+$spacing-3xl: 4rem; // 64px
 
 // ===== TYPOGRAPHY =====
 
 // Font Families
-$font-family-sans: 'Supreme', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-                   'Helvetica Neue', Arial, sans-serif;
+$font-family-sans:
+  'Supreme',
+  -apple-system,
+  BlinkMacSystemFont,
+  'Segoe UI',
+  Roboto,
+  'Helvetica Neue',
+  Arial,
+  sans-serif;
 $font-family-mono: 'Courier New', Courier, monospace;
 
 // Font Sizes
-$font-size-xs: 0.75rem;    // 12px
-$font-size-sm: 0.875rem;   // 14px
-$font-size-base: 1rem;     // 16px
-$font-size-lg: 1.125rem;   // 18px
-$font-size-xl: 1.25rem;    // 20px
-$font-size-2xl: 1.5rem;    // 24px
-$font-size-3xl: 2rem;      // 32px
+$font-size-xs: 0.75rem; // 12px
+$font-size-sm: 0.875rem; // 14px
+$font-size-base: 1rem; // 16px
+$font-size-lg: 1.125rem; // 18px
+$font-size-xl: 1.25rem; // 20px
+$font-size-2xl: 1.5rem; // 24px
+$font-size-3xl: 2rem; // 32px
 
 // Font Weights
 $font-weight-light: 300;
@@ -151,17 +158,29 @@ $breakpoint-2xl: 1536px;
 // Responsive Breakpoints
 @mixin respond-to($breakpoint) {
   @if $breakpoint == 'xs' {
-    @media (max-width: $breakpoint-xs) { @content; }
+    @media (max-width: $breakpoint-xs) {
+      @content;
+    }
   } @else if $breakpoint == 'sm' {
-    @media (max-width: $breakpoint-sm) { @content; }
+    @media (max-width: $breakpoint-sm) {
+      @content;
+    }
   } @else if $breakpoint == 'md' {
-    @media (max-width: $breakpoint-md) { @content; }
+    @media (max-width: $breakpoint-md) {
+      @content;
+    }
   } @else if $breakpoint == 'lg' {
-    @media (max-width: $breakpoint-lg) { @content; }
+    @media (max-width: $breakpoint-lg) {
+      @content;
+    }
   } @else if $breakpoint == 'xl' {
-    @media (max-width: $breakpoint-xl) { @content; }
+    @media (max-width: $breakpoint-xl) {
+      @content;
+    }
   } @else if $breakpoint == '2xl' {
-    @media (max-width: $breakpoint-2xl) { @content; }
+    @media (max-width: $breakpoint-2xl) {
+      @content;
+    }
   }
 }
 
@@ -202,7 +221,7 @@ $breakpoint-2xl: 1536px;
   font: inherit;
   color: inherit;
   cursor: pointer;
-  
+
   &:focus {
     outline: none;
   }
@@ -211,99 +230,4 @@ $breakpoint-2xl: 1536px;
 // Transitions
 @mixin transition($property: all) {
   transition: $property $transition-base;
-}
-
-// ===== CSS CUSTOM PROPERTIES (für Runtime-Änderungen) =====
-:root {
-  color-scheme: light;
-
-  // Colors
-  --color-primary: #{$color-primary};
-  --color-success: #{$color-success};
-  --color-warning: #{$color-warning};
-  --color-error: #{$color-error};
-  --color-danger: #{$color-error};
-  --color-info: #{$color-info};
-  
-  --color-white: #{$color-white};
-  --color-bg: #{$color-bg};
-  --color-bg-secondary: #{$color-bg-secondary};
-  --color-bg-gradient: #{$color-bg-gradient};
-  --color-text: #{$color-text};
-  --color-text-light: #{$color-text-light};
-  --color-border: #{$color-border};
-
-  --color-light-blue: #{$color-light-blue};
-  --color-medium-blue: #{$color-medium-blue};
-  --color-accent: #{$color-accent};
-  --color-accent-light: #{$color-accent-light};
-  --color-accent-lighter: #{$color-accent-lighter};
-  --color-light-gold: #{$color-light-gold};
-  --color-medium-gold: #{$color-medium-gold};
-  --color-btn-text-light: #F5F4D6;
-  
-  // Spacing
-  --spacing-xs: #{$spacing-xs};
-  --spacing-sm: #{$spacing-sm};
-  --spacing-md: #{$spacing-md};
-  --spacing-lg: #{$spacing-lg};
-  --spacing-xl: #{$spacing-xl};
-  --spacing-2xl: #{$spacing-2xl};
-  
-  // Typography
-  --font-family-sans: #{$font-family-sans};
-  --font-size-xs: #{$font-size-xs};
-  --font-size-sm: #{$font-size-sm};
-  --font-size-base: #{$font-size-base};
-  --font-size-lg: #{$font-size-lg};
-  --font-size-xl: #{$font-size-xl};
-  --font-size-2xl: #{$font-size-2xl};
-  
-  // Borders
-  --border-radius-sm: #{$border-radius-sm};
-  --border-radius-md: #{$border-radius-md};
-  --border-radius-lg: #{$border-radius-lg};
-  
-  // Shadows
-  --shadow-sm: #{$shadow-sm};
-  --shadow-md: #{$shadow-md};
-  --shadow-lg: #{$shadow-lg};
-  
-  // Transitions
-  --transition-fast: #{$transition-fast};
-  --transition-base: #{$transition-base};
-
-  // Layout
-  --header-height: #{$header-height};
-  --header-height-mobile: #{$header-height-mobile};
-  --external-nav-height: #{$external-nav-height};
-}
-
-// Dark Mode
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --color-bg: #{$dark-primary-bg};
-  --color-bg-secondary: #{$dark-secondary-bg};
-  --color-bg-gradient: #{$dark-primary-bg};
-  --color-card-bg: #{$dark-card-bg};
-  --color-white: #{$dark-card-bg};
-
-  --color-accent: #{$dark-accent-primary};
-  --color-accent-light: #{$dark-accent-tertiary};
-  --color-accent-lighter: #{$dark-text-primary};
-  --color-primary: #{$dark-accent-secondary};
-  --color-light-gold: rgba(201, 152, 77, 0.25);
-  --color-medium-gold: rgba(201, 152, 77, 0.35);
-  --color-light-blue: rgba(1, 79, 153, 0.2);
-  --color-medium-blue: rgba(1, 79, 153, 0.3);
-  --color-btn-text-light: #{$dark-accent-text};
-
-  --color-text: #{$dark-text-primary};
-  --color-text-light: #{$dark-text-secondary};
-  --color-text-muted: #{$dark-text-muted};
-  --color-border: #{$dark-border};
-
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
 }

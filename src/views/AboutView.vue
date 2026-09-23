@@ -7,28 +7,12 @@
 
     <section class="content-section">
       <div class="content-grid">
-        <div class="content-card">
+        <div v-for="card in contentCards" :key="card.key" class="content-card">
           <div class="card-icon">
-            <i class="fas fa-rocket"></i>
+            <i :class="card.icon"></i>
           </div>
-          <h2>{{ $t('about.mission.title') }}</h2>
-          <p>{{ $t('about.mission.description') }}</p>
-        </div>
-
-        <div class="content-card">
-          <div class="card-icon">
-            <i class="fas fa-shield-alt"></i>
-          </div>
-          <h2>{{ $t('about.privacy.title') }}</h2>
-          <p>{{ $t('about.privacy.description') }}</p>
-        </div>
-
-        <div class="content-card">
-          <div class="card-icon">
-            <i class="fas fa-code"></i>
-          </div>
-          <h2>{{ $t('about.technology.title') }}</h2>
-          <p>{{ $t('about.technology.description') }}</p>
+          <h2>{{ $t(`about.${card.key}.title`) }}</h2>
+          <p>{{ $t(`about.${card.key}.description`) }}</p>
         </div>
       </div>
     </section>
@@ -37,35 +21,11 @@
       <h2>{{ $t('about.features.title') }}</h2>
 
       <div class="features-list">
-        <div class="feature-item">
+        <div v-for="key in featureKeys" :key="key" class="feature-item">
           <i class="fas fa-check-circle"></i>
           <div>
-            <h3>{{ $t('about.features.formats.title') }}</h3>
-            <p>{{ $t('about.features.formats.description') }}</p>
-          </div>
-        </div>
-
-        <div class="feature-item">
-          <i class="fas fa-check-circle"></i>
-          <div>
-            <h3>{{ $t('about.features.quality.title') }}</h3>
-            <p>{{ $t('about.features.quality.description') }}</p>
-          </div>
-        </div>
-
-        <div class="feature-item">
-          <i class="fas fa-check-circle"></i>
-          <div>
-            <h3>{{ $t('about.features.editor.title') }}</h3>
-            <p>{{ $t('about.features.editor.description') }}</p>
-          </div>
-        </div>
-
-        <div class="feature-item">
-          <i class="fas fa-check-circle"></i>
-          <div>
-            <h3>{{ $t('about.features.free.title') }}</h3>
-            <p>{{ $t('about.features.free.description') }}</p>
+            <h3>{{ $t(`about.features.${key}.title`) }}</h3>
+            <p>{{ $t(`about.features.${key}.description`) }}</p>
           </div>
         </div>
       </div>
@@ -75,40 +35,10 @@
       <h2>{{ $t('about.techStack.title') }}</h2>
 
       <div class="tech-grid">
-        <div class="tech-card">
-          <i class="fab fa-vuejs"></i>
-          <h3>Vue 3</h3>
-          <p>{{ $t('about.techStack.vue') }}</p>
-        </div>
-
-        <div class="tech-card">
-          <i class="fas fa-language"></i>
-          <h3>Vue I18n</h3>
-          <p>{{ $t('about.techStack.i18n') }}</p>
-        </div>
-
-        <div class="tech-card">
-          <i class="fas fa-database"></i>
-          <h3>Pinia</h3>
-          <p>{{ $t('about.techStack.pinia') }}</p>
-        </div>
-
-        <div class="tech-card">
-          <i class="fas fa-bolt"></i>
-          <h3>Vite</h3>
-          <p>{{ $t('about.techStack.vite') }}</p>
-        </div>
-
-        <div class="tech-card">
-          <i class="fas fa-palette"></i>
-          <h3>SCSS</h3>
-          <p>{{ $t('about.techStack.scss') }}</p>
-        </div>
-
-        <div class="tech-card">
-          <i class="fas fa-image"></i>
-          <h3>Canvas API</h3>
-          <p>{{ $t('about.techStack.canvas') }}</p>
+        <div v-for="tech in techStack" :key="tech.key" class="tech-card">
+          <i :class="tech.icon"></i>
+          <h3>{{ tech.name }}</h3>
+          <p>{{ $t(`about.techStack.${tech.key}`) }}</p>
         </div>
       </div>
     </section>
@@ -134,9 +64,25 @@
 </template>
 
 <script setup>
-import { useI18n } from 'vue-i18n';
+// Texte unter about.<key>.title / .description
+const contentCards = [
+  { key: 'mission', icon: 'fas fa-rocket' },
+  { key: 'privacy', icon: 'fas fa-shield-alt' },
+  { key: 'technology', icon: 'fas fa-code' },
+];
 
-const { t } = useI18n({ useScope: 'global' });
+// Texte unter about.features.<key>
+const featureKeys = ['formats', 'quality', 'editor', 'free'];
+
+// Texte unter about.techStack.<key>
+const techStack = [
+  { key: 'vue', name: 'Vue 3', icon: 'fab fa-vuejs' },
+  { key: 'i18n', name: 'Vue I18n', icon: 'fas fa-language' },
+  { key: 'pinia', name: 'Pinia', icon: 'fas fa-database' },
+  { key: 'vite', name: 'Vite', icon: 'fas fa-bolt' },
+  { key: 'scss', name: 'SCSS', icon: 'fas fa-palette' },
+  { key: 'canvas', name: 'Canvas API', icon: 'fas fa-image' },
+];
 </script>
 
 <style lang="scss" scoped>

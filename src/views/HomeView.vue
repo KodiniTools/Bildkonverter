@@ -28,52 +28,17 @@
       <h2 class="animate-section-title">{{ $t('home.features.title') }}</h2>
 
       <div class="features-grid">
-        <div class="feature-card" style="--card-index: 0">
+        <div
+          v-for="(feature, index) in features"
+          :key="feature.key"
+          class="feature-card"
+          :style="{ '--card-index': index }"
+        >
           <div class="feature-icon">
-            <i class="fas fa-file-image"></i>
+            <i :class="feature.icon"></i>
           </div>
-          <h3>{{ $t('home.features.convert.title') }}</h3>
-          <p>{{ $t('home.features.convert.description') }}</p>
-        </div>
-
-        <div class="feature-card" style="--card-index: 1">
-          <div class="feature-icon">
-            <i class="fas fa-sliders-h"></i>
-          </div>
-          <h3>{{ $t('home.features.edit.title') }}</h3>
-          <p>{{ $t('home.features.edit.description') }}</p>
-        </div>
-
-        <div class="feature-card" style="--card-index: 2">
-          <div class="feature-icon">
-            <i class="fas fa-compress"></i>
-          </div>
-          <h3>{{ $t('home.features.compress.title') }}</h3>
-          <p>{{ $t('home.features.compress.description') }}</p>
-        </div>
-
-        <div class="feature-card" style="--card-index: 3">
-          <div class="feature-icon">
-            <i class="fas fa-shield-alt"></i>
-          </div>
-          <h3>{{ $t('home.features.privacy.title') }}</h3>
-          <p>{{ $t('home.features.privacy.description') }}</p>
-        </div>
-
-        <div class="feature-card" style="--card-index: 4">
-          <div class="feature-icon">
-            <i class="fas fa-bolt"></i>
-          </div>
-          <h3>{{ $t('home.features.fast.title') }}</h3>
-          <p>{{ $t('home.features.fast.description') }}</p>
-        </div>
-
-        <div class="feature-card" style="--card-index: 5">
-          <div class="feature-icon">
-            <i class="fas fa-crop"></i>
-          </div>
-          <h3>{{ $t('home.features.crop.title') }}</h3>
-          <p>{{ $t('home.features.crop.description') }}</p>
+          <h3>{{ $t(`home.features.${feature.key}.title`) }}</h3>
+          <p>{{ $t(`home.features.${feature.key}.description`) }}</p>
         </div>
       </div>
     </section>
@@ -112,44 +77,18 @@
 
       <div class="tools-grid">
         <a
-          href="https://kodinitools.com/bilderseriebearbeiten/"
+          v-for="tool in moreTools"
+          :key="tool.key"
+          :href="tool.href"
           class="tool-card"
           target="_blank"
           rel="noopener"
         >
           <div class="tool-icon">
-            <i class="fas fa-layer-group"></i>
+            <i :class="tool.icon"></i>
           </div>
-          <h3>{{ $t('home.moreTools.batchEditor.title') }}</h3>
-          <p>{{ $t('home.moreTools.batchEditor.description') }}</p>
-          <span class="tool-cta">{{ $t('home.moreTools.cta') }} &rarr;</span>
-        </a>
-
-        <a
-          href="https://kodinitools.com/collagemaker/"
-          class="tool-card"
-          target="_blank"
-          rel="noopener"
-        >
-          <div class="tool-icon">
-            <i class="fas fa-th-large"></i>
-          </div>
-          <h3>{{ $t('home.moreTools.collageMaker.title') }}</h3>
-          <p>{{ $t('home.moreTools.collageMaker.description') }}</p>
-          <span class="tool-cta">{{ $t('home.moreTools.cta') }} &rarr;</span>
-        </a>
-
-        <a
-          href="https://kodinitools.com/kodini-color-extractor/"
-          class="tool-card"
-          target="_blank"
-          rel="noopener"
-        >
-          <div class="tool-icon">
-            <i class="fas fa-palette"></i>
-          </div>
-          <h3>{{ $t('home.moreTools.colorExtractor.title') }}</h3>
-          <p>{{ $t('home.moreTools.colorExtractor.description') }}</p>
+          <h3>{{ $t(`home.moreTools.${tool.key}.title`) }}</h3>
+          <p>{{ $t(`home.moreTools.${tool.key}.description`) }}</p>
           <span class="tool-cta">{{ $t('home.moreTools.cta') }} &rarr;</span>
         </a>
       </div>
@@ -176,21 +115,51 @@
 
 <script setup>
 import heroImage from '@/assets/foto/foto1.jpg';
+import { formatConversions } from '@/router/index.js';
 
-// Beliebte Konvertierungs-Paare (Long-Tail SEO)
-const popularConversions = [
-  { pair: 'heic-zu-jpg', from: 'HEIC', to: 'JPG' },
-  { pair: 'png-zu-webp', from: 'PNG', to: 'WebP' },
-  { pair: 'jpg-zu-webp', from: 'JPG', to: 'WebP' },
-  { pair: 'webp-zu-jpg', from: 'WebP', to: 'JPG' },
-  { pair: 'tiff-zu-jpg', from: 'TIFF', to: 'JPG' },
-  { pair: 'svg-zu-png', from: 'SVG', to: 'PNG' },
-  { pair: 'jpg-zu-pdf', from: 'JPG', to: 'PDF' },
-  { pair: 'png-zu-svg', from: 'PNG', to: 'SVG' },
-  { pair: 'jpg-zu-png', from: 'JPG', to: 'PNG' },
-  { pair: 'png-zu-jpg', from: 'PNG', to: 'JPG' },
-  { pair: 'gif-zu-webp', from: 'GIF', to: 'WebP' },
-  { pair: 'heic-zu-png', from: 'HEIC', to: 'PNG' },
+// Feature-Karten (Texte unter home.features.<key>)
+const features = [
+  { key: 'convert', icon: 'fas fa-file-image' },
+  { key: 'edit', icon: 'fas fa-sliders-h' },
+  { key: 'compress', icon: 'fas fa-compress' },
+  { key: 'privacy', icon: 'fas fa-shield-alt' },
+  { key: 'fast', icon: 'fas fa-bolt' },
+  { key: 'crop', icon: 'fas fa-crop' },
+];
+
+// Beliebte Konvertierungs-Paare (Long-Tail SEO), in Anzeige-Reihenfolge;
+// Bezeichnungen kommen aus der zentralen Liste im Router
+const popularPairs = [
+  'heic-zu-jpg',
+  'png-zu-webp',
+  'jpg-zu-webp',
+  'webp-zu-jpg',
+  'tiff-zu-jpg',
+  'svg-zu-png',
+  'jpg-zu-pdf',
+  'png-zu-svg',
+  'jpg-zu-png',
+  'png-zu-jpg',
+  'gif-zu-webp',
+  'heic-zu-png',
+];
+const popularConversions = popularPairs
+  .map((pair) => formatConversions.find((f) => f.pair === pair))
+  .filter(Boolean);
+
+// Weitere KodiniTools (Texte unter home.moreTools.<key>)
+const moreTools = [
+  {
+    key: 'batchEditor',
+    href: 'https://kodinitools.com/bilderseriebearbeiten/',
+    icon: 'fas fa-layer-group',
+  },
+  { key: 'collageMaker', href: 'https://kodinitools.com/collagemaker/', icon: 'fas fa-th-large' },
+  {
+    key: 'colorExtractor',
+    href: 'https://kodinitools.com/kodini-color-extractor/',
+    icon: 'fas fa-palette',
+  },
 ];
 </script>
 
