@@ -98,7 +98,7 @@ src/
 │   └── index.js                  # Vue Router (11 Routen + Navigation Guards)
 ├── stores/
 │   ├── galleryStore.js           # Galerie-Bilder & Multi-Select
-│   ├── imageStore.js             # Kern-Editor-State (Bild, Filter, Ebenen, Text)
+│   ├── imageStore.js             # Gemeinsamer Editor-State (Basisbild, Texte, Ebenen, Ebenen-Historie)
 │   └── settingsStore.js          # App-Einstellungen (Theme, Sprache, Export)
 ├── styles/
 │   ├── variables.scss            # CSS Custom Properties (Farben, Abstände)
@@ -155,33 +155,33 @@ src/
 
 ## Pinia Stores
 
-### `imageStore.js` – Kern-Editor-State
+### `imageStore.js` – Gemeinsamer Editor-State
 
-**State (Auswahl):**
+Filter, Transformationen und die Editor-Historie liegen nicht im Store, sondern in
+den Editor-Composables (`useFilterManagement`, `useTransform`, `useEditorHistory`);
+das Rendering übernimmt `useCanvasRenderer`.
+
+**State:**
 
 ```js
-originalImage       // Originalbild (unveränderlich für Undo-Basis)
+originalImage       // Zuletzt geladenes Basisbild (Referenz für Galerie/Handoff)
 workingUrl          // Aktuelle Bild-URL
-canvas, ctx         // Canvas-Referenzen
 imageWidth, imageHeight
-texts[]             // Alle Textelemente
-imageLayers[]       // Alle Bild-Ebenen (Collage-Modus)
-history[]           // Undo-Stack (max. 50 Einträge)
-historyIndex
-isProcessing, isImageLoaded, isDragging
+texts[], selectedTextId
+imageLayers[], selectedLayerId   // Bild-Ebenen (Collage-/Ebenen-Modus)
+canvasBackgroundColor
+history[], historyIndex          // Ebenen-Historie (max. 50 Einträge)
 ```
 
 **Computed:**
-`hasImage`, `canUndo`, `canRedo`, `selectedText`, `aspectRatio`, `filtersApplied`, `hasTexts`, `hasImageLayers`, `isCollageMode`
+`hasImage`, `canUndo`, `canRedo`, `hasImageLayers`, `imageLayerCount`, `selectedImageLayer`
 
-**Wichtige Actions:**
-- `loadImageFromFile()` – TIFF/HEIC werden an Backend-API delegiert
-- `draw()` – Rendert Canvas mit Filtern, Texten und Ebenen
-- `setFilter(name, value)` / `applyPreset(id)` / `resetFilters()`
-- Text: `addText()`, `updateText()`, `deleteText()`, `selectText()`, `duplicateText()`, `moveTextLayer()`
-- Ebenen: `addImageLayer()`, `addImageLayersFromGallery()`, `updateImageLayer()`, `deleteImageLayer()`, `duplicateImageLayer()`, `moveImageLayerOrder()`
-- History: `saveState()`, `undo()`, `redo()`, `restoreState()`
-- Export: `exportImage()`, `getScaledTexts()`
+**Actions:**
+- `initCanvas()`, `loadImageFromFile()` – TIFF/HEIC/RAW werden an die Backend-API delegiert
+- `draw()` – schnelle Zwischenansicht (Bild oder Ebenen plus Texte) nach Store-Aktionen
+- Text: `addText()`, `updateText()`, `deleteText()`
+- Ebenen: `addImageLayer()`, `addImageLayersFromGallery()`, `updateImageLayer()`, `deleteImageLayer()`, `selectImageLayer()`, `duplicateImageLayer()`, `moveImageLayerOrder()`, `clearImageLayers()`
+- Ebenen-Historie: `saveState()`, `undo()`, `redo()` (genutzt vom Ebenen-Panel)
 
 ### `settingsStore.js` – App-Einstellungen
 
