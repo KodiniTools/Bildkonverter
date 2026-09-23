@@ -24,39 +24,6 @@ export function measureText(ctx, text, fontSize, fontFamily = 'Roboto, sans-seri
 }
 
 /**
- * Berechnet die Bounding Box eines Textes mit Padding
- */
-export function getTextBounds(text, padding = 8) {
-  const { width, height } = measureText(
-    null, // Wird später mit echtem Context aufgerufen
-    text.content || text.txt,
-    text.fontSize || text.size,
-    text.fontFamily
-  );
-
-  return {
-    x1: text.x - padding,
-    y1: text.y - padding,
-    x2: text.x + width + padding,
-    y2: text.y + height + padding,
-    width: width + padding * 2,
-    height: height + padding * 2,
-  };
-}
-
-/**
- * Prüft ob ein Punkt innerhalb eines Text-Bereichs liegt
- */
-export function isPointInText(point, textBounds) {
-  return (
-    point.x >= textBounds.x1 &&
-    point.x <= textBounds.x2 &&
-    point.y >= textBounds.y1 &&
-    point.y <= textBounds.y2
-  );
-}
-
-/**
  * Berechnet Positionen für Text-Handles
  */
 export function getTextHandles(text, ctx) {
@@ -96,24 +63,6 @@ export function getTextHandles(text, ctx) {
       type: 'resize',
     },
   };
-}
-
-/**
- * Findet den Handle an einer bestimmten Position
- */
-export function getHandleAtPosition(point, handles, clickArea = 24) {
-  for (const [handleName, handle] of Object.entries(handles)) {
-    const clickX1 = handle.x + handle.size / 2 - clickArea / 2;
-    const clickY1 = handle.y + handle.size / 2 - clickArea / 2;
-    const clickX2 = clickX1 + clickArea;
-    const clickY2 = clickY1 + clickArea;
-
-    if (point.x >= clickX1 && point.x <= clickX2 && point.y >= clickY1 && point.y <= clickY2) {
-      return { name: handleName, handle };
-    }
-  }
-
-  return null;
 }
 
 /**
@@ -247,47 +196,6 @@ export function drawTextSelection(ctx, text, showHandles = true) {
   }
 
   ctx.restore();
-}
-
-/**
- * Berechnet neue Text-Größe basierend auf Resize
- */
-export function calculateResizedText(text, startData, currentPos, handle) {
-  const deltaX = currentPos.x - startData.startX;
-  const deltaY = currentPos.y - startData.startY;
-
-  let newSize = startData.originalSize;
-
-  switch (handle) {
-    case 'nw':
-      newSize = Math.max(8, startData.originalSize - deltaY);
-      break;
-    case 'sw':
-      newSize = Math.max(8, startData.originalSize + deltaY);
-      break;
-    case 'se':
-      newSize = Math.max(8, startData.originalSize + Math.max(deltaX, deltaY));
-      break;
-  }
-
-  return {
-    ...text,
-    fontSize: Math.round(newSize),
-    size: Math.round(newSize),
-  };
-}
-
-/**
- * Skaliert Text-Positionen für Export
- */
-export function scaleTextForExport(text, scaleX, scaleY, offsetX = 0, offsetY = 0) {
-  return {
-    ...text,
-    x: (text.x - offsetX) * scaleX,
-    y: (text.y - offsetY) * scaleY,
-    fontSize: (text.fontSize || text.size) * Math.min(scaleX, scaleY),
-    size: (text.fontSize || text.size) * Math.min(scaleX, scaleY),
-  };
 }
 
 /**

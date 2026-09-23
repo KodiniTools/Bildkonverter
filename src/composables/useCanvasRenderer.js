@@ -7,6 +7,50 @@ import { buildTextFontString, applyTextTransform } from '@/utils/textRender';
 import { getAdjustedImage } from '@/utils/imageAdjustments';
 
 /**
+ * Zeichnet den Auswahl-Rahmen mit Resize-Handles für eine Bild-Ebene.
+ * Modulweit exportiert, damit auch die Zwischenansicht des imageStore ihn nutzt.
+ */
+export function drawLayerSelection(context, layer) {
+  context.save();
+
+  // Rotation für Auswahl-Rahmen
+  if (layer.rotation !== 0) {
+    const centerX = layer.x + layer.width / 2;
+    const centerY = layer.y + layer.height / 2;
+    context.translate(centerX, centerY);
+    context.rotate((layer.rotation * Math.PI) / 180);
+    context.translate(-centerX, -centerY);
+  }
+
+  // Gestrichelter Rahmen
+  context.strokeStyle = '#014f99';
+  context.lineWidth = 2;
+  context.setLineDash([5, 5]);
+  context.strokeRect(layer.x - 2, layer.y - 2, layer.width + 4, layer.height + 4);
+
+  // Resize-Handles
+  context.setLineDash([]);
+  context.fillStyle = '#014f99';
+  const handleSize = 8;
+  const handles = [
+    { x: layer.x - handleSize / 2, y: layer.y - handleSize / 2 },
+    { x: layer.x + layer.width / 2 - handleSize / 2, y: layer.y - handleSize / 2 },
+    { x: layer.x + layer.width - handleSize / 2, y: layer.y - handleSize / 2 },
+    { x: layer.x + layer.width - handleSize / 2, y: layer.y + layer.height / 2 - handleSize / 2 },
+    { x: layer.x + layer.width - handleSize / 2, y: layer.y + layer.height - handleSize / 2 },
+    { x: layer.x + layer.width / 2 - handleSize / 2, y: layer.y + layer.height - handleSize / 2 },
+    { x: layer.x - handleSize / 2, y: layer.y + layer.height - handleSize / 2 },
+    { x: layer.x - handleSize / 2, y: layer.y + layer.height / 2 - handleSize / 2 },
+  ];
+
+  handles.forEach((pos) => {
+    context.fillRect(pos.x, pos.y, handleSize, handleSize);
+  });
+
+  context.restore();
+}
+
+/**
  * @param {Object} options
  * @param {import('vue').Ref<HTMLCanvasElement>} options.canvas
  * @param {import('vue').Ref<HTMLImageElement>} options.currentImage
@@ -47,46 +91,6 @@ export function useCanvasRenderer({
     if (!canvas.value) return 0;
     const percentage = transform.transforms.value.borderRadius;
     return (percentage / 100) * Math.min(canvas.value.width, canvas.value.height);
-  }
-
-  function drawLayerSelection(context, layer) {
-    context.save();
-
-    // Rotation für Auswahl-Rahmen
-    if (layer.rotation !== 0) {
-      const centerX = layer.x + layer.width / 2;
-      const centerY = layer.y + layer.height / 2;
-      context.translate(centerX, centerY);
-      context.rotate((layer.rotation * Math.PI) / 180);
-      context.translate(-centerX, -centerY);
-    }
-
-    // Gestrichelter Rahmen
-    context.strokeStyle = '#014f99';
-    context.lineWidth = 2;
-    context.setLineDash([5, 5]);
-    context.strokeRect(layer.x - 2, layer.y - 2, layer.width + 4, layer.height + 4);
-
-    // Resize-Handles
-    context.setLineDash([]);
-    context.fillStyle = '#014f99';
-    const handleSize = 8;
-    const handles = [
-      { x: layer.x - handleSize / 2, y: layer.y - handleSize / 2 },
-      { x: layer.x + layer.width / 2 - handleSize / 2, y: layer.y - handleSize / 2 },
-      { x: layer.x + layer.width - handleSize / 2, y: layer.y - handleSize / 2 },
-      { x: layer.x + layer.width - handleSize / 2, y: layer.y + layer.height / 2 - handleSize / 2 },
-      { x: layer.x + layer.width - handleSize / 2, y: layer.y + layer.height - handleSize / 2 },
-      { x: layer.x + layer.width / 2 - handleSize / 2, y: layer.y + layer.height - handleSize / 2 },
-      { x: layer.x - handleSize / 2, y: layer.y + layer.height - handleSize / 2 },
-      { x: layer.x - handleSize / 2, y: layer.y + layer.height / 2 - handleSize / 2 },
-    ];
-
-    handles.forEach((pos) => {
-      context.fillRect(pos.x, pos.y, handleSize, handleSize);
-    });
-
-    context.restore();
   }
 
   // Zeichnet Text-Auswahl als Overlay (nur visuell, nicht Teil des exportierten Bildes)

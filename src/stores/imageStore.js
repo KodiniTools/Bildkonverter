@@ -1,25 +1,31 @@
 import { defineStore } from 'pinia';
-import { ref, computed, reactive } from 'vue';
+import { ref, computed } from 'vue';
 import { ValidationUtils } from '@/utils/validationUtils';
 import { ApiClient } from '@/api/api';
 import { getAdjustedImage } from '@/utils/imageAdjustments';
+import { needsBackendPreview } from '@/utils/fileUtils';
+import { drawLayerSelection } from '@/composables/useCanvasRenderer';
 import {
   drawText,
   drawTextSelection,
   createDefaultText,
   normalizeText,
   validateText,
-  scaleTextForExport,
 } from '@/utils/textUtils';
 
 /**
- * Image Store - Erweiterte Version mit fortgeschrittenen Text-Funktionen
+ * Image Store
  *
- * Dieser Store ist das Herzstück der Anwendung und verwaltet:
- * - Das geladene Bild und Canvas
- * - Filter-Einstellungen
- * - Text-Elemente mit erweiterten Funktionen
- * - History/Undo-Redo
+ * Gemeinsamer Zustand des Editors:
+ * - das geladene Basisbild (Referenz für Galerie/Handoff)
+ * - Text-Ebenen
+ * - Bild-Ebenen und Canvas-Hintergrund für den Collage-/Ebenen-Modus
+ * - Ebenen-Historie (Undo/Redo im Ebenen-Panel)
+ *
+ * Filter, Transformationen und die Editor-Historie liegen in den
+ * Composables des Editors (useFilterManagement, useTransform,
+ * useEditorHistory); das Rendering in useCanvasRenderer. draw() zeichnet
+ * nur eine schnelle Zwischenansicht nach Store-Aktionen.
  */
 export const useImageStore = defineStore('image', () => {
   // ===== STATE =====
@@ -33,19 +39,6 @@ export const useImageStore = defineStore('image', () => {
   // Bild-Eigenschaften
   const imageWidth = ref(0);
   const imageHeight = ref(0);
-  const originalWidth = ref(0);
-  const originalHeight = ref(0);
-
-  // Filter-Werte (reaktiv)
-  const filters = reactive({
-    brightness: 100,
-    contrast: 100,
-    saturation: 100,
-    grayscale: 0,
-    sepia: 0,
-    sharpen: 0,
-    zoom: 1.0,
-  });
 
   // Text-Elemente
   const texts = ref([]);
@@ -64,9 +57,7 @@ export const useImageStore = defineStore('image', () => {
   const maxHistoryStates = ref(50);
 
   // UI State
-  const isProcessing = ref(false);
   const isImageLoaded = ref(false);
-  const isDragging = ref(false);
 
   // ===== COMPUTED =====
 
@@ -75,31 +66,6 @@ export const useImageStore = defineStore('image', () => {
   const canUndo = computed(() => historyIndex.value > 0);
 
   const canRedo = computed(() => historyIndex.value < history.value.length - 1);
-
-  const selectedText = computed(() => {
-    if (!selectedTextId.value) return null;
-    return texts.value.find((t) => t.id === selectedTextId.value);
-  });
-
-  const aspectRatio = computed(() => {
-    if (originalWidth.value === 0) return 1;
-    return originalWidth.value / originalHeight.value;
-  });
-
-  const filtersApplied = computed(() => {
-    return (
-      filters.brightness !== 100 ||
-      filters.contrast !== 100 ||
-      filters.saturation !== 100 ||
-      filters.grayscale !== 0 ||
-      filters.sepia !== 0 ||
-      filters.sharpen !== 0
-    );
-  });
-
-  const hasTexts = computed(() => texts.value.length > 0);
-
-  const textCount = computed(() => texts.value.length);
 
   // Computed für Bild-Layer
   const hasImageLayers = computed(() => imageLayers.value.length > 0);
@@ -110,8 +76,6 @@ export const useImageStore = defineStore('image', () => {
     if (!selectedLayerId.value) return null;
     return imageLayers.value.find((l) => l.id === selectedLayerId.value);
   });
-
-  const isCollageMode = computed(() => imageLayers.value.length > 0);
 
   // ===== ACTIONS =====
 
@@ -138,18 +102,9 @@ export const useImageStore = defineStore('image', () => {
         throw new Error(validation.errors.join(', '));
       }
 
-      isProcessing.value = true;
-
       // Browser-inkompatible Formate (TIFF, HEIC, RAW) via Backend zu PNG konvertieren
       let url;
-      const unsupportedTypes = ['image/tiff', 'image/heic', 'image/heif'];
-      const rawExtensionPattern = /\.(cr2|cr3|nef|arw|dng|raf|orf|rw2|pef|x3f)$/i;
-      const needsConversion =
-        unsupportedTypes.includes(file.type) ||
-        /\.(tiff?|heic|heif)$/i.test(file.name) ||
-        rawExtensionPattern.test(file.name);
-
-      if (needsConversion) {
+      if (needsBackendPreview(file)) {
         const pngBlob = await ApiClient.convertImage(file, 'png', file.name, {});
         url = URL.createObjectURL(pngBlob);
       } else {
@@ -169,8 +124,6 @@ export const useImageStore = defineStore('image', () => {
     } catch (error) {
       console.error('Fehler beim Laden:', error);
       throw error;
-    } finally {
-      isProcessing.value = false;
     }
   }
 
@@ -185,8 +138,6 @@ export const useImageStore = defineStore('image', () => {
       img.onload = () => {
         originalImage.value = img;
         workingUrl.value = url;
-        originalWidth.value = img.width;
-        originalHeight.value = img.height;
         imageWidth.value = img.width;
         imageHeight.value = img.height;
 
@@ -218,7 +169,9 @@ export const useImageStore = defineStore('image', () => {
   }
 
   /**
-   * Zeichnet das Bild mit allen Filtern, Bild-Layern und Texten
+   * Schnelle Zwischenansicht nach Store-Aktionen: Bild oder Bild-Layer
+   * plus Texte. Die vollständige Darstellung (Filter, Transformationen,
+   * Schatten, Rahmen) übernimmt useCanvasRenderer im Editor.
    */
   function draw() {
     if (!ctx.value) return;
@@ -233,12 +186,9 @@ export const useImageStore = defineStore('image', () => {
       drawImageLayers(c);
     } else if (originalImage.value) {
       // Normaler Modus: Einzelnes Bild
-      const filterString = buildFilterString();
-      c.filter = filterString;
       c.drawImage(originalImage.value, 0, 0, imageWidth.value, imageHeight.value);
     }
 
-    // Filter zurücksetzen für Texte
     c.filter = 'none';
 
     // Texte zeichnen
@@ -287,74 +237,6 @@ export const useImageStore = defineStore('image', () => {
   }
 
   /**
-   * Zeichnet den Auswahl-Rahmen für einen Layer
-   */
-  function drawLayerSelection(context, layer) {
-    context.save();
-
-    // Rotation für Auswahl-Rahmen
-    if (layer.rotation !== 0) {
-      const centerX = layer.x + layer.width / 2;
-      const centerY = layer.y + layer.height / 2;
-      context.translate(centerX, centerY);
-      context.rotate((layer.rotation * Math.PI) / 180);
-      context.translate(-centerX, -centerY);
-    }
-
-    // Gestrichelter Rahmen
-    context.strokeStyle = '#014f99';
-    context.lineWidth = 2;
-    context.setLineDash([5, 5]);
-    context.strokeRect(layer.x - 2, layer.y - 2, layer.width + 4, layer.height + 4);
-
-    // Resize-Handles
-    context.setLineDash([]);
-    context.fillStyle = '#014f99';
-    const handleSize = 8;
-    const handles = [
-      { x: layer.x - handleSize / 2, y: layer.y - handleSize / 2 }, // NW
-      { x: layer.x + layer.width / 2 - handleSize / 2, y: layer.y - handleSize / 2 }, // N
-      { x: layer.x + layer.width - handleSize / 2, y: layer.y - handleSize / 2 }, // NE
-      { x: layer.x + layer.width - handleSize / 2, y: layer.y + layer.height / 2 - handleSize / 2 }, // E
-      { x: layer.x + layer.width - handleSize / 2, y: layer.y + layer.height - handleSize / 2 }, // SE
-      { x: layer.x + layer.width / 2 - handleSize / 2, y: layer.y + layer.height - handleSize / 2 }, // S
-      { x: layer.x - handleSize / 2, y: layer.y + layer.height - handleSize / 2 }, // SW
-      { x: layer.x - handleSize / 2, y: layer.y + layer.height / 2 - handleSize / 2 }, // W
-    ];
-
-    handles.forEach((handle) => {
-      context.fillRect(handle.x, handle.y, handleSize, handleSize);
-    });
-
-    context.restore();
-  }
-
-  /**
-   * Erstellt den CSS-Filter-String aus den Filter-Werten
-   */
-  function buildFilterString() {
-    const parts = [];
-
-    if (filters.brightness !== 100) {
-      parts.push(`brightness(${filters.brightness}%)`);
-    }
-    if (filters.contrast !== 100) {
-      parts.push(`contrast(${filters.contrast}%)`);
-    }
-    if (filters.saturation !== 100) {
-      parts.push(`saturate(${filters.saturation}%)`);
-    }
-    if (filters.grayscale > 0) {
-      parts.push(`grayscale(${filters.grayscale}%)`);
-    }
-    if (filters.sepia > 0) {
-      parts.push(`sepia(${filters.sepia}%)`);
-    }
-
-    return parts.length > 0 ? parts.join(' ') : 'none';
-  }
-
-  /**
    * Zeichnet alle Text-Elemente
    */
   function drawTexts(context) {
@@ -369,47 +251,6 @@ export const useImageStore = defineStore('image', () => {
         drawTextSelection(context, normalizedText, true);
       }
     });
-  }
-
-  /**
-   * Setzt einen Filter-Wert
-   */
-  function setFilter(filterName, value) {
-    if (Object.prototype.hasOwnProperty.call(filters, filterName)) {
-      const validation = ValidationUtils.validateFilterValue(filterName, value);
-      if (validation.isValid) {
-        filters[filterName] = validation.value;
-        draw();
-      }
-    }
-  }
-
-  /**
-   * Wendet ein Preset an
-   */
-  function applyPreset(preset) {
-    Object.entries(preset.filters).forEach(([key, value]) => {
-      if (Object.prototype.hasOwnProperty.call(filters, key)) {
-        filters[key] = value;
-      }
-    });
-    draw();
-    saveState(`Preset "${preset.name}" angewendet`, 'preset');
-  }
-
-  /**
-   * Setzt alle Filter zurück
-   */
-  function resetFilters() {
-    filters.brightness = 100;
-    filters.contrast = 100;
-    filters.saturation = 100;
-    filters.grayscale = 0;
-    filters.sepia = 0;
-    filters.sharpen = 0;
-    filters.zoom = 1.0;
-    draw();
-    saveState('Filter zurückgesetzt', 'reset');
   }
 
   /**
@@ -497,80 +338,6 @@ export const useImageStore = defineStore('image', () => {
       draw();
       saveState('Text gelöscht', 'text');
     }
-  }
-
-  /**
-   * Löscht alle Texte
-   */
-  function clearTexts() {
-    if (texts.value.length === 0) return;
-
-    texts.value = [];
-    selectedTextId.value = null;
-    draw();
-    saveState('Alle Texte gelöscht', 'text');
-  }
-
-  /**
-   * Wählt einen Text aus
-   */
-  function selectText(textId) {
-    if (textId === null || texts.value.some((t) => t.id === textId)) {
-      selectedTextId.value = textId;
-      draw();
-    }
-  }
-
-  /**
-   * Dupliziert einen Text
-   */
-  function duplicateText(textId) {
-    const original = texts.value.find((t) => t.id === textId);
-    if (!original) return null;
-
-    const duplicate = {
-      ...original,
-      id: Date.now() + Math.random(),
-      x: original.x + 20,
-      y: original.y + 20,
-    };
-
-    texts.value.push(duplicate);
-    selectedTextId.value = duplicate.id;
-    draw();
-    saveState('Text dupliziert', 'text');
-
-    return duplicate;
-  }
-
-  /**
-   * Verschiebt einen Text in der Z-Order
-   */
-  function moveTextLayer(textId, direction) {
-    const index = texts.value.findIndex((t) => t.id === textId);
-    if (index === -1) return false;
-
-    let newIndex = index;
-
-    if (direction === 'up' && index < texts.value.length - 1) {
-      newIndex = index + 1;
-    } else if (direction === 'down' && index > 0) {
-      newIndex = index - 1;
-    } else if (direction === 'top') {
-      newIndex = texts.value.length - 1;
-    } else if (direction === 'bottom') {
-      newIndex = 0;
-    } else {
-      return false;
-    }
-
-    const [text] = texts.value.splice(index, 1);
-    texts.value.splice(newIndex, 0, text);
-
-    draw();
-    saveState('Text-Ebene verschoben', 'text');
-
-    return true;
   }
 
   // ===== BILD-LAYER FUNKTIONEN (COLLAGE) =====
@@ -836,7 +603,6 @@ export const useImageStore = defineStore('image', () => {
       timestamp: Date.now(),
       description,
       type,
-      filters: { ...filters },
       texts: JSON.parse(JSON.stringify(texts.value)),
       selectedTextId: selectedTextId.value,
       imageLayers: JSON.parse(JSON.stringify(layersForHistory)),
@@ -880,9 +646,6 @@ export const useImageStore = defineStore('image', () => {
   async function restoreState(state) {
     if (!state) return;
 
-    // Filter wiederherstellen
-    Object.assign(filters, state.filters);
-
     // Texte wiederherstellen
     texts.value = JSON.parse(JSON.stringify(state.texts));
 
@@ -919,77 +682,13 @@ export const useImageStore = defineStore('image', () => {
     draw();
   }
 
-  /**
-   * Löscht die komplette History
-   */
-  function clearHistory() {
-    history.value = [];
-    historyIndex.value = -1;
-  }
-
-  /**
-   * Exportiert das aktuelle Bild als Blob
-   */
-  async function exportImage(format = 'png', quality = 0.95) {
-    if (!canvas.value) {
-      throw new Error('Kein Bild geladen');
-    }
-
-    return new Promise((resolve, reject) => {
-      canvas.value.toBlob(
-        (blob) => {
-          if (blob) {
-            resolve(blob);
-          } else {
-            reject(new Error('Fehler beim Erstellen des Blobs'));
-          }
-        },
-        `image/${format}`,
-        quality
-      );
-    });
-  }
-
-  /**
-   * Exportiert Texte für ein skaliertes Bild
-   */
-  function getScaledTexts(scaleX = 1, scaleY = 1, offsetX = 0, offsetY = 0) {
-    return texts.value.map((text) =>
-      scaleTextForExport(normalizeText(text), scaleX, scaleY, offsetX, offsetY)
-    );
-  }
-
-  /**
-   * Setzt den kompletten Store zurück
-   */
-  function resetStore() {
-    originalImage.value = null;
-    workingUrl.value = null;
-    imageWidth.value = 0;
-    imageHeight.value = 0;
-    originalWidth.value = 0;
-    originalHeight.value = 0;
-    texts.value = [];
-    selectedTextId.value = null;
-    imageLayers.value = [];
-    selectedLayerId.value = null;
-    isImageLoaded.value = false;
-    resetFilters();
-    clearHistory();
-  }
-
   // ===== RETURN =====
   return {
     // State
     originalImage,
     workingUrl,
-    canvas,
-    ctx,
     imageWidth,
     imageHeight,
-    originalWidth,
-    originalHeight,
-    filters,
     texts,
     selectedTextId,
     imageLayers,
@@ -997,44 +696,24 @@ export const useImageStore = defineStore('image', () => {
     canvasBackgroundColor,
     history,
     historyIndex,
-    isProcessing,
-    isImageLoaded,
-    isDragging,
 
     // Computed
     hasImage,
     canUndo,
     canRedo,
-    selectedText,
-    aspectRatio,
-    filtersApplied,
-    hasTexts,
-    textCount,
     hasImageLayers,
     imageLayerCount,
     selectedImageLayer,
-    isCollageMode,
 
     // Actions - Image
     initCanvas,
     loadImageFromFile,
-    loadImageFromUrl,
-    resizeCanvas,
     draw,
-
-    // Actions - Filters
-    setFilter,
-    applyPreset,
-    resetFilters,
 
     // Actions - Text
     addText,
     updateText,
     deleteText,
-    clearTexts,
-    selectText,
-    duplicateText,
-    moveTextLayer,
 
     // Actions - Image Layers (Collage)
     addImageLayer,
@@ -1050,13 +729,5 @@ export const useImageStore = defineStore('image', () => {
     saveState,
     undo,
     redo,
-    clearHistory,
-
-    // Actions - Export
-    exportImage,
-    getScaledTexts,
-
-    // Actions - General
-    resetStore,
   };
 });
