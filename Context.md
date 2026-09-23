@@ -92,7 +92,9 @@ src/
 │   ├── useTextModal.js           # Modal-Steuerung für Text-Editor
 │   └── useTransform.js           # Rotation, Flip, Schatten, Rahmen
 ├── i18n/
-│   └── index.js                  # Alle Übersetzungen (DE + EN)
+│   ├── de.js                     # Deutsche Übersetzungen
+│   ├── en.js                     # Englische Übersetzungen (gleicher Schlüsselsatz)
+│   └── index.js                  # createI18n-Konfiguration
 ├── lib/
 │   └── core/
 │       └── handoff.js            # KodiniTools Cross-Tool-Handoff-Protokoll
@@ -113,7 +115,7 @@ src/
 │   ├── fileUtils.js              # Endungslisten (inkl. RAW), isImageFile, Vorschau-Helfer, formatSize
 │   ├── formatInfo.js             # FORMAT_INFO-Mapping aller Export-Formate
 │   ├── textUtils.js              # Text-Messung, Bounding-Box, Kollisionserkennung
-│   └── validationUtils.js        # Datei- & Filter-Validierung
+│   └── validationUtils.js        # Validierung hochgeladener Bilddateien
 ├── views/
 │   ├── HomeView.vue              # Startseite (Hero, Features, FAQ, Konvertierungen)
 │   ├── EditorView.vue            # Haupt-Editor (Canvas, Toolbar, Sidebar)
@@ -285,29 +287,31 @@ Import/Export und die `localStorage`-Persistenz liegen vollständig in der Kompo
 
 ---
 
-## Internationalisierung (`src/i18n/index.js`)
+## Internationalisierung (`src/i18n/`)
 
-**Sprachen:** Deutsch (`de`), Englisch (`en`)
+**Sprachen:** Deutsch (`de.js`), Englisch (`en.js`), gleicher Schlüsselsatz; `index.js` erzeugt die
+vue-i18n-Instanz. Jeder Schlüssel wird in der App referenziert, entweder als Literal, über
+Datenarrays (z.B. Guide-Features) oder über Template-Präfixe wie `guide.filters.${key}`.
 
 **Top-Level-Schlüssel:**
 
 | Schlüssel | Bereich |
 |-----------|---------|
-| `app.*` | App-Metadaten |
 | `nav.*` | Navigation |
-| `home.*` | Startseite (Features, FAQ, Konvertierungen) |
+| `home.*` | Startseite (Features, Konvertierungen, weitere Tools) |
 | `faq.*` | FAQ-Seite |
-| `conversion.*` | Konvertierungs-Widget |
-| `editor.*` | Editor (Toolbar, Sidebar, Shortcuts, Canvas-Leer-State) |
+| `conversion.*` | Konvertierungs-Landingpages und Widget |
+| `editor.*` | Editor (Toolbar, Sidebar, Formate, Ablösen) |
+| `transform.*`, `textPanel.*`, `textModal.*` | Transformationen, Text-Panel, Text-Dialog |
+| `layerPanel.*` | Ebenen-Panel im Collage-Modus |
+| `filters.*`, `presets.*` | Filter- und Preset-Namen |
+| `shortcuts.*` | Tastaturkürzel-Übersicht |
 | `batch.*` | Stapelverarbeitung |
 | `gallery.*` | Galerie |
-| `guide.*` | Tutorial |
-| `about.*` | Über-Seite |
-| `error.*` | Fehlermeldungen |
-| `success.*` | Erfolgsmeldungen |
-| `validation.*` | Formularvalidierung |
-| `filter.*` | Filter-Namen & Beschreibungen |
-| `preset.*` | Preset-Namen |
+| `guide.*` | Anleitung |
+| `about.*`, `notFound.*` | Über-Seite, 404 |
+| `toast.*`, `confirm.*`, `common.*` | Benachrichtigungen, Bestätigungsdialoge, gemeinsame Beschriftungen |
+| `handoff.*` | Cross-Tool-Übergabe |
 
 **Sprachumschaltung:** Über `settingsStore.setLocale()` – wird mit dem SSI-globalen Navigationselement synchronisiert.
 
@@ -356,10 +360,8 @@ SSI-Header-Elemente mit `data-lang-de` / `data-lang-en` werden automatisch über
 ```js
 ValidationUtils.validateImageFile(file)
 // Max. 50 MB, Min. 1 KB
-// Erlaubte MIME-Typen: JPEG, PNG, WebP, GIF, BMP, SVG, TIFF, HEIC/HEIF
-
-ValidationUtils.validateFilterValue(filterName, value)
-// Bereichsprüfung je Filter (z. B. brightness: 0–200)
+// Erlaubte MIME-Typen: JPEG, PNG, WebP, GIF, BMP, SVG, TIFF, HEIC/HEIF, RAW
+// Endungen aus fileUtils (IMAGE_EXTENSIONS)
 ```
 
 ---
