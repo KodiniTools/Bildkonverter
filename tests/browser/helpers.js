@@ -79,4 +79,6 @@ export function installToastMock() {
   return calls;
 }
 
-export const t = (key, params) => key + (params ? JSON.stringify(params) : '');
+/** i18n-Attrappe: Schlüssel plus Parameter; ein String als zweites Argument ist der Fallback-Text und wird ignoriert */
+export const t = (key, params) =>
+  key + (params && typeof params === 'object' ? JSON.stringify(params) : '');
