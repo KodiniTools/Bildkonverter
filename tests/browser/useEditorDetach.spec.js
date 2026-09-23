@@ -46,6 +46,7 @@ function setup({ addImageLayerFails = false } = {}) {
     currentImage: ref(image),
     originalImage: ref(null),
     isCollageMode: ref(false),
+    detachedFromBackground: ref(false),
     background: filterManagement.background,
     currentFileName: ref('foto'),
     imageStore,
@@ -152,6 +153,13 @@ describe('useEditorDetach – Verbinden und Umschalten', () => {
     await s.detach.detachImageFromBackground();
     await s.detach.reattachImageToBackground();
     expect(s.originalImage.value).toBe(image);
+  });
+
+  it('nutzt den vom Editor geteilten Zustands-Ref', async () => {
+    const s = setup();
+    expect(s.detach.detachedFromBackground).toBe(s.detachedFromBackground);
+    await s.detach.detachImageFromBackground();
+    expect(s.detachedFromBackground.value).toBe(true);
   });
 
   it('handleToggleDetach wechselt zwischen beiden Zuständen', async () => {

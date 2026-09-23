@@ -30,13 +30,35 @@ function setup(image = dataUrlImage) {
   const resizeManager = useResizeManager({});
   resizeManager.initFromDimensions(200, 100);
   const crop = { hasCropped: ref(false), resetCropState: vi.fn() };
-  const imageStore = { texts: [] };
+  const isCollageMode = ref(false);
+  const detachedFromBackground = ref(false);
+  // Store-Attrappe mit den Ebenen-Funktionen der Historie
+  const imageStore = {
+    texts: [],
+    imageLayers: [],
+    selectedLayerId: null,
+    canvasBackgroundColor: '#ffffff',
+    registerHistory: vi.fn(),
+    serializeImageLayers: vi.fn(function () {
+      return JSON.parse(JSON.stringify(this.imageLayers.map((l) => ({ ...l, image: null }))));
+    }),
+    restoreImageLayers: vi.fn(async function (layers, selectedId) {
+      this.imageLayers = layers.map((l) => ({ ...l, image: {} }));
+      this.selectedLayerId = selectedId;
+    }),
+    clearImageLayers: vi.fn(function () {
+      this.imageLayers = [];
+      this.selectedLayerId = null;
+    }),
+  };
   const renderImage = vi.fn();
   const updateImageInfo = vi.fn();
 
   const history = useEditorHistory({
     canvas: ref(canvasEl),
     currentImage,
+    isCollageMode,
+    detachedFromBackground,
     selectedTextId,
     filters: filterManagement.filters,
     background: filterManagement.background,
@@ -52,6 +74,8 @@ function setup(image = dataUrlImage) {
   return {
     canvasEl,
     currentImage,
+    isCollageMode,
+    detachedFromBackground,
     selectedTextId,
     filterManagement,
     transform,
@@ -186,6 +210,22 @@ describe('useEditorHistory', () => {
     expect(history.canUndo.value).toBe(false);
   });
 
+  it('registriert sich beim Store und meldet sich wieder ab', () => {
+    const { history, imageStore } = setup();
+    expect(imageStore.registerHistory).toHaveBeenCalledTimes(1);
+    const api = imageStore.registerHistory.mock.calls[0][0];
+    expect(api.saveHistory).toBe(history.saveHistory);
+    expect(api.canUndo).toBe(history.canUndo);
+    history.unregisterHistory();
+    expect(imageStore.registerHistory).toHaveBeenLastCalledWith(null);
+  });
+
+  it('sichert die Beschreibung der Aktion im Snapshot', () => {
+    const { history } = setup();
+    history.saveHistory('Bild geladen');
+    expect(history.history.value[0].description).toBe('Bild geladen');
+  });
+
   it('tut ohne Canvas nichts', () => {
     const s = setup();
     const history = useEditorHistory({
@@ -196,5 +236,93 @@ describe('useEditorHistory', () => {
     });
     history.saveHistory();
     expect(history.history.value).toEqual([]);
+  });
+});
+
+describe('useEditorHistory – Ebenen-/Collage-Modus', () => {
+  const layer = (id) => ({
+    id,
+    url: dataUrlImage.src,
+    name: id,
+    x: 10,
+    y: 20,
+    width: 100,
+    height: 50,
+    visible: true,
+    image: { tag: 'HTMLImageElement' },
+  });
+
+  it('sichert Ebenen ohne Image-Objekte, Auswahl, Hintergrund und Modus', () => {
+    const s = setup();
+    s.isCollageMode.value = true;
+    s.detachedFromBackground.value = true;
+    s.imageStore.imageLayers = [layer('L1'), layer('L2')];
+    s.imageStore.selectedLayerId = 'L2';
+    s.imageStore.canvasBackgroundColor = 'transparent';
+    s.history.saveHistory('Ebene dupliziert');
+    const entry = s.history.history.value[0];
+    expect(entry.isCollageMode).toBe(true);
+    expect(entry.detachedFromBackground).toBe(true);
+    expect(entry.imageLayers.map((l) => [l.id, l.image])).toEqual([
+      ['L1', null],
+      ['L2', null],
+    ]);
+    expect(entry.selectedLayerId).toBe('L2');
+    expect(entry.canvasBackgroundColor).toBe('transparent');
+  });
+
+  it('Undo nach dem Duplizieren einer Ebene führt zu einer Ebene zurück, nicht zu null', async () => {
+    const s = setup();
+    // Abgelöst: eine Ebene, Snapshot
+    s.isCollageMode.value = true;
+    s.detachedFromBackground.value = true;
+    s.imageStore.imageLayers = [layer('L1')];
+    s.imageStore.selectedLayerId = 'L1';
+    s.history.saveHistory('Abgelöst');
+    // Dupliziert, Snapshot
+    s.imageStore.imageLayers = [layer('L1'), layer('L1-copy')];
+    s.imageStore.selectedLayerId = 'L1-copy';
+    s.history.saveHistory('Ebene dupliziert');
+
+    s.history.undo();
+    await restored(s.renderImage, 1);
+    expect(s.imageStore.restoreImageLayers).toHaveBeenCalledTimes(1);
+    expect(s.imageStore.imageLayers.map((l) => l.id)).toEqual(['L1']);
+    expect(s.imageStore.selectedLayerId).toBe('L1');
+    expect(s.isCollageMode.value).toBe(true);
+    expect(s.detachedFromBackground.value).toBe(true);
+    expect(s.imageStore.clearImageLayers).not.toHaveBeenCalled();
+    expect(s.currentImage.value).toBe(dataUrlImage); // Basisbild bleibt unangetastet
+  });
+
+  it('Undo vor das Ablösen verlässt den Ebenen-Modus und stellt das Einzelbild her', async () => {
+    const s = setup();
+    s.history.saveHistory('Bild geladen'); // Einzelbild, 200x100
+    // Ablösen: Canvas bleibt, Ebene entsteht, Modus wechselt
+    s.isCollageMode.value = true;
+    s.detachedFromBackground.value = true;
+    s.imageStore.imageLayers = [layer('L1')];
+    s.imageStore.selectedLayerId = 'L1';
+    s.imageStore.canvasBackgroundColor = '#ff0000';
+    s.currentImage.value = null;
+    s.history.saveHistory('Abgelöst');
+
+    s.history.undo();
+    await restored(s.renderImage, 1);
+    expect(s.imageStore.clearImageLayers).toHaveBeenCalledTimes(1);
+    expect(s.imageStore.imageLayers).toEqual([]);
+    expect(s.isCollageMode.value).toBe(false);
+    expect(s.detachedFromBackground.value).toBe(false);
+    expect(s.imageStore.canvasBackgroundColor).toBe('#ffffff');
+    expect(s.currentImage.value).toBeInstanceOf(HTMLImageElement);
+    expect([s.canvasEl.width, s.canvasEl.height]).toEqual([200, 100]);
+
+    // Redo: wieder abgelöst, Ebene aus dem Snapshot geladen
+    s.history.redo();
+    await restored(s.renderImage, 2);
+    expect(s.imageStore.restoreImageLayers).toHaveBeenCalledTimes(1);
+    expect(s.imageStore.imageLayers.map((l) => l.id)).toEqual(['L1']);
+    expect(s.isCollageMode.value).toBe(true);
+    expect(s.imageStore.canvasBackgroundColor).toBe('#ff0000');
   });
 });

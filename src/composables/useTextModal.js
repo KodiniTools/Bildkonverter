@@ -73,6 +73,7 @@ export function useTextModal() {
       } else {
         // Neuen Text hinzufügen
         imageStore.addText(textData);
+        imageStore.saveState('Text hinzugefügt', 'text');
       }
 
       closeModal();
@@ -94,6 +95,7 @@ export function useTextModal() {
       };
 
       imageStore.addText(textData);
+      imageStore.saveState('Text hinzugefügt', 'text');
     } catch (error) {
       console.error('Fehler beim Hinzufügen des Textes:', error);
       throw error;
@@ -106,6 +108,7 @@ export function useTextModal() {
   function deleteText(textId) {
     try {
       imageStore.deleteText(textId);
+      imageStore.saveState('Text gelöscht', 'text');
       closeModal();
     } catch (error) {
       console.error('Fehler beim Löschen des Textes:', error);

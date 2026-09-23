@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, shallowRef } from 'vue';
 import { ValidationUtils } from '@/utils/validationUtils';
 import { ApiClient } from '@/api/api';
 import { getAdjustedImage } from '@/utils/imageAdjustments';
@@ -20,12 +20,13 @@ import {
  * - das geladene Basisbild (Referenz für Galerie/Handoff)
  * - Text-Ebenen
  * - Bild-Ebenen und Canvas-Hintergrund für den Collage-/Ebenen-Modus
- * - Ebenen-Historie (Undo/Redo im Ebenen-Panel)
  *
- * Filter, Transformationen und die Editor-Historie liegen in den
- * Composables des Editors (useFilterManagement, useTransform,
- * useEditorHistory); das Rendering in useCanvasRenderer. draw() zeichnet
- * nur eine schnelle Zwischenansicht nach Store-Aktionen.
+ * Es gibt genau eine Undo/Redo-Historie: useEditorHistory im Editor. Der
+ * Store hält dafür nur eine Delegationsschicht (registerHistory), damit
+ * Composables ohne Editor-Kontext (Ebenen-Panel, Text-Dialog,
+ * Ebenen-Interaktion) saveState/undo/redo aufrufen können. Filter,
+ * Transformationen und Rendering liegen ebenfalls in den Editor-Composables;
+ * draw() zeichnet nur eine schnelle Zwischenansicht nach Store-Aktionen.
  */
 export const useImageStore = defineStore('image', () => {
   // ===== STATE =====
@@ -51,10 +52,8 @@ export const useImageStore = defineStore('image', () => {
   // Canvas Hintergrundfarbe (für Collage-Modus)
   const canvasBackgroundColor = ref('#ffffff');
 
-  // History für Undo/Redo
-  const history = ref([]);
-  const historyIndex = ref(-1);
-  const maxHistoryStates = ref(50);
+  // Undo/Redo: vom Editor registrierte Historie (useEditorHistory)
+  const historyHandlers = shallowRef(null);
 
   // UI State
   const isImageLoaded = ref(false);
@@ -63,9 +62,10 @@ export const useImageStore = defineStore('image', () => {
 
   const hasImage = computed(() => isImageLoaded.value && workingUrl.value !== null);
 
-  const canUndo = computed(() => historyIndex.value > 0);
-
-  const canRedo = computed(() => historyIndex.value < history.value.length - 1);
+  const canUndo = computed(() => historyHandlers.value?.canUndo.value ?? false);
+  const canRedo = computed(() => historyHandlers.value?.canRedo.value ?? false);
+  const historyIndex = computed(() => historyHandlers.value?.historyIndex.value ?? -1);
+  const historyLength = computed(() => historyHandlers.value?.history.value.length ?? 0);
 
   // Computed für Bild-Layer
   const hasImageLayers = computed(() => imageLayers.value.length > 0);
@@ -114,12 +114,7 @@ export const useImageStore = defineStore('image', () => {
       // Bild laden
       await loadImageFromUrl(url);
 
-      // State aktualisieren
       isImageLoaded.value = true;
-
-      // History-Eintrag
-      saveState('Bild hochgeladen', 'upload');
-
       return true;
     } catch (error) {
       console.error('Fehler beim Laden:', error);
@@ -284,7 +279,6 @@ export const useImageStore = defineStore('image', () => {
     texts.value.push(newText);
     selectedTextId.value = newText.id;
     draw();
-    saveState('Text hinzugefügt', 'text');
 
     return newText;
   }
@@ -336,7 +330,6 @@ export const useImageStore = defineStore('image', () => {
         selectedTextId.value = null;
       }
       draw();
-      saveState('Text gelöscht', 'text');
     }
   }
 
@@ -499,7 +492,6 @@ export const useImageStore = defineStore('image', () => {
           imageLayers.value.length > 0 ? imageLayers.value[imageLayers.value.length - 1].id : null;
       }
       draw();
-      saveState('Bild-Layer gelöscht', 'layer');
     }
   }
 
@@ -542,7 +534,6 @@ export const useImageStore = defineStore('image', () => {
     imageLayers.value.splice(newIndex, 0, layer);
 
     draw();
-    saveState('Layer-Reihenfolge geändert', 'layer');
 
     return true;
   }
@@ -566,7 +557,6 @@ export const useImageStore = defineStore('image', () => {
     imageLayers.value.push(duplicate);
     selectedLayerId.value = duplicate.id;
     draw();
-    saveState('Bild-Layer dupliziert', 'layer');
 
     return duplicate;
   }
@@ -580,106 +570,67 @@ export const useImageStore = defineStore('image', () => {
     imageLayers.value = [];
     selectedLayerId.value = null;
     draw();
-    saveState('Alle Bild-Layer gelöscht', 'layer');
   }
 
+  // ===== HISTORIE (delegiert an useEditorHistory) =====
+
   /**
-   * Speichert den aktuellen State in der History
+   * Registriert die Editor-Historie. Übergeben wird das Objekt aus
+   * useEditorHistory (saveHistory, undo, redo, canUndo, canRedo, history,
+   * historyIndex); null hebt die Registrierung auf (Editor verlassen).
    */
-  function saveState(description, type = 'generic') {
-    // Entferne zukünftige States wenn wir nicht am Ende sind
-    if (historyIndex.value < history.value.length - 1) {
-      history.value = history.value.slice(0, historyIndex.value + 1);
-    }
-
-    // Erstelle State-Snapshot (ohne image-Objekte für Serialisierung)
-    const layersForHistory = imageLayers.value.map((l) => ({
-      ...l,
-      image: null, // Image-Objekt nicht serialisieren
-      url: l.url, // URL behalten für Wiederherstellung
-    }));
-
-    const state = {
-      timestamp: Date.now(),
-      description,
-      type,
-      texts: JSON.parse(JSON.stringify(texts.value)),
-      selectedTextId: selectedTextId.value,
-      imageLayers: JSON.parse(JSON.stringify(layersForHistory)),
-      selectedLayerId: selectedLayerId.value,
-      imageData: canvas.value ? canvas.value.toDataURL('image/png', 0.5) : null,
-    };
-
-    history.value.push(state);
-    historyIndex.value = history.value.length - 1;
-
-    // Begrenze History-Größe
-    if (history.value.length > maxHistoryStates.value) {
-      history.value.shift();
-      historyIndex.value--;
-    }
+  function registerHistory(handlers) {
+    historyHandlers.value = handlers;
   }
 
-  /**
-   * Macht die letzte Aktion rückgängig
-   */
+  /** Schreibt einen Snapshot in die Editor-Historie (ohne Editor: kein Effekt) */
+  function saveState(description = '') {
+    historyHandlers.value?.saveHistory(description);
+  }
+
   function undo() {
-    if (!canUndo.value) return;
-
-    historyIndex.value--;
-    restoreState(history.value[historyIndex.value]);
+    historyHandlers.value?.undo();
   }
 
-  /**
-   * Wiederholt die letzte rückgängig gemachte Aktion
-   */
   function redo() {
-    if (!canRedo.value) return;
-
-    historyIndex.value++;
-    restoreState(history.value[historyIndex.value]);
+    historyHandlers.value?.redo();
   }
 
   /**
-   * Stellt einen State aus der History wieder her
+   * Bild-Ebenen ohne Image-Objekte für einen History-Snapshot
+   * (die Bilder werden beim Wiederherstellen aus der URL neu geladen)
    */
-  async function restoreState(state) {
-    if (!state) return;
+  function serializeImageLayers() {
+    return JSON.parse(
+      JSON.stringify(imageLayers.value.map((layer) => ({ ...layer, image: null })))
+    );
+  }
 
-    // Texte wiederherstellen
-    texts.value = JSON.parse(JSON.stringify(state.texts));
-
-    // Selection wiederherstellen
-    selectedTextId.value = state.selectedTextId || null;
-
-    // Bild-Layer wiederherstellen (mit Image-Objekten neu laden)
-    if (state.imageLayers && state.imageLayers.length > 0) {
-      const restoredLayers = [];
-      for (const layerData of state.imageLayers) {
-        if (layerData.url) {
-          try {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            await new Promise((resolve, reject) => {
-              img.onload = resolve;
-              img.onerror = reject;
-              img.src = layerData.url;
-            });
-            restoredLayers.push({ ...layerData, image: img });
-          } catch (e) {
-            console.warn('Layer konnte nicht wiederhergestellt werden:', e);
-          }
-        }
+  /**
+   * Stellt Bild-Ebenen aus einem Snapshot wieder her und lädt ihre Bilder neu.
+   * @param {Array} layers  Ergebnis von serializeImageLayers()
+   * @param {string|null} selectedId  Auswahl nach der Wiederherstellung
+   */
+  async function restoreImageLayers(layers, selectedId = null) {
+    const restored = [];
+    for (const layerData of layers || []) {
+      if (!layerData.url) continue;
+      try {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = layerData.url;
+        });
+        restored.push({ ...layerData, image: img });
+      } catch (e) {
+        console.warn('Layer konnte nicht wiederhergestellt werden:', e);
       }
-      imageLayers.value = restoredLayers;
-      selectedLayerId.value = state.selectedLayerId || null;
-    } else {
-      imageLayers.value = [];
-      selectedLayerId.value = null;
     }
-
-    // Neu zeichnen
-    draw();
+    imageLayers.value = restored;
+    selectedLayerId.value =
+      selectedId && restored.some((l) => l.id === selectedId) ? selectedId : null;
   }
 
   // ===== RETURN =====
@@ -694,13 +645,13 @@ export const useImageStore = defineStore('image', () => {
     imageLayers,
     selectedLayerId,
     canvasBackgroundColor,
-    history,
-    historyIndex,
 
     // Computed
     hasImage,
     canUndo,
     canRedo,
+    historyIndex,
+    historyLength,
     hasImageLayers,
     imageLayerCount,
     selectedImageLayer,
@@ -725,9 +676,12 @@ export const useImageStore = defineStore('image', () => {
     duplicateImageLayer,
     clearImageLayers,
 
-    // Actions - History
+    // Historie (Delegation an useEditorHistory)
+    registerHistory,
     saveState,
     undo,
     redo,
+    serializeImageLayers,
+    restoreImageLayers,
   };
 });

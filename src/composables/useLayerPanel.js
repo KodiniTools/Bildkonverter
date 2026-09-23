@@ -1,4 +1,4 @@
-import { ref, computed, reactive, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, reactive, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useImageStore } from '@/stores/imageStore';
 import { useConfirm } from '@/composables/useConfirm';
@@ -8,7 +8,8 @@ import { availableFonts } from '@/assets/fonts/fontList.js';
  * useLayerPanel
  *
  * Kapselt die gesamte Logik des LayerControlPanels (Layer-, Text- und
- * History-Steuerung). Wurde aus LayerControlPanel.vue extrahiert, damit das
+ * History-Steuerung). Undo/Redo laufen über die gemeinsame Editor-Historie,
+ * die der Editor im imageStore registriert. Wurde aus LayerControlPanel.vue extrahiert, damit das
  * Panel in kleinere Teilkomponenten aufgeteilt werden kann, ohne die
  * Funktionalität zu ändern. Das zurückgegebene Kontext-Objekt wird vom
  * Orchestrator per provide/inject an die Tab-Komponenten weitergereicht.
@@ -129,7 +130,7 @@ export function useLayerPanel(props, emit) {
   // History Info Computed
   const historyInfo = computed(() => {
     const current = imageStore.historyIndex + 1;
-    const total = imageStore.history.length;
+    const total = imageStore.historyLength;
     if (total === 0) return '';
     return `${current}/${total}`;
   });
@@ -182,6 +183,7 @@ export function useLayerPanel(props, emit) {
     if (confirmed) {
       imageStore.deleteImageLayer(layerId);
       emit('render');
+      saveStateNow('Bild-Layer gelöscht', 'layer');
     }
   }
 
@@ -189,6 +191,7 @@ export function useLayerPanel(props, emit) {
     if (selectedLayer.value) {
       imageStore.moveImageLayerOrder(selectedLayer.value.id, direction);
       emit('render');
+      saveStateNow('Layer-Reihenfolge geändert', 'layer');
     }
   }
 
@@ -196,6 +199,7 @@ export function useLayerPanel(props, emit) {
     if (selectedLayer.value) {
       imageStore.duplicateImageLayer(selectedLayer.value.id);
       emit('render');
+      saveStateNow('Bild-Layer dupliziert', 'layer');
     }
   }
 
@@ -383,19 +387,14 @@ export function useLayerPanel(props, emit) {
     }
   }
 
-  // Undo/Redo Funktionen
+  // Undo/Redo über die gemeinsame Editor-Historie (rendert selbst neu).
+  // Tastaturkürzel Strg+Z/Y behandelt der Editor (useEditorKeyboard) zentral.
   function handleUndo() {
-    if (imageStore.canUndo) {
-      imageStore.undo();
-      emit('render');
-    }
+    if (imageStore.canUndo) imageStore.undo();
   }
 
   function handleRedo() {
-    if (imageStore.canRedo) {
-      imageStore.redo();
-      emit('render');
-    }
+    if (imageStore.canRedo) imageStore.redo();
   }
 
   // Preview Funktion
@@ -403,29 +402,6 @@ export function useLayerPanel(props, emit) {
     emit('render');
     emit('preview');
   }
-
-  // Keyboard Shortcuts für Undo/Redo
-  function handleKeyDown(event) {
-    if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === 'z') {
-      event.preventDefault();
-      handleUndo();
-    } else if (
-      (event.ctrlKey || event.metaKey) &&
-      ((event.shiftKey && event.key === 'z') || event.key === 'y')
-    ) {
-      event.preventDefault();
-      handleRedo();
-    }
-  }
-
-  // Event Listener für Keyboard Shortcuts
-  onMounted(() => {
-    document.addEventListener('keydown', handleKeyDown);
-  });
-
-  onUnmounted(() => {
-    document.removeEventListener('keydown', handleKeyDown);
-  });
 
   return {
     // Store & shared state
