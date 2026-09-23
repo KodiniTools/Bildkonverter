@@ -48,6 +48,41 @@ describe('useEditorResize – Live-Vorschau', () => {
     expect(renderImage).toHaveBeenCalledTimes(1);
   });
 
+  it('wendet bei schnellem Tippen nur den letzten Wert an', async () => {
+    const { canvasEl, resizeManager, renderImage } = setup();
+    for (const w of [6, 60, 600]) {
+      resizeManager.resizeWidth.value = w;
+      resizeManager.resizeHeight.value = Math.round(w / 2);
+      await nextTick();
+    }
+    await wait(150);
+    expect([canvasEl.width, canvasEl.height]).toEqual([600, 300]);
+    expect(renderImage).toHaveBeenCalledTimes(1);
+  });
+
+  it('eine ausstehende Vorschau wird verworfen, wenn die Felder zur aktuellen Größe zurückkehren', async () => {
+    const { canvasEl, resizeManager, renderImage } = setup();
+    resizeManager.resizeWidth.value = 500;
+    resizeManager.resizeHeight.value = 250;
+    await nextTick();
+    resizeManager.resetToOriginal(); // Felder wieder 800x400 = Canvas
+    await nextTick();
+    await wait(150);
+    expect([canvasEl.width, canvasEl.height]).toEqual([800, 400]);
+    expect(renderImage).not.toHaveBeenCalled();
+  });
+
+  it('eine ausstehende Vorschau wird verworfen, wenn danach ein ungültiger Wert folgt', async () => {
+    const { canvasEl, resizeManager, renderImage } = setup();
+    resizeManager.resizeWidth.value = 500;
+    await nextTick();
+    resizeManager.resizeWidth.value = null; // Feld geleert
+    await nextTick();
+    await wait(150);
+    expect([canvasEl.width, canvasEl.height]).toEqual([800, 400]);
+    expect(renderImage).not.toHaveBeenCalled();
+  });
+
   it('ignoriert leere, zu kleine und zu große Eingaben sowie die aktuelle Größe', async () => {
     const { canvasEl, resizeManager, renderImage } = setup();
     for (const [w, h] of [
@@ -104,12 +139,17 @@ describe('useEditorResize – Presets', () => {
     expect(saveHistory).toHaveBeenCalledTimes(2);
   });
 
-  it('"Ohne Preset" bei bereits übernommener Originalgröße gleicht nur die Felder an', () => {
-    const { resizeManager, resize, saveHistory } = setup();
+  it('"Ohne Preset" bei bereits übernommener Originalgröße gleicht nur die Felder an', async () => {
+    const { canvasEl, resizeManager, resize, saveHistory, renderImage } = setup();
     resizeManager.resizeWidth.value = 500;
+    await nextTick(); // Live-Vorschau für 500 ist eingeplant
     resize.applySocialPreset('none');
     expect(resizeManager.resizeWidth.value).toBe(800);
     expect(saveHistory).not.toHaveBeenCalled();
+    // Die veraltete Vorschau darf den Canvas nicht mehr verändern
+    await wait(150);
+    expect([canvasEl.width, canvasEl.height]).toEqual([800, 400]);
+    expect(renderImage).not.toHaveBeenCalled();
   });
 });
 
