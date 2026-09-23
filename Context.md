@@ -67,6 +67,17 @@ src/
 │   └── ui/
 │       └── ToastContainer.vue    # Toast-Benachrichtigungen
 ├── composables/                  # Vue 3 Composition Functions
+│   ├── editor/                   # Editor-spezifische Composables (aus EditorView.vue ausgelagert)
+│   │   ├── useCanvasInteraction.js  # Maus/Touch auf dem Canvas: Text, Ebenen, Crop, Pan, Pinch
+│   │   ├── useEditorDetach.js       # Bild vom Hintergrund lösen / wieder verbinden
+│   │   ├── useEditorExport.js       # Export-Dialog, Drucken, Handoff an andere Tools
+│   │   ├── useEditorHistory.js      # Gemeinsame Undo/Redo-Historie (Snapshot des Editor-Zustands)
+│   │   ├── useEditorKeyboard.js     # Tastatur-Shortcuts
+│   │   ├── useEditorPreview.js      # Vorher/Nachher-Modal
+│   │   ├── useEditorResize.js       # Größe ändern: Live-Vorschau, Presets, Anwenden
+│   │   ├── useEditorText.js         # Text-Ebenen anlegen, ändern, löschen
+│   │   ├── useImageInfo.js          # Breite/Höhe/Dateigröße-Anzeige
+│   │   └── useTransformHandlers.js  # Event-Handler für Transformationen
 │   ├── useBatchConversion.js     # Batch-Konverter: Dateien, Verarbeitung, Download
 │   ├── useCanvasRenderer.js      # Canvas-Rendering (roundedRect, Selektionsrahmen)
 │   ├── useCrop.js                # Crop-Logik mit Vorschau
