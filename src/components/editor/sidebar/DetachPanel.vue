@@ -4,12 +4,7 @@
 
     <div class="detach-toggle-row">
       <label class="switch">
-        <input
-          type="checkbox"
-          :checked="detached"
-          :disabled="disabled"
-          @change="$emit('toggle')"
-        />
+        <input type="checkbox" :checked="detached" :disabled="disabled" @change="$emit('toggle')" />
         <span class="switch-slider"></span>
       </label>
       <span class="detach-toggle-label">
@@ -36,10 +31,7 @@
       </template>
       <template v-else>
         {{
-          $t(
-            'editor.detach.hint',
-            'Löst das Bild vom Canvas und macht es zu einer eigenen Ebene.'
-          )
+          $t('editor.detach.hint', 'Löst das Bild vom Canvas und macht es zu einer eigenen Ebene.')
         }}
       </template>
     </p>

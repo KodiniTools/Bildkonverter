@@ -8,33 +8,34 @@
       </label>
       <div class="color-picker-row">
         <input
-          v-model="background.color"
+          :value="background.color"
           type="color"
           class="color-input"
           :disabled="disabled"
-          @input="$emit('render')"
+          @input="onColorInput"
           @change="$emit('save-history')"
         />
         <input
-          v-model="background.color"
+          :value="background.color"
           type="text"
           class="color-text-input"
           maxlength="7"
           :disabled="disabled"
-          @input="$emit('render')"
+          @input="onColorInput"
           @change="$emit('save-history')"
         />
       </div>
     </div>
 
     <FilterSlider
-      v-model="background.opacity"
+      :model-value="background.opacity"
       :label="$t('editor.background.opacity', 'Deckkraft')"
       :min="0"
       :max="100"
       :default-value="100"
       unit="%"
       :disabled="disabled"
+      @update:model-value="$emit('update-background', 'opacity', $event)"
       @render="$emit('render')"
       @save-history="$emit('save-history')"
     />
@@ -60,5 +61,11 @@ defineProps({
   },
 });
 
-defineEmits(['render', 'save-history']);
+// Props werden nicht verändert: Wertänderungen gehen als Ereignisse an den Editor
+const emit = defineEmits(['update-background', 'render', 'save-history']);
+
+function onColorInput(event) {
+  emit('update-background', 'color', event.target.value);
+  emit('render');
+}
 </script>

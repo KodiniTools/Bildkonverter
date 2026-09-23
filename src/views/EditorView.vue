@@ -159,6 +159,7 @@
           <BackgroundPanel
             :background="background"
             :disabled="!currentImage"
+            @update-background="setBackground"
             @render="renderImage"
             @save-history="saveHistory"
           />
@@ -171,6 +172,8 @@
             :filters="filters"
             :sections-open="sectionsOpen"
             :disabled="!currentImage"
+            @update-filter="setFilter"
+            @toggle-section="toggleSection"
             @render="renderImage"
             @save-history="saveHistory"
           />
@@ -178,6 +181,8 @@
             :filters="filters"
             :sections-open="sectionsOpen"
             :disabled="!currentImage"
+            @update-filter="setFilter"
+            @toggle-section="toggleSection"
             @render="renderImage"
             @save-history="saveHistory"
           />
@@ -185,6 +190,8 @@
             :filters="filters"
             :sections-open="sectionsOpen"
             :disabled="!currentImage"
+            @update-filter="setFilter"
+            @toggle-section="toggleSection"
             @render="renderImage"
             @save-history="saveHistory"
           />
@@ -568,6 +575,16 @@ const filterManagement = useFilterManagement({
   onFilterChange: () => renderImage(),
 });
 const { filters, background, sectionsOpen, currentPreset } = filterManagement;
+
+// Die Sidebar-Panels verändern ihre Props nicht, sondern melden Änderungen;
+// gesetzt wird hier, neu gezeichnet über das render-Ereignis der Panels.
+function setFilter(name, value) {
+  filters.value[name] = value;
+}
+function setBackground(property, value) {
+  background.value[property] = value;
+}
+const toggleSection = filterManagement.toggleSection;
 
 // Resize Manager Composable
 const resizeManager = useResizeManager({

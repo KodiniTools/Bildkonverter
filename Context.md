@@ -422,7 +422,7 @@ Zwei Vitest-Projekte:
 
 | Projekt | Umgebung | Inhalt |
 |---------|----------|--------|
-| `unit` | happy-dom | `fileUtils`, `conversionUtils` (Zielgröße, A4-Layout), i18n-Konsistenz (gleicher Schlüsselsatz de/en, jeder referenzierte Schlüssel existiert, kein Schlüssel verwaist), `GuideSectionHeader` mit Vue Test Utils |
+| `unit` | happy-dom | `fileUtils`, `conversionUtils` (Zielgröße, A4-Layout), i18n-Konsistenz (gleicher Schlüsselsatz de/en, jeder referenzierte Schlüssel existiert, kein Schlüssel verwaist), `GuideSectionHeader` und die Sidebar-Panels (`AdjustmentsPanel`, `LightColorPanel`, `EffectsPanel`, `BackgroundPanel`: Ereignisse statt Prop-Mutation) mit Vue Test Utils |
 | `browser` | Chromium (Vitest Browser Mode, Playwright) | `useCanvasRenderer` (Vorschau vs. Export pixelgenau, Auswahlrahmen, Vignette, Transparenz, Texte, Collage), `useBatchConversion` (JPG/WebP/PNG, Skalierung, PDF einzeln und gesamt, SVG-Fallback ohne Backend, Fehlerpfad, Reset/Entfernen/Leeren), `useEditorHistory` (Snapshot inkl. Ebenen-Modus, Undo/Redo mit vollständiger Wiederherstellung, Wechsel zwischen Einzelbild und Ebenen, Redo-Zweig, Reset, Store-Registrierung), `imageStore` (Delegation der Historie, Ebenen-Serialisierung), `useEditorResize` (Live-Vorschau mit Entprellung, Presets, Anwenden, Validierung), `useEditorDetach` (Ablösen als Ebene, Fehlerpfad, Verbinden, Umschalten, Hintergrund-Sync) |
 
 Die Browser-Tests brauchen einen echten 2D-Canvas und laufen deshalb nicht in jsdom/happy-dom.
