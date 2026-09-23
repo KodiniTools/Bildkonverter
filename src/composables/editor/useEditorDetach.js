@@ -10,6 +10,8 @@
  * @param {import('vue').Ref} deps.currentImage
  * @param {import('vue').Ref} deps.originalImage
  * @param {import('vue').Ref} deps.isCollageMode
+ * @param {import('vue').Ref} [deps.detachedFromBackground] Zustand "abgelöst"; wird vom Editor
+ *   geteilt, damit die Historie ihn mitsichern kann (fehlt er, wird er hier angelegt)
  * @param {import('vue').Ref} deps.background       background-Ref aus useFilterManagement
  * @param {import('vue').Ref} deps.currentFileName
  * @param {object}   deps.imageStore
@@ -30,6 +32,7 @@ export function useEditorDetach({
   currentImage,
   originalImage,
   isCollageMode,
+  detachedFromBackground: sharedDetached,
   background,
   currentFileName,
   imageStore,
@@ -43,7 +46,7 @@ export function useEditorDetach({
   t,
 }) {
   // true, wenn das Basisbild als frei bewegliche Ebene "abgelöst" wurde
-  const detachedFromBackground = ref(false);
+  const detachedFromBackground = sharedDetached || ref(false);
 
   // Hintergrundfarbe des Canvas mit dem Hintergrund-Panel synchronisieren, damit
   // der Collage-Renderer denselben Hintergrund zeigt.

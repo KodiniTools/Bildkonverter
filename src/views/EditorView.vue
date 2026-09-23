@@ -549,6 +549,8 @@ const isSpacePressed = ref(false);
 
 // ===== COLLAGE MODE STATE =====
 const isCollageMode = ref(false);
+// true, wenn das Basisbild als freie Ebene abgelöst ist (geteilt mit Detach und Historie)
+const detachedFromBackground = ref(false);
 
 // ===== DRAG & DROP STATE =====
 const isDraggingFile = ref(false);
@@ -611,21 +613,25 @@ function renderImage() {
   updateImageDimensions();
 }
 
-// Gemeinsame Undo/Redo-Historie (Bild, Filter, Transform, Texte, Crop)
-const { canUndo, canRedo, saveHistory, undo, redo, resetHistory } = useEditorHistory({
-  canvas,
-  currentImage,
-  selectedTextId,
-  filters,
-  background,
-  imageStore,
-  filterManagement,
-  transform,
-  resizeManager,
-  crop,
-  renderImage,
-  updateImageInfo,
-});
+// Die einzige Undo/Redo-Historie (Bild, Filter, Transform, Texte, Crop, Ebenen);
+// wird im imageStore registriert, damit Ebenen-Panel und Text-Dialog sie nutzen
+const { canUndo, canRedo, saveHistory, undo, redo, resetHistory, unregisterHistory } =
+  useEditorHistory({
+    canvas,
+    currentImage,
+    isCollageMode,
+    detachedFromBackground,
+    selectedTextId,
+    filters,
+    background,
+    imageStore,
+    filterManagement,
+    transform,
+    resizeManager,
+    crop,
+    renderImage,
+    updateImageInfo,
+  });
 
 // Größe ändern: Live-Vorschau, Presets, Anwenden
 const { selectedPreset, onResizeChange, applySocialPreset, applyResize } = useEditorResize({
@@ -639,11 +645,12 @@ const { selectedPreset, onResizeChange, applySocialPreset, applyResize } = useEd
 });
 
 // Bild vom Hintergrund lösen / wieder verbinden
-const { detachedFromBackground, handleToggleDetach } = useEditorDetach({
+const { handleToggleDetach } = useEditorDetach({
   canvas,
   currentImage,
   originalImage,
   isCollageMode,
+  detachedFromBackground,
   background,
   currentFileName,
   imageStore,
@@ -1230,9 +1237,10 @@ onMounted(async () => {
       // Bilder in Layern neu laden falls nötig
       await reloadImageLayers();
 
-      // Erstes Rendern
-      imageStore.draw();
+      // Erstes Rendern und Startpunkt der Historie
+      renderImage();
       updateImageInfo();
+      saveHistory('Collage geladen');
       console.log(`✅ Collage-Modus aktiviert mit ${imageStore.imageLayerCount} Layern`);
     } else {
       console.error('❌ Canvas nicht gefunden im Collage-Modus');
@@ -1275,6 +1283,8 @@ onUnmounted(() => {
   if (isCollageMode.value) {
     layerInteraction.removeListeners();
   }
+  // Historie beim Store abmelden (Ebenen-Panel/Text-Dialog außerhalb des Editors)
+  unregisterHistory();
 });
 </script>
 

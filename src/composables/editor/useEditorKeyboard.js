@@ -151,6 +151,7 @@ export function useEditorKeyboard({
           e.preventDefault();
           imageStore.deleteText(selectedTextId.value);
           selectedTextId.value = null;
+          imageStore.saveState('Text gelöscht', 'text');
         }
         break;
     }

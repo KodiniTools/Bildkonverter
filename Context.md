@@ -73,7 +73,7 @@ src/
 │   │   ├── useCanvasInteraction.js  # Maus/Touch auf dem Canvas: Text, Ebenen, Crop, Pan, Pinch
 │   │   ├── useEditorDetach.js       # Bild vom Hintergrund lösen / wieder verbinden
 │   │   ├── useEditorExport.js       # Export-Dialog, Drucken, Handoff an andere Tools
-│   │   ├── useEditorHistory.js      # Gemeinsame Undo/Redo-Historie (Snapshot des Editor-Zustands)
+│   │   ├── useEditorHistory.js      # Die einzige Undo/Redo-Historie (Bild, Filter, Transform, Texte, Crop, Ebenen)
 │   │   ├── useEditorKeyboard.js     # Tastatur-Shortcuts
 │   │   ├── useEditorPreview.js      # Vorher/Nachher-Modal
 │   │   ├── useEditorResize.js       # Größe ändern: Live-Vorschau, Presets, Anwenden
@@ -102,7 +102,7 @@ src/
 │   └── index.js                  # Vue Router (11 Routen + Navigation Guards)
 ├── stores/
 │   ├── galleryStore.js           # Galerie-Bilder & Multi-Select
-│   ├── imageStore.js             # Gemeinsamer Editor-State (Basisbild, Texte, Ebenen, Ebenen-Historie)
+│   ├── imageStore.js             # Gemeinsamer Editor-State (Basisbild, Texte, Ebenen) + Delegation an die Editor-Historie
 │   └── settingsStore.js          # App-Einstellungen (Theme, Sprache, Export)
 ├── styles/
 │   ├── variables.scss            # SCSS-Tokens und Mixins (erzeugt kein CSS)
@@ -162,9 +162,12 @@ src/
 
 ### `imageStore.js` – Gemeinsamer Editor-State
 
-Filter, Transformationen und die Editor-Historie liegen nicht im Store, sondern in
-den Editor-Composables (`useFilterManagement`, `useTransform`, `useEditorHistory`);
-das Rendering übernimmt `useCanvasRenderer`.
+Filter, Transformationen und die Historie liegen nicht im Store, sondern in den
+Editor-Composables (`useFilterManagement`, `useTransform`, `useEditorHistory`); das
+Rendering übernimmt `useCanvasRenderer`. Es gibt genau eine Undo/Redo-Historie:
+`useEditorHistory` registriert sich beim Store (`registerHistory`), und der Store reicht
+`saveState()`/`undo()`/`redo()`/`canUndo`/`canRedo` an sie durch. So nutzen Ebenen-Panel,
+Text-Dialog und Ebenen-Interaktion dieselbe Historie wie Toolbar und Tastatur.
 
 **State:**
 
@@ -175,18 +178,20 @@ imageWidth, imageHeight
 texts[], selectedTextId
 imageLayers[], selectedLayerId   // Bild-Ebenen (Collage-/Ebenen-Modus)
 canvasBackgroundColor
-history[], historyIndex          // Ebenen-Historie (max. 50 Einträge)
 ```
 
 **Computed:**
-`hasImage`, `canUndo`, `canRedo`, `hasImageLayers`, `imageLayerCount`, `selectedImageLayer`
+`hasImage`, `hasImageLayers`, `imageLayerCount`, `selectedImageLayer`, dazu aus der
+registrierten Historie gespiegelt: `canUndo`, `canRedo`, `historyIndex`, `historyLength`
 
 **Actions:**
 - `initCanvas()`, `loadImageFromFile()` – TIFF/HEIC/RAW werden an die Backend-API delegiert
 - `draw()` – schnelle Zwischenansicht (Bild oder Ebenen plus Texte) nach Store-Aktionen
 - Text: `addText()`, `updateText()`, `deleteText()`
 - Ebenen: `addImageLayer()`, `addImageLayersFromGallery()`, `updateImageLayer()`, `deleteImageLayer()`, `selectImageLayer()`, `duplicateImageLayer()`, `moveImageLayerOrder()`, `clearImageLayers()`
-- Ebenen-Historie: `saveState()`, `undo()`, `redo()` (genutzt vom Ebenen-Panel)
+- Historie (Delegation): `registerHistory()`, `saveState(description)`, `undo()`, `redo()`;
+  Store-Aktionen schreiben selbst keine Historie, der Aufrufer sichert nach der Aktion
+- Snapshots: `serializeImageLayers()` (Ebenen ohne Image-Objekte), `restoreImageLayers(layers, selectedId)`
 
 ### `settingsStore.js` – App-Einstellungen
 
@@ -418,7 +423,7 @@ Zwei Vitest-Projekte:
 | Projekt | Umgebung | Inhalt |
 |---------|----------|--------|
 | `unit` | happy-dom | `fileUtils`, `conversionUtils` (Zielgröße, A4-Layout), i18n-Konsistenz (gleicher Schlüsselsatz de/en, jeder referenzierte Schlüssel existiert, kein Schlüssel verwaist), `GuideSectionHeader` mit Vue Test Utils |
-| `browser` | Chromium (Vitest Browser Mode, Playwright) | `useCanvasRenderer` (Vorschau vs. Export pixelgenau, Auswahlrahmen, Vignette, Transparenz, Texte, Collage), `useBatchConversion` (JPG/WebP/PNG, Skalierung, PDF einzeln und gesamt, SVG-Fallback ohne Backend, Fehlerpfad, Reset/Entfernen/Leeren), `useEditorHistory` (Snapshot, Undo/Redo mit vollständiger Wiederherstellung, Redo-Zweig, Reset), `useEditorResize` (Live-Vorschau mit Entprellung, Presets, Anwenden, Validierung), `useEditorDetach` (Ablösen als Ebene, Fehlerpfad, Verbinden, Umschalten, Hintergrund-Sync) |
+| `browser` | Chromium (Vitest Browser Mode, Playwright) | `useCanvasRenderer` (Vorschau vs. Export pixelgenau, Auswahlrahmen, Vignette, Transparenz, Texte, Collage), `useBatchConversion` (JPG/WebP/PNG, Skalierung, PDF einzeln und gesamt, SVG-Fallback ohne Backend, Fehlerpfad, Reset/Entfernen/Leeren), `useEditorHistory` (Snapshot inkl. Ebenen-Modus, Undo/Redo mit vollständiger Wiederherstellung, Wechsel zwischen Einzelbild und Ebenen, Redo-Zweig, Reset, Store-Registrierung), `imageStore` (Delegation der Historie, Ebenen-Serialisierung), `useEditorResize` (Live-Vorschau mit Entprellung, Presets, Anwenden, Validierung), `useEditorDetach` (Ablösen als Ebene, Fehlerpfad, Verbinden, Umschalten, Hintergrund-Sync) |
 
 Die Browser-Tests brauchen einen echten 2D-Canvas und laufen deshalb nicht in jsdom/happy-dom.
 `vitest.config.js` sucht Chromium über Playwright, ersatzweise unter `PLAYWRIGHT_BROWSERS_PATH`
