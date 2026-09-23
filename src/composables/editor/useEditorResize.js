@@ -38,7 +38,22 @@ export function useEditorResize({
   // Werte in den "Grösse ändern"-Feldern (Breite/Höhe) sowie auf Presets. Die
   // endgültige Übernahme (History + Toast) erfolgt weiterhin über "Anwenden".
   let resizePreviewTimer = null;
+
+  /** Verwirft eine noch ausstehende Live-Vorschau (veralteter Feldwert) */
+  function cancelResizePreview() {
+    if (resizePreviewTimer) {
+      clearTimeout(resizePreviewTimer);
+      resizePreviewTimer = null;
+    }
+  }
+
   watch([resizeWidth, resizeHeight], ([newWidth, newHeight]) => {
+    // Jede Änderung der Felder ersetzt die vorherige Eingabe. Eine dafür noch
+    // ausstehende Vorschau darf den Canvas nicht mehr verändern – auch dann
+    // nicht, wenn der neue Wert ungültig ist oder der aktuellen Größe entspricht
+    // (z.B. "Ohne Preset" direkt nach dem Tippen).
+    cancelResizePreview();
+
     if (!canvas.value || !currentImage.value) return;
 
     // Leere oder ungültige Eingaben ignorieren (z.B. während des Tippens)
@@ -57,8 +72,8 @@ export function useEditorResize({
 
     // Neuzeichnen leicht entprellen, damit schnelles Tippen den Canvas bei
     // großen Bildern nicht überlastet – fühlt sich trotzdem unmittelbar an.
-    if (resizePreviewTimer) clearTimeout(resizePreviewTimer);
     resizePreviewTimer = setTimeout(() => {
+      resizePreviewTimer = null;
       if (!canvas.value || !currentImage.value) return;
       canvas.value.width = newWidth;
       canvas.value.height = newHeight;
@@ -92,10 +107,7 @@ export function useEditorResize({
     if (!canvas.value || !currentImage.value) return;
 
     // Ausstehende Live-Vorschau verwerfen – die Größe wird jetzt direkt gesetzt
-    if (resizePreviewTimer) {
-      clearTimeout(resizePreviewTimer);
-      resizePreviewTimer = null;
-    }
+    cancelResizePreview();
 
     canvas.value.width = width;
     canvas.value.height = height;
