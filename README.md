@@ -271,6 +271,26 @@ npm run build
 
 Die Anwendung läuft standardmäßig auf `http://localhost:5173`.
 
+### Tests
+
+```bash
+npm test               # alle Tests (Unit + Browser)
+npm run test:unit      # reine Logik und Komponenten (happy-dom)
+npm run test:browser   # Canvas-Rendering und Konvertierung im echten Chromium
+npm run test:watch     # Watch-Modus
+```
+
+Die Browser-Tests laufen über den Vitest Browser Mode mit Playwright. Einmalig den
+Browser installieren:
+
+```bash
+npx playwright install chromium
+```
+
+Liegt bereits ein Chromium unter `PLAYWRIGHT_BROWSERS_PATH` (z.B. in CI-Images), wird
+es automatisch verwendet; ein anderer Pfad lässt sich mit `VITEST_CHROMIUM=/pfad/zu/chrome`
+vorgeben.
+
 ### Backend-API (optional)
 
 Für die Verarbeitung von TIFF, HEIC/HEIF, SVG und TIFF-Export wird eine Backend-API benötigt. Ohne aktive API-Verbindung sind diese Formate nicht verfügbar – alle anderen Funktionen bleiben vollständig nutzbar.
