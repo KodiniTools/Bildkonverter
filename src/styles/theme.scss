@@ -1,0 +1,102 @@
+/**
+ * Theme - CSS Custom Properties für Light und Dark Mode
+ *
+ * Wird genau einmal über main.scss eingebunden. Komponenten, die SCSS-Tokens
+ * brauchen, nutzen `@use '@/styles/variables' as *` – das erzeugt kein CSS.
+ */
+
+@use './variables' as *;
+
+:root {
+  color-scheme: light;
+
+  // Colors
+  --color-primary: #{$color-primary};
+  --color-success: #{$color-success};
+  --color-warning: #{$color-warning};
+  --color-error: #{$color-error};
+  --color-danger: #{$color-error};
+  --color-info: #{$color-info};
+
+  --color-white: #{$color-white};
+  --color-bg: #{$color-bg};
+  --color-bg-secondary: #{$color-bg-secondary};
+  --color-bg-gradient: #{$color-bg-gradient};
+  --color-text: #{$color-text};
+  --color-text-light: #{$color-text-light};
+  --color-border: #{$color-border};
+
+  --color-light-blue: #{$color-light-blue};
+  --color-medium-blue: #{$color-medium-blue};
+  --color-accent: #{$color-accent};
+  --color-accent-light: #{$color-accent-light};
+  --color-accent-lighter: #{$color-accent-lighter};
+  --color-light-gold: #{$color-light-gold};
+  --color-medium-gold: #{$color-medium-gold};
+  --color-btn-text-light: #f5f4d6;
+
+  // Spacing
+  --spacing-xs: #{$spacing-xs};
+  --spacing-sm: #{$spacing-sm};
+  --spacing-md: #{$spacing-md};
+  --spacing-lg: #{$spacing-lg};
+  --spacing-xl: #{$spacing-xl};
+  --spacing-2xl: #{$spacing-2xl};
+
+  // Typography
+  --font-family-sans: #{$font-family-sans};
+  --font-size-xs: #{$font-size-xs};
+  --font-size-sm: #{$font-size-sm};
+  --font-size-base: #{$font-size-base};
+  --font-size-lg: #{$font-size-lg};
+  --font-size-xl: #{$font-size-xl};
+  --font-size-2xl: #{$font-size-2xl};
+
+  // Borders
+  --border-radius-sm: #{$border-radius-sm};
+  --border-radius-md: #{$border-radius-md};
+  --border-radius-lg: #{$border-radius-lg};
+
+  // Shadows
+  --shadow-sm: #{$shadow-sm};
+  --shadow-md: #{$shadow-md};
+  --shadow-lg: #{$shadow-lg};
+
+  // Transitions
+  --transition-fast: #{$transition-fast};
+  --transition-base: #{$transition-base};
+
+  // Layout
+  --header-height: #{$header-height};
+  --header-height-mobile: #{$header-height-mobile};
+  --external-nav-height: #{$external-nav-height};
+}
+
+// Dark Mode
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-bg: #{$dark-primary-bg};
+  --color-bg-secondary: #{$dark-secondary-bg};
+  --color-bg-gradient: #{$dark-primary-bg};
+  --color-card-bg: #{$dark-card-bg};
+  --color-white: #{$dark-card-bg};
+
+  --color-accent: #{$dark-accent-primary};
+  --color-accent-light: #{$dark-accent-tertiary};
+  --color-accent-lighter: #{$dark-text-primary};
+  --color-primary: #{$dark-accent-secondary};
+  --color-light-gold: rgba(201, 152, 77, 0.25);
+  --color-medium-gold: rgba(201, 152, 77, 0.35);
+  --color-light-blue: rgba(1, 79, 153, 0.2);
+  --color-medium-blue: rgba(1, 79, 153, 0.3);
+  --color-btn-text-light: #{$dark-accent-text};
+
+  --color-text: #{$dark-text-primary};
+  --color-text-light: #{$dark-text-secondary};
+  --color-text-muted: #{$dark-text-muted};
+  --color-border: #{$dark-border};
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
+}

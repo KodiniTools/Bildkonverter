@@ -426,8 +426,6 @@ function handleOffline() {
 </script>
 
 <style lang="scss">
-@use '@/styles/variables' as *;
-
 #app {
   // min-height etwas größer als Viewport, damit Seite immer scrollbar ist
   // und AppHeader sticky unter externer Navigation funktioniert

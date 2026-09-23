@@ -588,8 +588,6 @@ async function createCollage() {
 </script>
 
 <style lang="scss" scoped>
-@use '@/styles/variables' as *;
-
 // ===== PAGE LAYOUT =====
 
 .gallery-view {

@@ -29,18 +29,13 @@
     <!-- Quick Start Section -->
     <section id="quick-start" class="section section-white">
       <div class="section-container">
-        <div class="section-header">
-          <div class="section-icon">
-            <i class="fas fa-play-circle"></i>
-          </div>
-          <h2>{{ $t('guide.quickStart.title') }}</h2>
-          <p class="section-description">
-            {{
-              $t('guide.quickStart.subtitle') ||
-              'In nur drei einfachen Schritten zum perfekten Bild'
-            }}
-          </p>
-        </div>
+        <GuideSectionHeader
+          icon="fas fa-play-circle"
+          :title="$t('guide.quickStart.title')"
+          :description="
+            $t('guide.quickStart.subtitle') || 'In nur drei einfachen Schritten zum perfekten Bild'
+          "
+        />
         <div class="steps-container">
           <div v-for="(step, index) in 3" :key="index" class="step-card">
             <div class="step-number-wrapper">
@@ -76,12 +71,11 @@
             </div>
           </div>
           <div class="section-text">
-            <div class="section-header section-header-left">
-              <div class="section-icon section-icon-small">
-                <i class="fas fa-upload"></i>
-              </div>
-              <h2>{{ $t('guide.upload.title') }}</h2>
-            </div>
+            <GuideSectionHeader
+              icon="fas fa-upload"
+              :title="$t('guide.upload.title')"
+              align="left"
+            />
             <p class="section-intro">{{ $t('guide.upload.description') }}</p>
             <div class="feature-cards">
               <div v-for="(method, key) in uploadMethods" :key="key" class="feature-card">
@@ -99,13 +93,11 @@
     <!-- Filters Section -->
     <section class="section section-white">
       <div class="section-container">
-        <div class="section-header">
-          <div class="section-icon">
-            <i class="fas fa-sliders-h"></i>
-          </div>
-          <h2>{{ $t('guide.filters.title') }}</h2>
-          <p class="section-description">{{ $t('guide.filters.description') }}</p>
-        </div>
+        <GuideSectionHeader
+          icon="fas fa-sliders-h"
+          :title="$t('guide.filters.title')"
+          :description="$t('guide.filters.description')"
+        />
         <div class="filters-grid">
           <div v-for="filter in filters" :key="filter.key" class="filter-card">
             <div class="filter-icon">
@@ -121,13 +113,12 @@
     <!-- Presets Section -->
     <section class="section section-dark">
       <div class="section-container">
-        <div class="section-header section-header-light">
-          <div class="section-icon section-icon-light">
-            <i class="fas fa-magic"></i>
-          </div>
-          <h2>{{ $t('guide.presets.title') }}</h2>
-          <p class="section-description">{{ $t('guide.presets.description') }}</p>
-        </div>
+        <GuideSectionHeader
+          icon="fas fa-magic"
+          :title="$t('guide.presets.title')"
+          :description="$t('guide.presets.description')"
+          light
+        />
         <div class="presets-showcase">
           <div v-for="preset in presets" :key="preset" class="preset-card">
             <div class="preset-icon">{{ getPresetIcon(preset) }}</div>
@@ -148,12 +139,11 @@
       <div class="section-container">
         <div class="section-grid">
           <div class="section-text">
-            <div class="section-header section-header-left">
-              <div class="section-icon section-icon-small">
-                <i class="fas fa-crop-alt"></i>
-              </div>
-              <h2>{{ $t('guide.crop.title') }}</h2>
-            </div>
+            <GuideSectionHeader
+              icon="fas fa-crop-alt"
+              :title="$t('guide.crop.title')"
+              align="left"
+            />
             <p class="section-intro">{{ $t('guide.crop.description') }}</p>
             <ol class="numbered-steps">
               <li v-for="step in 4" :key="step">
@@ -181,13 +171,11 @@
     <!-- Transform Section -->
     <section class="section section-gradient">
       <div class="section-container">
-        <div class="section-header">
-          <div class="section-icon">
-            <i class="fas fa-sync-alt"></i>
-          </div>
-          <h2>{{ $t('guide.transform.title') }}</h2>
-          <p class="section-description">{{ $t('guide.transform.description') }}</p>
-        </div>
+        <GuideSectionHeader
+          icon="fas fa-sync-alt"
+          :title="$t('guide.transform.title')"
+          :description="$t('guide.transform.description')"
+        />
         <div class="transform-grid">
           <div v-for="transform in transforms" :key="transform.key" class="transform-card">
             <div class="transform-icon">
@@ -217,12 +205,7 @@
             </div>
           </div>
           <div class="section-text">
-            <div class="section-header section-header-left">
-              <div class="section-icon section-icon-small">
-                <i class="fas fa-font"></i>
-              </div>
-              <h2>{{ $t('guide.text.title') }}</h2>
-            </div>
+            <GuideSectionHeader icon="fas fa-font" :title="$t('guide.text.title')" align="left" />
             <p class="section-intro">{{ $t('guide.text.description') }}</p>
             <div class="feature-list-grid">
               <div v-for="feature in textFeatures" :key="feature.key" class="feature-list-item">
@@ -246,12 +229,11 @@
       <div class="section-container">
         <div class="section-grid">
           <div class="section-text">
-            <div class="section-header section-header-left">
-              <div class="section-icon section-icon-small">
-                <i class="fas fa-expand-arrows-alt"></i>
-              </div>
-              <h2>{{ $t('guide.resize.title') }}</h2>
-            </div>
+            <GuideSectionHeader
+              icon="fas fa-expand-arrows-alt"
+              :title="$t('guide.resize.title')"
+              align="left"
+            />
             <p class="section-intro">{{ $t('guide.resize.description') }}</p>
             <div class="feature-cards feature-cards-column">
               <div v-for="feature in resizeFeatures" :key="feature.key" class="feature-card">
@@ -278,13 +260,11 @@
     <!-- Export Section -->
     <section class="section section-white">
       <div class="section-container">
-        <div class="section-header">
-          <div class="section-icon">
-            <i class="fas fa-download"></i>
-          </div>
-          <h2>{{ $t('guide.export.title') }}</h2>
-          <p class="section-description">{{ $t('guide.export.description') }}</p>
-        </div>
+        <GuideSectionHeader
+          icon="fas fa-download"
+          :title="$t('guide.export.title')"
+          :description="$t('guide.export.description')"
+        />
         <div class="export-content">
           <div class="export-steps">
             <div v-for="step in 3" :key="step" class="export-step">
@@ -321,12 +301,11 @@
             </div>
           </div>
           <div class="section-text">
-            <div class="section-header section-header-left">
-              <div class="section-icon section-icon-small">
-                <i class="fas fa-images"></i>
-              </div>
-              <h2>{{ $t('guide.gallery.title') }}</h2>
-            </div>
+            <GuideSectionHeader
+              icon="fas fa-images"
+              :title="$t('guide.gallery.title')"
+              align="left"
+            />
             <p class="section-intro">{{ $t('guide.gallery.description') }}</p>
             <div class="feature-list-grid">
               <div v-for="feature in galleryFeatures" :key="feature.key" class="feature-list-item">
@@ -344,19 +323,14 @@
       <div class="section-container">
         <div class="section-grid">
           <div class="section-text">
-            <div class="section-header section-header-left">
-              <div class="section-icon section-icon-small">
-                <i class="fas fa-layer-group"></i>
-              </div>
-              <h2>{{ $t('guide.collage.title') }}</h2>
-            </div>
+            <GuideSectionHeader
+              icon="fas fa-layer-group"
+              :title="$t('guide.collage.title')"
+              align="left"
+            />
             <p class="section-intro">{{ $t('guide.collage.description') }}</p>
             <div class="feature-list-grid">
-              <div
-                v-for="feature in collageFeatures"
-                :key="feature.key"
-                class="feature-list-item"
-              >
+              <div v-for="feature in collageFeatures" :key="feature.key" class="feature-list-item">
                 <i :class="feature.icon"></i>
                 <span>{{ $t(`guide.collage.features.${feature.key}`) }}</span>
               </div>
@@ -382,13 +356,11 @@
     <!-- Mobile Gestures Section -->
     <section class="section section-gradient">
       <div class="section-container">
-        <div class="section-header">
-          <div class="section-icon">
-            <i class="fas fa-mobile-alt"></i>
-          </div>
-          <h2>{{ $t('guide.mobile.title') }}</h2>
-          <p class="section-description">{{ $t('guide.mobile.description') }}</p>
-        </div>
+        <GuideSectionHeader
+          icon="fas fa-mobile-alt"
+          :title="$t('guide.mobile.title')"
+          :description="$t('guide.mobile.description')"
+        />
         <div class="gestures-grid">
           <div v-for="gesture in mobileGestures" :key="gesture.key" class="gesture-card">
             <div class="gesture-icon">
@@ -420,12 +392,7 @@
             </div>
           </div>
           <div class="section-text">
-            <div class="section-header section-header-left">
-              <div class="section-icon section-icon-small">
-                <i class="fas fa-tasks"></i>
-              </div>
-              <h2>{{ $t('guide.batch.title') }}</h2>
-            </div>
+            <GuideSectionHeader icon="fas fa-tasks" :title="$t('guide.batch.title')" align="left" />
             <p class="section-intro">{{ $t('guide.batch.description') }}</p>
             <div class="feature-list-grid">
               <div v-for="feature in batchFeatures" :key="feature.key" class="feature-list-item">
@@ -445,15 +412,13 @@
     <!-- Privacy Section -->
     <section class="section section-dark">
       <div class="section-container">
-        <div class="section-header section-header-light">
-          <div class="section-icon section-icon-light">
-            <i class="fas fa-shield-alt"></i>
-          </div>
-          <h2>{{ $t('guide.privacy.title') }}</h2>
-          <p class="section-description" style="color: rgba(255,255,255,0.8)">
-            {{ $t('guide.privacy.description') }}
-          </p>
-        </div>
+        <GuideSectionHeader
+          icon="fas fa-shield-alt"
+          :title="$t('guide.privacy.title')"
+          :description="$t('guide.privacy.description')"
+          description-color="rgba(255,255,255,0.8)"
+          light
+        />
         <div class="privacy-grid">
           <div v-for="feature in privacyFeatures" :key="feature.key" class="privacy-card">
             <div class="privacy-icon">
@@ -471,79 +436,38 @@
         <div class="dual-section-grid">
           <!-- History -->
           <div class="dual-section-card">
-            <div class="section-header section-header-left">
-              <div class="section-icon section-icon-small">
-                <i class="fas fa-history"></i>
-              </div>
-              <h2>{{ $t('guide.history.title') }}</h2>
-            </div>
+            <GuideSectionHeader
+              icon="fas fa-history"
+              :title="$t('guide.history.title')"
+              align="left"
+            />
             <p class="section-intro">{{ $t('guide.history.description') }}</p>
             <div class="shortcuts-box">
-              <div class="shortcut-item">
+              <div v-for="shortcut in historyShortcuts" :key="shortcut.label" class="shortcut-item">
                 <div class="shortcut-keys">
-                  <kbd>Ctrl</kbd>
-                  <span class="shortcut-plus">+</span>
-                  <kbd>Z</kbd>
+                  <template v-for="(key, i) in shortcut.keys" :key="key">
+                    <span v-if="i > 0" class="shortcut-plus">+</span>
+                    <kbd>{{ key }}</kbd>
+                  </template>
                 </div>
-                <span class="shortcut-label">{{ $t('guide.history.undo') }}</span>
-              </div>
-              <div class="shortcut-item">
-                <div class="shortcut-keys">
-                  <kbd>Ctrl</kbd>
-                  <span class="shortcut-plus">+</span>
-                  <kbd>Y</kbd>
-                </div>
-                <span class="shortcut-label">{{ $t('guide.history.redo') }}</span>
-              </div>
-              <div class="shortcut-item">
-                <div class="shortcut-keys">
-                  <kbd>T</kbd>
-                </div>
-                <span class="shortcut-label">{{ $t('guide.history.shortcuts.addText') }}</span>
-              </div>
-              <div class="shortcut-item">
-                <div class="shortcut-keys">
-                  <kbd>Esc</kbd>
-                </div>
-                <span class="shortcut-label">{{ $t('guide.history.shortcuts.escape') }}</span>
-              </div>
-              <div class="shortcut-item">
-                <div class="shortcut-keys">
-                  <kbd>Del</kbd>
-                </div>
-                <span class="shortcut-label">{{ $t('guide.history.shortcuts.delete') }}</span>
-              </div>
-              <div class="shortcut-item">
-                <div class="shortcut-keys">
-                  <kbd>Ctrl</kbd>
-                  <span class="shortcut-plus">+</span>
-                  <kbd>V</kbd>
-                </div>
-                <span class="shortcut-label">{{ $t('guide.history.shortcuts.pasteImage') }}</span>
+                <span class="shortcut-label">{{ $t(shortcut.label) }}</span>
               </div>
             </div>
           </div>
           <!-- Settings -->
           <div class="dual-section-card">
-            <div class="section-header section-header-left">
-              <div class="section-icon section-icon-small">
-                <i class="fas fa-cog"></i>
-              </div>
-              <h2>{{ $t('guide.settings.title') }}</h2>
-            </div>
+            <GuideSectionHeader
+              icon="fas fa-cog"
+              :title="$t('guide.settings.title')"
+              align="left"
+            />
             <p class="section-intro">{{ $t('guide.settings.description') }}</p>
             <div class="settings-options">
-              <div class="settings-option">
+              <div v-for="option in settingsOptions" :key="option.key" class="settings-option">
                 <div class="settings-option-icon">
-                  <i class="fas fa-language"></i>
+                  <i :class="option.icon"></i>
                 </div>
-                <span>{{ $t('guide.settings.features.language') }}</span>
-              </div>
-              <div class="settings-option">
-                <div class="settings-option-icon">
-                  <i class="fas fa-moon"></i>
-                </div>
-                <span>{{ $t('guide.settings.features.theme') }}</span>
+                <span>{{ $t(`guide.settings.features.${option.key}`) }}</span>
               </div>
             </div>
           </div>
@@ -570,9 +494,7 @@
 </template>
 
 <script setup>
-import { useI18n } from 'vue-i18n';
-
-const { t } = useI18n({ useScope: 'global' });
+import GuideSectionHeader from '@/components/guide/GuideSectionHeader.vue';
 
 const presets = [
   'original',
@@ -661,6 +583,21 @@ const privacyFeatures = [
   { key: 'noUpload', icon: 'fas fa-ban' },
   { key: 'noAccount', icon: 'fas fa-user-slash' },
   { key: 'offline', icon: 'fas fa-wifi' },
+];
+
+// Tastenkürzel im Abschnitt "Verlauf" (Texte unter guide.history.*)
+const historyShortcuts = [
+  { keys: ['Ctrl', 'Z'], label: 'guide.history.undo' },
+  { keys: ['Ctrl', 'Y'], label: 'guide.history.redo' },
+  { keys: ['T'], label: 'guide.history.shortcuts.addText' },
+  { keys: ['Esc'], label: 'guide.history.shortcuts.escape' },
+  { keys: ['Del'], label: 'guide.history.shortcuts.delete' },
+  { keys: ['Ctrl', 'V'], label: 'guide.history.shortcuts.pasteImage' },
+];
+
+const settingsOptions = [
+  { key: 'language', icon: 'fas fa-language' },
+  { key: 'theme', icon: 'fas fa-moon' },
 ];
 
 function getPresetIcon(preset) {
@@ -840,71 +777,6 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 // ===== SECTION HEADER =====
-.section-header {
-  text-align: center;
-  margin-bottom: 2.5rem;
-
-  &.section-header-left {
-    text-align: left;
-    margin-bottom: 1.25rem;
-  }
-
-  &.section-header-light {
-    h2,
-    p {
-      color: white;
-    }
-  }
-
-  h2 {
-    font-size: clamp(1.4rem, 3vw, 1.9rem);
-    font-weight: 700;
-    margin-bottom: 0.75rem;
-    color: var(--color-text);
-  }
-}
-
-.section-icon {
-  width: 56px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, var(--color-primary) 0%, #003971 100%);
-  border-radius: 16px;
-  margin: 0 auto 1.25rem;
-  box-shadow: 0 8px 24px rgba(1, 79, 153, 0.25);
-
-  i {
-    font-size: 1.4rem;
-    color: #f5f4d6;
-  }
-
-  &.section-icon-small {
-    width: 42px;
-    height: 42px;
-    margin: 0 0 0.75rem 0;
-    border-radius: 12px;
-
-    i {
-      font-size: 1.1rem;
-    }
-  }
-
-  &.section-icon-light {
-    background: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  }
-}
-
-.section-description {
-  font-size: 1rem;
-  color: var(--color-text-light);
-  max-width: 650px;
-  margin: 0 auto;
-  line-height: 1.6;
-}
-
 // ===== SECTION GRID =====
 .section-grid {
   display: grid;
@@ -1828,7 +1700,11 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     &-3 {
       width: 90px;
       height: 90px;
-      background: linear-gradient(135deg, var(--color-light-blue) 0%, var(--color-medium-blue) 100%);
+      background: linear-gradient(
+        135deg,
+        var(--color-light-blue) 0%,
+        var(--color-medium-blue) 100%
+      );
       top: 60px;
       left: 95px;
       box-shadow: 0 6px 20px rgba(1, 79, 153, 0.2);
@@ -1905,7 +1781,11 @@ $transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     .batch-item {
       width: 52px;
       height: 64px;
-      background: linear-gradient(135deg, var(--color-light-blue) 0%, var(--color-medium-blue) 100%);
+      background: linear-gradient(
+        135deg,
+        var(--color-light-blue) 0%,
+        var(--color-medium-blue) 100%
+      );
       border-radius: 10px;
       border: 1px solid var(--color-border);
       display: flex;

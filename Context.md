@@ -45,6 +45,8 @@ src/
 ├── components/
 │   ├── dev/
 │   │   └── PerformanceMonitor.vue
+│   ├── guide/
+│   │   └── GuideSectionHeader.vue  # Abschnitts-Überschrift (Icon, Titel, Beschreibung) der Anleitung
 │   ├── editor/
 │   │   ├── FilterPresets.vue
 │   │   ├── PreviewModal.vue
@@ -101,7 +103,8 @@ src/
 │   ├── imageStore.js             # Gemeinsamer Editor-State (Basisbild, Texte, Ebenen, Ebenen-Historie)
 │   └── settingsStore.js          # App-Einstellungen (Theme, Sprache, Export)
 ├── styles/
-│   ├── variables.scss            # CSS Custom Properties (Farben, Abstände)
+│   ├── variables.scss            # SCSS-Tokens und Mixins (erzeugt kein CSS)
+│   ├── theme.scss                # CSS Custom Properties für Light/Dark (einmal über main.scss)
 │   ├── global.scss               # Reset, Typografie, Utility-Klassen
 │   └── main.scss                 # SCSS-Einstiegspunkt
 ├── utils/
