@@ -7,7 +7,7 @@
  * bleiben die statischen Werte aus index.html bestehen.
  */
 
-const BASE_URL = 'https://www.kodinitools.com/bildkonverter';
+const BASE_URL = 'https://kodinitools.com/bildkonverter';
 const SITE_NAME = 'KodiniTools';
 const DEFAULT_TITLE_SUFFIX = 'Bildkonverter Pro';
 

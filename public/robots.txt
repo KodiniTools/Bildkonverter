@@ -12,4 +12,4 @@ Disallow: /fontawesome/
 Disallow: /bildkonverter/api/
 
 # Sitemap
-Sitemap: https://www.kodinitools.com/bildkonverter/sitemap.xml
+Sitemap: https://kodinitools.com/bildkonverter/sitemap.xml
