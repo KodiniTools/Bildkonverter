@@ -15,13 +15,10 @@
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#014F99" />
 
-    <!-- Canonical URL -->
-    <link rel="canonical" href="https://kodinitools.com/bildkonverter/" />
-
-    <!-- Hreflang für Mehrsprachigkeit -->
-    <link rel="alternate" hreflang="de" href="https://kodinitools.com/bildkonverter/" />
-    <link rel="alternate" hreflang="en" href="https://kodinitools.com/bildkonverter/" />
-    <link rel="alternate" hreflang="x-default" href="https://kodinitools.com/bildkonverter/" />
+    <!-- Canonical & hreflang: bewusst NICHT statisch gesetzt. Die SPA liefert fuer
+         jede Route dieselbe index.html aus; ein statisches Canonical wuerde /editor,
+         /batch, /konvertieren/... als Duplikat der Startseite markieren.
+         src/composables/useSeoMeta.js setzt beides pro Route (Google rendert JavaScript). -->
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />

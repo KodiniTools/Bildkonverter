@@ -39,6 +39,21 @@ function setCanonical(url) {
 }
 
 /**
+ * Setzt oder aktualisiert <link rel="alternate" hreflang="...">
+ * (beide Sprachen teilen sich eine URL, Umschaltung erfolgt clientseitig)
+ */
+function setAlternate(hreflang, url) {
+  let link = document.querySelector(`link[rel="alternate"][hreflang="${hreflang}"]`);
+  if (!link) {
+    link = document.createElement('link');
+    link.setAttribute('rel', 'alternate');
+    link.setAttribute('hreflang', hreflang);
+    document.head.appendChild(link);
+  }
+  link.setAttribute('href', url);
+}
+
+/**
  * Aktualisiert alle SEO-relevanten Meta-Tags für die aktuelle Route
  *
  * @param {object} meta - Route-Meta-Objekt mit SEO-Feldern
@@ -58,6 +73,7 @@ export function updateSeoMeta(meta) {
   // Canonical URL
   const canonicalUrl = `${BASE_URL}${path}`;
   setCanonical(canonicalUrl);
+  for (const lang of ['de', 'en', 'x-default']) setAlternate(lang, canonicalUrl);
 
   // Meta Description
   if (description) {
