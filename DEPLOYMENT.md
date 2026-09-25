@@ -7,7 +7,7 @@ außerhalb des öffentlich erreichbaren Verzeichnisses.
 |                   |                                               |
 | ----------------- | --------------------------------------------- |
 | Zielverzeichnis   | `/var/www/kodinitools.com/bildkonverter`      |
-| Öffentliche URL   | `https://www.kodinitools.com/bildkonverter/`  |
+| Öffentliche URL   | `https://kodinitools.com/bildkonverter/`  |
 | Build-Verzeichnis | `/opt/bildkonverter` (Clone + `node_modules`) |
 | Backups           | `/var/backups/bildkonverter/` (letzte 5)      |
 
@@ -153,8 +153,8 @@ sudo RSYNC_EXCLUDES="api/ uploads/" ./deploy.sh
 ```bash
 cat /var/www/kodinitools.com/bildkonverter/.deployed    # Commit, Branch, Zeitpunkt
 
-curl -I https://www.kodinitools.com/bildkonverter/      # 200
-curl -I https://www.kodinitools.com/bildkonverter/editor # 200 (SPA-Fallback greift)
+curl -I https://kodinitools.com/bildkonverter/      # 200
+curl -I https://kodinitools.com/bildkonverter/editor # 200 (SPA-Fallback greift)
 ```
 
 Im Browser mit `Strg`+`F5` neu laden. Erscheinen weiterhin alte Inhalte, liefert

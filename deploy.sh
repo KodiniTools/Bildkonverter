@@ -228,4 +228,4 @@ else
 fi
 
 step "Deployment erfolgreich – $COMMIT auf $BRANCH"
-printf "  https://www.kodinitools.com%s\n\n" "$BASE_PATH"
+printf "  https://kodinitools.com%s\n\n" "$BASE_PATH"

@@ -91,7 +91,7 @@ und Performance kritisch.
 ```nginx
 server {
     listen 443 ssl http2;
-    server_name www.kodinitools.com;
+    server_name kodinitools.com;
     root /var/www/bildkonverter;
 
     # Sicherheits-Header
@@ -287,13 +287,13 @@ import { visualizer } from 'rollup-plugin-visualizer';
       "@type": "ListItem",
       "position": 1,
       "name": "KodiniTools",
-      "item": "https://www.kodinitools.com"
+      "item": "https://kodinitools.com"
     },
     {
       "@type": "ListItem",
       "position": 2,
       "name": "Bildkonverter",
-      "item": "https://www.kodinitools.com/bildkonverter/"
+      "item": "https://kodinitools.com/bildkonverter/"
     }
   ]
 }
@@ -376,8 +376,8 @@ Umsetzung mit vue-router:
 
 ### 3.1 Google Search Console
 
-- Website-Property einrichten unter `https://www.kodinitools.com/bildkonverter/`
-- Sitemap einreichen: `https://www.kodinitools.com/bildkonverter/sitemap.xml`
+- Website-Property einrichten unter `https://kodinitools.com/bildkonverter/`
+- Sitemap einreichen: `https://kodinitools.com/bildkonverter/sitemap.xml`
 - Crawling-Fehler ueberwachen
 - Core Web Vitals kontrollieren
 - Indexierungsstatus pruefen (besonders wichtig bei CSR-SPA)
