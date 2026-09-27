@@ -90,8 +90,16 @@
       </div>
     </div>
 
-    <button v-if="hasCropped" class="transform-btn undo-btn" @click="$emit('undo-crop')">
-      <i class="fas fa-undo"></i>
+    <button
+      v-if="hasCropped"
+      type="button"
+      class="btn-history btn-reset btn-history--full"
+      @click="$emit('undo-crop')"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 7v6h6" />
+        <path d="M3 13C5.33 7.5 10 4 16 4a9 9 0 0 1 0 18H8" />
+      </svg>
       <span>{{ $t('transform.crop.undo') }}</span>
     </button>
   </div>

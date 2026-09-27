@@ -949,6 +949,8 @@ export default {
     reset: 'Reset',
     increase: 'Increase',
     decrease: 'Decrease',
+    undo: 'Undo',
+    redo: 'Redo',
   },
   toast: {
     crop: {

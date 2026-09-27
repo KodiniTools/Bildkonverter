@@ -43,6 +43,12 @@
   padding: 3px;
 }
 
+/* Verlaufs-Buttons in Toolbar-Höhe */
+.toolbar-history :deep(.btn-history) {
+  height: 32px;
+  padding: 0 10px;
+}
+
 /* Basis-Button in der Toolbar */
 .tb-btn {
   display: inline-flex;

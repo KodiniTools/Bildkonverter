@@ -6,25 +6,16 @@
         <i class="fas fa-font"></i>
         {{ $t('textPanel.title', 'Text bearbeiten') }}
       </h3>
-      <div class="text-history-controls">
-        <button
-          class="btn-icon-small"
-          :disabled="!canUndoText"
-          :title="$t('textPanel.undo', 'Rückgängig')"
-          @click="$emit('undo-text')"
-        >
-          <i class="fas fa-reply"></i>
-        </button>
-        <button
-          class="btn-icon-small"
-          :disabled="!canRedoText"
-          :title="$t('textPanel.redo', 'Wiederherstellen')"
-          @click="$emit('redo-text')"
-        >
-          <i class="fas fa-share"></i>
-        </button>
-      </div>
     </div>
+
+    <HistoryActions
+      :can-undo="canUndoText"
+      :can-redo="canRedoText"
+      :undo-title="$t('textPanel.undo', 'Rückgängig')"
+      :redo-title="$t('textPanel.redo', 'Wiederherstellen')"
+      @undo="$emit('undo-text')"
+      @redo="$emit('redo-text')"
+    />
 
     <!-- Text Inhalt -->
     <div class="control-group">
@@ -44,43 +35,17 @@
 
     <!-- Schriftgröße -->
     <div class="control-group">
-      <label>
-        <i class="fas fa-text-height"></i>
-        {{ $t('textPanel.fontSize', 'Schriftgröße') }}
-      </label>
-      <div class="slider-row">
-        <input
-          type="range"
-          min="8"
-          max="200"
-          :value="selectedText.fontSize || selectedText.size || 32"
-          class="slider"
-          @input="$emit('update:text-font-size', Number($event.target.value))"
-          @change="$emit('save-text-history')"
-        />
-        <NumberSpinner
-          :model-value="selectedText.fontSize || selectedText.size || 32"
-          :min="8"
-          :max="200"
-          unit="px"
-          @update:model-value="$emit('update:text-font-size', $event)"
-          @commit="$emit('save-text-history')"
-        />
-        <button
-          class="reset-btn"
-          :style="{
-            visibility:
-              (selectedText.fontSize || selectedText.size || 32) !== 32 ? 'visible' : 'hidden',
-          }"
-          :title="$t('common.reset')"
-          @click="
-            $emit('update:text-font-size', 32);
-            $emit('save-text-history');
-          "
-        >
-          <i class="fas fa-undo-alt"></i>
-        </button>
-      </div>
+      <SliderField
+        :model-value="selectedText.fontSize || selectedText.size || 32"
+        :min="8"
+        :max="200"
+        unit="px"
+        :default-value="32"
+        :label="$t('textPanel.fontSize', 'Schriftgröße')"
+        icon="fas fa-text-height"
+        @update:model-value="$emit('update:text-font-size', $event)"
+        @commit="$emit('save-text-history')"
+      />
     </div>
 
     <!-- Schriftart -->
@@ -185,40 +150,17 @@
 
     <!-- Text-Umrandung (Stroke) -->
     <div class="control-group">
-      <label>
-        <i class="fas fa-border-style"></i>
-        {{ $t('textPanel.strokeWidth', 'Umrandung') }}
-      </label>
-      <div class="slider-row">
-        <input
-          type="range"
-          min="0"
-          max="50"
-          :value="selectedText.strokeWidth || 0"
-          class="slider"
-          @input="$emit('update:text-stroke-width', Number($event.target.value))"
-          @change="$emit('save-text-history')"
-        />
-        <NumberSpinner
-          :model-value="selectedText.strokeWidth || 0"
-          :min="0"
-          :max="50"
-          unit="px"
-          @update:model-value="$emit('update:text-stroke-width', $event)"
-          @commit="$emit('save-text-history')"
-        />
-        <button
-          class="reset-btn"
-          :style="{ visibility: (selectedText.strokeWidth || 0) !== 0 ? 'visible' : 'hidden' }"
-          :title="$t('common.reset')"
-          @click="
-            $emit('update:text-stroke-width', 0);
-            $emit('save-text-history');
-          "
-        >
-          <i class="fas fa-undo-alt"></i>
-        </button>
-      </div>
+      <SliderField
+        :model-value="selectedText.strokeWidth || 0"
+        :min="0"
+        :max="50"
+        unit="px"
+        :default-value="0"
+        :label="$t('textPanel.strokeWidth', 'Umrandung')"
+        icon="fas fa-border-style"
+        @update:model-value="$emit('update:text-stroke-width', $event)"
+        @commit="$emit('save-text-history')"
+      />
       <div v-if="(selectedText.strokeWidth || 0) > 0" class="color-picker-row mt-2">
         <input
           type="color"
@@ -241,64 +183,39 @@
 
     <!-- Text-Schatten -->
     <div class="control-group">
-      <label>
-        <i class="fas fa-clone"></i>
-        {{ $t('textPanel.shadow', 'Schatten') }}
-      </label>
-      <div class="slider-row">
-        <input
-          type="range"
-          min="0"
-          max="20"
-          :value="selectedText.shadowBlur || 0"
-          class="slider"
-          @input="$emit('update:text-shadow-blur', Number($event.target.value))"
-          @change="$emit('save-text-history')"
-        />
-        <NumberSpinner
-          :model-value="selectedText.shadowBlur || 0"
-          :min="0"
-          :max="20"
-          unit="px"
-          @update:model-value="$emit('update:text-shadow-blur', $event)"
-          @commit="$emit('save-text-history')"
-        />
-        <button
-          class="reset-btn"
-          :style="{ visibility: (selectedText.shadowBlur || 0) !== 0 ? 'visible' : 'hidden' }"
-          :title="$t('common.reset')"
-          @click="
-            $emit('update:text-shadow-blur', 0);
-            $emit('save-text-history');
-          "
-        >
-          <i class="fas fa-undo-alt"></i>
-        </button>
-      </div>
+      <SliderField
+        :model-value="selectedText.shadowBlur || 0"
+        :min="0"
+        :max="20"
+        unit="px"
+        :default-value="0"
+        :label="$t('textPanel.shadow', 'Schatten')"
+        icon="fas fa-clone"
+        @update:model-value="$emit('update:text-shadow-blur', $event)"
+        @commit="$emit('save-text-history')"
+      />
       <div v-if="(selectedText.shadowBlur || 0) > 0" class="shadow-controls">
         <div class="shadow-offset-row">
           <div class="mini-control">
             <label>X</label>
-            <input
-              type="number"
-              min="-50"
-              max="50"
-              :value="selectedText.shadowOffsetX ?? 2"
-              class="mini-input"
-              @input="$emit('update:text-shadow-offset-x', Number($event.target.value))"
-              @change="$emit('save-text-history')"
+            <NumberSpinner
+              :model-value="selectedText.shadowOffsetX ?? 2"
+              :min="-50"
+              :max="50"
+              unit="px"
+              @update:model-value="$emit('update:text-shadow-offset-x', $event)"
+              @commit="$emit('save-text-history')"
             />
           </div>
           <div class="mini-control">
             <label>Y</label>
-            <input
-              type="number"
-              min="-50"
-              max="50"
-              :value="selectedText.shadowOffsetY ?? 2"
-              class="mini-input"
-              @input="$emit('update:text-shadow-offset-y', Number($event.target.value))"
-              @change="$emit('save-text-history')"
+            <NumberSpinner
+              :model-value="selectedText.shadowOffsetY ?? 2"
+              :min="-50"
+              :max="50"
+              unit="px"
+              @update:model-value="$emit('update:text-shadow-offset-y', $event)"
+              @commit="$emit('save-text-history')"
             />
           </div>
         </div>
@@ -325,159 +242,62 @@
 
     <!-- Text-Rotation -->
     <div class="control-group">
-      <label>
-        <i class="fas fa-redo"></i>
-        {{ $t('textPanel.rotation', 'Rotation') }}
-      </label>
-      <div class="slider-row">
-        <input
-          type="range"
-          min="-180"
-          max="180"
-          :value="selectedText.rotation || 0"
-          class="slider"
-          @input="$emit('update:text-rotation', Number($event.target.value))"
-          @change="$emit('save-text-history')"
-        />
-        <NumberSpinner
-          :model-value="selectedText.rotation || 0"
-          :min="-180"
-          :max="180"
-          unit="°"
-          @update:model-value="$emit('update:text-rotation', $event)"
-          @commit="$emit('save-text-history')"
-        />
-        <button
-          class="reset-btn"
-          :style="{ visibility: (selectedText.rotation || 0) !== 0 ? 'visible' : 'hidden' }"
-          :title="$t('common.reset')"
-          @click="
-            $emit('update:text-rotation', 0);
-            $emit('save-text-history');
-          "
-        >
-          <i class="fas fa-undo-alt"></i>
-        </button>
-      </div>
+      <SliderField
+        :model-value="selectedText.rotation || 0"
+        :min="-180"
+        :max="180"
+        unit="°"
+        :default-value="0"
+        :label="$t('textPanel.rotation', 'Rotation')"
+        icon="fas fa-redo"
+        @update:model-value="$emit('update:text-rotation', $event)"
+        @commit="$emit('save-text-history')"
+      />
     </div>
 
     <!-- Text-Neigung horizontal (Skew X) -->
     <div class="control-group">
-      <label>
-        <i class="fas fa-arrows-alt-h"></i>
-        {{ $t('textPanel.skewX', 'Neigung horizontal') }}
-      </label>
-      <div class="slider-row">
-        <input
-          type="range"
-          min="-60"
-          max="60"
-          :value="selectedText.skewX || 0"
-          class="slider"
-          @input="$emit('update:text-skew-x', Number($event.target.value))"
-          @change="$emit('save-text-history')"
-        />
-        <NumberSpinner
-          :model-value="selectedText.skewX || 0"
-          :min="-60"
-          :max="60"
-          unit="°"
-          @update:model-value="$emit('update:text-skew-x', $event)"
-          @commit="$emit('save-text-history')"
-        />
-        <button
-          class="reset-btn"
-          :style="{ visibility: (selectedText.skewX || 0) !== 0 ? 'visible' : 'hidden' }"
-          :title="$t('common.reset')"
-          @click="
-            $emit('update:text-skew-x', 0);
-            $emit('save-text-history');
-          "
-        >
-          <i class="fas fa-undo-alt"></i>
-        </button>
-      </div>
+      <SliderField
+        :model-value="selectedText.skewX || 0"
+        :min="-60"
+        :max="60"
+        unit="°"
+        :default-value="0"
+        :label="$t('textPanel.skewX', 'Neigung horizontal')"
+        icon="fas fa-arrows-alt-h"
+        @update:model-value="$emit('update:text-skew-x', $event)"
+        @commit="$emit('save-text-history')"
+      />
     </div>
 
     <!-- Text-Neigung vertikal (Skew Y) -->
     <div class="control-group">
-      <label>
-        <i class="fas fa-arrows-alt-v"></i>
-        {{ $t('textPanel.skewY', 'Neigung vertikal') }}
-      </label>
-      <div class="slider-row">
-        <input
-          type="range"
-          min="-60"
-          max="60"
-          :value="selectedText.skewY || 0"
-          class="slider"
-          @input="$emit('update:text-skew-y', Number($event.target.value))"
-          @change="$emit('save-text-history')"
-        />
-        <NumberSpinner
-          :model-value="selectedText.skewY || 0"
-          :min="-60"
-          :max="60"
-          unit="°"
-          @update:model-value="$emit('update:text-skew-y', $event)"
-          @commit="$emit('save-text-history')"
-        />
-        <button
-          class="reset-btn"
-          :style="{ visibility: (selectedText.skewY || 0) !== 0 ? 'visible' : 'hidden' }"
-          :title="$t('common.reset')"
-          @click="
-            $emit('update:text-skew-y', 0);
-            $emit('save-text-history');
-          "
-        >
-          <i class="fas fa-undo-alt"></i>
-        </button>
-      </div>
+      <SliderField
+        :model-value="selectedText.skewY || 0"
+        :min="-60"
+        :max="60"
+        unit="°"
+        :default-value="0"
+        :label="$t('textPanel.skewY', 'Neigung vertikal')"
+        icon="fas fa-arrows-alt-v"
+        @update:model-value="$emit('update:text-skew-y', $event)"
+        @commit="$emit('save-text-history')"
+      />
     </div>
 
     <!-- Text-Deckkraft -->
     <div class="control-group">
-      <label>
-        <i class="fas fa-adjust"></i>
-        {{ $t('textPanel.opacity', 'Opacity') }}
-      </label>
-      <div class="slider-row">
-        <input
-          type="range"
-          min="0"
-          max="100"
-          :value="selectedText.opacity !== undefined ? selectedText.opacity : 100"
-          class="slider"
-          @input="$emit('update:text-opacity', Number($event.target.value))"
-          @change="$emit('save-text-history')"
-        />
-        <NumberSpinner
-          :model-value="selectedText.opacity !== undefined ? selectedText.opacity : 100"
-          :min="0"
-          :max="100"
-          unit="%"
-          @update:model-value="$emit('update:text-opacity', $event)"
-          @commit="$emit('save-text-history')"
-        />
-        <button
-          class="reset-btn"
-          :style="{
-            visibility:
-              (selectedText.opacity !== undefined ? selectedText.opacity : 100) !== 100
-                ? 'visible'
-                : 'hidden',
-          }"
-          :title="$t('common.reset')"
-          @click="
-            $emit('update:text-opacity', 100);
-            $emit('save-text-history');
-          "
-        >
-          <i class="fas fa-undo-alt"></i>
-        </button>
-      </div>
+      <SliderField
+        :model-value="selectedText.opacity !== undefined ? selectedText.opacity : 100"
+        :min="0"
+        :max="100"
+        unit="%"
+        :default-value="100"
+        :label="$t('textPanel.opacity', 'Opacity')"
+        icon="fas fa-adjust"
+        @update:model-value="$emit('update:text-opacity', $event)"
+        @commit="$emit('save-text-history')"
+      />
     </div>
 
     <!-- Text löschen -->
@@ -503,7 +323,9 @@
 </template>
 
 <script setup>
+import HistoryActions from '@/components/ui/HistoryActions.vue';
 import NumberSpinner from '@/components/ui/NumberSpinner.vue';
+import SliderField from '@/components/ui/SliderField.vue';
 import { computed } from 'vue';
 import { availableFonts } from '@/assets/fonts/fontList.js';
 import { isFontBold, isFontItalic } from '@/utils/textRender';
@@ -579,11 +401,6 @@ function toggleItalic() {
   }
 }
 
-.text-history-controls {
-  display: flex;
-  gap: 4px;
-}
-
 .text-input {
   width: 100%;
   padding: 0.5rem 0.75rem;
@@ -624,41 +441,6 @@ function toggleItalic() {
     outline: none;
     border-color: var(--color-primary, #014f99);
     box-shadow: 0 0 0 3px rgba(1, 79, 153, 0.1);
-  }
-}
-
-.slider-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-
-  .slider {
-    flex: 1;
-  }
-
-  .reset-btn {
-    flex-shrink: 0;
-    width: 18px;
-    height: 18px;
-    border: none;
-    background: none;
-    cursor: pointer;
-    color: var(--color-text-light, #9ca3af);
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.6rem;
-    border-radius: 50%;
-    transition: all 0.2s ease;
-    opacity: 0.6;
-
-    &:hover {
-      color: var(--color-primary, #014f99);
-      background: rgba(1, 79, 153, 0.1);
-      opacity: 1;
-      transform: rotate(-45deg);
-    }
   }
 }
 
@@ -721,27 +503,10 @@ function toggleItalic() {
   gap: 0.4rem;
 
   label {
-    font-size: 0.75rem;
+    font-size: 0.62rem;
     font-weight: 600;
-    color: var(--color-text-light);
+    color: var(--control-muted);
     min-width: 14px;
-  }
-
-  .mini-input {
-    flex: 1;
-    padding: 0.35rem 0.5rem;
-    font-size: 0.8rem;
-    border: 1px solid var(--color-border, #d1d5db);
-    border-radius: 4px;
-    background: var(--color-bg, #ffffff);
-    color: var(--color-text);
-    width: 100%;
-    max-width: 70px;
-
-    &:focus {
-      outline: none;
-      border-color: var(--color-primary, #014f99);
-    }
   }
 }
 
@@ -792,12 +557,6 @@ function toggleItalic() {
     color: var(--color-text);
   }
 
-  .mini-control .mini-input {
-    background: var(--color-card-bg, var(--color-bg));
-    border-color: var(--color-border);
-    color: var(--color-text);
-  }
-
   .style-toggle {
     background: var(--color-card-bg, var(--color-bg));
     border-color: var(--color-border);
@@ -823,11 +582,6 @@ function toggleItalic() {
 
 // Mobile
 @media (max-width: 768px) {
-  .btn-icon-small {
-    width: 44px;
-    height: 44px;
-  }
-
   .transform-btn {
     min-height: 44px;
     padding: 0.75rem;

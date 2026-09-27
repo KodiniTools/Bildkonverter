@@ -1,54 +1,57 @@
 <template>
-  <!-- Unified Top Bar: Tabs + History -->
-  <div class="panel-topbar">
-    <div class="tab-group">
-      <button
-        class="tab-btn"
-        :class="{ active: activeTab === 'layers' }"
-        @click="activeTab = 'layers'"
-      >
-        <i class="fas fa-layer-group"></i>
-        {{ $t('layerPanel.tabs.layers') }}
-      </button>
-      <button class="tab-btn" :class="{ active: activeTab === 'text' }" @click="activeTab = 'text'">
-        <i class="fas fa-font"></i>
-        {{ $t('layerPanel.tabs.text') }}
-      </button>
+  <!-- Tabs oben, darunter die Verlaufszeile (Visualizer-Muster) -->
+  <div class="panel-topbar-wrap">
+    <div class="panel-topbar">
+      <div class="tab-group">
+        <button
+          class="tab-btn"
+          :class="{ active: activeTab === 'layers' }"
+          @click="activeTab = 'layers'"
+        >
+          <i class="fas fa-layer-group"></i>
+          {{ $t('layerPanel.tabs.layers') }}
+        </button>
+        <button
+          class="tab-btn"
+          :class="{ active: activeTab === 'text' }"
+          @click="activeTab = 'text'"
+        >
+          <i class="fas fa-font"></i>
+          {{ $t('layerPanel.tabs.text') }}
+        </button>
+      </div>
     </div>
-    <div class="history-group">
+
+    <HistoryActions
+      class="panel-history"
+      :can-undo="imageStore.canUndo"
+      :can-redo="imageStore.canRedo"
+      :undo-title="$t('layerPanel.history.undo')"
+      :redo-title="$t('layerPanel.history.redo')"
+      @undo="handleUndo"
+      @redo="handleRedo"
+    >
       <button
-        class="history-btn"
-        :class="{ disabled: !imageStore.canUndo }"
-        :disabled="!imageStore.canUndo"
-        :title="$t('layerPanel.history.undo')"
-        @click="handleUndo"
-      >
-        <i class="fas fa-reply"></i>
-      </button>
-      <button
-        class="history-btn"
-        :class="{ disabled: !imageStore.canRedo }"
-        :disabled="!imageStore.canRedo"
-        :title="$t('layerPanel.history.redo')"
-        @click="handleRedo"
-      >
-        <i class="fas fa-share"></i>
-      </button>
-      <button
-        class="history-btn preview-btn"
+        type="button"
+        class="btn-history btn-preview"
         :title="$t('layerPanel.history.preview')"
         @click="handlePreview"
       >
-        <i class="fas fa-eye"></i>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+        <span class="btn-history__label">{{ $t('layerPanel.history.preview') }}</span>
       </button>
       <span v-if="historyInfo" class="history-info">{{ historyInfo }}</span>
-    </div>
+    </HistoryActions>
   </div>
 </template>
 
 <script setup>
 import { inject } from 'vue';
 import { LAYER_PANEL_KEY } from '@/composables/useLayerPanel';
+import HistoryActions from '@/components/ui/HistoryActions.vue';
 
 const { imageStore, activeTab, historyInfo, handleUndo, handleRedo, handlePreview } =
   inject(LAYER_PANEL_KEY);
@@ -66,14 +69,6 @@ const { imageStore, activeTab, historyInfo, handleUndo, handleRedo, handlePrevie
   .tab-group {
     display: flex;
     flex: 1;
-  }
-
-  .history-group {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.35rem 0.5rem;
-    border-left: 1px solid var(--color-border);
   }
 }
 
@@ -105,38 +100,10 @@ const { imageStore, activeTab, historyInfo, handleUndo, handleRedo, handlePrevie
   }
 }
 
-.history-btn {
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: var(--color-bg);
-  color: var(--color-text);
-  border-radius: 5px;
-  cursor: pointer;
-  display: flex;
+.panel-history {
+  padding: 0.5rem 0.5rem 0;
+  margin-bottom: 0;
   align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  font-size: 0.8rem;
-
-  &:hover:not(.disabled) {
-    background: var(--color-primary);
-    color: white;
-  }
-
-  &.disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-
-  &.preview-btn {
-    background: var(--color-primary);
-    color: #f5f4d6;
-
-    &:hover {
-      background: var(--color-primary-dark, #003971);
-    }
-  }
 }
 
 .history-info {
@@ -151,11 +118,6 @@ const { imageStore, activeTab, historyInfo, handleUndo, handleRedo, handlePrevie
   .tab-btn {
     min-height: 44px;
     font-size: 0.85rem;
-  }
-
-  .history-btn {
-    width: 36px;
-    height: 36px;
   }
 }
 </style>

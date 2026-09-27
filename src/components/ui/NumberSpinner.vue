@@ -18,20 +18,26 @@
         class="spinner-btn spinner-up"
         tabindex="-1"
         :title="$t('common.increase')"
+        :aria-label="$t('common.increase')"
         :disabled="disabled || modelValue >= max"
         @pointerdown="startHold(1, $event)"
       >
-        <i class="fas fa-caret-up"></i>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m6 15 6-6 6 6" />
+        </svg>
       </button>
       <button
         type="button"
         class="spinner-btn spinner-down"
         tabindex="-1"
         :title="$t('common.decrease')"
+        :aria-label="$t('common.decrease')"
         :disabled="disabled || modelValue <= min"
         @pointerdown="startHold(-1, $event)"
       >
-        <i class="fas fa-caret-down"></i>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m6 9 6 6 6-6" />
+        </svg>
       </button>
     </div>
   </div>
@@ -40,9 +46,15 @@
 <script setup>
 import { onBeforeUnmount } from 'vue';
 
-// Verzögerung bis der Dauerlauf startet und Intervall zwischen den Schritten
+// Klicken-und-Halten: ein Schritt sofort, nach HOLD_DELAY ein Dauerlauf, der
+// langsam (für feines Nachjustieren) beginnt und immer schneller wird.
 const HOLD_DELAY = 400;
-const HOLD_INTERVAL = 120;
+const HOLD_PHASES = [
+  { until: 5, interval: 140, factor: 1 },
+  { until: 15, interval: 70, factor: 1 },
+  { until: 30, interval: 40, factor: 1 },
+  { until: Infinity, interval: 40, factor: 5 },
+];
 
 const props = defineProps({
   modelValue: { type: Number, required: true },
@@ -71,18 +83,28 @@ function onInput(e) {
   emit('update:modelValue', clamp(Number(e.target.value)));
 }
 
-// Einzelner Schritt ohne Commit (Commit erfolgt beim Loslassen)
-function doStep(direction) {
-  const next = clamp(roundToStep(props.modelValue + direction * props.step));
+// Schritt um `factor` Schritte ohne Commit (Commit erfolgt beim Loslassen)
+function doStep(direction, factor = 1) {
+  const next = clamp(roundToStep(props.modelValue + direction * props.step * factor));
   if (next === props.modelValue) return false;
   emit('update:modelValue', next);
   return true;
 }
 
-// Klicken-und-Halten: erster Schritt sofort, danach Dauerlauf
-let holdTimeout = null;
-let holdInterval = null;
+let holdTimer = null;
+let holdTicks = 0;
 let holdChanged = false;
+
+function repeatHold(direction) {
+  holdTicks += 1;
+  const phase = HOLD_PHASES.find((p) => holdTicks <= p.until);
+  if (!doStep(direction, phase.factor)) {
+    stopHold(); // Grenze erreicht → anhalten
+    return;
+  }
+  holdChanged = true;
+  holdTimer = setTimeout(() => repeatHold(direction), phase.interval);
+}
 
 function startHold(direction, event) {
   if (props.disabled) return;
@@ -93,30 +115,18 @@ function startHold(direction, event) {
   stopHold();
 
   holdChanged = doStep(direction);
-
-  holdTimeout = setTimeout(() => {
-    holdInterval = setInterval(() => {
-      if (doStep(direction)) {
-        holdChanged = true;
-      } else {
-        stopHold(); // Grenze erreicht → anhalten
-      }
-    }, HOLD_INTERVAL);
-  }, HOLD_DELAY);
+  holdTimer = setTimeout(() => repeatHold(direction), HOLD_DELAY);
 
   window.addEventListener('pointerup', stopHold);
   window.addEventListener('pointercancel', stopHold);
 }
 
 function stopHold() {
-  if (holdTimeout) {
-    clearTimeout(holdTimeout);
-    holdTimeout = null;
+  if (holdTimer) {
+    clearTimeout(holdTimer);
+    holdTimer = null;
   }
-  if (holdInterval) {
-    clearInterval(holdInterval);
-    holdInterval = null;
-  }
+  holdTicks = 0;
   window.removeEventListener('pointerup', stopHold);
   window.removeEventListener('pointercancel', stopHold);
 
@@ -131,26 +141,23 @@ onBeforeUnmount(stopHold);
 </script>
 
 <style scoped lang="scss">
+/* Kompaktes Zahlenfeld im Visualizer-Stil: 22px hoch, umrandet, Monospace.
+   Eigene Pfeile statt der nativen, weil sie das langsam→schnell tragen. */
 .number-spinner {
+  flex: none;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
-  flex-shrink: 0;
+  width: 66px;
   height: 22px;
-  background: var(--color-bg, #ffffff);
-  border: 1px solid var(--color-border, #d1d5db);
+  padding: 0 0 0 4px;
+  background: var(--control-bg);
+  border: 1px solid var(--control-border);
   border-radius: 4px;
-  padding: 0 1px 0 0;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
-
-  &:hover {
-    border-color: var(--color-primary, #014f99);
-  }
+  transition: border-color 0.15s ease;
 
   &:focus-within {
-    border-color: var(--color-primary, #014f99);
-    box-shadow: 0 0 0 2px rgba(1, 79, 153, 0.12);
+    border-color: var(--color-accent);
   }
 
   &.disabled {
@@ -159,14 +166,17 @@ onBeforeUnmount(stopHold);
   }
 
   .spinner-value {
-    width: 34px;
-    padding: 0 1px 0 5px;
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    padding: 0;
     border: none;
     background: transparent;
-    font-size: 0.7rem;
+    color: var(--color-text);
+    font-family: 'Courier New', monospace;
+    font-size: 0.66rem;
     font-weight: 600;
-    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
-    color: var(--color-primary, #014f99);
+    line-height: 1.3;
     text-align: right;
     -moz-appearance: textfield;
     appearance: textfield;
@@ -183,47 +193,57 @@ onBeforeUnmount(stopHold);
   }
 
   .spinner-unit {
+    flex: none;
+    margin-left: 1px;
+    font-family: 'Courier New', monospace;
     font-size: 0.6rem;
-    font-weight: 500;
-    color: var(--color-text-light);
-    margin-right: 1px;
+    color: var(--control-muted);
     pointer-events: none;
   }
 
   .spinner-buttons {
+    flex: none;
     display: flex;
     flex-direction: column;
+    align-self: stretch;
     margin-left: 2px;
-    border-left: 1px solid var(--color-border, #d1d5db);
+    border-left: 1px solid var(--control-border);
   }
 
   .spinner-btn {
+    flex: 1 1 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 16px;
-    height: 10px;
+    width: 14px;
+    min-height: 0;
+    padding: 0;
     border: none;
     background: none;
-    padding: 0;
+    color: var(--control-muted);
     cursor: pointer;
-    color: var(--color-text-light);
+    touch-action: none;
     transition:
       color 0.15s ease,
       background 0.15s ease;
 
-    i {
-      font-size: 0.6rem;
-      line-height: 1;
+    svg {
+      width: 8px;
+      height: 8px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     &:hover:not(:disabled) {
-      color: var(--color-primary, #014f99);
-      background: rgba(1, 79, 153, 0.1);
+      color: var(--color-accent);
+      background: var(--color-light-gold);
     }
 
     &:disabled {
-      opacity: 0.35;
+      opacity: 0.3;
       cursor: default;
     }
   }
@@ -237,22 +257,19 @@ onBeforeUnmount(stopHold);
   }
 }
 
-// Dark Mode
-:root[data-theme='dark'] .number-spinner {
-  background: var(--color-card-bg, var(--color-bg));
-  border-color: rgba(255, 255, 255, 0.15);
+/* Touch: höheres Feld, damit die Pfeile treffbar bleiben */
+@media (max-width: 768px) {
+  .number-spinner {
+    width: 72px;
+    height: 28px;
 
-  .spinner-value {
-    color: #60a5fa;
-  }
+    .spinner-value {
+      font-size: 0.75rem;
+    }
 
-  .spinner-buttons {
-    border-left-color: rgba(255, 255, 255, 0.15);
-  }
-
-  .spinner-btn:hover:not(:disabled) {
-    color: #60a5fa;
-    background: rgba(96, 165, 250, 0.15);
+    .spinner-btn {
+      width: 18px;
+    }
   }
 }
 </style>

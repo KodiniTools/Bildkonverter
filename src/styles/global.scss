@@ -524,3 +524,88 @@ textarea {
     display: none !important;
   }
 }
+
+// ===== VERLAUFS-BUTTONS (Visualizer-Muster) =====
+// Gleich breite, beschriftete Buttons mit kleinem Icon für Rückgängig,
+// Wiederholen und Zurücksetzen. Genutzt über <HistoryActions> und für
+// einzelne Zurücksetzen-Buttons (.btn-history.btn-reset).
+
+.history-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 0.75rem;
+
+  // In Kopf- und Werkzeugleisten: Buttons in Inhaltsbreite, kein Abstand unten
+  &--compact {
+    flex-wrap: nowrap;
+    margin-bottom: 0;
+
+    .btn-history {
+      flex: 0 0 auto;
+    }
+  }
+}
+
+.btn-history {
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border: 1px solid var(--control-border);
+  border-radius: 5px;
+  background: var(--control-bg);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  svg {
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  &.btn-reset:hover:not(:disabled) {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  &--full {
+    width: 100%;
+  }
+}
+
+:root[data-theme='dark'] .btn-history:hover:not(:disabled) {
+  border-color: var(--color-accent-light);
+  color: var(--color-accent-light);
+}
+
+@media (max-width: 480px) {
+  .btn-history {
+    min-height: 36px;
+  }
+}
