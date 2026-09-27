@@ -5,104 +5,45 @@
         <i class="fas fa-magic"></i>
         {{ $t('transform.title') }}
       </h3>
-      <div class="transform-history-controls">
-        <button
-          class="btn-icon-small"
-          :disabled="!canUndoTransform"
-          :title="$t('transform.undo', 'Rückgängig')"
-          @click="$emit('undo-transform')"
-        >
-          <i class="fas fa-reply"></i>
-        </button>
-        <button
-          class="btn-icon-small"
-          :disabled="!canRedoTransform"
-          :title="$t('transform.redo', 'Wiederherstellen')"
-          @click="$emit('redo-transform')"
-        >
-          <i class="fas fa-share"></i>
-        </button>
-      </div>
     </div>
+
+    <HistoryActions
+      :can-undo="canUndoTransform"
+      :can-redo="canRedoTransform"
+      :undo-title="$t('transform.undo', 'Rückgängig')"
+      :redo-title="$t('transform.redo', 'Wiederherstellen')"
+      @undo="$emit('undo-transform')"
+      @redo="$emit('redo-transform')"
+    />
 
     <!-- Deckkraft -->
     <div class="control-group">
-      <label>
-        <span class="label-text">
-          <i class="fas fa-adjust"></i>
-          {{ $t('transform.opacity') }}
-        </span>
-      </label>
-      <div class="slider-with-input">
-        <input
-          type="range"
-          min="0"
-          max="100"
-          :value="transforms.opacity"
-          class="slider"
-          @input="$emit('update:opacity', Number($event.target.value))"
-          @change="$emit('commit-transform')"
-        />
-        <NumberSpinner
-          :model-value="transforms.opacity"
-          :min="0"
-          :max="100"
-          unit="%"
-          @update:model-value="$emit('update:opacity', $event)"
-          @commit="$emit('commit-transform')"
-        />
-        <button
-          class="reset-btn"
-          :style="{ visibility: transforms.opacity !== 100 ? 'visible' : 'hidden' }"
-          :title="$t('common.reset')"
-          @click="
-            $emit('update:opacity', 100);
-            $emit('commit-transform');
-          "
-        >
-          <i class="fas fa-undo-alt"></i>
-        </button>
-      </div>
+      <SliderField
+        :model-value="transforms.opacity"
+        :min="0"
+        :max="100"
+        unit="%"
+        :default-value="100"
+        :label="$t('transform.opacity')"
+        icon="fas fa-adjust"
+        @update:model-value="$emit('update:opacity', $event)"
+        @commit="$emit('commit-transform')"
+      />
     </div>
 
     <!-- Rotation -->
     <div class="control-group">
-      <label>
-        <span class="label-text">
-          <i class="fas fa-redo"></i>
-          {{ $t('transform.rotation') }}
-        </span>
-      </label>
-      <div class="slider-with-input">
-        <input
-          type="range"
-          min="-180"
-          max="180"
-          :value="transforms.rotation"
-          class="slider"
-          @input="$emit('update:rotation', Number($event.target.value))"
-          @change="$emit('commit-transform')"
-        />
-        <NumberSpinner
-          :model-value="transforms.rotation"
-          :min="-180"
-          :max="180"
-          unit="°"
-          @update:model-value="$emit('update:rotation', $event)"
-          @commit="$emit('commit-transform')"
-        />
-        <button
-          class="reset-btn"
-          :style="{ visibility: transforms.rotation !== 0 ? 'visible' : 'hidden' }"
-          :title="$t('common.reset')"
-          @click="
-            $emit('update:rotation', 0);
-            $emit('commit-transform');
-          "
-        >
-          <i class="fas fa-undo-alt"></i>
-        </button>
-      </div>
+      <SliderField
+        :model-value="transforms.rotation"
+        :min="-180"
+        :max="180"
+        unit="°"
+        :default-value="0"
+        :label="$t('transform.rotation')"
+        icon="fas fa-redo"
+        @update:model-value="$emit('update:rotation', $event)"
+        @commit="$emit('commit-transform')"
+      />
     </div>
 
     <!-- Schnell-Rotation Buttons -->
@@ -166,119 +107,48 @@
 
       <!-- Skew X (Horizontal) -->
       <div class="skew-control-row">
-        <label class="mini-label">
-          <i class="fas fa-arrows-alt-h"></i>
-          {{ $t('transform.skew.horizontal', 'Horizontal') }}
-        </label>
-        <div class="slider-with-input compact">
-          <input
-            type="range"
-            min="-45"
-            max="45"
-            :value="transforms.skewX"
-            class="slider"
-            @input="$emit('update:skew-x', Number($event.target.value))"
-            @change="$emit('commit-transform')"
-          />
-          <NumberSpinner
-            :model-value="transforms.skewX"
-            :min="-45"
-            :max="45"
-            unit="°"
-            @update:model-value="$emit('update:skew-x', $event)"
-            @commit="$emit('commit-transform')"
-          />
-          <button
-            class="reset-btn"
-            :style="{ visibility: transforms.skewX !== 0 ? 'visible' : 'hidden' }"
-            :title="$t('common.reset')"
-            @click="
-              $emit('update:skew-x', 0);
-              $emit('commit-transform');
-            "
-          >
-            <i class="fas fa-undo-alt"></i>
-          </button>
-        </div>
+        <SliderField
+          :model-value="transforms.skewX"
+          :min="-45"
+          :max="45"
+          unit="°"
+          :default-value="0"
+          :label="$t('transform.skew.horizontal', 'Horizontal')"
+          icon="fas fa-arrows-alt-h"
+          @update:model-value="$emit('update:skew-x', $event)"
+          @commit="$emit('commit-transform')"
+        />
       </div>
 
       <!-- Skew Y (Vertikal) -->
       <div class="skew-control-row">
-        <label class="mini-label">
-          <i class="fas fa-arrows-alt-v"></i>
-          {{ $t('transform.skew.vertical', 'Vertikal') }}
-        </label>
-        <div class="slider-with-input compact">
-          <input
-            type="range"
-            min="-45"
-            max="45"
-            :value="transforms.skewY"
-            class="slider"
-            @input="$emit('update:skew-y', Number($event.target.value))"
-            @change="$emit('commit-transform')"
-          />
-          <NumberSpinner
-            :model-value="transforms.skewY"
-            :min="-45"
-            :max="45"
-            unit="°"
-            @update:model-value="$emit('update:skew-y', $event)"
-            @commit="$emit('commit-transform')"
-          />
-          <button
-            class="reset-btn"
-            :style="{ visibility: transforms.skewY !== 0 ? 'visible' : 'hidden' }"
-            :title="$t('common.reset')"
-            @click="
-              $emit('update:skew-y', 0);
-              $emit('commit-transform');
-            "
-          >
-            <i class="fas fa-undo-alt"></i>
-          </button>
-        </div>
+        <SliderField
+          :model-value="transforms.skewY"
+          :min="-45"
+          :max="45"
+          unit="°"
+          :default-value="0"
+          :label="$t('transform.skew.vertical', 'Vertikal')"
+          icon="fas fa-arrows-alt-v"
+          @update:model-value="$emit('update:skew-y', $event)"
+          @commit="$emit('commit-transform')"
+        />
       </div>
     </div>
 
     <!-- Zoom/Skalierung -->
     <div class="control-group">
-      <label>
-        <span class="label-text">
-          <i class="fas fa-search-plus"></i>
-          {{ $t('transform.zoom') }}
-        </span>
-      </label>
-      <div class="slider-with-input">
-        <input
-          type="range"
-          min="10"
-          max="200"
-          :value="transforms.scale"
-          class="slider"
-          @input="$emit('update:scale', Number($event.target.value))"
-          @change="$emit('commit-transform')"
-        />
-        <NumberSpinner
-          :model-value="transforms.scale"
-          :min="10"
-          :max="200"
-          unit="%"
-          @update:model-value="$emit('update:scale', $event)"
-          @commit="$emit('commit-transform')"
-        />
-        <button
-          class="reset-btn"
-          :style="{ visibility: transforms.scale !== 100 ? 'visible' : 'hidden' }"
-          :title="$t('common.reset')"
-          @click="
-            $emit('update:scale', 100);
-            $emit('commit-transform');
-          "
-        >
-          <i class="fas fa-undo-alt"></i>
-        </button>
-      </div>
+      <SliderField
+        :model-value="transforms.scale"
+        :min="10"
+        :max="200"
+        unit="%"
+        :default-value="100"
+        :label="$t('transform.zoom')"
+        icon="fas fa-search-plus"
+        @update:model-value="$emit('update:scale', $event)"
+        @commit="$emit('commit-transform')"
+      />
     </div>
 
     <!-- Pan-Hinweis und Reset (nur bei Zoom > 100%) -->
@@ -295,42 +165,17 @@
 
     <!-- Ecken abrunden -->
     <div class="control-group">
-      <label>
-        <span class="label-text">
-          <i class="fas fa-circle"></i>
-          {{ $t('transform.borderRadius') }}
-        </span>
-      </label>
-      <div class="slider-with-input">
-        <input
-          type="range"
-          min="0"
-          max="50"
-          :value="transforms.borderRadius"
-          class="slider"
-          @input="$emit('update:border-radius', Number($event.target.value))"
-          @change="$emit('commit-transform')"
-        />
-        <NumberSpinner
-          :model-value="transforms.borderRadius"
-          :min="0"
-          :max="50"
-          unit="%"
-          @update:model-value="$emit('update:border-radius', $event)"
-          @commit="$emit('commit-transform')"
-        />
-        <button
-          class="reset-btn"
-          :style="{ visibility: transforms.borderRadius !== 0 ? 'visible' : 'hidden' }"
-          :title="$t('common.reset')"
-          @click="
-            $emit('update:border-radius', 0);
-            $emit('commit-transform');
-          "
-        >
-          <i class="fas fa-undo-alt"></i>
-        </button>
-      </div>
+      <SliderField
+        :model-value="transforms.borderRadius"
+        :min="0"
+        :max="50"
+        unit="%"
+        :default-value="0"
+        :label="$t('transform.borderRadius')"
+        icon="fas fa-circle"
+        @update:model-value="$emit('update:border-radius', $event)"
+        @commit="$emit('commit-transform')"
+      />
       <p class="control-hint">
         {{ $t('transform.borderRadiusHint', '50% = vollständiger Kreis') }}
       </p>
@@ -338,42 +183,17 @@
 
     <!-- Rahmen -->
     <div class="control-group">
-      <label>
-        <span class="label-text">
-          <i class="fas fa-border-style"></i>
-          {{ $t('transform.border') }}
-        </span>
-      </label>
-      <div class="slider-with-input">
-        <input
-          type="range"
-          min="0"
-          max="20"
-          :value="transforms.borderWidth"
-          class="slider"
-          @input="$emit('update:border-width', Number($event.target.value))"
-          @change="$emit('commit-transform')"
-        />
-        <NumberSpinner
-          :model-value="transforms.borderWidth"
-          :min="0"
-          :max="20"
-          unit="px"
-          @update:model-value="$emit('update:border-width', $event)"
-          @commit="$emit('commit-transform')"
-        />
-        <button
-          class="reset-btn"
-          :style="{ visibility: transforms.borderWidth !== 0 ? 'visible' : 'hidden' }"
-          :title="$t('common.reset')"
-          @click="
-            $emit('update:border-width', 0);
-            $emit('commit-transform');
-          "
-        >
-          <i class="fas fa-undo-alt"></i>
-        </button>
-      </div>
+      <SliderField
+        :model-value="transforms.borderWidth"
+        :min="0"
+        :max="20"
+        unit="px"
+        :default-value="0"
+        :label="$t('transform.border')"
+        icon="fas fa-border-style"
+        @update:model-value="$emit('update:border-width', $event)"
+        @commit="$emit('commit-transform')"
+      />
 
       <div v-if="transforms.borderWidth > 0" class="color-picker-group">
         <input
@@ -406,154 +226,62 @@
       <div v-if="transforms.shadowEnabled" class="shadow-controls-panel">
         <!-- Offset X -->
         <div class="shadow-control-row">
-          <label class="mini-label">
-            <i class="fas fa-arrows-alt-h"></i>
-            {{ $t('transform.shadow.offsetX', 'X-Versatz') }}
-          </label>
-          <div class="slider-with-input compact">
-            <input
-              type="range"
-              min="-50"
-              max="50"
-              :value="transforms.shadowOffsetX"
-              class="slider"
-              @input="$emit('update:shadow-offset-x', Number($event.target.value))"
-              @change="$emit('commit-transform')"
-            />
-            <NumberSpinner
-              :model-value="transforms.shadowOffsetX"
-              :min="-50"
-              :max="50"
-              unit="px"
-              @update:model-value="$emit('update:shadow-offset-x', $event)"
-              @commit="$emit('commit-transform')"
-            />
-            <button
-              class="reset-btn"
-              :style="{ visibility: transforms.shadowOffsetX !== 10 ? 'visible' : 'hidden' }"
-              :title="$t('common.reset')"
-              @click="
-                $emit('update:shadow-offset-x', 10);
-                $emit('commit-transform');
-              "
-            >
-              <i class="fas fa-undo-alt"></i>
-            </button>
-          </div>
+          <SliderField
+            :model-value="transforms.shadowOffsetX"
+            :min="-50"
+            :max="50"
+            unit="px"
+            :default-value="10"
+            :label="$t('transform.shadow.offsetX', 'X-Versatz')"
+            icon="fas fa-arrows-alt-h"
+            @update:model-value="$emit('update:shadow-offset-x', $event)"
+            @commit="$emit('commit-transform')"
+          />
         </div>
 
         <!-- Offset Y -->
         <div class="shadow-control-row">
-          <label class="mini-label">
-            <i class="fas fa-arrows-alt-v"></i>
-            {{ $t('transform.shadow.offsetY', 'Y-Versatz') }}
-          </label>
-          <div class="slider-with-input compact">
-            <input
-              type="range"
-              min="-50"
-              max="50"
-              :value="transforms.shadowOffsetY"
-              class="slider"
-              @input="$emit('update:shadow-offset-y', Number($event.target.value))"
-              @change="$emit('commit-transform')"
-            />
-            <NumberSpinner
-              :model-value="transforms.shadowOffsetY"
-              :min="-50"
-              :max="50"
-              unit="px"
-              @update:model-value="$emit('update:shadow-offset-y', $event)"
-              @commit="$emit('commit-transform')"
-            />
-            <button
-              class="reset-btn"
-              :style="{ visibility: transforms.shadowOffsetY !== 10 ? 'visible' : 'hidden' }"
-              :title="$t('common.reset')"
-              @click="
-                $emit('update:shadow-offset-y', 10);
-                $emit('commit-transform');
-              "
-            >
-              <i class="fas fa-undo-alt"></i>
-            </button>
-          </div>
+          <SliderField
+            :model-value="transforms.shadowOffsetY"
+            :min="-50"
+            :max="50"
+            unit="px"
+            :default-value="10"
+            :label="$t('transform.shadow.offsetY', 'Y-Versatz')"
+            icon="fas fa-arrows-alt-v"
+            @update:model-value="$emit('update:shadow-offset-y', $event)"
+            @commit="$emit('commit-transform')"
+          />
         </div>
 
         <!-- Blur -->
         <div class="shadow-control-row">
-          <label class="mini-label">
-            <i class="fas fa-adjust"></i>
-            {{ $t('transform.shadow.blur', 'Weichzeichner') }}
-          </label>
-          <div class="slider-with-input compact">
-            <input
-              type="range"
-              min="0"
-              max="100"
-              :value="transforms.shadowBlur"
-              class="slider"
-              @input="$emit('update:shadow-blur', Number($event.target.value))"
-              @change="$emit('commit-transform')"
-            />
-            <NumberSpinner
-              :model-value="transforms.shadowBlur"
-              :min="0"
-              :max="100"
-              unit="px"
-              @update:model-value="$emit('update:shadow-blur', $event)"
-              @commit="$emit('commit-transform')"
-            />
-            <button
-              class="reset-btn"
-              :style="{ visibility: transforms.shadowBlur !== 20 ? 'visible' : 'hidden' }"
-              :title="$t('common.reset')"
-              @click="
-                $emit('update:shadow-blur', 20);
-                $emit('commit-transform');
-              "
-            >
-              <i class="fas fa-undo-alt"></i>
-            </button>
-          </div>
+          <SliderField
+            :model-value="transforms.shadowBlur"
+            :min="0"
+            :max="100"
+            unit="px"
+            :default-value="20"
+            :label="$t('transform.shadow.blur', 'Weichzeichner')"
+            icon="fas fa-adjust"
+            @update:model-value="$emit('update:shadow-blur', $event)"
+            @commit="$emit('commit-transform')"
+          />
         </div>
 
         <!-- Opacity -->
         <div class="shadow-control-row">
-          <label class="mini-label">
-            <i class="fas fa-eye"></i>
-            {{ $t('transform.shadow.opacity', 'Deckkraft') }}
-          </label>
-          <div class="slider-with-input compact">
-            <input
-              type="range"
-              min="0"
-              max="100"
-              :value="transforms.shadowOpacity"
-              class="slider"
-              @input="$emit('update:shadow-opacity', Number($event.target.value))"
-              @change="$emit('commit-transform')"
-            />
-            <NumberSpinner
-              :model-value="transforms.shadowOpacity"
-              :min="0"
-              :max="100"
-              unit="%"
-              @update:model-value="$emit('update:shadow-opacity', $event)"
-              @commit="$emit('commit-transform')"
-            />
-            <button
-              class="reset-btn"
-              :style="{ visibility: transforms.shadowOpacity !== 50 ? 'visible' : 'hidden' }"
-              :title="$t('common.reset')"
-              @click="
-                $emit('update:shadow-opacity', 50);
-                $emit('commit-transform');
-              "
-            >
-              <i class="fas fa-undo-alt"></i>
-            </button>
-          </div>
+          <SliderField
+            :model-value="transforms.shadowOpacity"
+            :min="0"
+            :max="100"
+            unit="%"
+            :default-value="50"
+            :label="$t('transform.shadow.opacity', 'Deckkraft')"
+            icon="fas fa-eye"
+            @update:model-value="$emit('update:shadow-opacity', $event)"
+            @commit="$emit('commit-transform')"
+          />
         </div>
 
         <!-- Farbe -->
@@ -587,7 +315,8 @@
 </template>
 
 <script setup>
-import NumberSpinner from '@/components/ui/NumberSpinner.vue';
+import HistoryActions from '@/components/ui/HistoryActions.vue';
+import SliderField from '@/components/ui/SliderField.vue';
 
 defineProps({
   transforms: { type: Object, required: true },
@@ -626,11 +355,6 @@ defineEmits([
 
 <style scoped lang="scss">
 @import './shared';
-
-.transform-history-controls {
-  display: flex;
-  gap: 4px;
-}
 
 .button-group {
   display: flex;
@@ -714,7 +438,8 @@ defineEmits([
   border-top: 1px dashed var(--color-border, #e5e7eb);
 }
 
-.shadow-toggle-label {
+/* Schalter rechts; stärker als das gemeinsame `.control-group label` */
+.control-group .shadow-toggle-label {
   display: flex;
   align-items: center;
   justify-content: space-between;

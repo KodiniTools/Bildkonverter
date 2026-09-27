@@ -68,10 +68,13 @@
 
         <div class="setting-group">
           <label>{{ $t('batch.settings.quality') }}</label>
-          <div class="quality-control">
-            <input v-model.number="settings.quality" type="range" min="1" max="100" step="1" />
-            <span class="quality-value">{{ settings.quality }}%</span>
-          </div>
+          <SliderField
+            v-model="settings.quality"
+            :min="1"
+            :max="100"
+            unit="%"
+            :default-value="80"
+          />
         </div>
 
         <div class="setting-group">
@@ -285,6 +288,7 @@ import { useI18n } from 'vue-i18n';
 import { useConfirm } from '@/composables/useConfirm';
 import { useBatchConversion } from '@/composables/useBatchConversion';
 import { formatSize } from '@/utils/fileUtils';
+import SliderField from '@/components/ui/SliderField.vue';
 
 const { t } = useI18n({ useScope: 'global' });
 const { confirm: confirmDialog } = useConfirm();
@@ -499,22 +503,6 @@ function closePreview() {
       outline: none;
       border-color: var(--color-primary);
     }
-  }
-}
-
-.quality-control {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-
-  input[type='range'] {
-    flex: 1;
-  }
-
-  .quality-value {
-    font-weight: 600;
-    color: var(--color-primary);
-    min-width: 45px;
   }
 }
 

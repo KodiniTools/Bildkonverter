@@ -3,24 +3,15 @@
     <div class="modal-content" @click.stop>
       <div class="modal-header">
         <h3>{{ modalMode === 'edit' ? $t('textModal.editTitle') : $t('textModal.addTitle') }}</h3>
-        <div class="history-controls">
-          <button
-            class="btn-icon"
-            :disabled="!canUndo"
-            :title="$t('textModal.undo')"
-            @click.prevent="undo"
-          >
-            <i class="fas fa-undo"></i>
-          </button>
-          <button
-            class="btn-icon"
-            :disabled="!canRedo"
-            :title="$t('textModal.redo')"
-            @click.prevent="redo"
-          >
-            <i class="fas fa-redo"></i>
-          </button>
-        </div>
+        <HistoryActions
+          compact
+          :can-undo="canUndo"
+          :can-redo="canRedo"
+          :undo-title="$t('textModal.undo')"
+          :redo-title="$t('textModal.redo')"
+          @undo="undo"
+          @redo="redo"
+        />
       </div>
 
       <div class="form-group">
@@ -35,12 +26,13 @@
 
       <div class="form-group">
         <label>{{ $t('textModal.fontSize') }}:</label>
-        <input
-          v-model.number="localText.fontSize"
-          type="number"
-          min="8"
-          max="200"
-          @change="saveToHistory"
+        <SliderField
+          v-model="localText.fontSize"
+          :min="8"
+          :max="200"
+          unit="px"
+          :default-value="32"
+          @commit="saveToHistory"
         />
       </div>
 
@@ -82,6 +74,8 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
 import { availableFonts } from '@/assets/fonts/fontList.js';
+import HistoryActions from '@/components/ui/HistoryActions.vue';
+import SliderField from '@/components/ui/SliderField.vue';
 import { useTextModal } from '@/composables/useTextModal';
 
 const { editingText, modalMode, saveText, deleteText, closeModal } = useTextModal();
@@ -271,40 +265,6 @@ function close() {
   margin: 0;
 }
 
-.history-controls {
-  display: flex;
-  gap: 4px;
-}
-
-.btn-icon {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-bg-secondary, #f5f5f5);
-  border: 1px solid var(--color-border, #ddd);
-  border-radius: 6px;
-  cursor: pointer;
-  color: var(--color-text-primary, #333);
-  transition: all 0.2s ease;
-}
-
-.btn-icon:hover:not(:disabled) {
-  background: var(--color-primary, #0066ff);
-  color: white;
-  border-color: var(--color-primary, #0066ff);
-}
-
-.btn-icon:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.btn-icon i {
-  font-size: 14px;
-}
-
 .form-group {
   margin-bottom: 16px;
 }
@@ -404,11 +364,6 @@ function close() {
 
   .modal-header h3 {
     font-size: 1rem;
-  }
-
-  .btn-icon {
-    width: 44px;
-    height: 44px;
   }
 
   .form-group input,

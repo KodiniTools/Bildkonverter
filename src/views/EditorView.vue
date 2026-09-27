@@ -21,24 +21,16 @@
         <!-- Mitte: Bearbeitungsaktionen -->
         <div class="toolbar-center">
           <!-- History -->
-          <div class="toolbar-group">
-            <button
-              class="tb-btn tb-btn--icon"
-              :disabled="!canUndo"
-              :title="$t('editor.toolbar.undo', 'Rückgängig (Ctrl+Z)')"
-              @click="undo"
-            >
-              <i class="fas fa-reply"></i>
-            </button>
-            <button
-              class="tb-btn tb-btn--icon"
-              :disabled="!canRedo"
-              :title="$t('editor.toolbar.redo', 'Wiederholen (Ctrl+Y)')"
-              @click="redo"
-            >
-              <i class="fas fa-share"></i>
-            </button>
-          </div>
+          <HistoryActions
+            class="toolbar-history"
+            compact
+            :can-undo="canUndo"
+            :can-redo="canRedo"
+            :undo-title="$t('editor.toolbar.undo', 'Rückgängig (Ctrl+Z)')"
+            :redo-title="$t('editor.toolbar.redo', 'Wiederholen (Ctrl+Y)')"
+            @undo="undo"
+            @redo="redo"
+          />
 
           <!-- Collage beenden -->
           <div v-if="isCollageMode" class="toolbar-group">
@@ -506,6 +498,7 @@ import { useImageLoader } from '@/composables/useImageLoader';
 import { FORMAT_INFO, SUPPORTED_FORMATS, getFormatInfo } from '@/utils/exportUtils';
 
 import TransformPanel from '@/components/features/TransformPanel.vue';
+import HistoryActions from '@/components/ui/HistoryActions.vue';
 import LayerControlPanel from '@/components/features/LayerControlPanel.vue';
 import FilterPresets from '@/components/editor/FilterPresets.vue';
 import ExportPanel from '@/components/editor/sidebar/ExportPanel.vue';

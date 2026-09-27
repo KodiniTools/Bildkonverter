@@ -45,10 +45,18 @@ describe.each(filterPanels)('%s', (_, component, section, firstFilter) => {
     expect(wrapper.emitted('save-history')).toHaveLength(1);
   });
 
-  it('meldet den Reset eines Sliders mit dem Standardwert', async () => {
+  it('deaktiviert den Reset, solange der Slider auf dem Standardwert steht', () => {
     const { wrapper } = setup();
     const slider = wrapper.findAllComponents(FilterSlider)[0];
-    await slider.find('button.reset-btn').trigger('click');
+    expect(slider.find('button.slider-field__reset').attributes('disabled')).toBeDefined();
+  });
+
+  it('meldet den Reset eines Sliders mit dem Standardwert', async () => {
+    const filters = { ...DEFAULT_FILTERS, [firstFilter]: DEFAULT_FILTERS[firstFilter] + 5 };
+    const sectionsOpen = { adjustments: true, lightColor: true, effects: true };
+    const wrapper = mountPanel(component, { filters, sectionsOpen, disabled: false });
+    const slider = wrapper.findAllComponents(FilterSlider)[0];
+    await slider.find('button.slider-field__reset').trigger('click');
     expect(wrapper.emitted('update-filter').at(-1)).toEqual([
       firstFilter,
       slider.props('defaultValue'),
