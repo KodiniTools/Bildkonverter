@@ -499,8 +499,11 @@ export default {
     distort: {
       title: 'Distort',
       hint: 'Drag each corner point individually to freely deform the image.',
-      frameHint: 'Shadow, rounded corners and border are omitted while the image is distorted.',
       reset: 'Reset distortion',
+      resetShort: 'Reset',
+      apply: 'Apply',
+      applyHint:
+        'Apply the distortion to the image – border, shadow and corners work again afterwards',
     },
     skew: {
       title: 'Skew',
@@ -1000,6 +1003,8 @@ export default {
       flippedVertical: 'Image flipped vertically',
       panReset: 'Pan position reset',
       rotationReset: 'Rotation reset',
+      distortApplied: 'Distortion applied',
+      distortFailed: 'Could not apply the distortion',
     },
     batch: {
       filesAdded: '{count} image(s) added',

@@ -57,6 +57,8 @@
       :has-pan="hasPan"
       :can-undo-transform="canUndoTransform"
       :can-redo-transform="canRedoTransform"
+      :has-distortion="hasDistortion"
+      :is-applying-distort="isApplyingDistort"
       @update:opacity="$emit('update:opacity', $event)"
       @update:rotation="$emit('update:rotation', $event)"
       @update:scale="$emit('update:scale', $event)"
@@ -73,6 +75,7 @@
       @update:skew-y="$emit('update:skew-y', $event)"
       @toggle-distort="$emit('toggle-distort')"
       @reset-distort="$emit('reset-distort')"
+      @apply-distort="$emit('apply-distort')"
       @rotate-90="$emit('rotate-90')"
       @rotate-90-counter="$emit('rotate-90-counter')"
       @rotate-180="$emit('rotate-180')"
@@ -109,6 +112,8 @@ defineProps({
   canRedoText: { type: Boolean, default: false },
   canUndoTransform: { type: Boolean, default: false },
   canRedoTransform: { type: Boolean, default: false },
+  hasDistortion: { type: Boolean, default: false },
+  isApplyingDistort: { type: Boolean, default: false },
 });
 
 defineEmits([
@@ -135,6 +140,7 @@ defineEmits([
   'update:skew-y',
   'toggle-distort',
   'reset-distort',
+  'apply-distort',
   'rotate-90',
   'rotate-90-counter',
   'rotate-180',

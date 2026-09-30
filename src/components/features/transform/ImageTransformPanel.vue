@@ -136,37 +136,47 @@
       </div>
     </div>
 
-    <!-- Freies Verzerren (Distort): Eckpunkte einzeln ziehen -->
+    <!-- Freies Verzerren (Distort): Eckpunkte ziehen, dann übernehmen -->
     <div class="control-group distort-section">
-      <label class="shadow-toggle-label">
+      <div class="distort-header">
         <span class="label-text">
           <i class="fas fa-vector-square"></i>
           {{ $t('transform.distort.title') }}
         </span>
         <button
-          class="toggle-btn"
+          type="button"
+          role="switch"
+          class="mini-switch"
           :class="{ active: transforms.distortEnabled }"
           :title="$t('transform.distort.hint')"
           :aria-label="$t('transform.distort.title')"
-          :aria-pressed="!!transforms.distortEnabled"
+          :aria-checked="!!transforms.distortEnabled"
           @click="$emit('toggle-distort')"
         >
-          <span class="toggle-slider"></span>
+          <span class="mini-switch-knob"></span>
         </button>
-      </label>
+      </div>
 
-      <div v-if="transforms.distortEnabled" class="distort-panel">
-        <p class="control-hint">{{ $t('transform.distort.hint') }}</p>
-        <p v-if="hasFrameEffects" class="control-hint">
-          {{ $t('transform.distort.frameHint') }}
-        </p>
+      <div v-if="transforms.distortEnabled" class="distort-actions">
         <button
-          v-if="transforms.cornerOffsets"
-          class="transform-btn distort-reset-btn"
+          type="button"
+          class="distort-btn"
+          :disabled="!hasDistortion || isApplyingDistort"
+          :title="$t('transform.distort.reset')"
           @click="$emit('reset-distort')"
         >
           <i class="fas fa-undo"></i>
-          <span>{{ $t('transform.distort.reset') }}</span>
+          {{ $t('transform.distort.resetShort') }}
+        </button>
+        <button
+          type="button"
+          class="distort-btn primary"
+          :disabled="!hasDistortion || isApplyingDistort"
+          :title="$t('transform.distort.applyHint')"
+          @click="$emit('apply-distort')"
+        >
+          <i :class="isApplyingDistort ? 'fas fa-spinner fa-spin' : 'fas fa-check'"></i>
+          {{ $t('transform.distort.apply') }}
         </button>
       </div>
     </div>
@@ -350,26 +360,19 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
 import HistoryActions from '@/components/ui/HistoryActions.vue';
 import SliderField from '@/components/ui/SliderField.vue';
 
-const props = defineProps({
+defineProps({
   transforms: { type: Object, required: true },
   canPan: { type: Boolean, default: false },
   hasPan: { type: Boolean, default: false },
   canUndoTransform: { type: Boolean, default: false },
   canRedoTransform: { type: Boolean, default: false },
+  // Verzerrung sichtbar aktiv (Modus an UND Ecken versetzt)
+  hasDistortion: { type: Boolean, default: false },
+  isApplyingDistort: { type: Boolean, default: false },
 });
-
-// Schatten, runde Ecken und Rahmen entfallen, solange das Bild verzerrt ist
-const hasFrameEffects = computed(
-  () =>
-    !!props.transforms.cornerOffsets &&
-    (props.transforms.shadowEnabled ||
-      props.transforms.borderRadius > 0 ||
-      props.transforms.borderWidth > 0)
-);
 
 defineEmits([
   'update:opacity',
@@ -388,6 +391,7 @@ defineEmits([
   'update:skew-y',
   'toggle-distort',
   'reset-distort',
+  'apply-distort',
   'rotate-90',
   'rotate-90-counter',
   'rotate-180',
@@ -558,24 +562,95 @@ defineEmits([
   border-top: 1px dashed var(--color-border, #e5e7eb);
 }
 
-.distort-panel {
-  background: rgba(1, 79, 153, 0.05);
-  border: 1px solid rgba(1, 79, 153, 0.15);
-  border-radius: 8px;
-  padding: 0.75rem;
-  margin-top: 0.5rem;
+.distort-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
 
-  .control-hint {
-    margin: 0 0 0.5rem 0;
+/* Kompakter Schalter (32×18) */
+.mini-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 32px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 9px;
+  background: var(--color-border, #d1d5db);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  .mini-switch-knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s ease;
+    pointer-events: none;
   }
 
-  .control-hint:last-child {
-    margin-bottom: 0;
+  &.active {
+    background: var(--color-primary, #014f99);
+
+    .mini-switch-knob {
+      transform: translateX(14px);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary, #014f99);
+    outline-offset: 2px;
   }
 }
 
-.distort-reset-btn {
-  width: 100%;
+.distort-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.375rem;
+  margin-top: 0.5rem;
+}
+
+.distort-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text);
+  background: var(--color-bg, #ffffff);
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-primary, #014f99);
+  }
+
+  &.primary {
+    color: #ffffff;
+    background: var(--color-primary, #014f99);
+    border-color: var(--color-primary, #014f99);
+
+    &:hover:not(:disabled) {
+      background: #003971;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
 }
 
 .skew-control-row {
@@ -630,9 +705,9 @@ defineEmits([
     border-top-color: var(--color-border);
   }
 
-  .distort-panel {
-    background: rgba(1, 79, 153, 0.1);
-    border-color: rgba(1, 79, 153, 0.25);
+  .distort-btn:not(.primary) {
+    background: var(--color-card-bg, var(--color-bg));
+    border-color: var(--color-border);
   }
 }
 

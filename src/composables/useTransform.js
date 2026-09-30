@@ -36,6 +36,9 @@ const DEFAULT_TRANSFORMS = {
   // null = unverzerrt. Wird immer als neues Objekt ersetzt (die Historie
   // kopiert transforms nur flach).
   cornerOffsets: null,
+  // Umrissform nach "Verzerrung übernehmen" (normiert 0..1 im Bild), null =
+  // Rechteck. Schatten, runde Ecken und Rahmen folgen dieser Form.
+  shapeQuad: null,
 };
 
 export function useTransform() {
@@ -299,6 +302,21 @@ export function useTransform() {
   }
 
   /**
+   * Nach dem Backen der Verzerrung: Umrissform merken, Modus beenden.
+   * @param {{nw:{x:number,y:number},ne:{x:number,y:number},se:{x:number,y:number},sw:{x:number,y:number}}|null} shapeQuad
+   */
+  function commitDistortion(shapeQuad) {
+    transforms.value.shapeQuad = shapeQuad ?? null;
+    transforms.value.cornerOffsets = null;
+    transforms.value.distortEnabled = false;
+  }
+
+  /** Umrissform verwerfen (z.B. nach einem Zuschnitt, der sie ungültig macht) */
+  function clearShape() {
+    transforms.value.shapeQuad = null;
+  }
+
+  /**
    * Wende Transformationen auf Canvas an
    */
   function applyToCanvas(canvas, context) {
@@ -557,6 +575,8 @@ export function useTransform() {
     toggleDistort,
     setCornerOffset,
     resetDistort,
+    commitDistortion,
+    clearShape,
     applyToCanvas,
     applyPermanently,
     resetTransforms,
