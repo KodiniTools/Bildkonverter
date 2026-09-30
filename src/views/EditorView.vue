@@ -339,6 +339,8 @@
           :can-redo-text="canRedo"
           :can-undo-transform="canUndo"
           :can-redo-transform="canRedo"
+          :has-distortion="transform.hasDistortion.value"
+          :is-applying-distort="isApplyingDistort"
           @toggle-crop="handleToggleCrop"
           @cancel-crop="handleCancelCrop"
           @undo-crop="handleUndoCrop"
@@ -362,6 +364,7 @@
           @update:skew-y="handleSkewYUpdate"
           @toggle-distort="handleToggleDistort"
           @reset-distort="handleResetDistort"
+          @apply-distort="applyDistortion"
           @rotate-90="handleRotate90"
           @rotate-90-counter="handleRotate90Counter"
           @rotate-180="handleRotate180"
@@ -514,6 +517,7 @@ import PreviewModal from '@/components/editor/PreviewModal.vue';
 import { useTransformHandlers } from '@/composables/editor/useTransformHandlers';
 import { useEditorText } from '@/composables/editor/useEditorText';
 import { useCanvasInteraction } from '@/composables/editor/useCanvasInteraction';
+import { useEditorDistort } from '@/composables/editor/useEditorDistort';
 import { useEditorKeyboard } from '@/composables/editor/useEditorKeyboard';
 import { useImageInfo } from '@/composables/editor/useImageInfo';
 import { useEditorHistory } from '@/composables/editor/useEditorHistory';
@@ -1050,6 +1054,9 @@ function handleFinishCrop() {
       canvas.value.height = height;
       resizeManager.initFromDimensions(width, height);
 
+      // Umrissform einer übernommenen Verzerrung passt nicht mehr zum Ausschnitt
+      transform.clearShape();
+
       // Bei Kreis-Zuschnitt automatisch borderRadius auf 50% setzen
       if (isCircleCrop) {
         transform.setBorderRadius(50, false);
@@ -1125,6 +1132,18 @@ const {
   handleResetDistort,
   handleCommitTransform,
 } = useTransformHandlers({ transform, renderImage, t, saveHistory });
+
+// Verzerrung übernehmen (ins Bild backen, danach wirken Rahmen/Schatten/Ecken wieder)
+const { isApplyingDistort, applyDistortion } = useEditorDistort({
+  canvas,
+  currentImage,
+  transform,
+  resizeManager,
+  renderImage,
+  updateImageSize,
+  saveHistory,
+  t,
+});
 
 // ===== TEXT FUNCTIONS =====
 

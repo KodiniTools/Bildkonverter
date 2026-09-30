@@ -499,8 +499,10 @@ export default {
     distort: {
       title: 'Verzerren',
       hint: 'Eckpunkte im Bild einzeln ziehen, um das Bild frei zu verformen.',
-      frameHint: 'Schatten, abgerundete Ecken und Rahmen entfallen, solange das Bild verzerrt ist.',
       reset: 'Verzerrung zurücksetzen',
+      resetShort: 'Zurücksetzen',
+      apply: 'Übernehmen',
+      applyHint: 'Verzerrung ins Bild übernehmen – danach wirken Rahmen, Schatten und Ecken wieder',
     },
     skew: {
       title: 'Neigung',
@@ -1005,6 +1007,8 @@ export default {
       flippedVertical: 'Bild vertikal gespiegelt',
       panReset: 'Bildausschnitt zurückgesetzt',
       rotationReset: 'Rotation zurückgesetzt',
+      distortApplied: 'Verzerrung übernommen',
+      distortFailed: 'Verzerrung konnte nicht übernommen werden',
     },
     batch: {
       filesAdded: '{count} Bild(er) hinzugefügt',

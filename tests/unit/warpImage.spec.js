@@ -11,6 +11,8 @@ import {
   emptyOffsets,
   MAX_OFFSET,
   MIN_OFFSET,
+  computeBakeLayout,
+  UNIT_QUAD,
 } from '@/utils/warpImage';
 import { useTransform } from '@/composables/useTransform';
 
@@ -122,5 +124,75 @@ describe('useTransform – Verzerren', () => {
     expect(t.transforms.value.distortEnabled).toBe(true);
     t.resetTransforms();
     expect(t.transforms.value.distortEnabled).toBe(false);
+  });
+});
+
+describe('computeBakeLayout – Verzerrung übernehmen', () => {
+  const close = (p, q) => {
+    expect(p.x).toBeCloseTo(q.x, 9);
+    expect(p.y).toBeCloseTo(q.y, 9);
+  };
+
+  it('ohne Versätze bleibt alles beim Einheitsquadrat', () => {
+    const l = computeBakeLayout(emptyOffsets());
+    expect([l.minU, l.minV, l.spanU, l.spanV]).toEqual([0, 0, 1, 1]);
+    for (const c of ['nw', 'ne', 'se', 'sw']) close(l.shapeQuad[c], UNIT_QUAD[c]);
+  });
+
+  it('nach innen gezogene Ecke: Box bleibt, Umriss folgt der Ecke', () => {
+    const l = computeBakeLayout({ ...emptyOffsets(), nw: { x: 0.2, y: 0.3 } });
+    expect(l.spanU).toBeCloseTo(1);
+    expect(l.spanV).toBeCloseTo(1);
+    close(l.shapeQuad.nw, { x: 0.2, y: 0.3 });
+    close(l.shapeQuad.se, { x: 1, y: 1 });
+  });
+
+  it('nach außen gezogene Ecke vergrößert die Box, Umriss bleibt in 0..1', () => {
+    const l = computeBakeLayout({ ...emptyOffsets(), ne: { x: 0.5, y: -0.5 } });
+    expect(l.spanU).toBeCloseTo(1.5);
+    expect(l.spanV).toBeCloseTo(1.5);
+    close(l.shapeQuad.ne, { x: 1, y: 0 });
+    close(l.shapeQuad.nw, { x: 0, y: 0.5 / 1.5 });
+    close(l.shapeQuad.sw, { x: 0, y: 1 });
+  });
+
+  it('eine bestehende Umrissform wird mitverzerrt', () => {
+    const shape = { ...UNIT_QUAD, nw: { x: 0.5, y: 0 } };
+    // Nur die Breite halbieren (rechte Ecken nach links)
+    const l = computeBakeLayout({
+      ...emptyOffsets(),
+      ne: { x: -0.5, y: 0 },
+      se: { x: -0.5, y: 0 },
+    });
+    expect(l.spanU).toBeCloseTo(0.5);
+    const l2 = computeBakeLayout(
+      { ...emptyOffsets(), ne: { x: -0.5, y: 0 }, se: { x: -0.5, y: 0 } },
+      shape
+    );
+    close(l2.shapeQuad.nw, { x: 0.5, y: 0 });
+    close(l2.shapeQuad.se, l.shapeQuad.se);
+  });
+});
+
+describe('useTransform – Verzerrung übernehmen', () => {
+  it('commitDistortion merkt die Form und beendet den Modus', () => {
+    const t = useTransform();
+    t.setDistortEnabled(true);
+    t.setCornerOffset('nw', { x: 0.1, y: 0.1 });
+    const shape = { ...UNIT_QUAD, nw: { x: 0.1, y: 0.1 } };
+    t.commitDistortion(shape);
+    expect(t.transforms.value.shapeQuad).toEqual(shape);
+    expect(t.transforms.value.cornerOffsets).toBeNull();
+    expect(t.transforms.value.distortEnabled).toBe(false);
+    expect(t.hasDistortion.value).toBe(false);
+    t.clearShape();
+    expect(t.transforms.value.shapeQuad).toBeNull();
+  });
+
+  it('resetTransforms verwirft die Form', () => {
+    const t = useTransform();
+    t.commitDistortion({ ...UNIT_QUAD });
+    t.resetTransforms();
+    expect(t.transforms.value.shapeQuad).toBeNull();
   });
 });

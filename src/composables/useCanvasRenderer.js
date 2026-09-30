@@ -6,7 +6,13 @@
 import { buildTextFontString, applyTextTransform } from '@/utils/textRender';
 import { getAdjustedImage } from '@/utils/imageAdjustments';
 import { logger } from '@/utils/logger';
-import { CORNERS, computeQuadCorners, drawWarpedImage, hasDistortion } from '@/utils/warpImage';
+import {
+  CORNERS,
+  computeQuadCorners,
+  drawWarpedImage,
+  hasDistortion,
+  traceRoundedPolygon,
+} from '@/utils/warpImage';
 
 // Gitterauflösung für das freie Verzerren (Distort). Höher = genauer, langsamer.
 const DISTORT_SUBDIVISIONS = 16;
@@ -440,9 +446,21 @@ export function useCanvasRenderer({
     const centerY = drawY + drawHeight / 2;
     const circleRadius = Math.min(drawWidth, drawHeight) / 2;
 
-    // Baut den Pfad der Bildform (Kreis, abgerundetes Rechteck oder Rechteck)
+    // Umrissform einer übernommenen Verzerrung (Viereck im Zeichen-Rechteck)
+    const shapePts = tf.shapeQuad
+      ? CORNERS.map((c) => ({
+          x: drawX + tf.shapeQuad[c].x * drawWidth,
+          y: drawY + tf.shapeQuad[c].y * drawHeight,
+        }))
+      : null;
+    // Pfad nötig für Clip/Schatten/Rahmen (Rechteck ohne Rundung nutzt Rect-APIs)
+    const usesPath = isRounded || !!shapePts;
+
+    // Baut den Pfad der Bildform (Verzerr-Umriss, Kreis, abgerundetes Rechteck)
     const tracePath = () => {
-      if (isCircle) {
+      if (shapePts) {
+        traceRoundedPolygon(ctx, shapePts, isRounded ? radiusPx : 0);
+      } else if (isCircle) {
         ctx.beginPath();
         ctx.arc(centerX, centerY, circleRadius, 0, Math.PI * 2);
       } else {
@@ -463,7 +481,7 @@ export function useCanvasRenderer({
 
         // Schatten-Silhouette in der Form des Bildes (mit Padding)
         ctx.fillStyle = 'rgba(0, 0, 0, 1)';
-        if (isRounded) {
+        if (usesPath) {
           tracePath();
           ctx.fill();
         } else {
@@ -474,8 +492,8 @@ export function useCanvasRenderer({
         ctx.filter = filterString;
       }
 
-      // Abgerundete Ecken / Kreis als Clipping-Pfad
-      if (isRounded) {
+      // Umriss / abgerundete Ecken / Kreis als Clipping-Pfad
+      if (usesPath) {
         ctx.save();
         tracePath();
         ctx.clip();
@@ -487,7 +505,10 @@ export function useCanvasRenderer({
       if (tf.borderWidth > 0) {
         ctx.strokeStyle = tf.borderColor;
         ctx.lineWidth = tf.borderWidth;
-        if (isCircle) {
+        if (shapePts) {
+          tracePath();
+          ctx.stroke();
+        } else if (isCircle) {
           ctx.beginPath();
           ctx.arc(centerX, centerY, circleRadius - tf.borderWidth / 2, 0, Math.PI * 2);
           ctx.stroke();
@@ -499,7 +520,7 @@ export function useCanvasRenderer({
         }
       }
 
-      if (isRounded) {
+      if (usesPath) {
         ctx.restore();
       }
     };
