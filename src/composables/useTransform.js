@@ -5,6 +5,7 @@
  */
 
 import { ref, computed } from 'vue';
+import { CORNERS, emptyOffsets, hasDistortion as offsetsDistorted } from '@/utils/warpImage';
 
 // Standardwerte für Transformationen
 const DEFAULT_TRANSFORMS = {
@@ -28,6 +29,13 @@ const DEFAULT_TRANSFORMS = {
   // Skew/Neigung
   skewX: 0, // -45 bis +45 Grad
   skewY: 0, // -45 bis +45 Grad
+  // Freies Verzerren (Distort / Eckpunkt-Pinning): Ist es aktiv, lassen sich die
+  // 4 Bildecken im Canvas einzeln ziehen.
+  distortEnabled: false, // true/false
+  // Normierte Eck-Versätze {nw,ne,se,sw: {x,y}} (Anteil der Bildbreite/-höhe),
+  // null = unverzerrt. Wird immer als neues Objekt ersetzt (die Historie
+  // kopiert transforms nur flach).
+  cornerOffsets: null,
 };
 
 export function useTransform() {
@@ -252,6 +260,45 @@ export function useTransform() {
   }
 
   /**
+   * Freies Verzerren an-/ausschalten. Die Eck-Versätze bleiben erhalten,
+   * wirken aber nur, solange der Modus aktiv ist.
+   */
+  function setDistortEnabled(enabled) {
+    transforms.value.distortEnabled = !!enabled;
+  }
+
+  function toggleDistort() {
+    setDistortEnabled(!transforms.value.distortEnabled);
+  }
+
+  /**
+   * Setze den normierten Versatz einer einzelnen Ecke (immutabel).
+   * @param {'nw'|'ne'|'se'|'sw'} corner
+   * @param {{x:number,y:number}} offset
+   */
+  function setCornerOffset(corner, offset) {
+    if (!CORNERS.includes(corner)) return;
+    const x = Number.isFinite(offset?.x) ? offset.x : 0;
+    const y = Number.isFinite(offset?.y) ? offset.y : 0;
+    const base = transforms.value.cornerOffsets ?? emptyOffsets();
+    const next = {
+      nw: { ...base.nw },
+      ne: { ...base.ne },
+      se: { ...base.se },
+      sw: { ...base.sw },
+      [corner]: { x, y },
+    };
+    transforms.value.cornerOffsets = offsetsDistorted(next) ? next : null;
+  }
+
+  /**
+   * Verzerrung zurücksetzen (Ecken auf 0), Modus bleibt aktiv
+   */
+  function resetDistort() {
+    transforms.value.cornerOffsets = null;
+  }
+
+  /**
    * Wende Transformationen auf Canvas an
    */
   function applyToCanvas(canvas, context) {
@@ -415,6 +462,13 @@ export function useTransform() {
   }
 
   /**
+   * Prüfe ob eine Verzerrung sichtbar wirkt (Modus aktiv UND Ecken versetzt)
+   */
+  const hasDistortion = computed(() => {
+    return !!transforms.value.distortEnabled && offsetsDistorted(transforms.value.cornerOffsets);
+  });
+
+  /**
    * Prüfe ob Transformationen aktiv sind
    */
   const hasTransforms = computed(() => {
@@ -428,7 +482,8 @@ export function useTransform() {
       transforms.value.borderWidth !== 0 ||
       transforms.value.shadowEnabled ||
       transforms.value.skewX !== 0 ||
-      transforms.value.skewY !== 0
+      transforms.value.skewY !== 0 ||
+      hasDistortion.value
     );
   });
 
@@ -469,6 +524,7 @@ export function useTransform() {
     canPan,
     hasShadow,
     hasSkew,
+    hasDistortion,
 
     // Methods
     setOpacity,
@@ -496,6 +552,11 @@ export function useTransform() {
     // Skew methods
     setSkewX,
     setSkewY,
+    // Distort methods
+    setDistortEnabled,
+    toggleDistort,
+    setCornerOffset,
+    resetDistort,
     applyToCanvas,
     applyPermanently,
     resetTransforms,

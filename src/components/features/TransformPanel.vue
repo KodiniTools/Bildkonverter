@@ -71,6 +71,8 @@
       @update:shadow-opacity="$emit('update:shadow-opacity', $event)"
       @update:skew-x="$emit('update:skew-x', $event)"
       @update:skew-y="$emit('update:skew-y', $event)"
+      @toggle-distort="$emit('toggle-distort')"
+      @reset-distort="$emit('reset-distort')"
       @rotate-90="$emit('rotate-90')"
       @rotate-90-counter="$emit('rotate-90-counter')"
       @rotate-180="$emit('rotate-180')"
@@ -131,6 +133,8 @@ defineEmits([
   'update:shadow-opacity',
   'update:skew-x',
   'update:skew-y',
+  'toggle-distort',
+  'reset-distort',
   'rotate-90',
   'rotate-90-counter',
   'rotate-180',

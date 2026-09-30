@@ -496,6 +496,12 @@ export default {
       opacity: 'Deckkraft',
       color: 'Farbe',
     },
+    distort: {
+      title: 'Verzerren',
+      hint: 'Eckpunkte im Bild einzeln ziehen, um das Bild frei zu verformen.',
+      frameHint: 'Schatten, abgerundete Ecken und Rahmen entfallen, solange das Bild verzerrt ist.',
+      reset: 'Verzerrung zurücksetzen',
+    },
     skew: {
       title: 'Neigung',
       horizontal: 'Horizontal',

@@ -496,6 +496,12 @@ export default {
       opacity: 'Opacity',
       color: 'Color',
     },
+    distort: {
+      title: 'Distort',
+      hint: 'Drag each corner point individually to freely deform the image.',
+      frameHint: 'Shadow, rounded corners and border are omitted while the image is distorted.',
+      reset: 'Reset distortion',
+    },
     skew: {
       title: 'Skew',
       horizontal: 'Horizontal',
