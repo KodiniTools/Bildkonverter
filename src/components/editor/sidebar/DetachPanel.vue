@@ -3,17 +3,19 @@
     <h3>{{ $t('editor.sidebar.detach', 'Vom Hintergrund lösen') }}</h3>
 
     <div class="detach-toggle-row">
-      <label class="switch">
-        <input type="checkbox" :checked="detached" :disabled="disabled" @change="$emit('toggle')" />
-        <span class="switch-slider"></span>
-      </label>
-      <span class="detach-toggle-label">
+      <ToggleSwitch
+        id="detach-toggle"
+        :model-value="detached"
+        :disabled="disabled"
+        @update:model-value="$emit('toggle')"
+      />
+      <label for="detach-toggle" class="detach-toggle-label">
         {{
           detached
             ? $t('editor.detach.on', 'Als freie Ebene aktiv')
             : $t('editor.detach.off', 'Bild vom Hintergrund lösen')
         }}
-      </span>
+      </label>
     </div>
 
     <p class="hint-text">
@@ -39,6 +41,8 @@
 </template>
 
 <script setup>
+import ToggleSwitch from '@/components/ui/ToggleSwitch.vue';
+
 defineProps({
   detached: {
     type: Boolean,
@@ -64,53 +68,6 @@ defineEmits(['toggle']);
 .detach-toggle-label {
   font-size: 0.875rem;
   color: var(--color-text);
-}
-
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 42px;
-  height: 24px;
-  flex-shrink: 0;
-
-  input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-
-    &:checked + .switch-slider {
-      background-color: var(--color-primary);
-    }
-
-    &:checked + .switch-slider::before {
-      transform: translateX(18px);
-    }
-
-    &:disabled + .switch-slider {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
-}
-
-.switch-slider {
-  position: absolute;
   cursor: pointer;
-  inset: 0;
-  background-color: var(--color-border);
-  border-radius: 24px;
-  transition: background-color 0.2s ease;
-
-  &::before {
-    content: '';
-    position: absolute;
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: #fff;
-    border-radius: 50%;
-    transition: transform 0.2s ease;
-  }
 }
 </style>

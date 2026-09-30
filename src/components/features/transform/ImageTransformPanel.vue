@@ -138,24 +138,17 @@
 
     <!-- Freies Verzerren (Distort): Eckpunkte ziehen, dann übernehmen -->
     <div class="control-group distort-section">
-      <div class="distort-header">
+      <label class="switch-row">
         <span class="label-text">
           <i class="fas fa-vector-square"></i>
           {{ $t('transform.distort.title') }}
         </span>
-        <button
-          type="button"
-          role="switch"
-          class="mini-switch"
-          :class="{ active: transforms.distortEnabled }"
+        <ToggleSwitch
+          :model-value="!!transforms.distortEnabled"
           :title="$t('transform.distort.hint')"
-          :aria-label="$t('transform.distort.title')"
-          :aria-checked="!!transforms.distortEnabled"
-          @click="$emit('toggle-distort')"
-        >
-          <span class="mini-switch-knob"></span>
-        </button>
-      </div>
+          @update:model-value="$emit('toggle-distort')"
+        />
+      </label>
 
       <div v-if="transforms.distortEnabled" class="distort-actions">
         <button
@@ -254,18 +247,15 @@
 
     <!-- Schlagschatten -->
     <div class="control-group shadow-section">
-      <label class="shadow-toggle-label">
+      <label class="switch-row">
         <span class="label-text">
           <i class="fas fa-clone"></i>
           {{ $t('transform.shadow.title', 'Schlagschatten') }}
         </span>
-        <button
-          class="toggle-btn"
-          :class="{ active: transforms.shadowEnabled }"
-          @click="$emit('update:shadow-enabled', !transforms.shadowEnabled)"
-        >
-          <span class="toggle-slider"></span>
-        </button>
+        <ToggleSwitch
+          :model-value="!!transforms.shadowEnabled"
+          @update:model-value="$emit('update:shadow-enabled', $event)"
+        />
       </label>
 
       <div v-if="transforms.shadowEnabled" class="shadow-controls-panel">
@@ -362,6 +352,7 @@
 <script setup>
 import HistoryActions from '@/components/ui/HistoryActions.vue';
 import SliderField from '@/components/ui/SliderField.vue';
+import ToggleSwitch from '@/components/ui/ToggleSwitch.vue';
 
 defineProps({
   transforms: { type: Object, required: true },
@@ -489,49 +480,15 @@ defineEmits([
   border-top: 1px dashed var(--color-border, #e5e7eb);
 }
 
-/* Schalter rechts; stärker als das gemeinsame `.control-group label` */
-.control-group .shadow-toggle-label {
+/* Titel links, Schalter rechts; stärker als das gemeinsame `.control-group label` */
+.control-group .switch-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
   width: 100%;
-  margin-bottom: 0.5rem;
-}
-
-.toggle-btn {
-  position: relative;
-  width: 44px;
-  height: 24px;
-  background: var(--color-border, #d1d5db);
-  border: none;
-  border-radius: 12px;
+  margin-bottom: 0;
   cursor: pointer;
-  transition: all 0.3s ease;
-  padding: 2px;
-  overflow: hidden;
-  outline: none;
-  flex-shrink: 0;
-
-  &.active {
-    background: linear-gradient(135deg, #014f99, #003971);
-  }
-
-  .toggle-slider {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 20px;
-    height: 20px;
-    background: white;
-    border-radius: 50%;
-    transition: transform 0.3s ease;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-    pointer-events: none;
-  }
-
-  &.active .toggle-slider {
-    transform: translateX(20px);
-  }
 }
 
 .shadow-controls-panel {
@@ -560,53 +517,6 @@ defineEmits([
   margin-top: 0.5rem;
   padding-top: 0.75rem;
   border-top: 1px dashed var(--color-border, #e5e7eb);
-}
-
-.distort-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-/* Kompakter Schalter (32×18) */
-.mini-switch {
-  position: relative;
-  flex-shrink: 0;
-  width: 32px;
-  height: 18px;
-  padding: 0;
-  border: none;
-  border-radius: 9px;
-  background: var(--color-border, #d1d5db);
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-
-  .mini-switch-knob {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: #ffffff;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-    transition: transform 0.2s ease;
-    pointer-events: none;
-  }
-
-  &.active {
-    background: var(--color-primary, #014f99);
-
-    .mini-switch-knob {
-      transform: translateX(14px);
-    }
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--color-primary, #014f99);
-    outline-offset: 2px;
-  }
 }
 
 .distort-actions {
@@ -687,14 +597,6 @@ defineEmits([
     border-top-color: var(--color-border);
   }
 
-  .toggle-btn {
-    background: var(--color-border);
-
-    &.active {
-      background: linear-gradient(135deg, #014f99, #003971);
-    }
-  }
-
   .shadow-controls-panel {
     background: rgba(1, 79, 153, 0.1);
     border-color: rgba(1, 79, 153, 0.25);
@@ -716,11 +618,6 @@ defineEmits([
   .quick-btn {
     min-height: 44px;
     padding: 0.75rem 0.5rem;
-  }
-
-  .toggle-btn {
-    width: 50px;
-    height: 28px;
   }
 }
 </style>
