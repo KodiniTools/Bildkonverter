@@ -6,6 +6,23 @@
 import { buildTextFontString, applyTextTransform } from '@/utils/textRender';
 import { getAdjustedImage } from '@/utils/imageAdjustments';
 import { logger } from '@/utils/logger';
+import { CORNERS, computeQuadCorners, drawWarpedImage, hasDistortion } from '@/utils/warpImage';
+
+// Gitterauflösung für das freie Verzerren (Distort). Höher = genauer, langsamer.
+const DISTORT_SUBDIVISIONS = 16;
+
+// Größe der Verzerr-Griffe in Bildschirm-Pixeln (unabhängig von der Canvas-Auflösung)
+export const DISTORT_HANDLE_SIZE = 12;
+
+/**
+ * Anzeige-Skalierung des Canvas (Bildschirm-Pixel pro Canvas-Pixel).
+ * Fällt auf 1 zurück, wenn der Canvas nicht im Layout hängt.
+ */
+export function getCanvasDisplayScale(canvasEl) {
+  if (!canvasEl || !canvasEl.width) return 1;
+  const rect = canvasEl.getBoundingClientRect();
+  return rect.width > 0 ? rect.width / canvasEl.width : 1;
+}
 
 /**
  * Zeichnet den Auswahl-Rahmen mit Resize-Handles für eine Bild-Ebene.
@@ -72,6 +89,11 @@ export function useCanvasRenderer({
   background,
   selectedTextId,
 }) {
+  // Geometrie des zuletzt gezeichneten Einzelbildes für das freie Verzerren:
+  // Transformationsmatrix (Canvas ← Bildsystem) und Zeichen-Rechteck.
+  // null im Collage-Modus bzw. ohne Bild.
+  let distortGeometry = null;
+
   // Helper-Funktion für abgerundete Rechtecke
   function roundedRect(ctx, x, y, width, height, radius) {
     ctx.beginPath();
@@ -395,6 +417,12 @@ export function useCanvasRenderer({
     // Transformationen (temporär, wird am Ende wieder zurückgenommen)
     const restoreTransform = transform.applyToCanvas(canvas.value, ctx);
 
+    // Geometrie für Verzerr-Griffe und Hit-Testing merken (exakt die hier
+    // aktive Matrix → Griffe folgen Rotation, Zoom, Pan, Spiegelung, Neigung)
+    const drawRect = { x: drawX, y: drawY, width: drawWidth, height: drawHeight };
+    distortGeometry = { matrix: ctx.getTransform(), rect: drawRect };
+    const distorted = !!tf.distortEnabled && hasDistortion(tf.cornerOffsets);
+
     // Echte Tonwert-Anpassungen (Belichtung, Helligkeit, Kontrast, Lichter,
     // Schatten, Sättigung) werden pixelbasiert in die Zeichenquelle gebacken.
     // Die verbleibenden Effekt-Filter (Blur, Farbton, Sepia, Graustufen,
@@ -422,55 +450,68 @@ export function useCanvasRenderer({
       }
     };
 
-    // Schlagschatten (Drop Shadow) - muss VOR dem Clipping gezeichnet werden
-    if (tf.shadowEnabled) {
-      ctx.save();
-      ctx.filter = 'none';
-      ctx.shadowColor = hexToRgba(tf.shadowColor, tf.shadowOpacity / 100);
-      ctx.shadowBlur = tf.shadowBlur;
-      ctx.shadowOffsetX = tf.shadowOffsetX;
-      ctx.shadowOffsetY = tf.shadowOffsetY;
+    // Bild in seiner Form (Rechteck/abgerundet/Kreis) mit Schatten und Rahmen
+    const drawShapedImage = () => {
+      // Schlagschatten (Drop Shadow) - muss VOR dem Clipping gezeichnet werden
+      if (tf.shadowEnabled) {
+        ctx.save();
+        ctx.filter = 'none';
+        ctx.shadowColor = hexToRgba(tf.shadowColor, tf.shadowOpacity / 100);
+        ctx.shadowBlur = tf.shadowBlur;
+        ctx.shadowOffsetX = tf.shadowOffsetX;
+        ctx.shadowOffsetY = tf.shadowOffsetY;
 
-      // Schatten-Silhouette in der Form des Bildes (mit Padding)
-      ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+        // Schatten-Silhouette in der Form des Bildes (mit Padding)
+        ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+        if (isRounded) {
+          tracePath();
+          ctx.fill();
+        } else {
+          ctx.fillRect(drawX, drawY, drawWidth, drawHeight);
+        }
+        ctx.restore();
+
+        ctx.filter = filterString;
+      }
+
+      // Abgerundete Ecken / Kreis als Clipping-Pfad
       if (isRounded) {
+        ctx.save();
         tracePath();
-        ctx.fill();
-      } else {
-        ctx.fillRect(drawX, drawY, drawWidth, drawHeight);
+        ctx.clip();
       }
-      ctx.restore();
 
-      ctx.filter = filterString;
-    }
+      ctx.drawImage(adjustedSource, drawX, drawY, drawWidth, drawHeight);
 
-    // Abgerundete Ecken / Kreis als Clipping-Pfad
-    if (isRounded) {
-      ctx.save();
-      tracePath();
-      ctx.clip();
-    }
-
-    ctx.drawImage(adjustedSource, drawX, drawY, drawWidth, drawHeight);
-
-    // Rahmen
-    if (tf.borderWidth > 0) {
-      ctx.strokeStyle = tf.borderColor;
-      ctx.lineWidth = tf.borderWidth;
-      if (isCircle) {
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, circleRadius - tf.borderWidth / 2, 0, Math.PI * 2);
-        ctx.stroke();
-      } else if (isRounded) {
-        roundedRect(ctx, drawX, drawY, drawWidth, drawHeight, radiusPx);
-        ctx.stroke();
-      } else {
-        ctx.strokeRect(drawX, drawY, drawWidth, drawHeight);
+      // Rahmen
+      if (tf.borderWidth > 0) {
+        ctx.strokeStyle = tf.borderColor;
+        ctx.lineWidth = tf.borderWidth;
+        if (isCircle) {
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, circleRadius - tf.borderWidth / 2, 0, Math.PI * 2);
+          ctx.stroke();
+        } else if (isRounded) {
+          roundedRect(ctx, drawX, drawY, drawWidth, drawHeight, radiusPx);
+          ctx.stroke();
+        } else {
+          ctx.strokeRect(drawX, drawY, drawWidth, drawHeight);
+        }
       }
-    }
 
-    if (isRounded) {
-      ctx.restore();
+      if (isRounded) {
+        ctx.restore();
+      }
+    };
+
+    if (distorted) {
+      // Freies Verzerren: Filter in eine Zwischenquelle backen (sonst würde
+      // z.B. Blur an jeder Dreiecksnaht sichtbar) und diese in das Viereck
+      // warpen. Schatten, runde Ecken und Rahmen entfallen dabei – wie im
+      // Collage-Maker.
+      drawDistortedImage(ctx, adjustedSource, filterString, drawRect, tf.cornerOffsets);
+    } else {
+      drawShapedImage();
     }
 
     // Vignette-Overlay (Teil des Bildes, daher auch im Export)
@@ -501,10 +542,104 @@ export function useCanvasRenderer({
       imageStore.texts.forEach((text) => drawTextLayer(ctx, text));
     }
 
+    // Verzerr-Griffe als Overlay (nur Vorschau)
+    if (showSelection && tf.distortEnabled) {
+      drawDistortHandles(ctx);
+    }
+
     // Text-Auswahl als Overlay (nur Vorschau)
     if (showSelection) {
       drawTextSelection();
     }
+  }
+
+  /**
+   * Zeichnet die (gefilterte) Bildquelle verzerrt in das Viereck, das sich aus
+   * dem Zeichen-Rechteck und den normierten Eck-Versätzen ergibt.
+   */
+  function drawDistortedImage(ctx, source, cssFilter, rect, offsets) {
+    const sw = Math.max(1, Math.round(rect.width));
+    const sh = Math.max(1, Math.round(rect.height));
+    let warpSource = source;
+    if (cssFilter && cssFilter !== 'none') {
+      const tmp = document.createElement('canvas');
+      tmp.width = sw;
+      tmp.height = sh;
+      const tctx = tmp.getContext('2d');
+      tctx.filter = cssFilter;
+      tctx.drawImage(source, 0, 0, sw, sh);
+      warpSource = tmp;
+    }
+    const srcW = warpSource === source ? source.naturalWidth || source.width : sw;
+    const srcH = warpSource === source ? source.naturalHeight || source.height : sh;
+
+    ctx.save();
+    ctx.filter = 'none';
+    drawWarpedImage(
+      ctx,
+      warpSource,
+      srcW,
+      srcH,
+      computeQuadCorners(rect, offsets),
+      DISTORT_SUBDIVISIONS
+    );
+    ctx.restore();
+  }
+
+  /**
+   * Eckpunkte des (ggf. verzerrten) Bildes in Canvas-Koordinaten, d.h. nach
+   * Rotation/Zoom/Pan/Spiegelung/Neigung. null, wenn kein Einzelbild gezeichnet wurde.
+   */
+  function getDistortHandlePoints() {
+    if (!distortGeometry) return null;
+    const { matrix, rect } = distortGeometry;
+    const local = computeQuadCorners(rect, transform.transforms.value.cornerOffsets);
+    const out = {};
+    for (const c of CORNERS) {
+      const p = matrix.transformPoint(new DOMPoint(local[c].x, local[c].y));
+      out[c] = { x: p.x, y: p.y };
+    }
+    return out;
+  }
+
+  /** Geometrie des zuletzt gezeichneten Einzelbildes (Matrix + Zeichen-Rechteck). */
+  function getDistortGeometry() {
+    return distortGeometry;
+  }
+
+  // Umriss des Vierecks und die 4 Eck-Griffe (im Canvas-System, ohne Transform)
+  function drawDistortHandles(ctx) {
+    const pts = getDistortHandlePoints();
+    if (!pts) return;
+    const px = 1 / getCanvasDisplayScale(canvas.value);
+    const size = DISTORT_HANDLE_SIZE * px;
+
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.filter = 'none';
+    ctx.shadowColor = 'transparent';
+
+    ctx.strokeStyle = '#014f99';
+    ctx.lineWidth = 1.5 * px;
+    ctx.setLineDash([6 * px, 4 * px]);
+    ctx.beginPath();
+    ctx.moveTo(pts.nw.x, pts.nw.y);
+    ctx.lineTo(pts.ne.x, pts.ne.y);
+    ctx.lineTo(pts.se.x, pts.se.y);
+    ctx.lineTo(pts.sw.x, pts.sw.y);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.lineWidth = 2 * px;
+    for (const c of CORNERS) {
+      const p = pts[c];
+      ctx.fillRect(p.x - size / 2, p.y - size / 2, size, size);
+      ctx.strokeRect(p.x - size / 2, p.y - size / 2, size, size);
+    }
+    ctx.restore();
   }
 
   /**
@@ -520,11 +655,15 @@ export function useCanvasRenderer({
     const ctx = canvas.value.getContext('2d');
 
     if (isCollageMode.value && imageStore.hasImageLayers) {
+      distortGeometry = null;
       renderCollage(ctx, opts);
       return;
     }
 
-    if (!currentImage.value) return;
+    if (!currentImage.value) {
+      distortGeometry = null;
+      return;
+    }
     renderSingleImage(ctx, opts);
   }
 
@@ -548,6 +687,8 @@ export function useCanvasRenderer({
     drawTextSelection,
     roundedRect,
     getBorderRadiusPixels,
+    getDistortGeometry,
+    getDistortHandlePoints,
   };
 }
 

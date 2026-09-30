@@ -360,6 +360,8 @@
           @update:shadow-opacity="handleShadowOpacityUpdate"
           @update:skew-x="handleSkewXUpdate"
           @update:skew-y="handleSkewYUpdate"
+          @toggle-distort="handleToggleDistort"
+          @reset-distort="handleResetDistort"
           @rotate-90="handleRotate90"
           @rotate-90-counter="handleRotate90Counter"
           @rotate-180="handleRotate180"
@@ -607,7 +609,12 @@ const canvasRenderer = useCanvasRenderer({
   background,
   selectedTextId,
 });
-const { renderImage: _renderImageCore, renderImageForExport } = canvasRenderer;
+const {
+  renderImage: _renderImageCore,
+  renderImageForExport,
+  getDistortHandlePoints,
+  getDistortGeometry,
+} = canvasRenderer;
 
 const {
   imageWidth,
@@ -1114,6 +1121,8 @@ const {
   handleFlipHorizontal,
   handleFlipVertical,
   handleResetPan,
+  handleToggleDistort,
+  handleResetDistort,
   handleCommitTransform,
 } = useTransformHandlers({ transform, renderImage, t, saveHistory });
 
@@ -1177,6 +1186,8 @@ const {
   renderImage,
   handleFinishCrop,
   saveHistory,
+  getDistortHandlePoints,
+  getDistortGeometry,
 });
 
 // Watch texts

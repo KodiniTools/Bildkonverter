@@ -136,6 +136,41 @@
       </div>
     </div>
 
+    <!-- Freies Verzerren (Distort): Eckpunkte einzeln ziehen -->
+    <div class="control-group distort-section">
+      <label class="shadow-toggle-label">
+        <span class="label-text">
+          <i class="fas fa-vector-square"></i>
+          {{ $t('transform.distort.title') }}
+        </span>
+        <button
+          class="toggle-btn"
+          :class="{ active: transforms.distortEnabled }"
+          :title="$t('transform.distort.hint')"
+          :aria-label="$t('transform.distort.title')"
+          :aria-pressed="!!transforms.distortEnabled"
+          @click="$emit('toggle-distort')"
+        >
+          <span class="toggle-slider"></span>
+        </button>
+      </label>
+
+      <div v-if="transforms.distortEnabled" class="distort-panel">
+        <p class="control-hint">{{ $t('transform.distort.hint') }}</p>
+        <p v-if="hasFrameEffects" class="control-hint">
+          {{ $t('transform.distort.frameHint') }}
+        </p>
+        <button
+          v-if="transforms.cornerOffsets"
+          class="transform-btn distort-reset-btn"
+          @click="$emit('reset-distort')"
+        >
+          <i class="fas fa-undo"></i>
+          <span>{{ $t('transform.distort.reset') }}</span>
+        </button>
+      </div>
+    </div>
+
     <!-- Zoom/Skalierung -->
     <div class="control-group">
       <SliderField
@@ -315,16 +350,26 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import HistoryActions from '@/components/ui/HistoryActions.vue';
 import SliderField from '@/components/ui/SliderField.vue';
 
-defineProps({
+const props = defineProps({
   transforms: { type: Object, required: true },
   canPan: { type: Boolean, default: false },
   hasPan: { type: Boolean, default: false },
   canUndoTransform: { type: Boolean, default: false },
   canRedoTransform: { type: Boolean, default: false },
 });
+
+// Schatten, runde Ecken und Rahmen entfallen, solange das Bild verzerrt ist
+const hasFrameEffects = computed(
+  () =>
+    !!props.transforms.cornerOffsets &&
+    (props.transforms.shadowEnabled ||
+      props.transforms.borderRadius > 0 ||
+      props.transforms.borderWidth > 0)
+);
 
 defineEmits([
   'update:opacity',
@@ -341,6 +386,8 @@ defineEmits([
   'update:shadow-opacity',
   'update:skew-x',
   'update:skew-y',
+  'toggle-distort',
+  'reset-distort',
   'rotate-90',
   'rotate-90-counter',
   'rotate-180',
@@ -505,6 +552,32 @@ defineEmits([
   border-top: 1px dashed var(--color-border, #e5e7eb);
 }
 
+.distort-section {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--color-border, #e5e7eb);
+}
+
+.distort-panel {
+  background: rgba(1, 79, 153, 0.05);
+  border: 1px solid rgba(1, 79, 153, 0.15);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+
+  .control-hint {
+    margin: 0 0 0.5rem 0;
+  }
+
+  .control-hint:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.distort-reset-btn {
+  width: 100%;
+}
+
 .skew-control-row {
   margin-bottom: 0.5rem;
 
@@ -552,8 +625,14 @@ defineEmits([
     border-color: rgba(1, 79, 153, 0.25);
   }
 
-  .skew-section {
+  .skew-section,
+  .distort-section {
     border-top-color: var(--color-border);
+  }
+
+  .distort-panel {
+    background: rgba(1, 79, 153, 0.1);
+    border-color: rgba(1, 79, 153, 0.25);
   }
 }
 

@@ -24,8 +24,16 @@
  * @param {Function} deps.renderImage
  * @param {Function} deps.handleFinishCrop
  * @param {Function} deps.saveHistory
+ * @param {Function} [deps.getDistortHandlePoints] Eckpunkte des Bildes im Canvas-System (Renderer)
+ * @param {Function} [deps.getDistortGeometry]     Matrix + Zeichen-Rechteck des Bildes (Renderer)
  */
 import { buildTextFontString } from '@/utils/textRender';
+import { findCornerAt, offsetForLocalPoint } from '@/utils/warpImage';
+import { DISTORT_HANDLE_SIZE } from '@/composables/useCanvasRenderer';
+
+// Zusätzlicher Trefferradius der Verzerr-Griffe in Bildschirm-Pixeln (Touch großzügiger)
+const DISTORT_HIT_SLOP = 6;
+const DISTORT_HIT_SLOP_TOUCH = 14;
 
 export function useCanvasInteraction({
   canvas,
@@ -44,7 +52,12 @@ export function useCanvasInteraction({
   renderImage,
   handleFinishCrop,
   saveHistory,
+  getDistortHandlePoints = () => null,
+  getDistortGeometry = () => null,
 }) {
+  // Freies Verzerren: gerade gezogene Ecke (null = keine Verzerr-Interaktion)
+  let distortCorner = null;
+
   function getMousePos(e) {
     const rect = canvas.value.getBoundingClientRect();
 
@@ -70,6 +83,54 @@ export function useCanvasInteraction({
     if (!canvas.value) return 1;
     const rect = canvas.value.getBoundingClientRect();
     return rect.width / canvas.value.width;
+  }
+
+  // ===== FREIES VERZERREN (Eckpunkte ziehen) =====
+
+  /** Ecke unter der Position (nur im Verzerr-Modus, nicht beim Zuschneiden). */
+  function findDistortCorner(pos, touch = false) {
+    if (!transform.transforms.value.distortEnabled || crop.cropMode?.value) return null;
+    const points = getDistortHandlePoints();
+    if (!points) return null;
+    const slop = touch ? DISTORT_HIT_SLOP_TOUCH : DISTORT_HIT_SLOP;
+    const radius = (DISTORT_HANDLE_SIZE / 2 + slop) / getDisplayScale();
+    return findCornerAt(pos, points, radius);
+  }
+
+  /** Startet das Ziehen einer Ecke; true, wenn eine Ecke getroffen wurde. */
+  function startDistortDrag(pos, touch = false) {
+    const corner = findDistortCorner(pos, touch);
+    if (!corner) return false;
+    distortCorner = corner;
+    selectedTextId.value = null;
+    if (canvas.value) canvas.value.style.cursor = 'move';
+    return true;
+  }
+
+  /** Versetzt die gezogene Ecke auf die (auf den Canvas geklemmte) Position. */
+  function moveDistortCorner(pos) {
+    const geometry = getDistortGeometry();
+    if (!distortCorner || !geometry || !canvas.value) return;
+    const x = Math.max(0, Math.min(canvas.value.width, pos.x));
+    const y = Math.max(0, Math.min(canvas.value.height, pos.y));
+    const inverse = geometry.matrix.inverse();
+    const local = inverse.transformPoint(new DOMPoint(x, y));
+    // Nicht invertierbare Matrix (z.B. Neigung 45°/45°) → Eingabe ignorieren
+    if (!Number.isFinite(local.x) || !Number.isFinite(local.y)) return;
+    transform.setCornerOffset(
+      distortCorner,
+      offsetForLocalPoint(geometry.rect, distortCorner, local)
+    );
+    renderImage();
+  }
+
+  /** Beendet das Ziehen einer Ecke; true, wenn eines aktiv war. */
+  function endDistortDrag() {
+    if (!distortCorner) return false;
+    distortCorner = null;
+    if (canvas.value) canvas.value.style.cursor = 'default';
+    saveHistory();
+    return true;
   }
 
   function onSelectTextFromPanel(textId) {
@@ -125,6 +186,12 @@ export function useCanvasInteraction({
     // Crop-Handler über Composable (hat Priorität)
     const cropHandled = crop.handleMouseDown(pos, displayScale);
     if (cropHandled) return;
+
+    // Verzerr-Griffe (nur Einzelbild, Modus aktiv) liegen über Texten
+    if (!isCollageMode.value && e.button === 0 && startDistortDrag(pos)) {
+      renderImage();
+      return;
+    }
 
     // Im Collage-Modus: Erst Text prüfen, dann Layer
     if (isCollageMode.value) {
@@ -182,6 +249,12 @@ export function useCanvasInteraction({
       return;
     }
 
+    // Verzerr-Ecke ziehen
+    if (distortCorner) {
+      moveDistortCorner(pos);
+      return;
+    }
+
     // Crop-Handler über Composable (hat Priorität)
     const cropHandled = crop.handleMouseMove(pos);
     if (cropHandled) return;
@@ -233,6 +306,8 @@ export function useCanvasInteraction({
         // Nutze den Cursor vom Crop-Composable mit Display-Skalierung
         const displayScale = getDisplayScale();
         cursorStyle = crop.getCursorForPosition(pos.x, pos.y, displayScale);
+      } else if (findDistortCorner(pos)) {
+        cursorStyle = 'move';
       } else if (text) {
         cursorStyle = 'grab';
       }
@@ -246,6 +321,12 @@ export function useCanvasInteraction({
       isPanning.value = false;
       canvas.value.style.cursor =
         isSpacePressed.value && transform.canPan.value ? 'grab' : 'default';
+      return;
+    }
+
+    // Verzerr-Ecke loslassen
+    if (endDistortDrag()) {
+      renderImage();
       return;
     }
 
@@ -323,6 +404,12 @@ export function useCanvasInteraction({
     const displayScale = getDisplayScale();
     const cropHandled = crop.handleMouseDown(pos, displayScale);
     if (cropHandled) return;
+
+    // Verzerr-Griffe (nur Einzelbild, Modus aktiv)
+    if (!isCollageMode.value && startDistortDrag(pos, true)) {
+      renderImage();
+      return;
+    }
 
     // Im Collage-Modus
     if (isCollageMode.value) {
@@ -409,6 +496,12 @@ export function useCanvasInteraction({
     const { clientX, clientY } = getTouchClientPos(e);
     const pos = getMousePos(e);
 
+    // Verzerr-Ecke ziehen
+    if (distortCorner) {
+      moveDistortCorner(pos);
+      return;
+    }
+
     // Crop-Handler
     const cropHandled = crop.handleMouseMove(pos);
     if (cropHandled) return;
@@ -451,6 +544,12 @@ export function useCanvasInteraction({
 
     pinchStartDist = 0;
 
+    // Verzerr-Ecke loslassen
+    if (endDistortDrag()) {
+      renderImage();
+      return;
+    }
+
     // Crop-Handler
     const cropHandled = crop.handleMouseUp();
     if (cropHandled) {
@@ -483,7 +582,7 @@ export function useCanvasInteraction({
   function handleGlobalMouseMove(e) {
     // Nur wenn wir gerade draggen, resizen, erstellen oder andere Aktionen ausführen
     const isCropActive = crop.isDragging.value || crop.isResizing.value || crop.isCreating.value;
-    if (!isCropActive && !isPanning.value && !isDraggingText.value) {
+    if (!isCropActive && !isPanning.value && !isDraggingText.value && !distortCorner) {
       return;
     }
 
@@ -505,6 +604,12 @@ export function useCanvasInteraction({
     // Crop-Handling (Dragging, Resizing oder Creating)
     if (isCropActive) {
       crop.handleMouseMove(pos);
+      return;
+    }
+
+    // Verzerr-Ecke auch außerhalb des Canvas weiterziehen (wird geklemmt)
+    if (distortCorner) {
+      moveDistortCorner(pos);
       return;
     }
 
@@ -534,6 +639,10 @@ export function useCanvasInteraction({
     // Stoppe alle aktiven Crop-Operationen
     if (crop.isDragging.value || crop.isResizing.value || crop.isCreating.value) {
       crop.cancelDragResize();
+    }
+    // Verzerr-Ecke außerhalb des Canvas losgelassen
+    if (endDistortDrag()) {
+      renderImage();
     }
     // Stoppe auch Text-Dragging
     if (isDraggingText.value) {
