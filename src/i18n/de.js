@@ -318,6 +318,8 @@ export default {
   editor: {
     toolbar: {
       upload: 'Hochladen',
+      replaceImage: 'Bild ersetzen',
+      replaceImageHint: 'Neues Bild laden – Texte bleiben erhalten',
       reset: 'Zurücksetzen',
       clearImage: 'Bild löschen',
       preview: 'Vorschau',

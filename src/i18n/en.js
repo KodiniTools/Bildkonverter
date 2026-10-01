@@ -318,6 +318,8 @@ export default {
   editor: {
     toolbar: {
       upload: 'Upload',
+      replaceImage: 'Replace image',
+      replaceImageHint: 'Load a new image – texts are kept',
       reset: 'Reset',
       clearImage: 'Clear Image',
       preview: 'Preview',
