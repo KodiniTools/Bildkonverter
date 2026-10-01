@@ -39,6 +39,8 @@ export function useImageLoader({
 
   function handleFileSelect(event) {
     const file = event.target.files[0];
+    // Zurücksetzen, damit dieselbe Datei erneut gewählt werden kann
+    event.target.value = '';
     if (!file) return;
     loadFileIntoEditor(file).catch((err) => logger.error('Fehler beim Laden:', err));
   }

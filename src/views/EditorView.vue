@@ -5,9 +5,13 @@
       <div class="toolbar">
         <!-- Links: Upload -->
         <div class="toolbar-group">
-          <button class="tb-btn tb-btn--primary" @click="triggerFileInput">
-            <i class="fas fa-upload"></i>
-            {{ $t('editor.toolbar.upload') }}
+          <button
+            class="tb-btn tb-btn--primary"
+            :title="currentImage ? $t('editor.toolbar.replaceImageHint') : undefined"
+            @click="triggerFileInput"
+          >
+            <i :class="currentImage ? 'fas fa-exchange-alt' : 'fas fa-upload'"></i>
+            {{ currentImage ? $t('editor.toolbar.replaceImage') : $t('editor.toolbar.upload') }}
           </button>
           <input
             ref="fileInput"
@@ -530,6 +534,7 @@ import { useEditorDetach } from '@/composables/editor/useEditorDetach';
 import { useEditorExport } from '@/composables/editor/useEditorExport';
 import { useEditorPreview } from '@/composables/editor/useEditorPreview';
 import { logger } from '@/utils/logger';
+import { scaleTextsToCanvas } from '@/utils/textLayout';
 
 const { t } = useI18n({ useScope: 'global' });
 const route = useRoute();
@@ -745,7 +750,7 @@ const {
   isDraggingFile,
   imageStore,
   currentFileName,
-  onImageReady: (img) => loadImage(img),
+  onImageReady: (img) => loadImage(img, { replace: true }),
 });
 
 const formats = SUPPORTED_FORMATS;
@@ -832,7 +837,22 @@ function triggerFileInput() {
   fileInput.value?.click();
 }
 
-async function loadImage(img) {
+/**
+ * @param {HTMLImageElement} img
+ * @param {object} [options]
+ * @param {boolean} [options.replace]  Neues Bild ersetzt ein geladenes Bild:
+ *   vorhandene Texte werden proportional an die neue Größe angepasst.
+ * @param {{width:number,height:number}|null} [options.previousSize]  intern (Retry)
+ */
+async function loadImage(img, options = {}) {
+  // Bisherige Canvas-Größe merken (nur beim Ersetzen eines geladenen Bildes)
+  const previousSize =
+    options.previousSize !== undefined
+      ? options.previousSize
+      : options.replace && currentImage.value && canvas.value
+        ? { width: canvas.value.width, height: canvas.value.height }
+        : null;
+
   currentImage.value = img;
 
   // Reset Crop-Zustand über Composable
@@ -847,7 +867,7 @@ async function loadImage(img) {
   // Prüfe ob canvas bereit ist
   if (!canvas.value) {
     logger.warn('⚠️ Canvas noch nicht initialisiert, warte...');
-    setTimeout(() => loadImage(img), 50);
+    setTimeout(() => loadImage(img, { previousSize }), 50);
     return;
   }
 
@@ -855,6 +875,14 @@ async function loadImage(img) {
   // CSS (max-width/max-height) handles display scaling — canvas stores full resolution
   canvas.value.width = img.width;
   canvas.value.height = img.height;
+
+  // Texte bleiben beim Ersetzen erhalten – an neue Größe anpassen
+  if (previousSize) {
+    scaleTextsToCanvas(imageStore.texts, previousSize, {
+      width: img.width,
+      height: img.height,
+    });
+  }
 
   // Initialisiere ResizeManager mit korrektem Seitenverhältnis
   resizeManager.initFromDimensions(img.width, img.height);
