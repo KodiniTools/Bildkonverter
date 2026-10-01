@@ -33,6 +33,36 @@
       />
     </div>
 
+    <!-- Position (X/Y in Bildpixeln, linke obere Ecke des Textes) -->
+    <div class="control-group">
+      <SliderField
+        :model-value="posX"
+        :min="rangeX.min"
+        :max="rangeX.max"
+        unit="px"
+        :default-value="startPos.x"
+        :label="$t('textPanel.positionX', 'Position X')"
+        icon="fas fa-arrows-alt-h"
+        input-id="text-position-x"
+        @update:model-value="$emit('update:text-position-x', $event)"
+        @commit="$emit('save-text-history')"
+      />
+    </div>
+    <div class="control-group">
+      <SliderField
+        :model-value="posY"
+        :min="rangeY.min"
+        :max="rangeY.max"
+        unit="px"
+        :default-value="startPos.y"
+        :label="$t('textPanel.positionY', 'Position Y')"
+        icon="fas fa-arrows-alt-v"
+        input-id="text-position-y"
+        @update:model-value="$emit('update:text-position-y', $event)"
+        @commit="$emit('save-text-history')"
+      />
+    </div>
+
     <!-- Schriftgröße -->
     <div class="control-group">
       <SliderField
@@ -326,7 +356,7 @@
 import HistoryActions from '@/components/ui/HistoryActions.vue';
 import NumberSpinner from '@/components/ui/NumberSpinner.vue';
 import SliderField from '@/components/ui/SliderField.vue';
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { availableFonts } from '@/assets/fonts/fontList.js';
 import { isFontBold, isFontItalic } from '@/utils/textRender';
 
@@ -337,6 +367,10 @@ const props = defineProps({
   hasTexts: { type: Boolean, default: false },
   canUndoText: { type: Boolean, default: false },
   canRedoText: { type: Boolean, default: false },
+  /** Canvas-Breite in px – Obergrenze des X-Reglers */
+  canvasWidth: { type: Number, default: 0 },
+  /** Canvas-Höhe in px – Obergrenze des Y-Reglers */
+  canvasHeight: { type: Number, default: 0 },
 });
 
 const emit = defineEmits([
@@ -356,12 +390,39 @@ const emit = defineEmits([
   'update:text-shadow-offset-x',
   'update:text-shadow-offset-y',
   'update:text-shadow-color',
+  'update:text-position-x',
+  'update:text-position-y',
   'save-text-history',
   'undo-text',
   'redo-text',
   'delete-text',
   'deselect-text',
 ]);
+
+// Position: Werte aus dem Canvas-Drag können gebrochen sein → gerundet anzeigen
+const posX = computed(() => Math.round(Number(props.selectedText?.x) || 0));
+const posY = computed(() => Math.round(Number(props.selectedText?.y) || 0));
+
+// Reglerbereich = Canvas; liegt der Text (per Drag) außerhalb, wird der
+// Bereich erweitert, damit der aktuelle Wert nicht abgeschnitten wird.
+const rangeX = computed(() => ({
+  min: Math.min(0, posX.value),
+  max: Math.max(1, props.canvasWidth, posX.value),
+}));
+const rangeY = computed(() => ({
+  min: Math.min(0, posY.value),
+  max: Math.max(1, props.canvasHeight, posY.value),
+}));
+
+// Position beim Auswählen des Textes merken – Ziel des Rückgängig-Buttons (↺)
+const startPos = ref({ x: 0, y: 0 });
+watch(
+  () => props.selectedText?.id,
+  () => {
+    startPos.value = { x: posX.value, y: posY.value };
+  },
+  { immediate: true }
+);
 
 // Bringt die aktuelle Schriftart Fett/Kursiv bereits von Haus aus mit?
 // Dann werden die entsprechenden Umschalter deaktiviert (Ausnahme laut Vorgabe).

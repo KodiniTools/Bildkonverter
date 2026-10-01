@@ -13,6 +13,8 @@
       :has-texts="hasTexts"
       :can-undo-text="canUndoText"
       :can-redo-text="canRedoText"
+      :canvas-width="canvasWidth"
+      :canvas-height="canvasHeight"
       @update:text-content="$emit('update:text-content', $event)"
       @update:text-font-size="$emit('update:text-font-size', $event)"
       @update:text-font-family="$emit('update:text-font-family', $event)"
@@ -29,6 +31,8 @@
       @update:text-shadow-offset-x="$emit('update:text-shadow-offset-x', $event)"
       @update:text-shadow-offset-y="$emit('update:text-shadow-offset-y', $event)"
       @update:text-shadow-color="$emit('update:text-shadow-color', $event)"
+      @update:text-position-x="$emit('update:text-position-x', $event)"
+      @update:text-position-y="$emit('update:text-position-y', $event)"
       @save-text-history="$emit('save-text-history')"
       @undo-text="$emit('undo-text')"
       @redo-text="$emit('redo-text')"
@@ -114,6 +118,8 @@ defineProps({
   canRedoTransform: { type: Boolean, default: false },
   hasDistortion: { type: Boolean, default: false },
   isApplyingDistort: { type: Boolean, default: false },
+  canvasWidth: { type: Number, default: 0 },
+  canvasHeight: { type: Number, default: 0 },
 });
 
 defineEmits([
@@ -166,6 +172,8 @@ defineEmits([
   'update:text-shadow-offset-x',
   'update:text-shadow-offset-y',
   'update:text-shadow-color',
+  'update:text-position-x',
+  'update:text-position-y',
   'save-text-history',
   'undo-text',
   'redo-text',

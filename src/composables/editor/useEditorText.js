@@ -72,6 +72,8 @@ export function useEditorText({
   const handleTextShadowOffsetXUpdate = (shadowOffsetX) => updateSelectedText({ shadowOffsetX });
   const handleTextShadowOffsetYUpdate = (shadowOffsetY) => updateSelectedText({ shadowOffsetY });
   const handleTextShadowColorUpdate = (shadowColor) => updateSelectedText({ shadowColor });
+  const handleTextPositionXUpdate = (x) => updateSelectedText({ x });
+  const handleTextPositionYUpdate = (y) => updateSelectedText({ y });
 
   function handleTextFontFamilyUpdate(fontFamily) {
     updateSelectedText({ fontFamily });
@@ -138,6 +140,8 @@ export function useEditorText({
     handleTextShadowOffsetXUpdate,
     handleTextShadowOffsetYUpdate,
     handleTextShadowColorUpdate,
+    handleTextPositionXUpdate,
+    handleTextPositionYUpdate,
     handleTextFontFamilyUpdate,
     handleTextShadowBlurUpdate,
     handleDeleteText,
