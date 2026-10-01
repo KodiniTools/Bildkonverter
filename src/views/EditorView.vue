@@ -329,6 +329,8 @@
           :aspect-ratio-presets="ASPECT_RATIO_PRESETS"
           :crop-dimensions="panelCropDimensions"
           :transforms="transform.transforms.value"
+          :canvas-width="imageWidth"
+          :canvas-height="imageHeight"
           :can-pan="transform.canPan.value"
           :has-pan="transform.hasPan.value"
           :selected-text="selectedTextObject"
@@ -390,6 +392,8 @@
           @update:text-shadow-offset-x="handleTextShadowOffsetXUpdate"
           @update:text-shadow-offset-y="handleTextShadowOffsetYUpdate"
           @update:text-shadow-color="handleTextShadowColorUpdate"
+          @update:text-position-x="handleTextPositionXUpdate"
+          @update:text-position-y="handleTextPositionYUpdate"
           @save-text-history="saveHistory"
           @undo-text="undo"
           @redo-text="redo"
@@ -1163,6 +1167,8 @@ const {
   handleTextShadowOffsetXUpdate,
   handleTextShadowOffsetYUpdate,
   handleTextShadowColorUpdate,
+  handleTextPositionXUpdate,
+  handleTextPositionYUpdate,
   handleTextFontFamilyUpdate,
   handleTextShadowBlurUpdate,
   handleDeleteText,

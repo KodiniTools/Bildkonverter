@@ -542,6 +542,8 @@ export default {
     boldInherent: 'Schriftart ist bereits fett',
     italicInherent: 'Schriftart ist bereits kursiv',
     rotation: 'Rotation',
+    positionX: 'Position X',
+    positionY: 'Position Y',
     skewX: 'Neigung horizontal',
     skewY: 'Neigung vertikal',
     opacity: 'Deckkraft',

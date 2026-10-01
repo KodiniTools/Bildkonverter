@@ -543,6 +543,8 @@ export default {
     boldInherent: 'Font is already bold',
     italicInherent: 'Font is already italic',
     rotation: 'Rotation',
+    positionX: 'Position X',
+    positionY: 'Position Y',
     skewX: 'Skew horizontal',
     skewY: 'Skew vertical',
     opacity: 'Opacity',
