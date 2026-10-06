@@ -1,3 +1,4 @@
+import { currentThemeColorsV2 } from '@/design-system/tokens-v2';
 /**
  * textUtils.js - Text Utility Funktionen
  *
@@ -124,8 +125,11 @@ export function drawTextSelection(ctx, text, showHandles = true) {
     text.fontFamily
   );
 
+  // Overlay-Farben aus den Design-Tokens des aktiven Themes
+  const colors = currentThemeColorsV2();
+
   // Gestrichelte Box
-  ctx.strokeStyle = '#007bff';
+  ctx.strokeStyle = colors.accent;
   ctx.lineWidth = 3;
   ctx.setLineDash([8, 4]);
 
@@ -141,15 +145,15 @@ export function drawTextSelection(ctx, text, showHandles = true) {
     const resizeHandles = [handles.nw, handles.sw, handles.se];
     resizeHandles.forEach((handle) => {
       // Äußerer Rahmen
-      ctx.fillStyle = '#007bff';
+      ctx.fillStyle = colors.accent;
       ctx.fillRect(handle.x - 2, handle.y - 2, handle.size + 4, handle.size + 4);
 
       // Weißes Inneres
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(handle.x + 2, handle.y + 2, handle.size - 4, handle.size - 4);
 
-      // Schwarzer Punkt
-      ctx.fillStyle = '#000000';
+      // Punkt in Akzentfarbe
+      ctx.fillStyle = colors.accent;
       const dotSize = 8;
       ctx.fillRect(
         handle.x + (handle.size - dotSize) / 2,
@@ -162,8 +166,8 @@ export function drawTextSelection(ctx, text, showHandles = true) {
     // Delete-Button (NE)
     const deleteHandle = handles.ne;
 
-    // Roter Hintergrund
-    ctx.fillStyle = '#EF4444';
+    // Hintergrund in Danger-Farbe
+    ctx.fillStyle = colors.danger;
     ctx.fillRect(
       deleteHandle.x - 2,
       deleteHandle.y - 2,
@@ -180,8 +184,8 @@ export function drawTextSelection(ctx, text, showHandles = true) {
       deleteHandle.size - 4
     );
 
-    // Rotes X
-    ctx.strokeStyle = '#EF4444';
+    // X in Danger-Farbe
+    ctx.strokeStyle = colors.danger;
     ctx.lineWidth = 3;
     const xPadding = 6;
     ctx.beginPath();
