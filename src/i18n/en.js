@@ -8,6 +8,7 @@
 export default {
   nav: {
     home: 'Home',
+    menu: 'Menu',
     editor: 'Editor',
     gallery: 'Gallery',
     guide: 'Guide',

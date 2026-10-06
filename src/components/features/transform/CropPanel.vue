@@ -1,30 +1,30 @@
 <template>
   <div class="panel-section">
     <h3>
-      <i class="fas fa-crop"></i>
+      <AppIcon name="crop" />
       {{ $t('transform.crop.title') }}
     </h3>
 
     <!-- Im Crop-Modus: Bestätigen + Abbrechen nebeneinander -->
     <div v-if="cropMode" class="crop-actions">
       <button class="transform-btn active crop-confirm-btn" @click="$emit('toggle-crop')">
-        <i class="fas fa-check"></i>
+        <AppIcon name="check" />
         <span>{{ $t('transform.crop.confirm') }}</span>
       </button>
       <button class="transform-btn crop-cancel-btn" @click="$emit('cancel-crop')">
-        <i class="fas fa-times"></i>
+        <AppIcon name="times" />
         <span>{{ $t('transform.crop.cancel', 'Abbrechen') }}</span>
       </button>
     </div>
     <button v-else class="transform-btn" @click="$emit('toggle-crop')">
-      <i class="fas fa-crop"></i>
+      <AppIcon name="crop" />
       <span>{{ $t('transform.crop.button') }}</span>
     </button>
 
     <!-- Live-Anzeige der Zuschnittabmessungen -->
     <div v-if="cropMode && hasSelection" class="crop-size-section">
       <label class="aspect-label">
-        <i class="fas fa-vector-square"></i>
+        <AppIcon name="vector-square" :size="14" />
         {{ $t('transform.crop.dimensions') }}
       </label>
       <div class="crop-size-grid">
@@ -64,7 +64,7 @@
 
       <!-- Auswahl mit einem Klick mittig im Canvas positionieren -->
       <button class="crop-center-btn" @click="$emit('center-crop')">
-        <i class="fas fa-crosshairs"></i>
+        <AppIcon name="crosshairs" />
         <span>{{ $t('transform.crop.center', 'Zentrieren') }}</span>
       </button>
     </div>
@@ -72,7 +72,7 @@
     <!-- Seitenverhältnis Presets -->
     <div v-if="cropMode" class="aspect-ratio-section">
       <label class="aspect-label">
-        <i class="fas fa-expand-arrows-alt"></i>
+        <AppIcon name="expand-arrows-alt" :size="14" />
         {{ $t('transform.crop.aspectRatio') }}
       </label>
       <div class="aspect-ratio-grid">
@@ -84,7 +84,7 @@
           :title="getPresetLabel(preset)"
           @click="$emit('set-aspect-ratio', preset.id)"
         >
-          <i :class="'fas ' + preset.icon"></i>
+          <AppIcon :name="preset.icon" />
           <span>{{ getPresetLabel(preset) }}</span>
         </button>
       </div>
@@ -107,6 +107,7 @@
 
 <script setup>
 import { computed } from 'vue';
+import AppIcon from '@/components/ui/AppIcon.vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n({ useScope: 'global' });
@@ -162,166 +163,169 @@ function getPresetLabel(preset) {
 
 .aspect-ratio-section,
 .crop-size-section {
-  margin: 0.75rem 0;
-  padding-top: 0.5rem;
-  border-top: 1px dashed var(--color-border, #e5e7eb);
+  margin: var(--ds-space-3) 0;
+  padding-top: var(--ds-space-3);
+  border-top: var(--ds-border-width) solid var(--ds-border);
 }
 
 .crop-size-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 0.35rem;
+  gap: var(--ds-space-2);
 }
 
+// Zahlenfeld im UiTextField-Look: Kennung klein darüber, Wert + Einheit
 .crop-size-item {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
-  padding: 0.4rem 0.5rem;
-  background: var(--color-bg, #ffffff);
-  border: 1.5px solid var(--color-border, #d1d5db);
-  border-radius: 6px;
+  gap: 2px;
+  padding: var(--ds-space-1) var(--ds-space-3);
+  background: var(--ds-surface-2);
+  border: var(--ds-border-width) solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
   transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
-
-  &:hover {
-    border-color: var(--color-primary, #014f99);
-  }
+    border-color var(--ds-duration) var(--ds-ease),
+    box-shadow var(--ds-duration) var(--ds-ease);
 
   &:focus-within {
-    border-color: var(--color-primary, #014f99);
-    box-shadow: 0 0 0 2px rgba(1, 79, 153, 0.15);
+    border-color: var(--ds-accent);
+    box-shadow: var(--ds-focus-ring);
   }
 }
 
 .crop-size-key {
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: var(--color-text-light, #6b7280);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-regular);
+  line-height: var(--ds-leading);
+  color: var(--ds-text-2);
 }
 
 .crop-size-input-wrap {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: var(--ds-space-1);
 }
 
 .crop-size-input {
   width: 100%;
   min-width: 0;
+  height: auto;
   border: none;
   background: transparent;
   padding: 0;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--color-primary, #014f99);
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-semibold);
+  line-height: var(--ds-leading);
+  color: var(--ds-text);
   font-variant-numeric: tabular-nums;
 
-  &:focus {
+  &:focus,
+  &:focus-visible {
     outline: none;
+    box-shadow: none;
   }
 
   // Native Stepper-Pfeile sichtbar lassen (pixelgenaues Anpassen)
   &::-webkit-inner-spin-button,
   &::-webkit-outer-spin-button {
     opacity: 1;
-    height: 1.1rem;
+    height: var(--ds-space-5);
   }
 }
 
 .crop-size-unit {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--color-text-light, #6b7280);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
+  color: var(--ds-text-2);
   flex-shrink: 0;
 }
 
 .crop-actions {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  gap: var(--ds-space-2);
+  margin-bottom: var(--ds-space-2);
 
   .transform-btn {
     flex: 1;
+    min-width: 0;
     margin-bottom: 0;
-    justify-content: center;
-
-    span {
-      flex: 0 0 auto;
-      text-align: center;
-    }
   }
 }
 
+// Bestätigen ist die Primäraktion des Zuschnitt-Modus (Gold statt Grün)
+.transform-btn.crop-confirm-btn {
+  background: var(--ds-accent);
+  border-color: var(--ds-accent);
+  color: var(--ds-on-accent);
+  font-weight: var(--ds-weight-semibold);
+
+  &:hover:not(:disabled) {
+    background: var(--ds-accent-hover);
+    border-color: var(--ds-accent-hover);
+  }
+}
+
+// Abbrechen: Sekundär-Button, destruktiver Hinweis nur über Textfarbe
 .crop-cancel-btn {
-  &:hover {
-    border-color: #ef4444;
-    background: rgba(239, 68, 68, 0.08);
-    color: #ef4444;
-    transform: translateY(-1px);
+  &:hover:not(:disabled) {
+    color: var(--ds-danger);
   }
 }
 
+// Zentrieren = UiButton secondary
 .crop-center-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
+  gap: var(--ds-space-2);
   width: 100%;
-  margin-top: 0.5rem;
-  padding: 0.45rem 0.5rem;
-  background: var(--color-bg, #ffffff);
-  border: 1.5px solid var(--color-border, #d1d5db);
-  border-radius: 6px;
+  height: var(--ds-control-md);
+  margin-top: var(--ds-space-2);
+  padding: 0 var(--ds-space-4);
+  background: var(--ds-surface-2);
+  border: var(--ds-border-width) solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
   cursor: pointer;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--color-text);
+  font: inherit;
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-medium);
+  line-height: 1;
+  color: var(--ds-text);
   transition:
-    border-color 0.15s ease,
-    background 0.15s ease,
-    transform 0.15s ease;
-
-  i {
-    font-size: 0.8rem;
-    color: var(--color-primary, #014f99);
-  }
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 
   &:hover {
-    border-color: var(--color-primary, #014f99);
-    background: rgba(1, 79, 153, 0.05);
-    transform: translateY(-1px);
+    background: var(--ds-surface-3);
   }
 
-  &:active {
-    transform: translateY(0);
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 }
 
 .aspect-label {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--color-text-light, #6b7280);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  margin-bottom: 0.5rem;
-
-  i {
-    color: var(--color-primary, #014f99);
-    font-size: 0.75rem;
-  }
+  gap: var(--ds-space-1);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-regular);
+  line-height: var(--ds-leading);
+  color: var(--ds-text-2);
+  margin-bottom: var(--ds-space-2);
 }
 
+// Seitenverhältnis-Chips im UiSegmentedControl-Look
 .aspect-ratio-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 0.35rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  padding: 2px;
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-0);
 }
 
 .aspect-btn {
@@ -329,21 +333,22 @@ function getPresetLabel(preset) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.2rem;
-  padding: 0.5rem 0.25rem;
-  background: var(--color-bg, #ffffff);
-  border: 1.5px solid var(--color-border, #d1d5db);
-  border-radius: 6px;
+  gap: var(--ds-space-1);
+  min-width: 0;
+  padding: var(--ds-space-2) var(--ds-space-1);
+  background: transparent;
+  border: var(--ds-border-width) solid transparent;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.65rem;
-  color: var(--color-text);
-  font-weight: 500;
-
-  i {
-    font-size: 0.85rem;
-    opacity: 0.8;
-  }
+  font: inherit;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-medium);
+  line-height: 1;
+  color: var(--ds-text-2);
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 
   span {
     white-space: nowrap;
@@ -353,90 +358,29 @@ function getPresetLabel(preset) {
   }
 
   &:hover {
-    border-color: var(--color-primary, #014f99);
-    background: rgba(1, 79, 153, 0.05);
-    transform: translateY(-1px);
+    color: var(--ds-text);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 
   &.active {
-    background: var(--color-primary, #014f99);
-    color: white;
-    border-color: var(--color-primary, #014f99);
-    box-shadow: 0 2px 8px rgba(1, 79, 153, 0.3);
-
-    i {
-      opacity: 1;
-    }
-  }
-}
-
-// Dark Mode
-:root[data-theme='dark'] {
-  .aspect-ratio-section,
-  .crop-size-section {
-    border-top-color: var(--color-border);
-  }
-
-  .crop-size-item {
-    background: var(--color-card-bg, var(--color-bg));
-    border-color: var(--color-border);
-  }
-
-  .crop-size-key {
-    color: var(--color-text-light);
-  }
-
-  .crop-size-input {
-    color: var(--color-text);
-  }
-
-  .crop-center-btn {
-    background: var(--color-card-bg, var(--color-bg));
-    border-color: var(--color-border);
-    color: var(--color-text);
-
-    &:hover {
-      background: var(--color-bg-secondary);
-      border-color: var(--color-primary);
-    }
-  }
-
-  .aspect-label {
-    color: var(--color-text-light);
-  }
-
-  .aspect-btn {
-    background: var(--color-card-bg, var(--color-bg));
-    border-color: var(--color-border);
-    color: var(--color-text);
-
-    &:hover {
-      background: var(--color-bg-secondary);
-      border-color: var(--color-primary);
-    }
-
-    &.active {
-      background: var(--color-primary);
-      border-color: var(--color-primary);
-    }
+    background: var(--ds-surface-1);
+    border-color: var(--ds-border-strong);
+    color: var(--ds-text);
   }
 }
 
 // Mobile
 @media (max-width: 768px) {
-  .aspect-ratio-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.5rem;
-  }
-
   .aspect-btn {
-    padding: 0.6rem 0.35rem;
-    font-size: 0.7rem;
+    min-height: var(--ds-row-height);
   }
 
   .transform-btn {
-    min-height: 44px;
-    padding: 0.75rem;
+    min-height: var(--ds-row-height);
   }
 }
 </style>

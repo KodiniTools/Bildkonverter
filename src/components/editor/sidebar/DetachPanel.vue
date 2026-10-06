@@ -19,7 +19,7 @@
     </div>
 
     <p class="hint-text">
-      <i class="fas fa-info-circle"></i>
+      <AppIcon name="info-circle" />
       <template v-if="disabled">
         {{ $t('editor.detach.hintDisabled', 'Bild laden um es vom Hintergrund zu lösen') }}
       </template>
@@ -41,6 +41,7 @@
 </template>
 
 <script setup>
+import AppIcon from '@/components/ui/AppIcon.vue';
 import ToggleSwitch from '@/components/ui/ToggleSwitch.vue';
 
 defineProps({
@@ -61,13 +62,15 @@ defineEmits(['toggle']);
 .detach-toggle-row {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.5rem;
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-2);
 }
 
 .detach-toggle-label {
-  font-size: 0.875rem;
-  color: var(--color-text);
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-medium);
+  line-height: var(--ds-leading);
+  color: var(--ds-text);
   cursor: pointer;
 }
 </style>

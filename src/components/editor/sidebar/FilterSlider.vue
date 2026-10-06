@@ -56,6 +56,6 @@ function onUpdate(value) {
 <style scoped>
 /* Abstand zwischen den Reglern einer Sidebar-Sektion */
 .filter-slider {
-  margin-bottom: 0.875rem;
+  margin-bottom: var(--ds-space-3);
 }
 </style>

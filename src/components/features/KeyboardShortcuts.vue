@@ -6,11 +6,17 @@
         <div class="modal-content" @click.stop>
           <div class="modal-header">
             <h2>
-              <i class="fas fa-keyboard"></i>
+              <AppIcon name="keyboard" :size="20" />
               {{ $t('shortcuts.title') }}
             </h2>
-            <button class="close-btn" @click="closeHelp">
-              <i class="fas fa-times"></i>
+            <button
+              type="button"
+              class="close-btn"
+              :aria-label="$t('shortcuts.close')"
+              :title="$t('shortcuts.close')"
+              @click="closeHelp"
+            >
+              <AppIcon name="times" />
             </button>
           </div>
 
@@ -47,6 +53,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
+import AppIcon from '@/components/ui/AppIcon.vue';
 
 const router = useRouter();
 
@@ -206,159 +213,183 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
+/* UiDialog (Design-System v2), Größe lg: 720 px, surface-1, radius-lg,
+   Padding 20, Lücke 12, Overlay-Schatten; Backdrop ohne Blur.
+   Kategorien als Eyebrow, Tasten als UiKbd. */
 .shortcuts-modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  padding: var(--spacing-xl);
-
-  @media (max-width: 768px) {
-    padding: var(--spacing-md);
-  }
+  padding: var(--ds-space-4);
 }
 
 .modal-content {
-  background: var(--color-bg-secondary);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-xl);
-  width: 100%;
-  max-width: 700px;
-  max-height: 80vh;
+  width: min(720px, 100%);
+  max-height: calc(100vh - 2 * var(--ds-space-4));
+  overflow: auto;
+  box-sizing: border-box;
+  padding: var(--ds-space-5);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface-1);
+  color: var(--ds-text);
+  box-shadow: var(--ds-shadow-overlay);
   display: flex;
   flex-direction: column;
+  gap: var(--ds-space-3);
 }
 
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-xl);
-  border-bottom: 1px solid var(--color-border);
+  gap: var(--ds-space-3);
 
   h2 {
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
+    gap: var(--ds-space-2);
     margin: 0;
-    font-size: 1.5rem;
+    font-size: var(--ds-text-lg);
+    font-weight: var(--ds-weight-semibold);
+    line-height: var(--ds-leading);
+    color: var(--ds-text);
 
-    i {
-      color: var(--color-primary);
+    .app-icon {
+      color: var(--ds-text-2);
     }
   }
 }
 
+/* UiIconButton ghost, sm */
 .close-btn {
-  width: 36px;
-  height: 36px;
-  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--ds-control-sm);
+  height: var(--ds-control-sm);
+  padding: 0;
+  border: var(--ds-border-width) solid transparent;
   background: transparent;
-  color: var(--color-text-secondary);
-  border-radius: var(--border-radius-md);
+  color: var(--ds-text-2);
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 
   &:hover {
-    background: var(--color-light-blue);
-    color: var(--color-primary);
+    background: var(--ds-surface-2);
+    color: var(--ds-text);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 }
 
 .modal-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--spacing-xl);
+  display: grid;
+  gap: var(--ds-space-6);
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 639px) {
+    gap: var(--ds-space-5);
+  }
 }
 
 .shortcut-group {
-  margin-bottom: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
 
-  &:last-child {
-    margin-bottom: 0;
-  }
-
+  /* Eyebrow 12/600 Versalien */
   h3 {
-    font-size: 1.1rem;
-    margin-bottom: var(--spacing-md);
-    color: var(--color-primary);
+    margin: 0;
+    font-size: var(--ds-text-xs);
+    font-weight: var(--ds-weight-semibold);
+    line-height: var(--ds-leading);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    color: var(--ds-text-2);
   }
 }
 
 .shortcuts-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: var(--ds-space-1);
 }
 
 .shortcut-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-bg-primary);
-  border-radius: var(--border-radius-md);
-  gap: var(--spacing-md);
-
-  @media (max-width: 480px) {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-1) 0;
 }
 
+/* UiKbd */
 .shortcut-keys {
-  display: flex;
-  gap: var(--spacing-xs);
+  order: 2;
+  display: inline-flex;
+  gap: var(--ds-space-1);
   align-items: center;
+  flex-shrink: 0;
 
   .key {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 32px;
-    height: 32px;
-    padding: 0 var(--spacing-sm);
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius-sm);
-    font-family: monospace;
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    box-shadow: 0 2px 0 var(--color-border);
+    min-width: 24px;
+    height: 22px;
+    padding: 0 calc(var(--ds-space-1) + 2px);
+    box-sizing: border-box;
+    border: var(--ds-border-width) solid var(--ds-border-strong);
+    border-bottom-width: 2px;
+    border-radius: var(--ds-radius-sm);
+    background: var(--ds-surface-2);
+    color: var(--ds-text);
+    font-family: inherit;
+    font-size: var(--ds-text-xs);
+    font-weight: var(--ds-weight-semibold);
+    line-height: 1;
+    white-space: nowrap;
   }
 }
 
 .shortcut-description {
+  order: 1;
   flex: 1;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  text-align: right;
-
-  @media (max-width: 480px) {
-    text-align: left;
-  }
+  min-width: 0;
+  color: var(--ds-text);
+  font-size: var(--ds-text-sm);
+  line-height: var(--ds-leading);
 }
 
 .modal-footer {
   display: flex;
   justify-content: flex-end;
-  padding: var(--spacing-xl);
-  border-top: 1px solid var(--color-border);
+  gap: var(--ds-space-2);
+  padding-top: var(--ds-space-2);
 }
 
-// Transitions
+// Transitions: Fade + 8 px
 .modal-enter-active,
 .modal-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity var(--ds-duration-slow) var(--ds-ease);
 
   .modal-content {
-    transition: transform 0.3s ease;
+    transition: transform var(--ds-duration-slow) var(--ds-ease);
   }
 }
 
@@ -367,7 +398,7 @@ onUnmounted(() => {
   opacity: 0;
 
   .modal-content {
-    transform: scale(0.9) translateY(-20px);
+    transform: translateY(8px);
   }
 }
 </style>

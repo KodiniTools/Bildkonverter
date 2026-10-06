@@ -2,8 +2,12 @@
   <Teleport to="body">
     <div v-if="show" class="preview-modal-overlay" @click="$emit('close')">
       <div class="preview-modal-content" @click.stop>
-        <button class="preview-close-btn" @click="$emit('close')">
-          <i class="fas fa-times"></i>
+        <button
+          class="preview-close-btn"
+          :aria-label="$t('common.close', 'Schließen')"
+          @click="$emit('close')"
+        >
+          <AppIcon name="times" />
         </button>
 
         <!-- Mode tabs -->
@@ -13,7 +17,7 @@
             :class="{ active: mode === 'before' }"
             @click="mode = 'before'"
           >
-            <i class="fas fa-history"></i>
+            <AppIcon name="history" />
             {{ $t('editor.preview.before', 'Vorher') }}
           </button>
           <button
@@ -21,11 +25,11 @@
             :class="{ active: mode === 'compare' }"
             @click="mode = 'compare'"
           >
-            <i class="fas fa-columns"></i>
+            <AppIcon name="columns" />
             {{ $t('editor.preview.compare', 'Vergleich') }}
           </button>
           <button class="preview-tab" :class="{ active: mode === 'after' }" @click="mode = 'after'">
-            <i class="fas fa-magic"></i>
+            <AppIcon name="magic" />
             {{ $t('editor.preview.after', 'Nachher') }}
           </button>
         </div>
@@ -87,7 +91,7 @@
           <!-- Divider + handle -->
           <div class="slider-line" :style="{ left: sliderPos + '%' }">
             <div class="slider-handle">
-              <i class="fas fa-exchange-alt"></i>
+              <AppIcon name="exchange-alt" :size="20" />
             </div>
           </div>
         </div>
@@ -98,6 +102,7 @@
 
 <script setup>
 import { ref, watch } from 'vue';
+import AppIcon from '@/components/ui/AppIcon.vue';
 
 const props = defineProps({
   show: Boolean,
@@ -158,87 +163,116 @@ function updateSlider(e) {
 </script>
 
 <style lang="scss" scoped>
+/* Bildvorschau wie im Collage Maker (breites Modal ohne UiDialog):
+   Backdrop 50 % Schwarz, surface-1, 1-px-Rahmen, radius-lg, Overlay-Schatten.
+   Modus-Umschalter = UiSegmentedControl. */
 .preview-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  padding: 2rem;
+  padding: var(--ds-space-4);
+  animation: preview-fade var(--ds-duration-slow) var(--ds-ease);
 }
 
 .preview-modal-content {
   position: relative;
-  background: #1a1f2e;
-  border-radius: 14px;
-  padding: 1.5rem;
+  background: var(--ds-surface-1);
+  color: var(--ds-text);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-shadow-overlay);
+  padding: var(--ds-space-4);
   max-width: 90vw;
   max-height: 92vh;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--ds-space-3);
   overflow: hidden;
 }
 
+/* UiIconButton ghost, Größe sm */
 .preview-close-btn {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  border-radius: 50%;
+  top: var(--ds-space-4);
+  right: var(--ds-space-4);
+  width: var(--ds-control-sm);
+  height: var(--ds-control-sm);
+  padding: 0;
+  border: var(--ds-border-width) solid transparent;
+  background: transparent;
+  color: var(--ds-text-2);
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
   z-index: 10;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--ds-surface-2);
+    color: var(--ds-text);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 }
 
-/* Tabs */
+/* Tabs = UiSegmentedControl */
 .preview-tabs {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  padding-right: 2.5rem;
+  display: inline-flex;
+  align-self: center;
+  gap: 2px;
+  padding: 2px;
+  height: var(--ds-control-md);
+  margin-right: var(--ds-space-8);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-0);
 }
 
 .preview-tab {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.45rem 1.1rem;
-  border: none;
-  border-radius: 20px;
+  justify-content: center;
+  gap: var(--ds-space-2);
+  padding: 0 var(--ds-space-3);
+  border: var(--ds-border-width) solid transparent;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 500;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.6);
-  transition: all 0.2s;
+  font: inherit;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+  background: transparent;
+  color: var(--ds-text-2);
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.14);
-    color: #fff;
+    color: var(--ds-text);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 
   &.active {
-    background: #f5a623;
-    color: #1a1f2e;
-    font-weight: 700;
-  }
-
-  i {
-    font-size: 0.8rem;
+    background: var(--ds-surface-1);
+    border-color: var(--ds-border-strong);
+    color: var(--ds-text);
   }
 }
 
@@ -252,7 +286,7 @@ function updateSlider(e) {
     max-width: 100%;
     max-height: 75vh;
     object-fit: contain;
-    border-radius: 8px;
+    border-radius: var(--ds-radius-md);
     display: block;
   }
 }
@@ -262,7 +296,7 @@ function updateSlider(e) {
   position: relative;
   cursor: col-resize;
   user-select: none;
-  border-radius: 10px;
+  border-radius: var(--ds-radius-md);
   overflow: hidden;
   line-height: 0;
   max-height: 75vh;
@@ -288,34 +322,36 @@ function updateSlider(e) {
   }
 }
 
+/* Badge über dem Bild */
 .slider-label {
   position: absolute;
-  top: 0.75rem;
-  padding: 0.2rem 0.6rem;
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  border-radius: 4px;
+  top: var(--ds-space-3);
+  padding: var(--ds-space-1) var(--ds-space-2);
+  background: var(--ds-surface-1);
+  color: var(--ds-text);
+  border: var(--ds-border-width) solid var(--ds-border);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  border-radius: var(--ds-radius-sm);
   pointer-events: none;
-  line-height: 1.4;
+  line-height: var(--ds-leading);
 }
 
 .slider-label-before {
-  left: 0.75rem;
+  left: var(--ds-space-3);
 }
 
 .slider-label-after {
-  right: 0.75rem;
+  right: var(--ds-space-3);
 }
 
+/* Trennlinie und Griff über dem Bild: Weiß (README-Ausnahme) */
 .slider-line {
   position: absolute;
   top: 0;
   bottom: 0;
   width: 2px;
-  background: rgba(255, 255, 255, 0.9);
+  background: #fff;
   transform: translateX(-50%);
   pointer-events: none;
   display: flex;
@@ -325,30 +361,39 @@ function updateSlider(e) {
 
 .slider-handle {
   position: absolute;
-  width: 44px;
-  height: 44px;
+  width: var(--ds-row-height);
+  height: var(--ds-row-height);
   border-radius: 50%;
   background: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
-  color: #444;
-  font-size: 1rem;
+  box-shadow: var(--ds-shadow-overlay);
+  color: var(--ds-on-accent);
   pointer-events: none;
 }
 
 .preview-placeholder {
-  padding: 3rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  color: rgba(255, 255, 255, 0.4);
-  font-style: italic;
+  padding: var(--ds-space-12);
+  background: var(--ds-surface-2);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-text-3);
+  font-size: var(--ds-text-sm);
   text-align: center;
-  line-height: 1.5;
+  line-height: var(--ds-leading);
 
   &.full {
     width: 100%;
+  }
+}
+
+@keyframes preview-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
   }
 }
 </style>

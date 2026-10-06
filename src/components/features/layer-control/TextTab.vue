@@ -5,7 +5,7 @@
     <div class="panel-section">
       <div class="section-content">
         <button class="btn btn-primary btn-full" @click="addText">
-          <i class="fas fa-plus"></i>
+          <AppIcon name="plus" />
           {{ $t('layerPanel.text.addButton') }}
         </button>
       </div>
@@ -14,7 +14,7 @@
     <!-- Text Liste -->
     <div v-if="imageStore.texts && imageStore.texts.length > 0" class="panel-section">
       <div class="section-header section-header--static">
-        <i class="section-icon fas fa-list"></i>
+        <AppIcon class="section-icon" name="list" />
         {{ $t('layerPanel.text.listTitle') }} ({{ imageStore.texts.length }})
       </div>
       <div class="section-content">
@@ -37,9 +37,10 @@
             <button
               class="icon-btn"
               :title="$t('layerPanel.layers.delete')"
+              :aria-label="$t('layerPanel.layers.delete')"
               @click.stop="deleteText(text.id)"
             >
-              <i class="fas fa-trash"></i>
+              <AppIcon name="trash" />
             </button>
           </div>
         </div>
@@ -49,7 +50,7 @@
     <!-- Ausgewählter Text Eigenschaften -->
     <div v-if="selectedText" class="panel-section">
       <div class="section-header section-header--static">
-        <i class="section-icon fas fa-edit"></i>
+        <AppIcon class="section-icon" name="edit" />
         {{ $t('layerPanel.text.editTitle') }}
       </div>
       <div class="section-content">
@@ -228,7 +229,7 @@
         </template>
 
         <button class="btn btn-danger btn-full" @click="deleteText(selectedText.id)">
-          <i class="fas fa-trash"></i>
+          <AppIcon name="trash" />
           {{ $t('layerPanel.text.delete') }}
         </button>
       </div>
@@ -237,7 +238,7 @@
     <!-- Keine Texte -->
     <div v-if="!imageStore.texts || imageStore.texts.length === 0" class="panel-section">
       <p class="hint-text">
-        <i class="fas fa-font"></i>
+        <AppIcon name="font" :size="40" />
         {{ $t('layerPanel.hints.addText') }}
       </p>
     </div>
@@ -248,6 +249,7 @@
 import { inject } from 'vue';
 import { LAYER_PANEL_KEY } from '@/composables/useLayerPanel';
 import FilterSlider from '@/components/editor/sidebar/FilterSlider.vue';
+import AppIcon from '@/components/ui/AppIcon.vue';
 
 const {
   imageStore,

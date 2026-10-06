@@ -9,6 +9,7 @@ import { useCanvasRenderer, drawLayerSelection } from '@/composables/useCanvasRe
 import { useTransform } from '@/composables/useTransform';
 import { DEFAULT_FILTERS, DEFAULT_BACKGROUND } from '@/composables/useFilterManagement';
 import { makeImage, pixelAt, diffPixels, snapshot } from './helpers';
+import { themeColorsV2 } from '@/design-system/tokens-v2';
 
 let imgA, imgB;
 beforeAll(async () => {
@@ -241,14 +242,19 @@ describe('useCanvasRenderer – Collage', () => {
     expect(diffPixels(collage, single)).toBe(0);
   });
 
-  it('drawLayerSelection zeichnet Rahmen und acht Griffe', () => {
+  /** '#c9984d' → [201, 152, 77, 255] */
+  const rgba = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).concat(255);
+
+  it.each(['light', 'dark'])('drawLayerSelection zeichnet Rahmen und acht Griffe (%s)', (theme) => {
+    document.documentElement.setAttribute('data-theme', theme);
     const c = document.createElement('canvas');
     c.width = 200;
     c.height = 200;
     drawLayerSelection(c.getContext('2d'), { x: 50, y: 50, width: 100, height: 80, rotation: 0 });
-    // Griff oben links liegt bei (50-4 .. 50+4)
-    expect(pixelAt(c, 50, 50)).toEqual([1, 79, 153, 255]);
+    // Griff oben links liegt bei (50-4 .. 50+4), in der Akzentfarbe des Themes
+    expect(pixelAt(c, 50, 50)).toEqual(rgba(themeColorsV2(theme).accent));
     // Mitte des Rahmens bleibt leer
     expect(pixelAt(c, 100, 90)[3]).toBe(0);
+    document.documentElement.removeAttribute('data-theme');
   });
 });

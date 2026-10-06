@@ -433,17 +433,16 @@ function handleOffline() {
   min-height: calc(100vh + 1px);
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-gradient) 100%);
-  background-attachment: fixed;
-  color: var(--color-text);
+  background: var(--ds-surface-0);
+  color: var(--ds-text);
   transition:
-    background 0.3s ease,
-    color 0.3s ease;
+    background-color var(--ds-duration-slow) var(--ds-ease),
+    color var(--ds-duration-slow) var(--ds-ease);
 }
 
 .main-content {
   flex: 1;
-  padding: var(--spacing-lg);
+  padding: var(--ds-space-6);
 
   // Minimaler Scroll-Bereich, damit AppHeader sticky funktioniert
   &::after {
@@ -453,7 +452,7 @@ function handleOffline() {
   }
 
   @media (max-width: 768px) {
-    padding: var(--spacing-md);
+    padding: var(--ds-space-4);
   }
 }
 
@@ -463,10 +462,10 @@ function handleOffline() {
   width: 100%;
 }
 
-// Transitions
+// Seitenwechsel: nur Überblendung
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity var(--ds-duration) var(--ds-ease);
 }
 
 .fade-enter-from,

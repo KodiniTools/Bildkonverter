@@ -3,7 +3,7 @@
   <div v-if="selectedText" class="panel-section text-section">
     <div class="section-header">
       <h3>
-        <i class="fas fa-font"></i>
+        <AppIcon name="font" />
         {{ $t('textPanel.title', 'Text bearbeiten') }}
       </h3>
     </div>
@@ -20,7 +20,7 @@
     <!-- Text Inhalt -->
     <div class="control-group">
       <label>
-        <i class="fas fa-i-cursor"></i>
+        <AppIcon name="i-cursor" :size="14" />
         {{ $t('textPanel.content', 'Text') }}
       </label>
       <input
@@ -81,7 +81,7 @@
     <!-- Schriftart -->
     <div class="control-group">
       <label>
-        <i class="fas fa-font"></i>
+        <AppIcon name="font" :size="14" />
         {{ $t('textPanel.fontFamily', 'Schriftart') }}
       </label>
       <select
@@ -115,7 +115,7 @@
     <!-- Textstil: Fett / Kursiv -->
     <div class="control-group">
       <label>
-        <i class="fas fa-bold"></i>
+        <AppIcon name="bold" :size="14" />
         {{ $t('textPanel.style', 'Stil') }}
       </label>
       <div class="style-toggle-row">
@@ -131,7 +131,7 @@
           "
           @click="toggleBold"
         >
-          <i class="fas fa-bold"></i>
+          <AppIcon name="bold" />
           <span>{{ $t('textPanel.bold', 'Fett') }}</span>
         </button>
         <button
@@ -146,7 +146,7 @@
           "
           @click="toggleItalic"
         >
-          <i class="fas fa-italic"></i>
+          <AppIcon name="italic" />
           <span>{{ $t('textPanel.italic', 'Kursiv') }}</span>
         </button>
       </div>
@@ -155,7 +155,7 @@
     <!-- Textfarbe -->
     <div class="control-group">
       <label>
-        <i class="fas fa-palette"></i>
+        <AppIcon name="palette" :size="14" />
         {{ $t('textPanel.color', 'Farbe') }}
       </label>
       <div class="color-picker-row">
@@ -332,13 +332,13 @@
 
     <!-- Text löschen -->
     <button class="transform-btn delete-btn" @click="$emit('delete-text')">
-      <i class="fas fa-trash"></i>
+      <AppIcon name="trash" />
       <span>{{ $t('textPanel.delete', 'Text löschen') }}</span>
     </button>
 
     <!-- Auswahl aufheben -->
     <button class="transform-btn" @click="$emit('deselect-text')">
-      <i class="fas fa-times"></i>
+      <AppIcon name="times" />
       <span>{{ $t('textPanel.deselect', 'Auswahl aufheben') }}</span>
     </button>
   </div>
@@ -346,13 +346,14 @@
   <!-- Hinweis wenn Texte vorhanden aber keiner ausgewählt -->
   <div v-else-if="hasTexts" class="panel-section text-hint">
     <p class="hint-text">
-      <i class="fas fa-mouse-pointer"></i>
+      <AppIcon name="mouse-pointer" />
       {{ $t('textPanel.selectHint', 'Klicken Sie auf einen Text im Bild, um ihn zu bearbeiten') }}
     </p>
   </div>
 </template>
 
 <script setup>
+import AppIcon from '@/components/ui/AppIcon.vue';
 import HistoryActions from '@/components/ui/HistoryActions.vue';
 import NumberSpinner from '@/components/ui/NumberSpinner.vue';
 import SliderField from '@/components/ui/SliderField.vue';
@@ -449,203 +450,122 @@ function toggleItalic() {
 <style scoped lang="scss">
 @import './shared';
 
-.text-section {
-  background: rgba(1, 79, 153, 0.03);
-  border: 1px solid rgba(1, 79, 153, 0.25);
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  margin-bottom: 0.5rem;
-
-  &:hover {
-    border-color: rgba(1, 79, 153, 0.4);
-    box-shadow: 0 2px 12px rgba(1, 79, 153, 0.08);
-  }
-}
-
-.text-input {
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-border, #d1d5db);
-  border-radius: 6px;
-  font-size: 0.85rem;
-  background: var(--color-bg, #ffffff);
-  color: var(--color-text);
-  transition: all 0.2s ease;
-
-  &:hover {
-    border-color: var(--color-primary, #014f99);
-  }
-
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary, #014f99);
-    box-shadow: 0 0 0 3px rgba(1, 79, 153, 0.1);
-  }
-}
-
+// Eingaben nutzen die globalen Feldstile (UiTextField / UiSelect)
+.text-input,
 .font-select {
   width: 100%;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-border, #d1d5db);
-  border-radius: 6px;
-  font-size: 0.85rem;
-  background: var(--color-bg, #ffffff);
-  color: var(--color-text);
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    border-color: var(--color-primary, #014f99);
-  }
-
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary, #014f99);
-    box-shadow: 0 0 0 3px rgba(1, 79, 153, 0.1);
-  }
 }
 
+// Fett/Kursiv im UiSegmentedControl-Look
 .style-toggle-row {
   display: flex;
-  gap: 0.5rem;
+  gap: 2px;
+  padding: 2px;
+  height: var(--ds-control-md);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-0);
 }
 
 .style-toggle {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  padding: 0.45rem 0.5rem;
-  border: 1.5px solid var(--color-border, #d1d5db);
-  border-radius: 6px;
-  background: var(--color-bg, #ffffff);
-  color: var(--color-text);
-  font-size: 0.78rem;
-  font-weight: 600;
+  gap: var(--ds-space-2);
+  padding: 0 var(--ds-space-3);
+  border: var(--ds-border-width) solid transparent;
+  border-radius: var(--ds-radius-sm);
+  background: transparent;
+  color: var(--ds-text-2);
+  font: inherit;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
-  transition: all 0.2s ease;
-
-  i {
-    font-size: 0.85rem;
-  }
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 
   &:hover:not(:disabled) {
-    border-color: var(--color-primary, #014f99);
-    background: rgba(1, 79, 153, 0.05);
+    color: var(--ds-text);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 
   &.active {
-    background: var(--color-primary, #014f99);
-    color: #fff;
-    border-color: var(--color-primary, #014f99);
+    background: var(--ds-surface-1);
+    border-color: var(--ds-border-strong);
+    color: var(--ds-text);
   }
 
   &:disabled {
     cursor: not-allowed;
-    opacity: 0.85;
+    opacity: 0.45;
   }
 }
 
 .shadow-controls {
-  margin-top: 0.5rem;
+  margin-top: var(--ds-space-2);
 }
 
 .shadow-offset-row {
   display: flex;
-  gap: 0.75rem;
-  margin-bottom: 0.5rem;
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-2);
 }
 
 .mini-control {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: var(--ds-space-2);
 
   label {
-    font-size: 0.62rem;
-    font-weight: 600;
-    color: var(--control-muted);
-    min-width: 14px;
+    margin-bottom: 0;
+    font-size: var(--ds-text-xs);
+    font-weight: var(--ds-weight-medium);
+    color: var(--ds-text-2);
+    min-width: 12px;
   }
 }
 
-.delete-btn {
-  border-color: #ef4444 !important;
-  color: #ef4444 !important;
+// Destruktiv = UiButton danger: Text in --ds-danger auf flacher Fläche
+.transform-btn.delete-btn {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ds-danger);
 
-  &:hover {
-    background: rgba(239, 68, 68, 0.1) !important;
-    border-color: #dc2626 !important;
-    color: #dc2626 !important;
+  &:hover:not(:disabled) {
+    background: var(--ds-surface-2);
   }
-}
-
-.text-hint {
-  background: rgba(1, 79, 153, 0.05);
-  border: 1px dashed rgba(1, 79, 153, 0.3);
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
 }
 
 .hint-text {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.75rem;
-  color: var(--color-text-light);
+  gap: var(--ds-space-2);
+  font-size: var(--ds-text-sm);
+  color: var(--ds-text-2);
   margin: 0;
-  line-height: 1.4;
+  line-height: var(--ds-leading);
 
-  i {
-    color: var(--color-primary, #014f99);
-    font-size: 0.9rem;
-  }
-}
-
-// Dark Mode
-:root[data-theme='dark'] {
-  .text-section {
-    background: rgba(1, 79, 153, 0.1);
-    border-color: rgba(1, 79, 153, 0.3);
-  }
-
-  .text-input,
-  .font-select {
-    background: var(--color-card-bg, var(--color-bg));
-    border-color: var(--color-border);
-    color: var(--color-text);
-  }
-
-  .style-toggle {
-    background: var(--color-card-bg, var(--color-bg));
-    border-color: var(--color-border);
-    color: var(--color-text);
-
-    &:hover:not(:disabled) {
-      background: var(--color-bg-secondary);
-      border-color: var(--color-primary);
-    }
-
-    &.active {
-      background: var(--color-primary);
-      color: #fff;
-      border-color: var(--color-primary);
-    }
-  }
-
-  .text-hint {
-    background: rgba(1, 79, 153, 0.1);
-    border-color: rgba(1, 79, 153, 0.3);
+  .app-icon {
+    color: var(--ds-text-3);
   }
 }
 
 // Mobile
 @media (max-width: 768px) {
   .transform-btn {
-    min-height: 44px;
-    padding: 0.75rem;
+    min-height: var(--ds-row-height);
   }
 }
 </style>

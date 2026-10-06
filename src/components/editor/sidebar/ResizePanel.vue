@@ -19,13 +19,13 @@
             ↺ {{ $t('editor.resize.noPreset', 'Ohne Preset – Originalgröße')
             }}{{ naturalSizeLabel }}
           </option>
-          <option value="instagram">📷 Instagram Post (1080×1080)</option>
-          <option value="instagramStory">📱 Instagram Story (1080×1920)</option>
-          <option value="facebook">👤 Facebook Post (1200×630)</option>
-          <option value="twitter">🐦 Twitter Post (1200×675)</option>
-          <option value="youtube">▶️ YouTube Thumbnail (1280×720)</option>
-          <option value="hd">🖥️ Full HD (1920×1080)</option>
-          <option value="4k">📺 4K UHD (3840×2160)</option>
+          <option value="instagram">Instagram Post (1080×1080)</option>
+          <option value="instagramStory">Instagram Story (1080×1920)</option>
+          <option value="facebook">Facebook Post (1200×630)</option>
+          <option value="twitter">Twitter Post (1200×675)</option>
+          <option value="youtube">YouTube Thumbnail (1280×720)</option>
+          <option value="hd">Full HD (1920×1080)</option>
+          <option value="4k">4K UHD (3840×2160)</option>
         </select>
       </div>
       <div class="resize-input">
@@ -60,7 +60,7 @@
         />
         {{ $t('editor.resize.maintainAspect') }}
       </label>
-      <button class="btn btn-primary" :disabled="disabled" @click="$emit('apply-resize')">
+      <button class="btn btn-secondary" :disabled="disabled" @click="$emit('apply-resize')">
         {{ $t('editor.resize.apply') }}
       </button>
     </div>

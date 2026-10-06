@@ -12,13 +12,27 @@
           :key="index"
           class="faq-item"
           :class="{ active: activeFaq === index }"
-          @click="toggleFaq(index)"
         >
-          <div class="faq-question">
-            <h3>{{ $t(`faq.items.${faq.key}.question`) }}</h3>
-            <AppIcon :name="activeFaq === index ? 'chevron-up' : 'chevron-down'" :size="20" />
-          </div>
-          <div v-show="activeFaq === index" class="faq-answer">
+          <h3 class="faq-heading">
+            <button
+              :id="`faq-question-${index}`"
+              type="button"
+              class="faq-question"
+              :aria-expanded="activeFaq === index ? 'true' : 'false'"
+              :aria-controls="`faq-answer-${index}`"
+              @click="toggleFaq(index)"
+            >
+              <span class="faq-question__text">{{ $t(`faq.items.${faq.key}.question`) }}</span>
+              <AppIcon :name="activeFaq === index ? 'chevron-up' : 'chevron-down'" :size="20" />
+            </button>
+          </h3>
+          <div
+            v-show="activeFaq === index"
+            :id="`faq-answer-${index}`"
+            class="faq-answer"
+            role="region"
+            :aria-labelledby="`faq-question-${index}`"
+          >
             <p>{{ $t(`faq.items.${faq.key}.answer`) }}</p>
           </div>
         </div>
@@ -154,7 +168,6 @@ watch(locale, updateFaqSchema);
   border: var(--ds-border-width) solid var(--ds-border);
   border-radius: var(--ds-radius-lg);
   overflow: hidden;
-  cursor: pointer;
   transition: border-color var(--ds-duration) var(--ds-ease);
 
   &:hover {
@@ -166,8 +179,22 @@ watch(locale, updateFaqSchema);
   }
 }
 
+.faq-heading {
+  margin: 0;
+  font-size: var(--ds-text-lg);
+  font-weight: var(--ds-weight-semibold);
+  line-height: var(--ds-leading);
+}
+
 .faq-question {
+  width: 100%;
   padding: var(--ds-space-5) var(--ds-space-6);
+  border: none;
+  background: transparent;
+  color: var(--ds-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -178,12 +205,10 @@ watch(locale, updateFaqSchema);
     background: var(--ds-surface-2);
   }
 
-  h3 {
-    font-size: var(--ds-text-lg);
-    font-weight: var(--ds-weight-semibold);
-    line-height: var(--ds-leading);
-    color: var(--ds-text);
-    margin: 0;
+  &:focus-visible {
+    outline: none;
+    // Innen liegender Ring, weil .faq-item overflow: hidden setzt
+    box-shadow: inset 0 0 0 2px var(--ds-accent);
   }
 
   .app-icon {
@@ -192,10 +217,7 @@ watch(locale, updateFaqSchema);
 
   @media (max-width: 768px) {
     padding: var(--ds-space-3) var(--ds-space-4);
-
-    h3 {
-      font-size: var(--ds-text-md);
-    }
+    font-size: var(--ds-text-md);
   }
 }
 

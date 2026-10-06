@@ -8,7 +8,7 @@
           :class="{ active: activeTab === 'layers' }"
           @click="activeTab = 'layers'"
         >
-          <i class="fas fa-layer-group"></i>
+          <AppIcon name="layer-group" />
           {{ $t('layerPanel.tabs.layers') }}
         </button>
         <button
@@ -16,7 +16,7 @@
           :class="{ active: activeTab === 'text' }"
           @click="activeTab = 'text'"
         >
-          <i class="fas fa-font"></i>
+          <AppIcon name="font" />
           {{ $t('layerPanel.tabs.text') }}
         </button>
       </div>
@@ -52,72 +52,97 @@
 import { inject } from 'vue';
 import { LAYER_PANEL_KEY } from '@/composables/useLayerPanel';
 import HistoryActions from '@/components/ui/HistoryActions.vue';
+import AppIcon from '@/components/ui/AppIcon.vue';
 
 const { imageStore, activeTab, historyInfo, handleUndo, handleRedo, handlePreview } =
   inject(LAYER_PANEL_KEY);
 </script>
 
 <style lang="scss" scoped>
-/* Unified top bar: tabs left, history right */
+/* Reiter = UiSegmentedControl (surface-0-Hülle, 2 px Innenabstand,
+   aktive Option surface-1 + border-strong), darunter die Verlaufszeile. */
+.panel-topbar-wrap {
+  padding: var(--ds-space-2) var(--ds-space-2) 0;
+}
+
 .panel-topbar {
   display: flex;
   align-items: stretch;
-  background: var(--color-bg-secondary);
-  border-bottom: 1px solid var(--color-border);
-  padding: 0 0.25rem;
 
   .tab-group {
     display: flex;
     flex: 1;
+    gap: 2px;
+    padding: 2px;
+    height: var(--ds-control-md);
+    box-sizing: border-box;
+    border: var(--ds-border-width) solid var(--ds-border);
+    border-radius: var(--ds-radius-md);
+    background: var(--ds-surface-0);
   }
 }
 
 .tab-btn {
   flex: 1;
-  padding: 0.7rem 0.875rem;
-  border: none;
+  min-width: 0;
+  padding: 0 var(--ds-space-3);
+  border: var(--ds-border-width) solid transparent;
+  border-radius: var(--ds-radius-sm);
   background: transparent;
-  color: var(--color-text-secondary);
-  font-size: 0.8rem;
-  font-weight: 600;
+  color: var(--ds-text-2);
+  font: inherit;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  transition: all 0.2s ease;
-  border-bottom: 2px solid transparent;
+  gap: var(--ds-space-2);
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 
   &:hover {
-    color: var(--color-text);
-    background: var(--color-bg);
+    color: var(--ds-text);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 
   &.active {
-    color: var(--color-primary);
-    background: var(--color-bg);
-    border-bottom: 2px solid var(--color-primary);
+    background: var(--ds-surface-1);
+    border-color: var(--ds-border-strong);
+    color: var(--ds-text);
   }
 }
 
 .panel-history {
-  padding: 0.5rem 0.5rem 0;
+  padding: var(--ds-space-2) 0 0;
   margin-bottom: 0;
   align-items: center;
 }
 
 .history-info {
-  font-size: 0.65rem;
-  color: var(--color-text-secondary);
+  font-size: var(--ds-text-xs);
+  color: var(--ds-text-2);
+  font-variant-numeric: tabular-nums;
   min-width: 28px;
   text-align: center;
 }
 
-/* Mobile Responsiveness */
+/* Mobile: Touch-Ziel 44 */
 @media (max-width: 768px) {
+  .panel-topbar .tab-group {
+    height: var(--ds-row-height);
+  }
+
   .tab-btn {
-    min-height: 44px;
-    font-size: 0.85rem;
+    font-size: var(--ds-text-md);
   }
 }
 </style>

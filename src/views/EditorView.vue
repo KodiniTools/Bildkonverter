@@ -10,7 +10,7 @@
             :title="currentImage ? $t('editor.toolbar.replaceImageHint') : undefined"
             @click="triggerFileInput"
           >
-            <i :class="currentImage ? 'fas fa-exchange-alt' : 'fas fa-upload'"></i>
+            <AppIcon :name="currentImage ? 'exchange-alt' : 'upload'" />
             {{ currentImage ? $t('editor.toolbar.replaceImage') : $t('editor.toolbar.upload') }}
           </button>
           <input
@@ -43,7 +43,7 @@
               :title="$t('editor.toolbar.exitCollage', 'Collage-Modus beenden')"
               @click="exitCollageMode"
             >
-              <i class="fas fa-th"></i>
+              <AppIcon name="th" />
               {{ $t('editor.toolbar.exitCollage', 'Collage beenden') }}
             </button>
           </div>
@@ -54,33 +54,37 @@
               class="tb-btn tb-btn--icon"
               :disabled="!currentImage && !isCollageMode"
               :title="$t('editor.toolbar.addText', 'Text hinzufügen (T)')"
+              :aria-label="$t('editor.toolbar.addText', 'Text hinzufügen (T)')"
               @click="addText"
             >
-              <i class="fas fa-font"></i>
+              <AppIcon name="font" />
             </button>
             <button
               class="tb-btn tb-btn--icon"
               :disabled="!currentImage && !isCollageMode"
               :title="$t('editor.toolbar.preview', 'Vorschau')"
+              :aria-label="$t('editor.toolbar.preview', 'Vorschau')"
               @click="openPreview"
             >
-              <i class="fas fa-eye"></i>
+              <AppIcon name="eye" />
             </button>
             <button
               class="tb-btn tb-btn--icon"
               :disabled="!currentImage && !isCollageMode"
               :title="$t('editor.toolbar.print', 'Drucken')"
+              :aria-label="$t('editor.toolbar.print', 'Drucken')"
               @click="printCurrentImage"
             >
-              <i class="fas fa-print"></i>
+              <AppIcon name="print" />
             </button>
             <button
               class="tb-btn tb-btn--icon"
               :disabled="!currentImage && !isCollageMode"
               :title="$t('editor.toolbar.reset', 'Zurücksetzen')"
+              :aria-label="$t('editor.toolbar.reset', 'Zurücksetzen')"
               @click="resetFilters"
             >
-              <i class="fas fa-sync-alt"></i>
+              <AppIcon name="sync-alt" />
             </button>
           </div>
 
@@ -90,9 +94,10 @@
               class="tb-btn tb-btn--icon tb-btn--danger"
               :disabled="!currentImage && !isCollageMode"
               :title="$t('editor.toolbar.clearImage', 'Bild entfernen')"
+              :aria-label="$t('editor.toolbar.clearImage', 'Bild entfernen')"
               @click="clearImage"
             >
-              <i class="fas fa-trash"></i>
+              <AppIcon name="trash" />
             </button>
           </div>
         </div>
@@ -104,7 +109,7 @@
             :disabled="(!currentImage && !isCollageMode) || isExporting"
             @click="downloadImage"
           >
-            <i :class="isExporting ? 'fas fa-spinner fa-spin' : 'fas fa-download'"></i>
+            <AppIcon :name="isExporting ? 'spinner fa-spin' : 'download'" />
             {{
               isExporting
                 ? $t('toast.editor.exporting', 'Exportiere...')
@@ -210,7 +215,7 @@
           <div v-if="!currentImage && !isCollageMode" class="empty-canvas">
             <div class="empty-canvas__header">
               <div class="empty-canvas__icon-wrap">
-                <i class="fas fa-image"></i>
+                <AppIcon name="image" :size="40" />
               </div>
               <h2>{{ $t('editor.canvas.empty.title') }}</h2>
               <p>{{ $t('editor.canvas.empty.description') }}</p>
@@ -226,7 +231,7 @@
                 @keyup.enter="triggerFileInput"
               >
                 <div class="upload-card__icon">
-                  <i class="fas fa-folder-open"></i>
+                  <AppIcon name="folder-open" :size="20" />
                 </div>
                 <div class="upload-card__body">
                   <strong>{{ $t('editor.canvas.empty.button') }}</strong>
@@ -237,7 +242,7 @@
               <!-- Drag & Drop -->
               <div class="upload-card upload-card--drag">
                 <div class="upload-card__icon">
-                  <i class="fas fa-cloud-upload-alt"></i>
+                  <AppIcon name="cloud-upload-alt" :size="20" />
                 </div>
                 <div class="upload-card__body">
                   <strong>{{ $t('editor.canvas.empty.dragDropTitle') }}</strong>
@@ -248,7 +253,7 @@
               <!-- Einfügen -->
               <div class="upload-card upload-card--paste">
                 <div class="upload-card__icon">
-                  <i class="fas fa-clipboard"></i>
+                  <AppIcon name="clipboard" :size="20" />
                 </div>
                 <div class="upload-card__body">
                   <strong>{{ $t('editor.canvas.empty.clipboardTitle') }}</strong>
@@ -289,7 +294,7 @@
               <div class="resize-handle handle-w"></div>
               <!-- Center Move Indicator -->
               <div class="move-indicator">
-                <i class="fas fa-arrows-alt"></i>
+                <AppIcon name="arrows-alt" />
               </div>
               <!-- Live-Anzeige der Zuschnittabmessungen (Breite × Höhe in Pixel) -->
               <div
@@ -297,7 +302,7 @@
                 :class="{ 'crop-dimensions--inside': cropLabelInside }"
                 :title="$t('transform.crop.dimensionsTooltip')"
               >
-                <i class="fas fa-vector-square"></i>
+                <AppIcon name="vector-square" />
                 <span
                   >{{ crop.cropDimensions.value.width }} ×
                   {{ crop.cropDimensions.value.height }} px</span
@@ -306,11 +311,10 @@
             </div>
             <div class="canvas-info">
               <span
-                ><i class="fas fa-expand-arrows-alt"></i> {{ imageWidth }} ×
-                {{ imageHeight }}px</span
+                ><AppIcon name="expand-arrows-alt" /> {{ imageWidth }} × {{ imageHeight }}px</span
               >
-              <span><i class="fas fa-file"></i> {{ formatSize(imageSize) }}</span>
-              <span><i class="fas fa-image"></i> {{ currentImageFormat.toUpperCase() }}</span>
+              <span><AppIcon name="file" /> {{ formatSize(imageSize) }}</span>
+              <span><AppIcon name="image" /> {{ currentImageFormat.toUpperCase() }}</span>
             </div>
           </div>
         </div>
@@ -447,7 +451,7 @@
               {{ $t('common.cancel', 'Abbrechen') }}
             </button>
             <button class="export-dialog__btn export-dialog__btn--confirm" @click="confirmExport">
-              <i class="fas fa-download"></i>
+              <AppIcon name="download" />
               {{ $t('editor.toolbar.download') }}
             </button>
           </div>
@@ -460,28 +464,28 @@
       <div v-if="showForwardOffer" class="forward-offer-overlay" @click.self="dismissForwardOffer">
         <div class="forward-offer">
           <div class="forward-offer__icon">
-            <i class="fas fa-check-circle"></i>
+            <AppIcon name="check-circle" :size="40" />
           </div>
           <h3 class="forward-offer__title">{{ $t('handoff.forwardTitle') }}</h3>
           <p class="forward-offer__text">{{ $t('handoff.forwardText') }}</p>
 
           <div class="forward-offer__options">
             <button class="forward-offer__option" @click="forwardTo('color-extractor')">
-              <i class="fas fa-palette"></i>
+              <AppIcon name="palette" :size="20" />
               <span class="forward-offer__option-label">
                 {{ $t('handoff.forwardColorExtractor') }}
                 <small>{{ $t('handoff.forwardColorExtractorHint') }}</small>
               </span>
-              <i class="fas fa-arrow-right forward-offer__option-arrow"></i>
+              <AppIcon name="arrow-right" class="forward-offer__option-arrow" />
             </button>
 
             <button class="forward-offer__option" @click="forwardTo('visualizer')">
-              <i class="fas fa-wave-square"></i>
+              <AppIcon name="wave-square" :size="20" />
               <span class="forward-offer__option-label">
                 {{ $t('handoff.forwardVisualizer') }}
                 <small>{{ $t('handoff.forwardVisualizerHint') }}</small>
               </span>
-              <i class="fas fa-arrow-right forward-offer__option-arrow"></i>
+              <AppIcon name="arrow-right" class="forward-offer__option-arrow" />
             </button>
           </div>
 
@@ -512,6 +516,7 @@ import { FORMAT_INFO, SUPPORTED_FORMATS, getFormatInfo } from '@/utils/exportUti
 
 import TransformPanel from '@/components/features/TransformPanel.vue';
 import HistoryActions from '@/components/ui/HistoryActions.vue';
+import AppIcon from '@/components/ui/AppIcon.vue';
 import LayerControlPanel from '@/components/features/LayerControlPanel.vue';
 import FilterPresets from '@/components/editor/FilterPresets.vue';
 import ExportPanel from '@/components/editor/sidebar/ExportPanel.vue';

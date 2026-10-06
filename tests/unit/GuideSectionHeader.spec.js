@@ -7,7 +7,9 @@ describe('GuideSectionHeader', () => {
     const w = mount(GuideSectionHeader, {
       props: { icon: 'fas fa-play-circle', title: 'Schnellstart', description: 'Drei Schritte' },
     });
-    expect(w.find('.section-icon i').classes()).toEqual(['fas', 'fa-play-circle']);
+    // Icon im Lucide-Stil (AppIcon), nicht mehr als Font-Awesome-<i>
+    expect(w.find('.section-icon i').exists()).toBe(false);
+    expect(w.find('.section-icon svg.app-icon').exists()).toBe(true);
     expect(w.find('h2').text()).toBe('Schnellstart');
     expect(w.find('p.section-description').text()).toBe('Drei Schritte');
     expect(w.classes()).not.toContain('section-header-left');

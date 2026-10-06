@@ -1,12 +1,12 @@
 <template>
   <div class="sidebar-section collapsible" :class="{ collapsed: !sectionsOpen.lightColor }">
     <h3 class="section-header" @click="$emit('toggle-section', 'lightColor')">
-      <i class="fas fa-sun section-icon"></i>
+      <AppIcon name="sun" class="section-icon" />
       {{ $t('editor.sidebar.lightColor', 'Licht & Farbe') }}
-      <i
-        :class="sectionsOpen.lightColor ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"
+      <AppIcon
+        :name="sectionsOpen.lightColor ? 'chevron-up' : 'chevron-down'"
         class="toggle-icon"
-      ></i>
+      />
     </h3>
 
     <div v-show="sectionsOpen.lightColor" class="section-content">
@@ -68,6 +68,7 @@
 </template>
 
 <script setup>
+import AppIcon from '@/components/ui/AppIcon.vue';
 import FilterSlider from './FilterSlider.vue';
 
 defineProps({

@@ -3,7 +3,7 @@
     <!-- Page Header -->
     <header class="page-header">
       <div class="page-header__title">
-        <i class="fas fa-images"></i>
+        <AppIcon name="images" :size="32" />
         <div>
           <h1>{{ $t('gallery.title', 'Galerie') }}</h1>
           <p>{{ $t('gallery.subtitle', 'Verwalten Sie Ihre Bilder') }}</p>
@@ -25,8 +25,8 @@
     <!-- Toolbar -->
     <div class="toolbar">
       <div class="toolbar__group">
-        <button class="tb-btn tb-btn--primary" @click="triggerFileInput">
-          <i class="fas fa-upload"></i>
+        <button class="tb-btn" @click="triggerFileInput">
+          <AppIcon name="upload" />
           <span>{{ $t('gallery.buttons.upload') }}</span>
         </button>
         <input
@@ -38,7 +38,7 @@
           @change="handleFileSelect"
         />
         <button class="tb-btn" @click="triggerFolderInput">
-          <i class="fas fa-folder-open"></i>
+          <AppIcon name="folder-open" />
           <span>{{ $t('gallery.buttons.uploadFolder') }}</span>
         </button>
         <input
@@ -59,7 +59,7 @@
           :class="{ 'tb-btn--active': isMultiSelectMode }"
           @click="toggleMultiSelectMode"
         >
-          <i class="fas" :class="isMultiSelectMode ? 'fa-times' : 'fa-object-group'"></i>
+          <AppIcon :name="isMultiSelectMode ? 'times' : 'object-group'" />
           <span>{{
             isMultiSelectMode
               ? $t('gallery.buttons.cancelSelection', 'Abbrechen')
@@ -76,14 +76,13 @@
                 : galleryStore.selectAllImages()
             "
           >
-            <i
-              class="fas"
-              :class="
+            <AppIcon
+              :name="
                 galleryStore.selectedImageIds.length === galleryStore.images.length
-                  ? 'fa-square'
-                  : 'fa-check-square'
+                  ? 'square'
+                  : 'check-square'
               "
-            ></i>
+            />
             <span>{{
               galleryStore.selectedImageIds.length === galleryStore.images.length
                 ? $t('gallery.buttons.deselectAll', 'Alle abwählen')
@@ -95,7 +94,7 @@
             class="tb-btn tb-btn--accent"
             @click="createCollage"
           >
-            <i class="fas fa-layer-group"></i>
+            <AppIcon name="layer-group" />
             <span
               >{{ $t('gallery.buttons.createCollage', 'Collage') }} ({{
                 galleryStore.selectedImageIds.length
@@ -108,11 +107,16 @@
       <div class="toolbar__group">
         <template v-if="galleryStore.selectedImage() && !isMultiSelectMode">
           <button class="tb-btn tb-btn--primary" @click="openInEditor">
-            <i class="fas fa-edit"></i>
+            <AppIcon name="edit" />
             <span>{{ $t('gallery.buttons.addToEditor') }}</span>
           </button>
-          <button class="tb-btn tb-btn--danger" @click="deleteSelected">
-            <i class="fas fa-trash"></i>
+          <button
+            class="tb-btn tb-btn--danger"
+            :aria-label="$t('confirm.delete', 'Löschen')"
+            :title="$t('confirm.delete', 'Löschen')"
+            @click="deleteSelected"
+          >
+            <AppIcon name="trash" />
           </button>
         </template>
         <button
@@ -121,7 +125,7 @@
           :title="$t('gallery.tooltips.deleteAll')"
           @click="deleteAllImages"
         >
-          <i class="fas fa-trash-alt"></i>
+          <AppIcon name="trash-alt" />
           <span>{{ $t('gallery.buttons.deleteAll') }}</span>
         </button>
       </div>
@@ -129,7 +133,7 @@
 
     <!-- Paste Hint -->
     <div v-if="galleryStore.images.length === 0 || true" class="paste-hint">
-      <i class="fas fa-clipboard"></i>
+      <AppIcon name="clipboard" />
       <span>{{ $t('gallery.pasteHint', 'Bilder direkt per') }}</span>
       <kbd>Ctrl</kbd><span>+</span><kbd>V</kbd>
       <span>{{ $t('gallery.pasteHint2', 'einfügen') }}</span>
@@ -138,13 +142,13 @@
     <!-- Empty State -->
     <div v-if="galleryStore.images.length === 0" class="empty-state">
       <div class="empty-state__icon">
-        <i class="fas fa-images"></i>
+        <AppIcon name="images" :size="40" />
       </div>
       <h3>{{ $t('gallery.empty.title') }}</h3>
       <p>{{ $t('gallery.empty.description') }}</p>
       <div class="empty-state__actions">
         <button class="btn btn-primary" @click="triggerFileInput">
-          <i class="fas fa-upload"></i>
+          <AppIcon name="upload" />
           {{ $t('gallery.buttons.upload') }}
         </button>
       </div>
@@ -175,24 +179,25 @@
             class="gallery-card__checkbox"
             @click.stop="galleryStore.toggleImageSelection(image.id)"
           >
-            <i
-              class="fas"
-              :class="galleryStore.isImageSelected(image.id) ? 'fa-check-square' : 'fa-square'"
-            ></i>
+            <AppIcon
+              :name="galleryStore.isImageSelected(image.id) ? 'check-square' : 'square'"
+              :size="20"
+            />
           </div>
           <div v-else class="gallery-card__select-dot">
-            <i
-              class="fas"
-              :class="galleryStore.selectedImageId === image.id ? 'fa-check-circle' : 'fa-circle'"
-            ></i>
+            <AppIcon
+              :name="galleryStore.selectedImageId === image.id ? 'check-circle' : 'circle'"
+              :size="20"
+            />
           </div>
 
           <button
             class="gallery-card__preview-btn"
             :title="$t('gallery.buttons.preview')"
+            :aria-label="$t('gallery.buttons.preview')"
             @click.stop="openPreview(image)"
           >
-            <i class="fas fa-search-plus"></i>
+            <AppIcon name="search-plus" />
           </button>
         </div>
 
@@ -221,19 +226,18 @@
               v-if="editingImageId !== image.id"
               class="gallery-card__rename-btn"
               :title="$t('gallery.buttons.rename', 'Umbenennen')"
+              :aria-label="$t('gallery.buttons.rename', 'Umbenennen')"
               @click.stop="startRename(image)"
             >
-              <i class="fas fa-pen"></i>
+              <AppIcon name="pen" />
             </button>
           </div>
           <div class="gallery-card__meta">
-            <span
-              ><i class="fas fa-expand-arrows-alt"></i> {{ image.width }} × {{ image.height }}</span
-            >
-            <span><i class="fas fa-file"></i> {{ formatSize(image.size) }}</span>
+            <span><AppIcon name="expand-arrows-alt" /> {{ image.width }} × {{ image.height }}</span>
+            <span><AppIcon name="file" /> {{ formatSize(image.size) }}</span>
           </div>
           <div class="gallery-card__date">
-            <i class="fas fa-clock"></i> {{ formatDate(image.uploadedAt) }}
+            <AppIcon name="clock" /> {{ formatDate(image.uploadedAt) }}
           </div>
         </div>
       </div>
@@ -243,8 +247,13 @@
     <Teleport to="body">
       <div v-if="previewImage" class="preview-overlay" @click="closePreview">
         <div class="preview-modal" @click.stop>
-          <button class="preview-modal__close" @click="closePreview">
-            <i class="fas fa-times"></i>
+          <button
+            class="preview-modal__close"
+            :aria-label="$t('common.close', 'Schließen')"
+            :title="$t('common.close', 'Schließen')"
+            @click="closePreview"
+          >
+            <AppIcon name="times" />
           </button>
 
           <div class="preview-modal__image">
@@ -256,22 +265,20 @@
               <h3>{{ previewImage.name }}</h3>
               <div class="preview-modal__meta">
                 <span
-                  ><i class="fas fa-ruler-combined"></i> {{ previewImage.width }} ×
+                  ><AppIcon name="ruler-combined" /> {{ previewImage.width }} ×
                   {{ previewImage.height }}px</span
                 >
-                <span><i class="fas fa-file"></i> {{ formatSize(previewImage.size) }}</span>
-                <span
-                  ><i class="fas fa-calendar"></i> {{ formatDate(previewImage.uploadedAt) }}</span
-                >
+                <span><AppIcon name="file" /> {{ formatSize(previewImage.size) }}</span>
+                <span><AppIcon name="calendar" /> {{ formatDate(previewImage.uploadedAt) }}</span>
               </div>
             </div>
             <div class="preview-modal__actions">
               <button class="btn btn-primary" @click="openPreviewInEditor">
-                <i class="fas fa-edit"></i>
+                <AppIcon name="edit" />
                 {{ $t('gallery.buttons.addToEditor', 'Im Editor öffnen') }}
               </button>
               <button class="btn btn-secondary" @click="downloadImage(previewImage)">
-                <i class="fas fa-download"></i>
+                <AppIcon name="download" />
                 {{ $t('gallery.buttons.download', 'Herunterladen') }}
               </button>
             </div>
@@ -289,6 +296,7 @@ import { useI18n } from 'vue-i18n';
 import { useGalleryStore } from '@/stores/galleryStore';
 import { useImageStore } from '@/stores/imageStore';
 import { useConfirm } from '@/composables/useConfirm';
+import AppIcon from '@/components/ui/AppIcon.vue';
 import HandoffReceiver from '@/components/features/HandoffReceiver.vue';
 import { handoffImageToCanvas } from '@/lib/core/handoff';
 import { formatSize } from '@/utils/fileUtils';
@@ -590,13 +598,13 @@ async function createCollage() {
 // ===== PAGE LAYOUT =====
 
 .gallery-view {
-  padding: 2rem;
+  padding: var(--ds-space-8);
   min-height: 100vh;
   max-width: 1400px;
   margin: 0 auto;
 
   @media (max-width: 768px) {
-    padding: 1rem;
+    padding: var(--ds-space-4);
   }
 }
 
@@ -606,42 +614,42 @@ async function createCollage() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.5rem;
+  gap: var(--ds-space-4);
+  margin-bottom: var(--ds-space-6);
 
   &__title {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: var(--ds-space-4);
 
-    i {
-      font-size: 2rem;
-      color: var(--color-primary);
-      opacity: 0.85;
+    .app-icon {
+      color: var(--ds-text-2);
     }
 
     h1 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      margin: 0 0 0.15rem 0;
-      line-height: 1.2;
+      font-size: var(--ds-text-2xl);
+      font-weight: var(--ds-weight-bold);
+      letter-spacing: var(--ds-tracking-tight);
+      line-height: var(--ds-leading-tight);
+      margin: 0 0 var(--ds-space-1) 0;
     }
 
     p {
       margin: 0;
-      font-size: 0.9rem;
-      color: var(--color-text-secondary);
+      font-size: var(--ds-text-md);
+      color: var(--ds-text-2);
     }
   }
 }
 
 .image-count-badge {
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 20px;
-  padding: 0.35rem 0.875rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--color-text-secondary);
+  background: var(--ds-surface-2);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-full);
+  padding: var(--ds-space-1) var(--ds-space-3);
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-medium);
+  color: var(--ds-text-2);
   white-space: nowrap;
 }
 
@@ -651,98 +659,99 @@ async function createCollage() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.6rem 0.875rem;
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  margin-bottom: 0.875rem;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-3) var(--ds-space-4);
+  background: var(--ds-surface-1);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  margin-bottom: var(--ds-space-3);
   flex-wrap: wrap;
 
   &__group {
     display: flex;
     align-items: center;
-    gap: 0.375rem;
+    gap: var(--ds-space-2);
     flex-wrap: wrap;
   }
 
   &__separator {
-    width: 1px;
-    height: 20px;
-    background: var(--color-border);
-    margin: 0 0.25rem;
+    width: var(--ds-border-width);
+    height: var(--ds-space-5);
+    background: var(--ds-border);
+    margin: 0 var(--ds-space-1);
   }
 }
 
+// Wie UiButton (md): Sekundär-Fläche, Primär in Gold, Danger als Text
 .tb-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.45rem 0.875rem;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-size: 0.8rem;
-  font-weight: 500;
+  justify-content: center;
+  gap: var(--ds-space-2);
+  height: var(--ds-control-md);
+  padding: 0 var(--ds-space-4);
+  border: var(--ds-border-width) solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-2);
+  color: var(--ds-text);
+  font: inherit;
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-medium);
+  line-height: 1;
   cursor: pointer;
-  transition: all 0.15s ease;
   white-space: nowrap;
-
-  i {
-    font-size: 0.85rem;
-  }
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 
   &:hover {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
+    background: var(--ds-surface-3);
   }
 
-  &--primary {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    color: white;
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
+  }
+
+  &--primary,
+  &--accent {
+    background: var(--ds-accent);
+    border-color: transparent;
+    color: var(--ds-on-accent);
+    font-weight: var(--ds-weight-semibold);
+
     &:hover {
-      background: var(--color-primary-dark, #003971);
-      border-color: var(--color-primary-dark, #003971);
-      color: white;
+      background: var(--ds-accent-hover);
+      color: var(--ds-on-accent);
     }
   }
 
-  &--accent {
-    background: var(--color-accent);
-    border-color: var(--color-accent);
-    color: white;
+  &--danger,
+  &--danger-ghost {
+    background: transparent;
+    border-color: transparent;
+    color: var(--ds-danger);
+
     &:hover {
-      opacity: 0.88;
-      color: white;
+      background: var(--ds-surface-2);
+      color: var(--ds-danger);
     }
   }
 
   &--danger {
-    background: var(--color-danger, #dc2626);
-    border-color: var(--color-danger, #dc2626);
-    color: white;
-    &:hover {
-      opacity: 0.85;
-      color: white;
-    }
-  }
-
-  &--danger-ghost {
-    background: transparent;
-    border-color: var(--color-danger, #dc2626);
-    color: var(--color-danger, #dc2626);
-    &:hover {
-      background: var(--color-danger, #dc2626);
-      color: white;
-    }
+    width: var(--ds-control-md);
+    padding: 0;
   }
 
   &--active {
-    background: rgba(1, 79, 153, 0.1);
-    border-color: var(--color-primary);
-    color: var(--color-primary);
+    background: var(--ds-accent-soft);
+    border-color: var(--ds-accent);
+    color: var(--ds-text);
+
+    &:hover {
+      background: var(--ds-accent-soft);
+    }
   }
 }
 
@@ -751,93 +760,80 @@ async function createCollage() {
 .paste-hint {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.78rem;
-  color: var(--color-text-secondary);
-  margin-bottom: 1.25rem;
-  padding: 0 0.25rem;
+  gap: var(--ds-space-2);
+  font-size: var(--ds-text-sm);
+  color: var(--ds-text-2);
+  margin-bottom: var(--ds-space-5);
+  padding: 0 var(--ds-space-1);
 
-  i {
-    opacity: 0.6;
+  .app-icon {
+    color: var(--ds-text-3);
   }
+}
 
-  kbd {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.15rem 0.45rem;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: 4px;
-    font-size: 0.72rem;
-    font-family: inherit;
-    font-weight: 600;
-    color: var(--color-text);
-    box-shadow: 0 1px 0 var(--color-border);
-  }
+// Wie UiKbd
+.paste-hint kbd,
+.empty-state__shortcut kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 calc(var(--ds-space-1) + 2px);
+  border: var(--ds-border-width) solid var(--ds-border-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface-2);
+  color: var(--ds-text);
+  font-family: inherit;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-semibold);
+  line-height: 1;
+  white-space: nowrap;
 }
 
 // ===== EMPTY STATE =====
 
 .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ds-space-2);
   text-align: center;
-  padding: 5rem 2rem 4rem;
+  padding: var(--ds-space-16) var(--ds-space-4);
+  color: var(--ds-text-2);
 
   &__icon {
-    width: 72px;
-    height: 72px;
-    background: rgba(1, 79, 153, 0.07);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1.5rem;
-
-    i {
-      font-size: 2rem;
-      color: var(--color-primary);
-      opacity: 0.7;
-    }
+    display: inline-flex;
+    margin-bottom: var(--ds-space-1);
+    color: var(--ds-text-3);
   }
 
   h3 {
-    font-size: 1.3rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
+    margin: 0;
+    font-size: var(--ds-text-lg);
+    font-weight: var(--ds-weight-semibold);
+    color: var(--ds-text);
   }
 
   p {
-    color: var(--color-text-secondary);
-    margin-bottom: 1.75rem;
+    margin: 0;
+    max-width: 40ch;
+    font-size: var(--ds-text-sm);
+    color: var(--ds-text-2);
   }
 
   &__actions {
-    margin-bottom: 1.5rem;
+    margin-top: var(--ds-space-2);
   }
 
   &__shortcut {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.82rem;
-    color: var(--color-text-secondary);
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: 20px;
-    padding: 0.4rem 1rem;
-
-    kbd {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.1rem 0.4rem;
-      background: var(--color-bg);
-      border: 1px solid var(--color-border);
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      font-family: inherit;
-      box-shadow: 0 1px 0 var(--color-border);
-    }
+    gap: var(--ds-space-1);
+    margin-top: var(--ds-space-2);
+    font-size: var(--ds-text-sm);
+    color: var(--ds-text-2);
   }
 }
 
@@ -846,9 +842,8 @@ async function createCollage() {
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1.25rem;
+  gap: var(--ds-space-5);
 
-  /* Slim scrollbar */
   &::-webkit-scrollbar {
     width: 6px;
   }
@@ -856,59 +851,48 @@ async function createCollage() {
     background: transparent;
   }
   &::-webkit-scrollbar-thumb {
-    background: var(--color-border);
-    border-radius: 3px;
+    background: var(--ds-border-strong);
+    border-radius: var(--ds-radius-full);
     &:hover {
-      background: var(--color-primary);
+      background: var(--ds-text-3);
     }
   }
   scrollbar-width: thin;
-  scrollbar-color: var(--color-border) transparent;
+  scrollbar-color: var(--ds-border-strong) transparent;
 
   @media (max-width: 768px) {
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 1rem;
+    gap: var(--ds-space-4);
   }
 
   @media (max-width: 480px) {
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
+    gap: var(--ds-space-3);
   }
 }
 
 // ===== GALLERY CARD =====
+// Wie TemplateCard: surface-1, 1-px-Rahmen, radius-md, flach.
+// Auswahl wie Thumbnail-Ring: 2 px Akzent mit 2 px Abstand.
 
 .gallery-card {
-  background: var(--color-bg);
-  border: 2px solid var(--color-border);
-  border-radius: 10px;
+  background: var(--ds-surface-1);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  transition: border-color var(--ds-duration) var(--ds-ease);
 
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
-    border-color: var(--color-primary);
+    border-color: var(--ds-border-strong);
   }
 
-  &.selected {
-    border-color: var(--color-accent);
-    box-shadow: 0 0 0 3px rgba(201, 152, 77, 0.2);
-
-    .gallery-card__select-dot i {
-      color: var(--color-accent);
-    }
-  }
-
+  &.selected,
   &.multi-selected {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(1, 79, 153, 0.2);
-
-    .gallery-card__checkbox i {
-      color: var(--color-primary);
-    }
+    border-color: var(--ds-accent);
+    outline-color: var(--ds-accent);
   }
 
   // Thumbnail area
@@ -916,88 +900,91 @@ async function createCollage() {
     position: relative;
     width: 100%;
     aspect-ratio: 4 / 3;
-    background: var(--color-bg-secondary);
+    background: var(--ds-surface-2);
     overflow: hidden;
 
     img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: transform 0.3s ease;
     }
+  }
 
-    &:hover img {
-      transform: scale(1.04);
+  // Auswahl-Marker über dem Bild: kleine surface-1-Chips, ausgewählt in Gold
+  &__select-dot,
+  &__checkbox {
+    position: absolute;
+    top: var(--ds-space-2);
+    left: var(--ds-space-2);
+    width: var(--ds-control-sm);
+    height: var(--ds-control-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ds-surface-1);
+    border: var(--ds-border-width) solid var(--ds-border);
+    color: var(--ds-text-2);
+    transition:
+      background-color var(--ds-duration) var(--ds-ease),
+      border-color var(--ds-duration) var(--ds-ease),
+      color var(--ds-duration) var(--ds-ease);
+
+    .app-icon {
+      width: var(--ds-icon-sm);
+      height: var(--ds-icon-sm);
     }
   }
 
   &__select-dot {
-    position: absolute;
-    top: 0.6rem;
-    left: 0.6rem;
-    width: 28px;
-    height: 28px;
-    background: rgba(0, 0, 0, 0.55);
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    backdrop-filter: blur(4px);
-
-    i {
-      color: rgba(255, 255, 255, 0.75);
-      font-size: 1.1rem;
-    }
   }
 
   &__checkbox {
-    position: absolute;
-    top: 0.6rem;
-    left: 0.6rem;
-    width: 30px;
-    height: 30px;
-    background: rgba(0, 0, 0, 0.6);
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s ease;
-    backdrop-filter: blur(4px);
+    border-radius: var(--ds-radius-sm);
     cursor: pointer;
 
-    i {
-      color: white;
-      font-size: 1.2rem;
-    }
-
     &:hover {
-      background: var(--color-primary);
-      transform: scale(1.08);
+      background: var(--ds-surface-3);
+      color: var(--ds-text);
     }
+  }
+
+  &.selected &__select-dot,
+  &.multi-selected &__checkbox {
+    background: var(--ds-accent);
+    border-color: var(--ds-accent);
+    color: var(--ds-on-accent);
   }
 
   &__preview-btn {
     position: absolute;
-    top: 0.6rem;
-    right: 0.6rem;
-    width: 32px;
-    height: 32px;
-    background: rgba(0, 0, 0, 0.55);
-    border: none;
+    top: var(--ds-space-2);
+    right: var(--ds-space-2);
+    width: var(--ds-control-sm);
+    height: var(--ds-control-sm);
+    background: var(--ds-surface-1);
+    border: var(--ds-border-width) solid var(--ds-border);
     border-radius: 50%;
-    color: white;
+    color: var(--ds-text-2);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
-    transition: all 0.2s ease;
-    backdrop-filter: blur(4px);
+    transition:
+      background-color var(--ds-duration) var(--ds-ease),
+      color var(--ds-duration) var(--ds-ease),
+      opacity var(--ds-duration) var(--ds-ease);
 
     &:hover {
-      background: var(--color-primary);
-      transform: scale(1.1);
+      background: var(--ds-surface-3);
+      color: var(--ds-text);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--ds-focus-ring);
+      opacity: 1;
     }
   }
 
@@ -1007,22 +994,23 @@ async function createCollage() {
 
   // Info section
   &__info {
-    padding: 0.75rem 0.875rem 0.875rem;
-    border-top: 1px solid var(--color-border);
+    padding: var(--ds-space-3) var(--ds-space-4) var(--ds-space-4);
+    border-top: var(--ds-border-width) solid var(--ds-border);
   }
 
   &__name-row {
     display: flex;
     align-items: center;
-    gap: 0.3rem;
-    margin-bottom: 0.35rem;
+    gap: var(--ds-space-1);
+    margin-bottom: var(--ds-space-1);
   }
 
   &__name {
     flex: 1;
     min-width: 0;
-    font-size: 0.85rem;
-    font-weight: 600;
+    font-size: var(--ds-text-md);
+    font-weight: var(--ds-weight-semibold);
+    color: var(--ds-text);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1032,37 +1020,50 @@ async function createCollage() {
   &__name-input {
     flex: 1;
     min-width: 0;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--color-text);
-    background: var(--color-bg);
-    border: 1.5px solid var(--color-primary);
-    border-radius: 4px;
-    padding: 1px 5px;
+    height: var(--ds-control-sm);
+    font-size: var(--ds-text-md);
+    font-weight: var(--ds-weight-semibold);
+    color: var(--ds-text);
+    background: var(--ds-surface-2);
+    border: var(--ds-border-width) solid var(--ds-accent);
+    border-radius: var(--ds-radius-sm);
+    padding: 0 var(--ds-space-2);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(1, 79, 153, 0.12);
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--ds-focus-ring);
+    }
   }
 
   &__rename-btn {
     flex-shrink: 0;
-    width: 20px;
-    height: 20px;
+    width: var(--ds-control-sm);
+    height: var(--ds-control-sm);
     border: none;
     background: none;
     cursor: pointer;
-    color: var(--color-text-secondary);
+    color: var(--ds-text-2);
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.6rem;
-    border-radius: 4px;
+    border-radius: var(--ds-radius-sm);
     opacity: 0;
-    transition: all 0.15s ease;
+    transition:
+      background-color var(--ds-duration) var(--ds-ease),
+      color var(--ds-duration) var(--ds-ease),
+      opacity var(--ds-duration) var(--ds-ease);
 
     &:hover {
-      color: var(--color-primary);
-      background: rgba(1, 79, 153, 0.1);
+      color: var(--ds-text);
+      background: var(--ds-surface-2);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--ds-focus-ring);
+      opacity: 1;
     }
   }
 
@@ -1072,100 +1073,103 @@ async function createCollage() {
 
   &__meta {
     display: flex;
-    gap: 0.875rem;
-    font-size: 0.75rem;
-    color: var(--color-text-secondary);
-    margin-bottom: 0.2rem;
+    gap: var(--ds-space-3);
+    font-size: var(--ds-text-xs);
+    color: var(--ds-text-2);
+    margin-bottom: var(--ds-space-1);
 
     span {
       display: flex;
       align-items: center;
-      gap: 0.3rem;
-      i {
-        opacity: 0.6;
-        font-size: 0.7rem;
+      gap: var(--ds-space-1);
+
+      .app-icon {
+        color: var(--ds-text-3);
       }
     }
   }
 
   &__date {
-    font-size: 0.72rem;
-    color: var(--color-text-secondary);
-    opacity: 0.8;
+    font-size: var(--ds-text-xs);
+    color: var(--ds-text-3);
     display: flex;
     align-items: center;
-    gap: 0.3rem;
-    i {
-      font-size: 0.68rem;
-      opacity: 0.6;
-    }
+    gap: var(--ds-space-1);
   }
 
   @media (max-width: 768px) {
     &__thumb {
       aspect-ratio: 1;
     }
-    &__preview-btn {
+    &__preview-btn,
+    &__rename-btn {
       opacity: 1;
     }
     &__select-dot,
-    &__checkbox {
-      width: 36px;
-      height: 36px;
+    &__checkbox,
+    &__preview-btn {
+      width: var(--ds-control-md);
+      height: var(--ds-control-md);
     }
   }
 }
 
 // ===== PREVIEW MODAL =====
+// Wie die Bildvorschau im Collage Maker (ImageList): Backdrop 50 %, surface-1,
+// radius-lg, shadow-overlay.
 
 .preview-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.88);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  padding: 2rem;
-
-  @media (max-width: 768px) {
-    padding: 0.5rem;
-  }
+  padding: var(--ds-space-4);
+  animation: fadeIn var(--ds-duration-slow) var(--ds-ease);
 }
 
 .preview-modal {
   position: relative;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
+  background: var(--ds-surface-1);
+  color: var(--ds-text);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
   max-width: 90vw;
-  max-height: 92vh;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--ds-shadow-overlay);
 
   &__close {
     position: absolute;
-    top: 0.875rem;
-    right: 0.875rem;
-    width: 36px;
-    height: 36px;
-    border: none;
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
-    border-radius: 50%;
+    top: var(--ds-space-3);
+    right: var(--ds-space-3);
+    width: var(--ds-control-md);
+    height: var(--ds-control-md);
+    border: var(--ds-border-width) solid var(--ds-border);
+    background: var(--ds-surface-1);
+    color: var(--ds-text-2);
+    border-radius: var(--ds-radius-md);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10;
-    transition: all 0.2s ease;
-    backdrop-filter: blur(4px);
+    z-index: 1;
+    transition:
+      background-color var(--ds-duration) var(--ds-ease),
+      color var(--ds-duration) var(--ds-ease);
 
     &:hover {
-      background: var(--color-danger, #dc2626);
-      transform: scale(1.1);
+      background: var(--ds-surface-3);
+      color: var(--ds-text);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--ds-focus-ring);
     }
   }
 
@@ -1174,20 +1178,20 @@ async function createCollage() {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
+    padding: var(--ds-space-4);
     overflow: auto;
-    background: var(--color-bg-secondary);
+    background: var(--ds-surface-2);
     min-height: 300px;
 
     img {
       max-width: 100%;
       max-height: 60vh;
       object-fit: contain;
-      border-radius: 6px;
+      border-radius: var(--ds-radius-md);
     }
 
     @media (max-width: 768px) {
-      padding: 1rem;
+      padding: var(--ds-space-2);
       img {
         max-height: 40vh;
       }
@@ -1198,52 +1202,60 @@ async function createCollage() {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    padding: 1.25rem 1.5rem;
-    border-top: 1px solid var(--color-border);
+    gap: var(--ds-space-4);
+    padding: var(--ds-space-4) var(--ds-space-5);
+    border-top: var(--ds-border-width) solid var(--ds-border);
     flex-wrap: wrap;
 
     @media (max-width: 768px) {
       flex-direction: column;
-      padding: 1rem;
+      align-items: stretch;
+      padding: var(--ds-space-3);
     }
   }
 
   &__info {
+    min-width: 0;
+
     h3 {
-      font-size: 1rem;
-      font-weight: 700;
-      margin: 0 0 0.5rem 0;
+      font-size: var(--ds-text-lg);
+      font-weight: var(--ds-weight-semibold);
+      line-height: var(--ds-leading);
+      color: var(--ds-text);
+      margin: 0 0 var(--ds-space-2) 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   }
 
   &__meta {
     display: flex;
-    gap: 1.5rem;
-    font-size: 0.82rem;
-    color: var(--color-text-secondary);
+    gap: var(--ds-space-4);
+    font-size: var(--ds-text-sm);
+    color: var(--ds-text-2);
     flex-wrap: wrap;
 
     span {
       display: flex;
       align-items: center;
-      gap: 0.35rem;
-      i {
-        opacity: 0.65;
+      gap: var(--ds-space-1);
+
+      .app-icon {
+        color: var(--ds-text-3);
       }
     }
   }
 
   &__actions {
     display: flex;
-    gap: 0.75rem;
+    gap: var(--ds-space-2);
     flex-shrink: 0;
 
     @media (max-width: 768px) {
       width: 100%;
       .btn {
         flex: 1;
-        justify-content: center;
       }
     }
   }

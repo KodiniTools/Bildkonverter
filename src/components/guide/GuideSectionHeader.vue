@@ -7,7 +7,7 @@
       class="section-icon"
       :class="{ 'section-icon-small': align === 'left', 'section-icon-light': light }"
     >
-      <i :class="icon"></i>
+      <AppIcon :name="icon" :size="20" />
     </div>
     <h2>{{ title }}</h2>
     <p
@@ -21,6 +21,8 @@
 </template>
 
 <script setup>
+import AppIcon from '@/components/ui/AppIcon.vue';
+
 /**
  * Überschrift eines Guide-Abschnitts: Icon, Titel, optionale Beschreibung.
  * align="left" ergibt die kompakte linksbündige Variante neben Visuals,
@@ -37,68 +39,51 @@ defineProps({
 </script>
 
 <style lang="scss" scoped>
+// Abschnittstitel nach Design-System v2: section-title 20/700, Icon-Feld flach
+// auf surface-2, Icon 20 in --ds-text-2. Die helle Variante (früher auf
+// dunklem Verlauf) braucht keine eigenen Farben mehr, Klasse bleibt erhalten.
 .section-header {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: var(--ds-space-10);
 
   &.section-header-left {
     text-align: left;
-    margin-bottom: 1.25rem;
-  }
-
-  &.section-header-light {
-    h2,
-    p {
-      color: white;
-    }
+    margin-bottom: var(--ds-space-5);
   }
 
   h2 {
-    font-size: clamp(1.4rem, 3vw, 1.9rem);
-    font-weight: 700;
-    margin-bottom: 0.75rem;
-    color: var(--color-text);
+    font-size: var(--ds-text-xl);
+    font-weight: var(--ds-weight-bold);
+    line-height: var(--ds-leading-tight);
+    margin-bottom: var(--ds-space-3);
+    color: var(--ds-text);
   }
 }
 
 .section-icon {
-  width: 56px;
-  height: 56px;
+  width: var(--ds-control-lg);
+  height: var(--ds-control-lg);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--color-primary) 0%, #003971 100%);
-  border-radius: 16px;
-  margin: 0 auto 1.25rem;
-  box-shadow: 0 8px 24px rgba(1, 79, 153, 0.25);
-
-  i {
-    font-size: 1.4rem;
-    color: #f5f4d6;
-  }
+  background: var(--ds-surface-2);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-text-2);
+  margin: 0 auto var(--ds-space-4);
 
   &.section-icon-small {
-    width: 42px;
-    height: 42px;
-    margin: 0 0 0.75rem 0;
-    border-radius: 12px;
-
-    i {
-      font-size: 1.1rem;
-    }
-  }
-
-  &.section-icon-light {
-    background: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    width: var(--ds-control-md);
+    height: var(--ds-control-md);
+    margin: 0 0 var(--ds-space-3);
   }
 }
 
 .section-description {
-  font-size: 1rem;
-  color: var(--color-text-light);
+  font-size: var(--ds-text-lg);
+  color: var(--ds-text-2);
   max-width: 650px;
   margin: 0 auto;
-  line-height: 1.6;
+  line-height: var(--ds-leading);
 }
 </style>
