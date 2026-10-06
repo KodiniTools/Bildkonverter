@@ -4,7 +4,7 @@
     <!-- Layer Liste -->
     <div class="panel-section">
       <div class="section-header section-header--static">
-        <i class="section-icon fas fa-layer-group"></i>
+        <AppIcon class="section-icon" name="layer-group" />
         {{ $t('layerPanel.layers.title') }} ({{ imageStore.imageLayerCount }})
       </div>
       <div class="section-content">
@@ -46,16 +46,20 @@
                   :title="
                     layer.visible ? $t('layerPanel.layers.hide') : $t('layerPanel.layers.show')
                   "
+                  :aria-label="
+                    layer.visible ? $t('layerPanel.layers.hide') : $t('layerPanel.layers.show')
+                  "
                   @click.stop="toggleVisibility(layer)"
                 >
-                  <i class="fas" :class="layer.visible ? 'fa-eye' : 'fa-eye-slash'"></i>
+                  <AppIcon :name="layer.visible ? 'eye' : 'eye-slash'" />
                 </button>
                 <button
                   class="icon-btn"
                   :title="$t('layerPanel.layers.delete')"
+                  :aria-label="$t('layerPanel.layers.delete')"
                   @click.stop="deleteLayer(layer.id)"
                 >
-                  <i class="fas fa-trash"></i>
+                  <AppIcon name="trash" />
                 </button>
               </div>
             </div>
@@ -64,23 +68,26 @@
               <button
                 class="btn btn-sm"
                 :title="$t('layerPanel.layers.moveUp')"
+                :aria-label="$t('layerPanel.layers.moveUp')"
                 @click.stop="moveLayer('up')"
               >
-                <i class="fas fa-arrow-up"></i>
+                <AppIcon name="arrow-up" />
               </button>
               <button
                 class="btn btn-sm"
                 :title="$t('layerPanel.layers.moveDown')"
+                :aria-label="$t('layerPanel.layers.moveDown')"
                 @click.stop="moveLayer('down')"
               >
-                <i class="fas fa-arrow-down"></i>
+                <AppIcon name="arrow-down" />
               </button>
               <button
                 class="btn btn-sm"
                 :title="$t('layerPanel.layers.duplicate')"
+                :aria-label="$t('layerPanel.layers.duplicate')"
                 @click.stop="duplicateLayer"
               >
-                <i class="fas fa-copy"></i>
+                <AppIcon name="copy" />
               </button>
             </div>
           </div>
@@ -91,12 +98,9 @@
     <!-- Canvas Hintergrund -->
     <div class="panel-section">
       <div class="section-header" @click="toggleSection('canvas')">
-        <i class="section-icon fas fa-fill-drip"></i>
+        <AppIcon class="section-icon" name="fill-drip" />
         {{ $t('layerPanel.background.title') }}
-        <i
-          class="fas toggle-icon"
-          :class="openSections.canvas ? 'fa-chevron-up' : 'fa-chevron-down'"
-        ></i>
+        <AppIcon class="toggle-icon" :name="openSections.canvas ? 'chevron-up' : 'chevron-down'" />
       </div>
       <div v-show="openSections.canvas" class="section-content">
         <div class="control-group">
@@ -119,9 +123,10 @@
               class="icon-btn"
               :class="{ active: imageStore.canvasBackgroundColor === 'transparent' }"
               :title="$t('layerPanel.background.transparent')"
+              :aria-label="$t('layerPanel.background.transparent')"
               @click="updateBackgroundColor('transparent')"
             >
-              <i class="fas fa-chess-board"></i>
+              <AppIcon name="chess-board" />
             </button>
           </div>
         </div>
@@ -136,9 +141,10 @@
             }"
             :style="color.value !== 'transparent' ? { backgroundColor: color.value } : {}"
             :title="color.label"
+            :aria-label="color.label"
             @click="updateBackgroundColor(color.value)"
           >
-            <i v-if="color.value === 'transparent'" class="fas fa-chess-board"></i>
+            <AppIcon v-if="color.value === 'transparent'" name="chess-board" />
           </button>
         </div>
       </div>
@@ -147,12 +153,12 @@
     <!-- Ausgewählter Layer: Transform -->
     <div v-if="selectedLayer" class="panel-section">
       <div class="section-header" @click="toggleSection('transform')">
-        <i class="section-icon fas fa-arrows-alt"></i>
+        <AppIcon class="section-icon" name="arrows-alt" />
         {{ $t('layerPanel.transform.title') }}
-        <i
-          class="fas toggle-icon"
-          :class="openSections.transform ? 'fa-chevron-up' : 'fa-chevron-down'"
-        ></i>
+        <AppIcon
+          class="toggle-icon"
+          :name="openSections.transform ? 'chevron-up' : 'chevron-down'"
+        />
       </div>
       <div v-show="openSections.transform" class="section-content">
         <!-- Position -->
@@ -202,9 +208,10 @@
               class="icon-btn"
               :class="{ active: maintainAspectRatio }"
               :title="$t('layerPanel.transform.maintainAspect')"
+              :aria-label="$t('layerPanel.transform.maintainAspect')"
               @click="maintainAspectRatio = !maintainAspectRatio"
             >
-              <i class="fas fa-link"></i>
+              <AppIcon name="link" />
             </button>
           </div>
         </div>
@@ -238,7 +245,7 @@
               :title="$t('layerPanel.transform.flipHorizontal')"
               @click="toggleFlip('flipX')"
             >
-              <i class="fas fa-arrows-alt-h"></i>
+              <AppIcon name="arrows-alt-h" />
               {{ $t('layerPanel.transform.horizontal') }}
             </button>
             <button
@@ -247,7 +254,7 @@
               :title="$t('layerPanel.transform.flipVertical')"
               @click="toggleFlip('flipY')"
             >
-              <i class="fas fa-arrows-alt-v"></i>
+              <AppIcon name="arrows-alt-v" />
               {{ $t('layerPanel.transform.vertical') }}
             </button>
           </div>
@@ -269,12 +276,9 @@
     <!-- Filter Section -->
     <div v-if="selectedLayer" class="panel-section">
       <div class="section-header" @click="toggleSection('filters')">
-        <i class="section-icon fas fa-sliders-h"></i>
+        <AppIcon class="section-icon" name="sliders-h" />
         {{ $t('layerPanel.filters.title') }}
-        <i
-          class="fas toggle-icon"
-          :class="openSections.filters ? 'fa-chevron-up' : 'fa-chevron-down'"
-        ></i>
+        <AppIcon class="toggle-icon" :name="openSections.filters ? 'chevron-up' : 'chevron-down'" />
       </div>
       <div v-show="openSections.filters" class="section-content">
         <FilterSlider
@@ -330,12 +334,9 @@
     <!-- Border Section -->
     <div v-if="selectedLayer" class="panel-section">
       <div class="section-header" @click="toggleSection('border')">
-        <i class="section-icon fas fa-border-style"></i>
+        <AppIcon class="section-icon" name="border-style" />
         {{ $t('layerPanel.border.title') }}
-        <i
-          class="fas toggle-icon"
-          :class="openSections.border ? 'fa-chevron-up' : 'fa-chevron-down'"
-        ></i>
+        <AppIcon class="toggle-icon" :name="openSections.border ? 'chevron-up' : 'chevron-down'" />
       </div>
       <div v-show="openSections.border" class="section-content">
         <FilterSlider
@@ -380,12 +381,9 @@
     <!-- Shadow Section -->
     <div v-if="selectedLayer" class="panel-section">
       <div class="section-header" @click="toggleSection('shadow')">
-        <i class="section-icon fas fa-clone"></i>
+        <AppIcon class="section-icon" name="clone" />
         {{ $t('layerPanel.shadow.title') }}
-        <i
-          class="fas toggle-icon"
-          :class="openSections.shadow ? 'fa-chevron-up' : 'fa-chevron-down'"
-        ></i>
+        <AppIcon class="toggle-icon" :name="openSections.shadow ? 'chevron-up' : 'chevron-down'" />
       </div>
       <div v-show="openSections.shadow" class="section-content">
         <div class="control-group">
@@ -462,7 +460,7 @@
     <!-- Keine Auswahl -->
     <div v-if="!selectedLayer" class="panel-section">
       <p class="hint-text">
-        <i class="fas fa-mouse-pointer"></i>
+        <AppIcon name="mouse-pointer" :size="40" />
         {{ $t('layerPanel.hints.selectLayer') }}
       </p>
     </div>
@@ -473,6 +471,7 @@
 import { inject } from 'vue';
 import { LAYER_PANEL_KEY } from '@/composables/useLayerPanel';
 import FilterSlider from '@/components/editor/sidebar/FilterSlider.vue';
+import AppIcon from '@/components/ui/AppIcon.vue';
 
 const {
   imageStore,

@@ -30,9 +30,10 @@
         <button
           class="btn-icon mobile-menu-toggle"
           :class="{ active: isMobileMenuOpen }"
+          :aria-label="$t('nav.menu', 'Menü')"
           @click="toggleMobileMenu"
         >
-          <i :class="isMobileMenuOpen ? 'fas fa-times' : 'fas fa-bars'"></i>
+          <AppIcon :name="isMobileMenuOpen ? 'times' : 'bars'" :size="20" />
         </button>
       </div>
     </div>
@@ -69,6 +70,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
+import AppIcon from '@/components/ui/AppIcon.vue';
 
 const route = useRoute();
 
@@ -106,13 +108,14 @@ function closeMobileMenu() {
 </script>
 
 <style lang="scss" scoped>
+/* Topbar wie im Collage Maker: sticky, 56 px, surface-1, 1-px-Rahmen unten,
+   kein Schatten. Nav-Links = UiButton ghost (sm), aktiv = Auswahlzustand. */
 .app-header {
   position: sticky;
   top: var(--external-nav-height, 50px); // Dynamisch gemessen in App.vue via ResizeObserver
   z-index: 1000;
-  background: var(--color-bg-secondary);
-  border-bottom: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
+  background: var(--ds-surface-1);
+  border-bottom: var(--ds-border-width) solid var(--ds-border);
 }
 
 .header-container {
@@ -120,81 +123,101 @@ function closeMobileMenu() {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: var(--header-height);
-  padding: 0 var(--spacing-lg);
+  height: var(--ds-topbar-height);
+  padding: 0 var(--ds-space-6);
   max-width: 1400px;
   margin: 0 auto;
 
   @media (max-width: 768px) {
-    height: var(--header-height-mobile);
-    padding: 0 var(--spacing-md);
+    padding: 0 var(--ds-space-4);
   }
 }
 
 .header-nav {
   display: flex;
-  gap: var(--spacing-xs);
+  align-items: center;
+  gap: var(--ds-space-1);
 
   @media (max-width: 768px) {
     display: none;
   }
 }
 
+/* UiButton ghost, Größe sm */
 .nav-link {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  padding: 0.3rem 0.65rem;
+  height: var(--ds-control-sm);
+  padding: 0 var(--ds-space-3);
+  border: var(--ds-border-width) solid transparent;
+  border-radius: var(--ds-radius-sm);
+  background: transparent;
+  color: var(--ds-text-2);
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
   text-decoration: none;
-  color: var(--color-text-secondary);
-  font-size: 0.8rem;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  border-radius: var(--border-radius-md);
-  transition: all 0.2s ease;
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 
   &:hover {
-    background: var(--color-light-blue);
-    color: var(--color-primary);
+    background: var(--ds-surface-2);
+    color: var(--ds-text);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 
   &.active {
-    background: var(--color-primary);
-    color: #f5f4d6;
+    background: var(--ds-accent-soft);
+    border-color: var(--ds-accent);
+    color: var(--ds-text);
   }
 }
 
 .header-actions {
   position: absolute;
-  right: var(--spacing-lg);
+  right: var(--ds-space-6);
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--ds-space-2);
 
   @media (max-width: 768px) {
-    right: var(--spacing-md);
+    right: var(--ds-space-4);
   }
 }
 
+/* UiIconButton ghost, 36 px, Icon 20 */
 .btn-icon {
-  width: 40px;
-  height: 40px;
+  width: var(--ds-control-md);
+  height: var(--ds-control-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
+  padding: 0;
+  border: var(--ds-border-width) solid transparent;
   background: transparent;
-  color: var(--color-text-secondary);
-  border-radius: var(--border-radius-md);
+  color: var(--ds-text-2);
+  border-radius: var(--ds-radius-md);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 
   &:hover {
-    background: var(--color-light-blue);
-    color: var(--color-primary);
+    background: var(--ds-surface-2);
+    color: var(--ds-text);
   }
 
-  i {
-    font-size: 1.1rem;
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 }
 
@@ -206,17 +229,18 @@ function closeMobileMenu() {
   }
 
   &.active {
-    background: var(--color-light-blue);
-    color: var(--color-primary);
+    background: var(--ds-surface-2);
+    color: var(--ds-text);
   }
 }
 
 .mobile-nav {
   display: flex;
   flex-direction: column;
-  padding: var(--spacing-md);
-  border-top: 1px solid var(--color-border);
-  background: var(--color-bg-secondary);
+  gap: var(--ds-space-1);
+  padding: var(--ds-space-2) var(--ds-space-4) var(--ds-space-4);
+  border-top: var(--ds-border-width) solid var(--ds-border);
+  background: var(--ds-surface-1);
 
   @media (min-width: 769px) {
     display: none;
@@ -226,34 +250,47 @@ function closeMobileMenu() {
 .mobile-nav-link {
   display: flex;
   align-items: center;
-  padding: var(--spacing-md);
+  min-height: var(--ds-row-height);
+  padding: 0 var(--ds-space-3);
+  border: var(--ds-border-width) solid transparent;
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-text-2);
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-medium);
   text-decoration: none;
-  color: var(--color-text-secondary);
-  font-size: 0.85rem;
-  font-weight: 500;
-  border-radius: var(--border-radius-md);
-  transition: all 0.2s ease;
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 
   &:hover {
-    background: var(--color-light-blue);
-    color: var(--color-primary);
+    background: var(--ds-surface-2);
+    color: var(--ds-text);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 
   &.active {
-    background: var(--color-primary);
-    color: #f5f4d6;
+    background: var(--ds-accent-soft);
+    border-color: var(--ds-accent);
+    color: var(--ds-text);
   }
 }
 
-// Transitions
+// Mobile-Menü: Überblendung mit 8 px Weg
 .slide-down-enter-active,
 .slide-down-leave-active {
-  transition: all 0.3s ease;
+  transition:
+    opacity var(--ds-duration-slow) var(--ds-ease),
+    transform var(--ds-duration-slow) var(--ds-ease);
 }
 
 .slide-down-enter-from,
 .slide-down-leave-to {
   opacity: 0;
-  transform: translateY(-10px);
+  transform: translateY(-8px);
 }
 </style>

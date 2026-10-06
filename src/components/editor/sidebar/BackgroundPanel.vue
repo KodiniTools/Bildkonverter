@@ -41,13 +41,14 @@
     />
 
     <p v-if="disabled" class="hint-text">
-      <i class="fas fa-info-circle"></i>
+      <AppIcon name="info-circle" />
       {{ $t('editor.background.hint', 'Bild laden um Hintergrund anzupassen') }}
     </p>
   </div>
 </template>
 
 <script setup>
+import AppIcon from '@/components/ui/AppIcon.vue';
 import FilterSlider from './FilterSlider.vue';
 
 defineProps({

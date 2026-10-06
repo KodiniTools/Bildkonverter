@@ -141,27 +141,30 @@ onBeforeUnmount(stopHold);
 </script>
 
 <style scoped lang="scss">
-/* Kompaktes Zahlenfeld im Visualizer-Stil: 22px hoch, umrandet, Monospace.
-   Eigene Pfeile statt der nativen, weil sie das langsam→schnell tragen. */
+/* Zahlenfeld wie im ControlSlider des Collage Makers: 64 × 28 px, Rahmen
+   border-strong, radius-sm, surface-1, text-xs. Eigene Pfeile statt der
+   nativen, weil sie das langsam→schnell beim Halten tragen. */
 .number-spinner {
   flex: none;
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  width: 66px;
-  height: 22px;
-  padding: 0 0 0 4px;
-  background: var(--control-bg);
-  border: 1px solid var(--control-border);
-  border-radius: 4px;
-  transition: border-color 0.15s ease;
+  width: 64px;
+  height: var(--ds-control-sm);
+  padding: 0 0 0 6px;
+  background: var(--ds-surface-1);
+  border: var(--ds-border-width) solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-sm);
+  transition:
+    border-color var(--ds-duration) var(--ds-ease),
+    box-shadow var(--ds-duration) var(--ds-ease);
 
   &:focus-within {
-    border-color: var(--color-accent);
+    box-shadow: var(--ds-focus-ring);
   }
 
   &.disabled {
-    opacity: 0.5;
+    opacity: 0.6;
     pointer-events: none;
   }
 
@@ -169,15 +172,18 @@ onBeforeUnmount(stopHold);
     flex: 1 1 auto;
     width: 100%;
     min-width: 0;
+    height: auto;
     padding: 0;
     border: none;
+    border-radius: 0;
     background: transparent;
-    color: var(--color-text);
-    font-family: 'Courier New', monospace;
-    font-size: 0.66rem;
-    font-weight: 600;
-    line-height: 1.3;
+    color: var(--ds-text);
+    font: inherit;
+    font-size: var(--ds-text-xs);
+    font-variant-numeric: tabular-nums;
+    line-height: var(--ds-leading);
     text-align: right;
+    box-shadow: none;
     -moz-appearance: textfield;
     appearance: textfield;
 
@@ -187,17 +193,18 @@ onBeforeUnmount(stopHold);
       margin: 0;
     }
 
-    &:focus {
+    &:focus,
+    &:focus-visible {
       outline: none;
+      box-shadow: none;
     }
   }
 
   .spinner-unit {
     flex: none;
     margin-left: 1px;
-    font-family: 'Courier New', monospace;
-    font-size: 0.6rem;
-    color: var(--control-muted);
+    font-size: var(--ds-text-xs);
+    color: var(--ds-text-2);
     pointer-events: none;
   }
 
@@ -206,8 +213,8 @@ onBeforeUnmount(stopHold);
     display: flex;
     flex-direction: column;
     align-self: stretch;
-    margin-left: 2px;
-    border-left: 1px solid var(--control-border);
+    margin-left: var(--ds-space-1);
+    border-left: var(--ds-border-width) solid var(--ds-border-strong);
   }
 
   .spinner-btn {
@@ -220,52 +227,46 @@ onBeforeUnmount(stopHold);
     padding: 0;
     border: none;
     background: none;
-    color: var(--control-muted);
+    color: var(--ds-text-2);
     cursor: pointer;
     touch-action: none;
     transition:
-      color 0.15s ease,
-      background 0.15s ease;
+      color var(--ds-duration) var(--ds-ease),
+      background-color var(--ds-duration) var(--ds-ease);
 
     svg {
-      width: 8px;
-      height: 8px;
+      width: 10px;
+      height: 10px;
       fill: none;
       stroke: currentColor;
-      stroke-width: 3;
+      stroke-width: 2;
       stroke-linecap: round;
       stroke-linejoin: round;
     }
 
     &:hover:not(:disabled) {
-      color: var(--color-accent);
-      background: var(--color-light-gold);
+      color: var(--ds-text);
+      background: var(--ds-surface-3);
     }
 
     &:disabled {
-      opacity: 0.3;
+      opacity: 0.45;
       cursor: default;
     }
   }
 
   .spinner-up {
-    border-top-right-radius: 3px;
+    border-top-right-radius: calc(var(--ds-radius-sm) - 1px);
   }
 
   .spinner-down {
-    border-bottom-right-radius: 3px;
+    border-bottom-right-radius: calc(var(--ds-radius-sm) - 1px);
   }
 }
 
-/* Touch: höheres Feld, damit die Pfeile treffbar bleiben */
-@media (max-width: 768px) {
+@media (pointer: coarse) {
   .number-spinner {
     width: 72px;
-    height: 28px;
-
-    .spinner-value {
-      font-size: 0.75rem;
-    }
 
     .spinner-btn {
       width: 18px;

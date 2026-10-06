@@ -2,21 +2,26 @@
   <Teleport to="body">
     <Transition name="confirm-fade">
       <div v-if="state.visible" class="confirm-backdrop" @click.self="cancel">
-        <div class="confirm-dialog" role="dialog" aria-modal="true">
+        <div
+          class="confirm-dialog"
+          role="dialog"
+          aria-modal="true"
+          :aria-labelledby="state.title ? 'confirm-dialog-title' : undefined"
+          aria-describedby="confirm-dialog-message"
+          @keydown.esc.prevent="cancel"
+        >
           <div v-if="state.title" class="confirm-header">
-            <i :class="iconClass"></i>
-            <span>{{ state.title }}</span>
+            <AppIcon :name="iconName" :size="20" class="confirm-icon" :class="iconToneClass" />
+            <h2 id="confirm-dialog-title" class="confirm-title">{{ state.title }}</h2>
           </div>
 
-          <div class="confirm-body">
-            <p>{{ state.message }}</p>
-          </div>
+          <p id="confirm-dialog-message" class="confirm-body">{{ state.message }}</p>
 
           <div class="confirm-footer">
-            <button class="confirm-btn confirm-btn--cancel" @click="cancel">
+            <button type="button" class="confirm-btn confirm-btn--cancel" @click="cancel">
               {{ state.cancelText }}
             </button>
-            <button :class="['confirm-btn', confirmBtnClass]" @click="ok">
+            <button type="button" :class="['confirm-btn', confirmBtnClass]" @click="ok">
               {{ state.confirmText }}
             </button>
           </div>
@@ -29,6 +34,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useConfirm } from '@/composables/useConfirm';
+import AppIcon from '@/components/ui/AppIcon.vue';
 
 const { state, respond } = useConfirm();
 
@@ -40,13 +46,19 @@ function cancel() {
   respond(false);
 }
 
-const iconClass = computed(() => {
+const iconName = computed(() => {
   const map = {
-    danger: 'fas fa-exclamation-triangle',
-    warning: 'fas fa-exclamation-circle',
-    default: 'fas fa-question-circle',
+    danger: 'exclamation-triangle',
+    warning: 'exclamation-circle',
+    default: 'question-circle',
   };
   return map[state.value.variant] || map.default;
+});
+
+const iconToneClass = computed(() => {
+  if (state.value.variant === 'danger') return 'confirm-icon--danger';
+  if (state.value.variant === 'warning') return 'confirm-icon--warning';
+  return '';
 });
 
 const confirmBtnClass = computed(() => {
@@ -54,105 +66,140 @@ const confirmBtnClass = computed(() => {
 });
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+/* UiDialog (Design-System v2), Größe md: 440 px, surface-1, radius-lg,
+   Padding 20, Lücke 12, Overlay-Schatten. Backdrop ohne Blur.
+   Destruktiv ist textbasiert (Button danger), Primär ist Gold. */
 .confirm-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10000;
-  padding: 1rem;
+  padding: var(--ds-space-4);
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .confirm-dialog {
-  background: var(--color-bg, #fff);
-  border-radius: 14px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
-  max-width: 420px;
-  width: 100%;
-  overflow: hidden;
-  border: 1px solid var(--color-border, #e5e7eb);
+  width: min(440px, 100%);
+  max-height: calc(100vh - 2 * var(--ds-space-4));
+  overflow: auto;
+  box-sizing: border-box;
+  padding: var(--ds-space-5);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface-1);
+  color: var(--ds-text);
+  box-shadow: var(--ds-shadow-overlay);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
 }
 
 .confirm-header {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 1.1rem 1.5rem 0.75rem;
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--color-text, #111827);
+  gap: var(--ds-space-2);
+}
 
-  i {
-    color: var(--color-warning, #f59e0b);
-    font-size: 1.15rem;
+.confirm-icon {
+  color: var(--ds-text-2);
+
+  &--danger {
+    color: var(--ds-danger);
+  }
+
+  &--warning {
+    color: var(--ds-warning);
   }
 }
 
-.confirm-body {
-  padding: 0 1.5rem 1.25rem;
+.confirm-title {
+  margin: 0;
+  font-size: var(--ds-text-lg);
+  font-weight: var(--ds-weight-semibold);
+  line-height: var(--ds-leading);
+}
 
-  p {
-    margin: 0;
-    color: var(--color-text-secondary, #6b7280);
-    font-size: 0.95rem;
-    line-height: 1.6;
-    white-space: pre-line;
-  }
+.confirm-body {
+  margin: 0;
+  font-size: var(--ds-text-sm);
+  line-height: var(--ds-leading);
+  color: var(--ds-text-2);
+  white-space: pre-line;
 }
 
 .confirm-footer {
   display: flex;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem 1.25rem;
   justify-content: flex-end;
+  gap: var(--ds-space-2);
+  padding-top: var(--ds-space-2);
 }
 
+/* UiButton md */
 .confirm-btn {
-  padding: 0.55rem 1.2rem;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--ds-control-md);
+  padding: 0 var(--ds-space-4);
+  border: var(--ds-border-width) solid transparent;
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-2);
+  color: var(--ds-text);
+  font: inherit;
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-medium);
   line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
+  }
 }
 
 .confirm-btn--cancel {
-  background: var(--color-bg-secondary, #f3f4f6);
-  color: var(--color-text, #111827);
-  border-color: var(--color-border, #d1d5db);
+  border-color: var(--ds-border-strong);
 
   &:hover {
-    background: var(--color-border, #e5e7eb);
+    background: var(--ds-surface-3);
   }
 }
 
 .confirm-btn--primary {
-  background: var(--color-primary, #014f99);
-  color: #fff;
+  background: var(--ds-accent);
+  color: var(--ds-on-accent);
+  font-weight: var(--ds-weight-semibold);
 
   &:hover {
-    background: var(--color-primary-dark, #003971);
+    background: var(--ds-accent-hover);
   }
 }
 
 .confirm-btn--danger {
-  background: #dc2626;
-  color: #fff;
+  background: transparent;
+  color: var(--ds-danger);
 
   &:hover {
-    background: #b91c1c;
+    background: var(--ds-surface-2);
   }
 }
 
-/* Transition */
 .confirm-fade-enter-active,
 .confirm-fade-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity var(--ds-duration-slow) var(--ds-ease);
+}
+
+.confirm-fade-enter-active .confirm-dialog,
+.confirm-fade-leave-active .confirm-dialog {
+  transition: transform var(--ds-duration-slow) var(--ds-ease);
 }
 
 .confirm-fade-enter-from,
@@ -160,16 +207,8 @@ const confirmBtnClass = computed(() => {
   opacity: 0;
 }
 
-.confirm-fade-enter-active .confirm-dialog,
-.confirm-fade-leave-active .confirm-dialog {
-  transition: transform 0.2s ease;
-}
-
-.confirm-fade-enter-from .confirm-dialog {
-  transform: scale(0.9) translateY(-10px);
-}
-
+.confirm-fade-enter-from .confirm-dialog,
 .confirm-fade-leave-to .confirm-dialog {
-  transform: scale(0.9) translateY(-10px);
+  transform: translateY(8px);
 }
 </style>

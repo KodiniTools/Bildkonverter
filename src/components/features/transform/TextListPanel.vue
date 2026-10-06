@@ -2,13 +2,13 @@
   <div class="panel-section text-list-section">
     <div class="section-header">
       <h3>
-        <i class="fas fa-font"></i>
+        <AppIcon name="font" />
         {{ $t('layerPanel.text.listTitle', 'Texte') }} ({{ texts.length }})
       </h3>
     </div>
 
     <button class="transform-btn add-text-btn" @click="$emit('add-text')">
-      <i class="fas fa-plus"></i>
+      <AppIcon name="plus" />
       <span>{{ $t('layerPanel.text.addButton', 'Text hinzufügen') }}</span>
     </button>
 
@@ -28,21 +28,24 @@
         <button
           class="text-delete-btn"
           :title="$t('layerPanel.layers.delete', 'Löschen')"
+          :aria-label="$t('layerPanel.layers.delete', 'Löschen')"
           @click.stop="$emit('delete-text-by-id', text.id)"
         >
-          <i class="fas fa-trash"></i>
+          <AppIcon name="trash" />
         </button>
       </div>
     </div>
 
     <p v-else class="empty-hint">
-      <i class="fas fa-info-circle"></i>
+      <AppIcon name="info-circle" />
       {{ $t('textPanel.noTexts', 'Noch keine Texte – füge einen hinzu.') }}
     </p>
   </div>
 </template>
 
 <script setup>
+import AppIcon from '@/components/ui/AppIcon.vue';
+
 defineProps({
   texts: { type: Array, default: () => [] },
   selectedTextId: { type: [String, Number], default: null },
@@ -55,42 +58,44 @@ defineEmits(['add-text', 'select-text-by-id', 'delete-text-by-id']);
 @import './shared';
 
 .add-text-btn {
-  justify-content: center;
-  margin-bottom: 0.6rem;
+  margin-bottom: var(--ds-space-3);
 }
 
 .text-list {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: var(--ds-space-2);
 }
 
+// Listeneintrag wie im Collage Maker: surface-2, Hover surface-3, Auswahl accent-soft
 .text-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.4rem 0.5rem;
-  border: 1px solid var(--color-border, #d1d5db);
-  border-radius: 6px;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-2) var(--ds-space-2) var(--ds-space-2) var(--ds-space-3);
+  background: var(--ds-surface-2);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease);
 
   &:hover {
-    border-color: var(--color-primary, #014f99);
-    background: rgba(1, 79, 153, 0.05);
+    background: var(--ds-surface-3);
   }
 
   &.selected {
-    border-color: var(--color-primary, #014f99);
-    background: rgba(1, 79, 153, 0.1);
+    border-color: var(--ds-accent);
+    background: var(--ds-accent-soft);
   }
 }
 
 .text-color-swatch {
   width: 20px;
   height: 20px;
-  border-radius: 4px;
-  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: var(--ds-radius-sm);
+  border: var(--ds-border-width) solid var(--ds-border-strong);
   flex-shrink: 0;
 }
 
@@ -102,62 +107,61 @@ defineEmits(['add-text', 'select-text-by-id', 'delete-text-by-id']);
 }
 
 .text-content {
-  font-size: 0.8rem;
-  color: var(--color-text);
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-medium);
+  line-height: var(--ds-leading);
+  color: var(--ds-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .text-meta {
-  font-size: 0.65rem;
-  color: var(--color-text-light);
+  font-size: var(--ds-text-xs);
+  line-height: var(--ds-leading);
+  color: var(--ds-text-2);
 }
 
+// UiIconButton sm (ghost), destruktiv über die Icon-Farbe
 .text-delete-btn {
   flex-shrink: 0;
-  width: 26px;
-  height: 26px;
+  width: var(--ds-control-sm);
+  height: var(--ds-control-sm);
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
   border: none;
-  background: none;
-  border-radius: 5px;
+  background: transparent;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  color: var(--color-text-light);
-  transition: all 0.15s ease;
+  color: var(--ds-text-2);
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 
   &:hover {
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.1);
+    color: var(--ds-danger);
+    background: var(--ds-surface-1);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 }
 
 .empty-hint {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.75rem;
-  color: var(--color-text-light);
+  gap: var(--ds-space-2);
+  font-size: var(--ds-text-sm);
+  color: var(--ds-text-2);
   margin: 0;
-  line-height: 1.4;
+  line-height: var(--ds-leading);
 
-  i {
-    color: var(--color-primary, #014f99);
-    font-size: 0.85rem;
-  }
-}
-
-:root[data-theme='dark'] {
-  .text-item {
-    border-color: var(--color-border);
-
-    &:hover,
-    &.selected {
-      border-color: var(--color-primary);
-      background: rgba(1, 79, 153, 0.18);
-    }
+  .app-icon {
+    color: var(--ds-text-3);
   }
 }
 </style>

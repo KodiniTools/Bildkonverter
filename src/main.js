@@ -6,6 +6,7 @@ import router from './router';
 import i18n from './i18n';
 
 // Globale Styles
+import './design-system/tokens-v2.css';
 import './styles/main.scss';
 import { logger } from '@/utils/logger';
 

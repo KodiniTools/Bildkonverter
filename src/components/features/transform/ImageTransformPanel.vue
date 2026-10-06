@@ -2,7 +2,7 @@
   <div class="panel-section">
     <div class="section-header">
       <h3>
-        <i class="fas fa-magic"></i>
+        <AppIcon name="magic" />
         {{ $t('transform.title') }}
       </h3>
     </div>
@@ -53,7 +53,7 @@
         :title="$t('transform.rotationTooltip.counterClockwise')"
         @click="$emit('rotate-90-counter')"
       >
-        <i class="fas fa-undo"></i>
+        <AppIcon name="undo" />
         90°
       </button>
       <button
@@ -61,7 +61,7 @@
         :title="$t('transform.rotationTooltip.rotate180')"
         @click="$emit('rotate-180')"
       >
-        <i class="fas fa-sync"></i>
+        <AppIcon name="sync" />
         180°
       </button>
       <button
@@ -69,7 +69,7 @@
         :title="$t('transform.rotationTooltip.clockwise')"
         @click="$emit('rotate-90')"
       >
-        <i class="fas fa-redo"></i>
+        <AppIcon name="redo" />
         90°
       </button>
     </div>
@@ -82,7 +82,7 @@
         :title="$t('transform.flip.horizontalTooltip')"
         @click="$emit('flip-horizontal')"
       >
-        <i class="fas fa-arrows-alt-h"></i>
+        <AppIcon name="arrows-alt-h" />
         {{ $t('transform.flip.horizontal') }}
       </button>
       <button
@@ -91,7 +91,7 @@
         :title="$t('transform.flip.verticalTooltip')"
         @click="$emit('flip-vertical')"
       >
-        <i class="fas fa-arrows-alt-v"></i>
+        <AppIcon name="arrows-alt-v" />
         {{ $t('transform.flip.vertical') }}
       </button>
     </div>
@@ -100,7 +100,7 @@
     <div class="control-group skew-section">
       <label>
         <span class="label-text">
-          <i class="fas fa-italic"></i>
+          <AppIcon name="italic" :size="14" />
           {{ $t('transform.skew.title', 'Neigung') }}
         </span>
       </label>
@@ -140,7 +140,7 @@
     <div class="control-group distort-section">
       <label class="switch-row">
         <span class="label-text">
-          <i class="fas fa-vector-square"></i>
+          <AppIcon name="vector-square" />
           {{ $t('transform.distort.title') }}
         </span>
         <ToggleSwitch
@@ -158,7 +158,7 @@
           :title="$t('transform.distort.reset')"
           @click="$emit('reset-distort')"
         >
-          <i class="fas fa-undo"></i>
+          <AppIcon name="undo" />
           {{ $t('transform.distort.resetShort') }}
         </button>
         <button
@@ -168,7 +168,7 @@
           :title="$t('transform.distort.applyHint')"
           @click="$emit('apply-distort')"
         >
-          <i :class="isApplyingDistort ? 'fas fa-spinner fa-spin' : 'fas fa-check'"></i>
+          <AppIcon :name="isApplyingDistort ? 'fas fa-spinner fa-spin' : 'fas fa-check'" />
           {{ $t('transform.distort.apply') }}
         </button>
       </div>
@@ -192,11 +192,11 @@
     <!-- Pan-Hinweis und Reset (nur bei Zoom > 100%) -->
     <div v-if="canPan" class="pan-info">
       <p class="pan-hint">
-        <i class="fas fa-hand-paper"></i>
+        <AppIcon name="hand-paper" />
         {{ $t('transform.panHint', 'Leertaste + Ziehen oder Mausrad-Klick zum Verschieben') }}
       </p>
       <button v-if="hasPan" class="transform-btn pan-reset-btn" @click="$emit('reset-pan')">
-        <i class="fas fa-compress-arrows-alt"></i>
+        <AppIcon name="compress-arrows-alt" />
         <span>{{ $t('transform.resetPan', 'Ansicht zentrieren') }}</span>
       </button>
     </div>
@@ -249,7 +249,7 @@
     <div class="control-group shadow-section">
       <label class="switch-row">
         <span class="label-text">
-          <i class="fas fa-clone"></i>
+          <AppIcon name="clone" />
           {{ $t('transform.shadow.title', 'Schlagschatten') }}
         </span>
         <ToggleSwitch
@@ -322,7 +322,7 @@
         <!-- Farbe -->
         <div class="shadow-control-row">
           <label class="mini-label">
-            <i class="fas fa-palette"></i>
+            <AppIcon name="palette" :size="14" />
             {{ $t('transform.shadow.color', 'Farbe') }}
           </label>
           <div class="color-picker-row">
@@ -350,6 +350,7 @@
 </template>
 
 <script setup>
+import AppIcon from '@/components/ui/AppIcon.vue';
 import HistoryActions from '@/components/ui/HistoryActions.vue';
 import SliderField from '@/components/ui/SliderField.vue';
 import ToggleSwitch from '@/components/ui/ToggleSwitch.vue';
@@ -400,84 +401,85 @@ defineEmits([
 
 .button-group {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.875rem;
+  gap: var(--ds-space-2);
+  margin-bottom: var(--ds-space-4);
 }
 
+// Schnellaktionen = UiButton secondary; Spiegeln aktiv = SelectionTile
 .quick-btn {
   flex: 1;
-  padding: 0.65rem 0.5rem;
-  background: var(--color-bg, #ffffff);
-  border: 1.5px solid var(--color-border, #d1d5db);
-  border-radius: 6px;
+  min-width: 0;
+  height: var(--ds-control-md);
+  padding: 0 var(--ds-space-2);
+  background: var(--ds-surface-2);
+  border: var(--ds-border-width) solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.75rem;
-  color: var(--color-text);
-  font-weight: 500;
+  font: inherit;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-medium);
+  line-height: 1;
+  color: var(--ds-text);
+  white-space: nowrap;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
+  justify-content: center;
+  gap: var(--ds-space-1);
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 
   &:hover {
-    border-color: var(--color-primary, #014f99);
-    background: rgba(1, 79, 153, 0.05);
-    transform: translateY(-1px);
+    background: var(--ds-surface-3);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 
   &.active {
-    background: var(--color-primary, #014f99);
-    color: white;
-    border-color: var(--color-primary, #014f99);
-    box-shadow: 0 2px 8px rgba(1, 79, 153, 0.3);
-  }
-
-  i {
-    font-size: 1.1rem;
-    opacity: 0.9;
+    background: var(--ds-accent-soft);
+    border-color: var(--ds-accent);
+    color: var(--ds-text);
   }
 }
 
+// Hinweis = UiCallout (surface-2, 1-px-Rahmen, radius-md)
 .pan-info {
-  background: rgba(74, 222, 128, 0.1);
-  border: 1px dashed rgba(74, 222, 128, 0.4);
-  border-radius: 6px;
-  padding: 0.75rem;
-  margin-bottom: 1rem;
+  background: var(--ds-surface-2);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  padding: var(--ds-space-3);
+  margin-bottom: var(--ds-space-4);
 }
 
 .pan-hint {
   display: flex;
   align-items: flex-start;
-  gap: 0.5rem;
-  font-size: 0.75rem;
-  color: var(--color-text-light);
-  margin: 0 0 0.5rem 0;
-  line-height: 1.4;
+  gap: var(--ds-space-2);
+  font-size: var(--ds-text-sm);
+  color: var(--ds-text-2);
+  margin: 0 0 var(--ds-space-2) 0;
+  line-height: var(--ds-leading);
 
-  i {
-    color: #22c55e;
-    font-size: 0.9rem;
-    margin-top: 0.1rem;
+  .app-icon {
+    color: var(--ds-text-2);
+    margin-top: 2px;
   }
 }
 
 .pan-reset-btn {
-  border-color: #22c55e !important;
-  color: #22c55e !important;
-
-  &:hover {
-    background: rgba(34, 197, 94, 0.1) !important;
-    border-color: #16a34a !important;
-    color: #16a34a !important;
-  }
+  margin-bottom: 0;
 }
 
-.shadow-section {
-  margin-top: 0.5rem;
-  padding-top: 0.75rem;
-  border-top: 1px dashed var(--color-border, #e5e7eb);
+.shadow-section,
+.skew-section,
+.distort-section {
+  margin-top: var(--ds-space-2);
+  padding-top: var(--ds-space-3);
+  border-top: var(--ds-border-width) solid var(--ds-border);
 }
 
 /* Titel links, Schalter rechts; stärker als das gemeinsame `.control-group label` */
@@ -485,76 +487,84 @@ defineEmits([
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: var(--ds-space-2);
   width: 100%;
   margin-bottom: 0;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-medium);
+  color: var(--ds-text);
   cursor: pointer;
+
+  .app-icon {
+    color: var(--ds-text-2);
+  }
 }
 
 .shadow-controls-panel {
-  background: rgba(1, 79, 153, 0.05);
-  border: 1px solid rgba(1, 79, 153, 0.15);
-  border-radius: 8px;
-  padding: 0.75rem;
-  margin-top: 0.5rem;
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  padding: var(--ds-space-3);
+  margin-top: var(--ds-space-2);
 }
 
 .shadow-control-row {
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--ds-space-3);
 
   &:last-child {
     margin-bottom: 0;
   }
 }
 
-.skew-section {
-  margin-top: 0.5rem;
-  padding-top: 0.75rem;
-  border-top: 1px dashed var(--color-border, #e5e7eb);
-}
-
-.distort-section {
-  margin-top: 0.5rem;
-  padding-top: 0.75rem;
-  border-top: 1px dashed var(--color-border, #e5e7eb);
-}
-
 .distort-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.375rem;
-  margin-top: 0.5rem;
+  gap: var(--ds-space-2);
+  margin-top: var(--ds-space-2);
 }
 
+// UiButton secondary bzw. primary (Übernehmen ist die Primäraktion des Modus)
 .distort-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
-  padding: 0.4rem 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--color-text);
-  background: var(--color-bg, #ffffff);
-  border: 1px solid var(--color-border, #d1d5db);
-  border-radius: 6px;
+  gap: var(--ds-space-2);
+  min-width: 0;
+  height: var(--ds-control-md);
+  padding: 0 var(--ds-space-3);
+  font: inherit;
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--ds-text);
+  background: var(--ds-surface-2);
+  border: var(--ds-border-width) solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
   cursor: pointer;
   transition:
-    border-color 0.15s ease,
-    background-color 0.15s ease;
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 
   &:hover:not(:disabled) {
-    border-color: var(--color-primary, #014f99);
+    background: var(--ds-surface-3);
   }
 
   &.primary {
-    color: #ffffff;
-    background: var(--color-primary, #014f99);
-    border-color: var(--color-primary, #014f99);
+    color: var(--ds-on-accent);
+    background: var(--ds-accent);
+    border-color: var(--ds-accent);
+    font-weight: var(--ds-weight-semibold);
 
     &:hover:not(:disabled) {
-      background: #003971;
+      background: var(--ds-accent-hover);
+      border-color: var(--ds-accent-hover);
     }
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 
   &:disabled {
@@ -564,60 +574,17 @@ defineEmits([
 }
 
 .skew-control-row {
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--ds-space-2);
 
   &:last-child {
     margin-bottom: 0;
   }
 }
 
-// Dark Mode
-:root[data-theme='dark'] {
-  .quick-btn {
-    background: var(--color-card-bg, var(--color-bg));
-    border-color: var(--color-border);
-    color: var(--color-text);
-
-    &:hover {
-      background: var(--color-bg-secondary);
-      border-color: var(--color-primary);
-    }
-  }
-
-  .pan-info {
-    background: rgba(74, 222, 128, 0.15);
-    border-color: rgba(74, 222, 128, 0.3);
-  }
-
-  .pan-hint {
-    color: var(--color-text-light);
-  }
-
-  .shadow-section {
-    border-top-color: var(--color-border);
-  }
-
-  .shadow-controls-panel {
-    background: rgba(1, 79, 153, 0.1);
-    border-color: rgba(1, 79, 153, 0.25);
-  }
-
-  .skew-section,
-  .distort-section {
-    border-top-color: var(--color-border);
-  }
-
-  .distort-btn:not(.primary) {
-    background: var(--color-card-bg, var(--color-bg));
-    border-color: var(--color-border);
-  }
-}
-
 // Mobile
 @media (max-width: 768px) {
   .quick-btn {
-    min-height: 44px;
-    padding: 0.75rem 0.5rem;
+    min-height: var(--ds-row-height);
   }
 }
 </style>

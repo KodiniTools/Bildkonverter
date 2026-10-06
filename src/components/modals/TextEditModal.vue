@@ -233,6 +233,8 @@ function close() {
 </script>
 
 <style scoped>
+/* UiDialog (Design-System v2), Größe md: 440 px, surface-1, radius-lg,
+   Padding 20, Overlay-Schatten, Backdrop ohne Blur. Buttons = UiButton md. */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -243,69 +245,102 @@ function close() {
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: var(--ds-space-4);
   z-index: 1000;
+  animation: text-modal-fade var(--ds-duration-slow) var(--ds-ease);
 }
 
 .modal-content {
-  background: var(--color-bg-primary, white);
-  color: var(--color-text-primary, #333);
-  padding: 24px;
-  border-radius: 8px;
-  min-width: 400px;
+  box-sizing: border-box;
+  width: min(440px, 100%);
+  max-height: calc(100vh - 2 * var(--ds-space-4));
+  overflow-y: auto;
+  background: var(--ds-surface-1);
+  color: var(--ds-text);
+  padding: var(--ds-space-5);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-shadow-overlay);
+  animation: text-modal-in var(--ds-duration-slow) var(--ds-ease);
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-4);
 }
 
 .modal-header h3 {
   margin: 0;
+  font-size: var(--ds-text-lg);
+  font-weight: var(--ds-weight-semibold);
+  line-height: var(--ds-leading);
 }
 
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: var(--ds-space-4);
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 4px;
-  font-weight: 500;
+  margin-bottom: var(--ds-space-1);
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-medium);
+  line-height: var(--ds-leading);
+  color: var(--ds-text-2);
 }
 
+/* UiTextField / UiSelect */
 .form-group input,
 .form-group select {
+  box-sizing: border-box;
   width: 100%;
-  padding: 8px;
-  border: 1px solid var(--color-border, #ddd);
-  border-radius: 4px;
-  background: var(--color-bg-secondary, white);
-  color: var(--color-text-primary, #333);
+  height: var(--ds-control-lg);
+  padding: 0 var(--ds-space-3);
+  border: var(--ds-border-width) solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-2);
+  color: var(--ds-text);
+  font: inherit;
+  font-size: var(--ds-text-md);
+  transition: border-color var(--ds-duration) var(--ds-ease);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+}
+
+.form-group input:focus-visible,
+.form-group select:focus-visible {
+  outline: none;
+  border-color: var(--ds-accent);
+  box-shadow: var(--ds-focus-ring);
 }
 
 .form-group input[type='color'] {
-  height: 40px;
-  padding: 4px;
+  height: var(--ds-control-lg);
+  padding: var(--ds-space-1);
   cursor: pointer;
 }
 
 /* Font-Select mit Preview */
 .font-select {
   max-height: 300px;
-  font-size: 14px;
+  font-size: var(--ds-text-md);
 }
 
 .font-select option {
-  padding: 8px;
-  font-size: 14px;
+  padding: var(--ds-space-2);
+  font-size: var(--ds-text-md);
 }
 
 .modal-actions {
-  margin-top: 24px;
+  margin-top: var(--ds-space-6);
   display: flex;
-  gap: 8px;
+  gap: var(--ds-space-2);
   justify-content: flex-end;
 }
 
@@ -313,71 +348,98 @@ function close() {
   flex: 1;
 }
 
-.btn-danger {
-  padding: 8px 16px;
-  background: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 4px;
+/* UiButton md: danger (textbasiert), primary (Gold), secondary */
+.btn-danger,
+.btn-primary,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--ds-control-md);
+  padding: 0 var(--ds-space-4);
+  border: var(--ds-border-width) solid transparent;
+  border-radius: var(--ds-radius-md);
+  font: inherit;
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
+}
+
+.btn-danger:focus-visible,
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--ds-danger);
 }
 
 .btn-danger:hover {
-  background: #c82333;
+  background: var(--ds-surface-2);
 }
 
 .btn-primary {
-  padding: 8px 16px;
-  background: var(--color-primary, #0066ff);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  background: var(--ds-accent);
+  color: var(--ds-on-accent);
+  font-weight: var(--ds-weight-semibold);
 }
 
 .btn-primary:hover {
-  background: #0052cc;
+  background: var(--ds-accent-hover);
 }
 
 .btn-secondary {
-  padding: 8px 16px;
-  background: var(--color-bg-secondary, #f0f0f0);
-  color: var(--color-text-primary, #333);
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  background: var(--ds-surface-2);
+  color: var(--ds-text);
+  border-color: var(--ds-border-strong);
 }
 
 .btn-secondary:hover {
-  background: var(--color-bg-tertiary, #e0e0e0);
+  background: var(--ds-surface-3);
 }
 
-/* Mobile Responsiveness */
-@media (max-width: 640px) {
-  .modal-content {
-    min-width: auto;
-    width: 95vw;
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: 16px;
+@keyframes text-modal-fade {
+  from {
+    opacity: 0;
   }
 
-  .modal-header h3 {
-    font-size: 1rem;
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes text-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile: Felder 16 px gegen Auto-Zoom, Touch-Ziele 44 px */
+@media (max-width: 640px) {
+  .modal-content {
+    padding: var(--ds-space-4);
   }
 
   .form-group input,
-  .form-group select {
-    padding: 12px;
-    font-size: 16px;
-  }
-
-  .form-group input[type='color'] {
-    height: 44px;
-  }
-
+  .form-group select,
   .font-select {
-    font-size: 16px;
+    height: var(--ds-row-height);
+    font-size: var(--ds-text-lg);
   }
 
   .modal-actions {
@@ -387,8 +449,7 @@ function close() {
   .btn-danger,
   .btn-primary,
   .btn-secondary {
-    padding: 12px 16px;
-    min-height: 44px;
+    min-height: var(--ds-row-height);
   }
 }
 </style>

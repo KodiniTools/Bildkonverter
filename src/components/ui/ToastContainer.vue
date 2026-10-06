@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <Teleport to="body">
     <div class="toast-container">
       <TransitionGroup name="toast">
@@ -6,22 +6,27 @@
           v-for="toast in toasts"
           :key="toast.id"
           :class="['toast', `toast-${toast.type}`]"
+          :role="toast.type === 'error' ? 'alert' : 'status'"
           @click="removeToast(toast.id)"
         >
-          <div class="toast-icon">
-            <i :class="getIcon(toast.type)"></i>
-          </div>
+          <span class="toast-icon" aria-hidden="true">
+            <AppIcon :name="getIcon(toast.type)" :stroke-width="2" />
+          </span>
 
           <div class="toast-content">
             <div v-if="toast.title" class="toast-title">{{ toast.title }}</div>
             <div class="toast-message">{{ toast.message }}</div>
           </div>
 
-          <button class="toast-close" @click.stop="removeToast(toast.id)">
-            <i class="fas fa-times"></i>
+          <button
+            type="button"
+            class="toast-close"
+            :aria-label="$t('common.close')"
+            :title="$t('common.close')"
+            @click.stop="removeToast(toast.id)"
+          >
+            <AppIcon name="times" :stroke-width="2" />
           </button>
-
-          <div class="toast-progress" :style="{ animationDuration: toast.duration + 'ms' }"></div>
         </div>
       </TransitionGroup>
     </div>
@@ -30,6 +35,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import AppIcon from '@/components/ui/AppIcon.vue';
 
 const toasts = ref([]);
 
@@ -61,10 +67,10 @@ function removeToast(id) {
 
 function getIcon(type) {
   const icons = {
-    success: 'fas fa-check-circle',
-    error: 'fas fa-exclamation-circle',
-    warning: 'fas fa-exclamation-triangle',
-    info: 'fas fa-info-circle',
+    success: 'check',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle',
   };
   return icons[type] || icons.info;
 }
@@ -94,117 +100,127 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+/* UiToast (Design-System v2): flache surface-1, 1-px-Rahmen, Statuslinie 3 px
+   links, Status nur über Linie und Icon, Schatten nur hier (Overlay). */
 .toast-container {
   position: fixed;
-  top: var(--spacing-xl);
-  right: var(--spacing-xl);
-  z-index: 9999;
+  right: var(--ds-space-4);
+  bottom: var(--ds-space-4);
+  z-index: var(--ds-z-toast);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: var(--ds-space-2);
+  max-width: calc(100vw - var(--ds-space-4));
   pointer-events: none;
+
+  @media (max-width: 639px) {
+    right: var(--ds-space-2);
+    bottom: var(--ds-space-2);
+  }
 }
 
 .toast {
-  position: relative;
   display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-md);
-  min-width: 320px;
-  max-width: 450px;
-  padding: var(--spacing-md);
-  background: var(--color-bg-secondary);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-lg);
-  pointer-events: all;
+  align-items: center;
+  gap: var(--ds-space-3);
+  max-width: 400px;
+  padding: var(--ds-space-3) var(--ds-space-3) var(--ds-space-3) var(--ds-space-4);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-left: 3px solid var(--ds-info);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-1);
+  color: var(--ds-text);
+  box-shadow: var(--ds-shadow-overlay);
+  pointer-events: auto;
   cursor: pointer;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-  }
-
-  &-success::before {
-    background: var(--color-success);
-  }
-
-  &-error::before {
-    background: var(--color-danger);
-  }
-
-  &-warning::before {
-    background: var(--color-warning);
-  }
-
-  &-info::before {
-    background: var(--color-info);
-  }
 }
 
 .toast-icon {
-  font-size: 1.3rem;
+  display: inline-flex;
+  width: var(--ds-icon-sm);
+  height: var(--ds-icon-sm);
   flex-shrink: 0;
+  color: var(--ds-info);
+}
+
+.toast-success {
+  border-left-color: var(--ds-success);
+
+  .toast-icon {
+    color: var(--ds-success);
+  }
+}
+
+.toast-error {
+  border-left-color: var(--ds-danger);
+
+  .toast-icon {
+    color: var(--ds-danger);
+  }
+}
+
+.toast-warning {
+  border-left-color: var(--ds-warning);
+
+  .toast-icon {
+    color: var(--ds-warning);
+  }
 }
 
 .toast-content {
   flex: 1;
+  min-width: 0;
+  font-size: var(--ds-text-sm);
+  line-height: var(--ds-leading);
 }
 
 .toast-title {
-  font-weight: 600;
-  margin-bottom: var(--spacing-xs);
+  font-weight: var(--ds-weight-semibold);
 }
 
 .toast-message {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  color: var(--ds-text);
 }
 
+/* UiIconButton size sm (ghost) */
 .toast-close {
   flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ds-control-sm);
+  height: var(--ds-control-sm);
+  padding: 0;
+  border: var(--ds-border-width) solid transparent;
+  border-radius: var(--ds-radius-sm);
   background: transparent;
+  color: var(--ds-text-2);
   cursor: pointer;
-}
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 
-.toast-progress {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 3px;
-  background: currentColor;
-  opacity: 0.3;
-  animation: toast-progress linear forwards;
-}
-
-@keyframes toast-progress {
-  from {
-    width: 100%;
+  &:hover {
+    background: var(--ds-surface-2);
+    color: var(--ds-text);
   }
-  to {
-    width: 0%;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 }
 
 .toast-enter-active,
 .toast-leave-active {
-  transition: all 0.3s ease;
+  transition:
+    opacity var(--ds-duration-slow) var(--ds-ease),
+    transform var(--ds-duration-slow) var(--ds-ease);
 }
 
-.toast-enter-from {
-  opacity: 0;
-  transform: translateX(100%);
-}
-
+.toast-enter-from,
 .toast-leave-to {
   opacity: 0;
-  transform: translateX(50%) scale(0.8);
+  transform: translateX(16px);
 }
 </style>

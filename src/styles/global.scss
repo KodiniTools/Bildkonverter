@@ -1,20 +1,42 @@
 /**
  * Global Styles
- * Globale CSS-Regeln für die gesamte Anwendung
+ *
+ * Basis nach dem Design-System v2 (src/design-system/tokens-v2.css, --ds-*),
+ * pixelgleich zu KodiniTools/Collage-Maker: flache Flächen, ein 1-px-Rahmen,
+ * drei Radien (6/10/16), Gold als einzige Aktionsfarbe, Hover ändert nur
+ * Farben (150 ms), Fokus ist ausschließlich --ds-focus-ring.
  */
+
 @use './variables' as *;
 
-// ===== CUSTOM FONT =====
+// ===== SCHRIFT: Supreme in den drei genutzten Gewichten =====
+// font-semibold (600) fällt auf Supreme Bold.
 
 @font-face {
   font-family: 'Supreme';
-  src: url('/fonts/Supreme-Regular.woff2') format('woff2');
+  src: url('@/assets/fonts/Supreme-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
-// ===== RESET & NORMALIZE =====
+@font-face {
+  font-family: 'Supreme';
+  src: url('@/assets/fonts/Supreme-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Supreme';
+  src: url('@/assets/fonts/Supreme-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+// ===== RESET =====
 
 *,
 *::before,
@@ -31,11 +53,10 @@
   top: 0;
   left: 0;
   right: 0;
-  z-index: 1100; // Über der internen Navigation (z-index: 1000)
+  z-index: 1100; // Über der internen Navigation
   background: transparent;
   pointer-events: auto;
 
-  // Alle Links und interaktive Elemente in der externen Nav
   a,
   button,
   [role='button'] {
@@ -55,18 +76,18 @@ html {
 }
 
 body {
-  font-family: $font-family-sans;
-  font-size: $font-size-base;
-  line-height: $line-height-normal;
-  color: var(--color-text);
-  background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-gradient) 100%);
-  background-attachment: fixed;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-lg);
+  line-height: var(--ds-leading);
+  color: var(--ds-text);
+  background: var(--ds-surface-0);
   transition:
-    background 0.3s ease,
-    color 0.3s ease;
+    background-color var(--ds-duration-slow) var(--ds-ease),
+    color var(--ds-duration-slow) var(--ds-ease);
 }
 
-// ===== TYPOGRAPHY =====
+// ===== TYPOGRAFIE =====
+// page-title 24 · section-title 20 · panel-title 16 (600)
 
 h1,
 h2,
@@ -74,228 +95,399 @@ h3,
 h4,
 h5,
 h6 {
-  font-weight: $font-weight-bold;
-  line-height: $line-height-tight;
-  margin-bottom: $spacing-md;
+  font-weight: var(--ds-weight-bold);
+  line-height: var(--ds-leading-tight);
+  margin-bottom: var(--ds-space-4);
 }
 
 h1 {
-  font-size: $font-size-3xl;
+  font-size: var(--ds-text-2xl);
+  letter-spacing: var(--ds-tracking-tight);
 }
 
 h2 {
-  font-size: $font-size-2xl;
+  font-size: var(--ds-text-xl);
 }
 
-h3 {
-  font-size: $font-size-xl;
-}
-
+h3,
 h4 {
-  font-size: $font-size-lg;
+  font-size: var(--ds-text-lg);
+  font-weight: var(--ds-weight-semibold);
+  line-height: var(--ds-leading);
 }
 
 p {
-  margin-bottom: $spacing-md;
+  margin-bottom: var(--ds-space-4);
 }
 
 a {
-  color: var(--color-primary);
+  color: var(--ds-link);
   text-decoration: none;
-  transition: color $transition-fast;
+  transition: color var(--ds-duration) var(--ds-ease);
 
   &:hover {
-    color: $color-primary-dark;
+    color: var(--ds-accent);
   }
 }
 
-// ===== BUTTONS =====
+a:focus-visible,
+button:focus-visible,
+[role='button']:focus-visible,
+summary:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+// ===== BUTTONS (UiButton) =====
+// .btn = secondary-Fläche; Varianten primary / secondary / ghost / danger;
+// Größen sm 28 · md 36 · lg 40.
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: $spacing-sm;
-  padding: $spacing-sm $spacing-lg;
-  border: none;
-  border-radius: $border-radius-md;
-  font-size: $font-size-base;
-  font-weight: $font-weight-medium;
+  gap: var(--ds-space-2);
+  height: var(--ds-control-md);
+  padding: 0 var(--ds-space-4);
+  border: var(--ds-border-width) solid transparent;
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-2);
+  color: var(--ds-text);
+  font: inherit;
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
   cursor: pointer;
-  transition: all $transition-fast;
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  svg {
+    width: var(--ds-icon-sm);
+    height: var(--ds-icon-sm);
+    flex-shrink: 0;
   }
 
   &:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
   }
 }
 
 .btn-primary {
-  background: var(--color-primary);
-  // Weißer Text für klaren Kontrast auf dem blauen Primary-Hintergrund
-  // (in beiden Themes blau) – zuvor dunkler Text im Dark Mode = unlesbar.
-  color: #fff;
+  background: var(--ds-accent);
+  color: var(--ds-on-accent);
+  font-weight: var(--ds-weight-semibold);
 
   &:hover:not(:disabled) {
-    background: $color-primary-dark;
-    transform: translateY(-1px);
-    box-shadow: $shadow-md;
+    background: var(--ds-accent-hover);
+    color: var(--ds-on-accent);
   }
 }
 
 .btn-secondary {
-  background: var(--color-bg-secondary);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
+  background: var(--ds-surface-2);
+  color: var(--ds-text);
+  border-color: var(--ds-border-strong);
 
   &:hover:not(:disabled) {
-    background: var(--color-border);
+    background: var(--ds-surface-3);
   }
 }
 
+.btn-ghost {
+  background: transparent;
+  color: var(--ds-text-2);
+
+  &:hover:not(:disabled) {
+    background: var(--ds-surface-2);
+    color: var(--ds-text);
+  }
+}
+
+// Erfolg ist keine eigene Fläche: Bestätigungen sind Primäraktionen
 .btn-success {
-  background: var(--color-success);
-  color: #1a3a2a;
+  background: var(--ds-accent);
+  color: var(--ds-on-accent);
+  font-weight: var(--ds-weight-semibold);
 
   &:hover:not(:disabled) {
-    filter: brightness(1.1);
-    transform: translateY(-1px);
+    background: var(--ds-accent-hover);
   }
 }
 
+// Destruktiv ist textbasiert, nie eine rote Vollfläche
 .btn-danger {
-  background: var(--color-error);
-  color: white;
+  background: transparent;
+  color: var(--ds-danger);
 
   &:hover:not(:disabled) {
-    filter: brightness(1.1);
-    transform: translateY(-1px);
+    background: var(--ds-surface-2);
   }
 }
 
 .btn-small {
-  padding: $spacing-xs $spacing-md;
-  font-size: $font-size-sm;
+  height: var(--ds-control-sm);
+  padding: 0 var(--ds-space-3);
+  border-radius: var(--ds-radius-sm);
+  font-size: var(--ds-text-sm);
 }
 
 .btn-large {
-  padding: $spacing-md $spacing-xl;
-  font-size: $font-size-lg;
+  height: var(--ds-control-lg);
+  padding: 0 var(--ds-space-5);
+  font-size: var(--ds-text-lg);
 }
 
-// ===== INPUTS =====
+.btn-block {
+  width: 100%;
+}
 
-input,
-textarea,
-select {
-  font-family: inherit;
-  font-size: inherit;
-  border: 1px solid var(--color-border);
-  border-radius: $border-radius-md;
-  padding: $spacing-sm $spacing-md;
-  background: var(--color-white);
-  color: var(--color-text);
-  transition: border-color $transition-fast;
+// ===== FELDER (UiTextField / UiSelect) =====
+
+// :where() hält die Spezifität bei 0, damit Komponenten-Styles immer gewinnen.
+:where(
+  input:not([type='range']):not([type='checkbox']):not([type='radio']):not([type='color']):not(
+      [type='file']
+    ),
+  textarea,
+  select
+) {
+  height: var(--ds-control-lg);
+  padding: 0 var(--ds-space-3);
+  border: var(--ds-border-width) solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-2);
+  color: var(--ds-text);
+  font: inherit;
+  font-size: var(--ds-text-md);
+  transition:
+    border-color var(--ds-duration) var(--ds-ease),
+    box-shadow var(--ds-duration) var(--ds-ease);
+
+  &::placeholder {
+    color: var(--ds-text-3);
+  }
 
   &:focus {
     outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(1, 79, 153, 0.1);
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--ds-accent);
+    box-shadow: var(--ds-focus-ring);
   }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.6;
     cursor: not-allowed;
   }
 }
 
-textarea {
-  resize: vertical;
-  min-height: 100px;
+:where(select) {
+  appearance: none;
+  height: var(--ds-control-md);
+  padding: 0 calc(var(--ds-space-6) + var(--ds-space-2)) 0 var(--ds-space-3);
+  font-weight: var(--ds-weight-medium);
+  cursor: pointer;
+  // Chevron im Lucide-Stil (Farbe fest: ds-text-3 beider Themes liegt nah beieinander)
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238593a8' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--ds-space-3) center;
+  background-size: var(--ds-icon-sm) var(--ds-icon-sm);
 }
 
-// ===== CARDS =====
+:where(textarea) {
+  height: auto;
+  min-height: 100px;
+  padding: var(--ds-space-2) var(--ds-space-3);
+  line-height: var(--ds-leading);
+  resize: vertical;
+}
+
+:where(input[type='checkbox'], input[type='radio']) {
+  accent-color: var(--ds-accent);
+}
+
+input[type='checkbox']:focus-visible,
+input[type='radio']:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+// ===== RANGE-SLIDER (System-Look) =====
+// Spur border-strong, Daumen Akzent mit 2-px-Rand in surface-1, Fokus-Ring.
+
+:where(input[type='range']) {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border: none;
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-border-strong);
+  outline: none;
+  cursor: pointer;
+  touch-action: pan-y;
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--ds-accent);
+    border: 2px solid var(--ds-surface-1);
+    cursor: pointer;
+  }
+
+  &::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    box-sizing: border-box;
+    border-radius: 50%;
+    background: var(--ds-accent);
+    border: 2px solid var(--ds-surface-1);
+    cursor: pointer;
+  }
+
+  &::-moz-range-track {
+    height: 6px;
+    border-radius: var(--ds-radius-full);
+    background: var(--ds-border-strong);
+  }
+
+  &:focus-visible {
+    box-shadow: var(--ds-focus-ring);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+@media (pointer: coarse) {
+  :where(input[type='range']) {
+    height: 8px;
+
+    &::-webkit-slider-thumb {
+      width: 20px;
+      height: 20px;
+    }
+
+    &::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+
+// Kein grauer Tap-Highlight, keine 300-ms-Klickverzögerung
+#app button,
+#app [role='button'],
+#app select,
+#app input[type='range'],
+#app input[type='color'] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+#app input[type='range'] {
+  touch-action: pan-y;
+}
+
+// ===== KARTEN (wie UiPanel, flach mit Rahmen) =====
 
 .card {
   @include card;
 
   &-header {
-    font-size: $font-size-lg;
-    font-weight: $font-weight-semibold;
-    margin-bottom: $spacing-md;
-    padding-bottom: $spacing-md;
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  &-body {
-    // Standardmäßig kein extra Padding
+    font-size: var(--ds-text-lg);
+    font-weight: var(--ds-weight-semibold);
+    margin-bottom: var(--ds-space-4);
+    padding-bottom: var(--ds-space-3);
+    border-bottom: var(--ds-border-width) solid var(--ds-border);
   }
 
   &-footer {
-    margin-top: $spacing-md;
-    padding-top: $spacing-md;
-    border-top: 1px solid var(--color-border);
+    margin-top: var(--ds-space-4);
+    padding-top: var(--ds-space-4);
+    border-top: var(--ds-border-width) solid var(--ds-border);
   }
 }
 
 // ===== UTILITY CLASSES =====
 
-// Spacing
 .m-0 {
   margin: 0;
 }
+
 .mt-sm {
-  margin-top: $spacing-sm;
+  margin-top: var(--ds-space-2);
 }
+
 .mt-md {
-  margin-top: $spacing-md;
+  margin-top: var(--ds-space-4);
 }
+
 .mt-lg {
-  margin-top: $spacing-lg;
+  margin-top: var(--ds-space-6);
 }
+
 .mb-sm {
-  margin-bottom: $spacing-sm;
+  margin-bottom: var(--ds-space-2);
 }
+
 .mb-md {
-  margin-bottom: $spacing-md;
+  margin-bottom: var(--ds-space-4);
 }
+
 .mb-lg {
-  margin-bottom: $spacing-lg;
+  margin-bottom: var(--ds-space-6);
 }
 
 .p-0 {
   padding: 0;
 }
+
 .p-sm {
-  padding: $spacing-sm;
-}
-.p-md {
-  padding: $spacing-md;
-}
-.p-lg {
-  padding: $spacing-lg;
+  padding: var(--ds-space-2);
 }
 
-// Display
+.p-md {
+  padding: var(--ds-space-4);
+}
+
+.p-lg {
+  padding: var(--ds-space-6);
+}
+
 .d-none {
   display: none;
 }
+
 .d-block {
   display: block;
 }
+
 .d-flex {
   display: flex;
 }
+
 .d-grid {
   display: grid;
 }
 
-// Flex
 .flex-center {
   @include flex-center;
 }
@@ -309,47 +501,49 @@ textarea {
 }
 
 .gap-sm {
-  gap: $spacing-sm;
-}
-.gap-md {
-  gap: $spacing-md;
-}
-.gap-lg {
-  gap: $spacing-lg;
+  gap: var(--ds-space-2);
 }
 
-// Text
+.gap-md {
+  gap: var(--ds-space-4);
+}
+
+.gap-lg {
+  gap: var(--ds-space-6);
+}
+
 .text-center {
   text-align: center;
 }
+
 .text-left {
   text-align: left;
 }
+
 .text-right {
   text-align: right;
 }
 
 .text-muted {
-  color: var(--color-text-light);
+  color: var(--ds-text-2);
 }
 
 .text-primary {
-  color: var(--color-primary);
+  color: var(--ds-link);
 }
 
 .text-success {
-  color: var(--color-success);
+  color: var(--ds-success);
 }
 
 .text-error {
-  color: var(--color-error);
+  color: var(--ds-danger);
 }
 
 .truncate {
   @include truncate;
 }
 
-// Visibility
 .sr-only {
   position: absolute;
   width: 1px;
@@ -370,24 +564,27 @@ textarea {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-bg-secondary);
+  background: var(--ds-surface-0);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: $border-radius-full;
+  background: var(--ds-border-strong);
+  border: 3px solid var(--ds-surface-0);
+  border-radius: var(--ds-radius-full);
 
   &:hover {
-    background: var(--color-text-light);
+    background: var(--ds-text-3);
   }
 }
 
-// ===== ANIMATIONS =====
+// ===== ANIMATIONEN =====
+// Nichts bewegt sich dauerhaft außer dem Lade-Icon.
 
 @keyframes fadeIn {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -395,9 +592,10 @@ textarea {
 
 @keyframes slideInUp {
   from {
-    transform: translateY(20px);
+    transform: translateY(8px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -408,17 +606,18 @@ textarea {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
 }
 
 .fade-in {
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn var(--ds-duration-slow) var(--ds-ease);
 }
 
 .slide-in-up {
-  animation: slideInUp 0.3s ease;
+  animation: slideInUp var(--ds-duration-slow) var(--ds-ease);
 }
 
 .spin {
@@ -439,70 +638,31 @@ textarea {
     width: 20px;
     height: 20px;
     margin: -10px 0 0 -10px;
-    border: 2px solid var(--color-primary);
+    border: 2px solid var(--ds-accent);
     border-top-color: transparent;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
 }
 
-// ===== DARK MODE SPECIFIC =====
-
-:root[data-theme='dark'] {
-  .card {
-    background: var(--color-card-bg, #{$dark-card-bg});
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  }
-}
-
 // ===== RESPONSIVE =====
-
-@include respond-to('md') {
-  html {
-    font-size: 14px;
-  }
-
-  h1 {
-    font-size: $font-size-2xl;
-  }
-
-  h2 {
-    font-size: $font-size-xl;
-  }
-}
 
 @include respond-to('sm') {
   .btn {
-    padding: $spacing-sm $spacing-md;
-    font-size: $font-size-sm;
     min-height: 44px;
   }
 }
 
-@include respond-to('xs') {
-  .btn-large {
-    padding: $spacing-sm $spacing-lg;
-    font-size: $font-size-base;
-  }
-}
+// ===== REDUZIERTE BEWEGUNG =====
 
-// ===== ACCESSIBILITY =====
-
-// Keyboard Navigation Indicator
-.keyboard-navigation {
-  *:focus {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-  }
-}
-
-// Reduced Motion - nur für nicht-essentielle Animationen
-// Homepage-Animationen werden bewusst beibehalten
 @media (prefers-reduced-motion: reduce) {
-  .spin,
-  .loading::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -525,18 +685,17 @@ textarea {
   }
 }
 
-// ===== VERLAUFS-BUTTONS (Visualizer-Muster) =====
-// Gleich breite, beschriftete Buttons mit kleinem Icon für Rückgängig,
-// Wiederholen und Zurücksetzen. Genutzt über <HistoryActions> und für
-// einzelne Zurücksetzen-Buttons (.btn-history.btn-reset).
+// ===== VERLAUFS-BUTTONS =====
+// Rückgängig, Wiederholen, Zurücksetzen: Button secondary in Größe sm
+// (28 px, radius-sm, text-sm) mit 16-px-Icon. Genutzt über <HistoryActions>
+// und für einzelne Zurücksetzen-Buttons (.btn-history.btn-reset).
 
 .history-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  margin-bottom: 0.75rem;
+  gap: var(--ds-space-2);
+  margin-bottom: var(--ds-space-3);
 
-  // In Kopf- und Werkzeugleisten: Buttons in Inhaltsbreite, kein Abstand unten
   &--compact {
     flex-wrap: nowrap;
     margin-bottom: 0;
@@ -552,46 +711,47 @@ textarea {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 6px 8px;
-  border: 1px solid var(--control-border);
-  border-radius: 5px;
-  background: var(--control-bg);
-  color: var(--color-text);
-  font-family: inherit;
-  font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  line-height: 1.2;
-  text-transform: uppercase;
+  gap: var(--ds-space-2);
+  height: var(--ds-control-sm);
+  padding: 0 var(--ds-space-3);
+  border: var(--ds-border-width) solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface-2);
+  color: var(--ds-text);
+  font: inherit;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-medium);
+  line-height: 1;
   white-space: nowrap;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 
   svg {
-    width: 11px;
-    height: 11px;
+    width: var(--ds-icon-sm);
+    height: var(--ds-icon-sm);
     flex-shrink: 0;
     fill: none;
     stroke: currentColor;
-    stroke-width: 2;
+    stroke-width: var(--ds-icon-stroke);
     stroke-linecap: round;
     stroke-linejoin: round;
   }
 
   &:hover:not(:disabled) {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
+    background: var(--ds-surface-3);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 
   &:disabled {
-    opacity: 0.35;
+    opacity: 0.45;
     cursor: not-allowed;
-  }
-
-  &.btn-reset:hover:not(:disabled) {
-    border-color: var(--color-accent);
-    color: var(--color-accent);
   }
 
   &--full {
@@ -599,12 +759,7 @@ textarea {
   }
 }
 
-:root[data-theme='dark'] .btn-history:hover:not(:disabled) {
-  border-color: var(--color-accent-light);
-  color: var(--color-accent-light);
-}
-
-@media (max-width: 480px) {
+@media (pointer: coarse) {
   .btn-history {
     min-height: 36px;
   }

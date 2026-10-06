@@ -3,14 +3,29 @@
     <div class="presets-header">
       <h3>{{ $t('presets.title') }}</h3>
       <div class="presets-actions">
-        <button class="action-btn" :title="$t('presets.actions.save')" @click="showSaveDialog">
-          <i class="fas fa-save"></i>
+        <button
+          class="action-btn"
+          :title="$t('presets.actions.save')"
+          :aria-label="$t('presets.actions.save')"
+          @click="showSaveDialog"
+        >
+          <AppIcon name="save" />
         </button>
-        <button class="action-btn" :title="$t('presets.actions.import')" @click="importPresets">
-          <i class="fas fa-file-import"></i>
+        <button
+          class="action-btn"
+          :title="$t('presets.actions.import')"
+          :aria-label="$t('presets.actions.import')"
+          @click="importPresets"
+        >
+          <AppIcon name="file-import" />
         </button>
-        <button class="action-btn" :title="$t('presets.actions.export')" @click="exportPresets">
-          <i class="fas fa-file-export"></i>
+        <button
+          class="action-btn"
+          :title="$t('presets.actions.export')"
+          :aria-label="$t('presets.actions.export')"
+          @click="exportPresets"
+        >
+          <AppIcon name="file-export" />
         </button>
       </div>
     </div>
@@ -24,15 +39,16 @@
         :title="preset.description"
         @click="applyPreset(preset)"
       >
-        <span class="preset-icon">{{ preset.icon }}</span>
+        <span class="preset-icon"><AppIcon :name="presetIconName(preset)" :size="20" /></span>
         <span class="preset-name">{{ $t(`presets.${preset.id}`, preset.name) }}</span>
         <button
           v-if="preset.custom"
           class="delete-btn"
           :title="$t('presets.actions.delete')"
+          :aria-label="$t('presets.actions.delete')"
           @click.stop="deletePreset(preset.id)"
         >
-          <i class="fas fa-times"></i>
+          <AppIcon name="times" />
         </button>
       </button>
     </div>
@@ -44,6 +60,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useConfirm } from '@/composables/useConfirm';
 import { logger } from '@/utils/logger';
+import AppIcon from '@/components/ui/AppIcon.vue';
 
 const { t } = useI18n({ useScope: 'global' });
 const { confirm: confirmDialog } = useConfirm();
@@ -68,7 +85,7 @@ const defaultPresets = [
   {
     id: 'normal',
     name: 'Normal',
-    icon: '📷',
+    icon: 'image',
     description: 'Original',
     filters: {
       brightness: 100,
@@ -84,7 +101,7 @@ const defaultPresets = [
   {
     id: 'vintage',
     name: 'Vintage',
-    icon: '📸',
+    icon: 'history',
     description: 'Retro-Look',
     filters: {
       brightness: 110,
@@ -99,21 +116,21 @@ const defaultPresets = [
   {
     id: 'bw',
     name: 'Schwarz/Weiß',
-    icon: '⚫',
+    icon: 'circle-half-stroke',
     description: 'Klassisch',
     filters: { brightness: 100, contrast: 120, saturation: 0, blur: 0, hue: 0, grayscale: 100 },
   },
   {
     id: 'vivid',
     name: 'Lebendig',
-    icon: '🌈',
+    icon: 'palette',
     description: 'Kräftige Farben',
     filters: { brightness: 105, contrast: 120, saturation: 150, blur: 0, hue: 0, exposure: 5 },
   },
   {
     id: 'sepia',
     name: 'Sepia',
-    icon: '📜',
+    icon: 'coffee',
     description: 'Nostalgischer Braun-Ton',
     filters: {
       brightness: 105,
@@ -128,7 +145,7 @@ const defaultPresets = [
   {
     id: 'dramatic',
     name: 'Dramatisch',
-    icon: '🎭',
+    icon: 'bolt',
     description: 'Hoher Kontrast',
     filters: {
       brightness: 95,
@@ -144,7 +161,7 @@ const defaultPresets = [
   {
     id: 'soft',
     name: 'Soft',
-    icon: '🌸',
+    icon: 'cloud',
     description: 'Weiche Töne',
     filters: {
       brightness: 110,
@@ -159,7 +176,7 @@ const defaultPresets = [
   {
     id: 'hdr',
     name: 'HDR',
-    icon: '💎',
+    icon: 'layer-group',
     description: 'Sehr hohe Dynamik',
     filters: {
       brightness: 105,
@@ -174,7 +191,7 @@ const defaultPresets = [
   {
     id: 'cold',
     name: 'Kalt',
-    icon: '❄️',
+    icon: 'moon',
     description: 'Kühle Töne',
     filters: {
       brightness: 100,
@@ -189,7 +206,7 @@ const defaultPresets = [
   {
     id: 'warm',
     name: 'Warm',
-    icon: '🔥',
+    icon: 'sun',
     description: 'Warme Töne',
     filters: {
       brightness: 105,
@@ -204,7 +221,7 @@ const defaultPresets = [
   {
     id: 'sunset',
     name: 'Sunset',
-    icon: '🌅',
+    icon: 'paint-brush',
     description: 'Orange/Rosa Sonnenuntergang',
     filters: {
       brightness: 110,
@@ -219,14 +236,14 @@ const defaultPresets = [
   {
     id: 'ocean',
     name: 'Ocean',
-    icon: '🌊',
+    icon: 'wave-square',
     description: 'Blaue Meer-Stimmung',
     filters: { brightness: 100, contrast: 110, saturation: 115, blur: 0, hue: 195, exposure: -5 },
   },
   {
     id: 'cinematic',
     name: 'Cinematic',
-    icon: '🎬',
+    icon: 'tv',
     description: 'Film-Look',
     filters: {
       brightness: 95,
@@ -241,14 +258,14 @@ const defaultPresets = [
   {
     id: 'faded',
     name: 'Faded',
-    icon: '👻',
+    icon: 'eye-slash',
     description: 'Verblasst',
     filters: { brightness: 115, contrast: 75, saturation: 70, blur: 0, hue: 0, exposure: 10 },
   },
   {
     id: 'noir',
     name: 'Noir',
-    icon: '🖤',
+    icon: 'circle',
     description: 'Film Noir Stil',
     filters: {
       brightness: 95,
@@ -263,7 +280,7 @@ const defaultPresets = [
   {
     id: 'dreamy',
     name: 'Dreamy',
-    icon: '✨',
+    icon: 'magic',
     description: 'Verträumt',
     filters: {
       brightness: 115,
@@ -283,6 +300,11 @@ const allPresets = computed(() => {
 });
 
 // Methods
+// Icon-Name des Presets (AppIcon); ältere eigene Presets tragen noch ein Emoji
+function presetIconName(preset) {
+  return /^[a-z-]+$/.test(preset.icon || '') ? preset.icon : 'sliders-h';
+}
+
 function applyPreset(preset) {
   activePreset.value = preset.id;
   emit('apply-preset', preset);
@@ -301,7 +323,7 @@ function showSaveDialog() {
   const newPreset = {
     id: 'custom_' + Date.now(),
     name: name.trim(),
-    icon: '⭐',
+    icon: 'sliders-h',
     description: description?.trim() || t('presets.custom'),
     filters: { ...props.filters },
     custom: true,
@@ -434,62 +456,68 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
+/* Preset-Kacheln wie StylePresets im Collage Maker: Rahmen border-strong,
+   Hover-Rahmen Akzent, ausgewählt = accent-soft + Akzent-Rahmen. */
 .filter-presets {
-  margin-top: var(--spacing-md);
+  margin-top: var(--ds-space-4);
 }
 
 .presets-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-sm);
+  gap: var(--ds-space-2);
+  margin-bottom: var(--ds-space-3);
 
   h3 {
     margin: 0;
-    font-size: var(--font-size-md);
-    font-weight: 600;
-    color: var(--color-text-primary);
+    font-size: var(--ds-text-lg);
+    font-weight: var(--ds-weight-semibold);
+    line-height: var(--ds-leading);
+    color: var(--ds-text);
   }
 }
 
 .presets-actions {
   display: flex;
-  gap: var(--spacing-xs);
+  gap: var(--ds-space-1);
 }
 
+/* UiIconButton ghost, Größe sm */
 .action-btn {
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: var(--color-bg-secondary);
-  color: var(--color-text-secondary);
-  border-radius: var(--border-radius-sm);
+  width: var(--ds-control-sm);
+  height: var(--ds-control-sm);
+  padding: 0;
+  border: var(--ds-border-width) solid transparent;
+  background: transparent;
+  color: var(--ds-text-2);
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 
   &:hover {
-    background: var(--color-primary);
-    color: white;
-    transform: translateY(-1px);
+    background: var(--ds-surface-2);
+    color: var(--ds-text);
   }
 
-  i {
-    font-size: 14px;
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 }
 
 .presets-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-  gap: var(--spacing-sm);
-  max-height: 300px;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--ds-space-2);
+  max-height: 320px;
   overflow-y: auto;
-  padding: var(--spacing-xs);
-  background: var(--color-bg-secondary);
-  border-radius: var(--border-radius-md);
+  padding-right: var(--ds-space-1);
 }
 
 .preset-btn {
@@ -497,77 +525,102 @@ defineExpose({
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: var(--spacing-sm);
-  background: var(--color-bg);
-  border: 2px solid var(--color-border);
-  border-radius: var(--border-radius-md);
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-3);
+  background: transparent;
+  border: var(--ds-border-width) solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-text);
+  font: inherit;
   cursor: pointer;
-  transition: all 0.2s ease;
-  min-height: 80px;
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 
   &:hover {
-    border-color: var(--color-primary);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    border-color: var(--ds-accent);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 
   &.active {
-    border-color: var(--color-primary);
-    background: var(--color-light-blue);
+    border-color: var(--ds-accent);
+    background: var(--ds-accent-soft);
+    color: var(--ds-text);
 
     .preset-icon {
-      transform: scale(1.1);
+      color: var(--ds-text);
     }
   }
 }
 
 .preset-icon {
-  font-size: 24px;
-  line-height: 1;
-  transition: transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: var(--ds-space-12);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface-2);
+  color: var(--ds-text-2);
 }
 
 .preset-name {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
   text-align: center;
-  line-height: 1.2;
-  color: var(--color-text-primary);
+  line-height: var(--ds-leading-tight);
+  color: var(--ds-text);
   width: 100%;
   overflow: hidden;
   word-break: break-word;
   hyphens: auto;
 }
 
+/* Destruktiv textbasiert: UiIconButton sm mit Danger-Icon auf surface-1 */
 .delete-btn {
   position: absolute;
-  top: 2px;
-  right: 2px;
-  width: 18px;
-  height: 18px;
-  border: none;
-  background: var(--color-danger);
-  color: white;
-  border-radius: 50%;
+  top: var(--ds-space-1);
+  right: var(--ds-space-1);
+  width: var(--ds-control-sm);
+  height: var(--ds-control-sm);
+  padding: 0;
+  border: var(--ds-border-width) solid var(--ds-border);
+  background: var(--ds-surface-1);
+  color: var(--ds-danger);
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.2s ease;
-
-  i {
-    font-size: 10px;
-  }
+  transition:
+    opacity var(--ds-duration) var(--ds-ease),
+    background-color var(--ds-duration) var(--ds-ease);
 
   &:hover {
-    background: darkred;
+    background: var(--ds-surface-2);
+  }
+
+  &:focus-visible {
+    opacity: 1;
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 }
 
-.preset-btn:hover .delete-btn {
+.preset-btn:hover .delete-btn,
+.preset-btn:focus-within .delete-btn {
   opacity: 1;
+}
+
+@media (hover: none) {
+  .delete-btn {
+    opacity: 1;
+  }
 }
 </style>

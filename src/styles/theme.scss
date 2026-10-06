@@ -1,117 +1,106 @@
 /**
- * Theme - CSS Custom Properties für Light und Dark Mode
+ * Theme – Legacy-Aliase auf das Design-System v2
  *
- * Wird genau einmal über main.scss eingebunden. Komponenten, die SCSS-Tokens
- * brauchen, nutzen `@use '@/styles/variables' as *` – das erzeugt kein CSS.
+ * Die Werte kommen ausschließlich aus src/design-system/tokens-v2.css (--ds-*,
+ * Kopie aus KodiniTools/Collage-Maker, geteilt mit dem Playlist Generator).
+ * Dark liegt dort auf :root, Light auf :root[data-theme='light']; die Aliase
+ * unten verweisen nur per var() und wechseln deshalb automatisch mit dem Theme.
+ *
+ * Neue Styles nutzen direkt --ds-*. Die --color-*-Namen bleiben, damit
+ * bestehende Komponenten weiter funktionieren.
  */
 
-@use './variables' as *;
-
 :root {
-  color-scheme: light;
+  // Flächen: Seite, Panel/Karte, Eingabe/Sekundär, Hover
+  --color-bg: var(--ds-surface-0);
+  --color-bg-gradient: var(--ds-surface-0);
+  --color-bg-secondary: var(--ds-surface-2);
+  --color-white: var(--ds-surface-1);
+  --color-card-bg: var(--ds-surface-1);
 
-  // Colors
-  --color-primary: #{$color-primary};
-  --color-success: #{$color-success};
-  --color-warning: #{$color-warning};
-  --color-error: #{$color-error};
-  --color-danger: #{$color-error};
-  --color-info: #{$color-info};
+  // Text in drei Stufen
+  --color-text: var(--ds-text);
+  --color-text-secondary: var(--ds-text-2);
+  --color-text-light: var(--ds-text-2);
+  --color-text-muted: var(--ds-text-3);
 
-  --color-white: #{$color-white};
-  --color-bg: #{$color-bg};
-  --color-bg-secondary: #{$color-bg-secondary};
-  --color-bg-gradient: #{$color-bg-gradient};
-  --color-text: #{$color-text};
-  --color-text-light: #{$color-text-light};
-  --color-border: #{$color-border};
+  // Rahmen
+  --color-border: var(--ds-border);
+  --color-border-strong: var(--ds-border-strong);
 
-  --color-light-blue: #{$color-light-blue};
-  --color-medium-blue: #{$color-medium-blue};
-  --color-accent: #{$color-accent};
-  --color-accent-light: #{$color-accent-light};
-  --color-accent-lighter: #{$color-accent-lighter};
-  --color-light-gold: #{$color-light-gold};
-  --color-medium-gold: #{$color-medium-gold};
-  --color-btn-text-light: #f5f4d6;
+  // Aktion: Gold ist die einzige Aktionsfarbe, Blau nur noch Link/Info
+  --color-primary: var(--ds-accent);
+  --color-primary-dark: var(--ds-accent-hover);
+  --color-on-primary: var(--ds-on-accent);
+  --color-accent: var(--ds-accent);
+  --color-accent-light: var(--ds-accent-hover);
+  --color-accent-lighter: var(--ds-surface-2);
+  --color-btn-text-light: var(--ds-on-accent);
+  --color-link: var(--ds-link);
 
-  // Spacing
-  --spacing-xs: #{$spacing-xs};
-  --spacing-sm: #{$spacing-sm};
-  --spacing-md: #{$spacing-md};
-  --spacing-lg: #{$spacing-lg};
-  --spacing-xl: #{$spacing-xl};
-  --spacing-2xl: #{$spacing-2xl};
+  // Auswahl und Hover: keine Alpha-Tints außer accent-soft
+  --color-light-blue: var(--ds-surface-3);
+  --color-medium-blue: var(--ds-accent-soft);
+  --color-light-gold: var(--ds-accent-soft);
+  --color-medium-gold: var(--ds-accent-soft);
 
-  // Typography
-  --font-family-sans: #{$font-family-sans};
-  --font-size-xs: #{$font-size-xs};
-  --font-size-sm: #{$font-size-sm};
-  --font-size-base: #{$font-size-base};
-  --font-size-lg: #{$font-size-lg};
-  --font-size-xl: #{$font-size-xl};
-  --font-size-2xl: #{$font-size-2xl};
+  // Status
+  --color-success: var(--ds-success);
+  --color-warning: var(--ds-warning);
+  --color-error: var(--ds-danger);
+  --color-danger: var(--ds-danger);
+  --color-info: var(--ds-info);
 
-  // Borders
-  --border-radius-sm: #{$border-radius-sm};
-  --border-radius-md: #{$border-radius-md};
-  --border-radius-lg: #{$border-radius-lg};
+  // Abstände (4-px-Raster)
+  --spacing-xs: var(--ds-space-1);
+  --spacing-sm: var(--ds-space-2);
+  --spacing-md: var(--ds-space-4);
+  --spacing-lg: var(--ds-space-6);
+  --spacing-xl: var(--ds-space-8);
+  --spacing-2xl: var(--ds-space-12);
 
-  // Shadows
-  --shadow-sm: #{$shadow-sm};
-  --shadow-md: #{$shadow-md};
-  --shadow-lg: #{$shadow-lg};
+  // Typografie
+  --font-family-sans: var(--ds-font-sans);
+  --font-size-xs: var(--ds-text-xs);
+  --font-size-sm: var(--ds-text-sm);
+  --font-size-base: var(--ds-text-md);
+  --font-size-lg: var(--ds-text-lg);
+  --font-size-xl: var(--ds-text-xl);
+  --font-size-2xl: var(--ds-text-2xl);
 
-  // Transitions
-  --transition-fast: #{$transition-fast};
-  --transition-base: #{$transition-base};
+  // Radien: 6 / 10 / 16
+  --border-radius-sm: var(--ds-radius-sm);
+  --border-radius-md: var(--ds-radius-md);
+  --border-radius-lg: var(--ds-radius-lg);
+
+  // Schatten nur für Overlays; Karten und Panels liegen flach
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: var(--ds-shadow-overlay);
+
+  // Bewegung
+  --transition-fast: var(--ds-duration) var(--ds-ease);
+  --transition-base: var(--ds-duration) var(--ds-ease);
 
   // Layout
-  --header-height: #{$header-height};
-  --header-height-mobile: #{$header-height-mobile};
-  --external-nav-height: #{$external-nav-height};
+  --header-height: var(--ds-topbar-height);
+  --header-height-mobile: var(--ds-topbar-height);
+  --external-nav-height: 50px;
 
-  // Regler, Zahlenfelder, Verlaufs-Buttons (Visualizer-Muster)
-  --slider-track-from: #9aa7b4;
-  --slider-track-to: #{$color-accent};
-  --slider-thumb: #{$color-accent};
-  --control-bg: #ffffff;
-  --control-border: rgba(201, 152, 77, 0.45);
-  --control-muted: #{$color-text-light};
+  // Regler und Zahlenfelder
+  --slider-track-from: var(--ds-border-strong);
+  --slider-track-to: var(--ds-border-strong);
+  --slider-thumb: var(--ds-accent);
+  --control-bg: var(--ds-surface-1);
+  --control-border: var(--ds-border-strong);
+  --control-muted: var(--ds-text-2);
 }
 
-// Dark Mode
+// Farbschema für native Controls (Select-Listen, Scrollbalken)
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --color-bg: #{$dark-primary-bg};
-  --color-bg-secondary: #{$dark-secondary-bg};
-  --color-bg-gradient: #{$dark-primary-bg};
-  --color-card-bg: #{$dark-card-bg};
-  --color-white: #{$dark-card-bg};
+}
 
-  --color-accent: #{$dark-accent-primary};
-  --color-accent-light: #{$dark-accent-tertiary};
-  --color-accent-lighter: #{$dark-text-primary};
-  --color-primary: #{$dark-accent-secondary};
-  --color-light-gold: rgba(201, 152, 77, 0.25);
-  --color-medium-gold: rgba(201, 152, 77, 0.35);
-  --color-light-blue: rgba(1, 79, 153, 0.2);
-  --color-medium-blue: rgba(1, 79, 153, 0.3);
-  --color-btn-text-light: #{$dark-accent-text};
-
-  --color-text: #{$dark-text-primary};
-  --color-text-light: #{$dark-text-secondary};
-  --color-text-muted: #{$dark-text-muted};
-  --color-border: #{$dark-border};
-
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
-
-  --slider-track-from: #{$dark-text-muted};
-  --slider-track-to: #{$dark-accent-primary};
-  --slider-thumb: #{$dark-accent-tertiary};
-  --control-bg: #{$dark-secondary-bg};
-  --control-border: rgba(201, 152, 77, 0.3);
-  --control-muted: #{$dark-text-muted};
+:root[data-theme='light'] {
+  color-scheme: light;
 }

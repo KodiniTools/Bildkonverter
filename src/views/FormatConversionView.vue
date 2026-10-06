@@ -25,7 +25,7 @@
             style="display: none"
             @change="handleFileSelect"
           />
-          <i class="fas fa-cloud-upload-alt"></i>
+          <AppIcon name="cloud-upload-alt" :size="32" />
           <h3>{{ $t(`conversion.${pair}.cta`) }}</h3>
           <p>{{ conversionData.from }}-{{ $t('conversion.widget.dropHint') }}</p>
           <span class="upload-formats">{{ conversionData.from }} → {{ conversionData.to }}</span>
@@ -40,7 +40,7 @@
 
         <!-- Error State -->
         <div v-else-if="conversionError" class="error-state">
-          <i class="fas fa-exclamation-triangle"></i>
+          <AppIcon name="exclamation-triangle" :size="40" />
           <p>{{ conversionError }}</p>
           <button class="btn btn-primary" @click="resetConverter">
             {{ $t('conversion.widget.tryAgain') }}
@@ -57,7 +57,7 @@
                 <span class="preview-size">{{ formatSize(sourceFile.size) }}</span>
               </div>
               <div class="preview-arrow">
-                <i class="fas fa-arrow-right"></i>
+                <AppIcon name="arrow-right" :size="20" />
               </div>
               <div class="preview-item">
                 <span class="preview-label">{{ conversionData.to }}</span>
@@ -69,11 +69,11 @@
 
           <div class="result-actions">
             <button class="btn btn-primary btn-large" @click="downloadResult">
-              <i class="fas fa-download"></i>
+              <AppIcon name="download" />
               {{ $t('conversion.widget.download') }} ({{ conversionData.to }})
             </button>
             <button class="btn btn-secondary btn-large" @click="resetConverter">
-              <i class="fas fa-redo"></i>
+              <AppIcon name="redo" />
               {{ $t('conversion.widget.convertAnother') }}
             </button>
           </div>
@@ -82,7 +82,7 @@
 
       <div class="widget-footer">
         <router-link :to="{ name: 'batch' }" class="batch-link">
-          <i class="fas fa-images"></i>
+          <AppIcon name="images" />
           {{ $t('conversion.batchCta') }}
         </router-link>
       </div>
@@ -91,17 +91,17 @@
     <section class="info-section">
       <div class="info-grid">
         <div class="info-card">
-          <div class="info-icon"><i class="fas fa-bolt"></i></div>
+          <div class="info-icon"><AppIcon name="bolt" :size="20" /></div>
           <h3>{{ $t('conversion.benefits.fast.title') }}</h3>
           <p>{{ $t('conversion.benefits.fast.description') }}</p>
         </div>
         <div class="info-card">
-          <div class="info-icon"><i class="fas fa-shield-alt"></i></div>
+          <div class="info-icon"><AppIcon name="shield-alt" :size="20" /></div>
           <h3>{{ $t('conversion.benefits.privacy.title') }}</h3>
           <p>{{ $t('conversion.benefits.privacy.description') }}</p>
         </div>
         <div class="info-card">
-          <div class="info-icon"><i class="fas fa-check-circle"></i></div>
+          <div class="info-icon"><AppIcon name="check-circle" :size="20" /></div>
           <h3>{{ $t('conversion.benefits.quality.title') }}</h3>
           <p>{{ $t('conversion.benefits.quality.description') }}</p>
         </div>
@@ -116,7 +116,7 @@
           <p>{{ $t(`conversion.formats.${conversionData.from.toLowerCase()}.info`) }}</p>
         </div>
         <div class="conversion-arrow">
-          <i class="fas fa-arrow-right"></i>
+          <AppIcon name="arrow-right" :size="20" />
         </div>
         <div class="format-box target">
           <h3>{{ conversionData.to }}</h3>
@@ -166,6 +166,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import AppIcon from '@/components/ui/AppIcon.vue';
 import { formatConversions } from '@/router/index.js';
 import { FORMAT_INFO } from '@/utils/exportUtils';
 import { ApiClient } from '@/api/api';
@@ -356,27 +357,34 @@ function resetConverter() {
 </script>
 
 <style lang="scss" scoped>
+// Konvertierungsseite: Inhaltsseite wie die Landing-Page des Collage Makers,
+// Widget als Panel (surface-1), Dropzone wie dessen ImageUploader.
+
 .format-conversion-view {
   min-height: 100vh;
+  background: var(--ds-surface-0);
 }
 
 .conversion-hero {
   text-align: center;
-  padding: 4rem 2rem 2rem;
+  padding: var(--ds-space-16) var(--ds-space-8) var(--ds-space-8);
   max-width: 800px;
   margin: 0 auto;
 
   h1 {
-    font-size: 2.4rem;
-    font-weight: 700;
-    margin-bottom: var(--spacing-lg);
-    line-height: 1.3;
+    font-size: var(--ds-text-3xl);
+    font-weight: var(--ds-weight-bold);
+    line-height: var(--ds-leading-tight);
+    letter-spacing: var(--ds-tracking-tight);
+    color: var(--ds-text);
+    margin-bottom: var(--ds-space-4);
   }
 
   .hero-description {
-    font-size: 1.15rem;
-    color: var(--color-text-secondary);
-    line-height: 1.7;
+    font-size: var(--ds-text-lg);
+    color: var(--ds-text-2);
+    line-height: var(--ds-leading);
+    margin: 0;
   }
 }
 
@@ -384,82 +392,116 @@ function resetConverter() {
 .converter-widget {
   max-width: 700px;
   margin: 0 auto;
-  padding: 0 2rem 3rem;
+  padding: 0 var(--ds-space-8) var(--ds-space-12);
 }
 
 .widget-container {
-  background: var(--color-bg-secondary);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-md);
+  background: var(--ds-surface-1);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
   overflow: hidden;
 }
 
+// Dropzone (ImageUploader): 1 px gestrichelt, Hover/Drag färben Rahmen und Fläche
 .upload-zone {
-  padding: var(--spacing-3xl) var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ds-space-2);
+  margin: var(--ds-space-5);
+  padding: var(--ds-space-10) var(--ds-space-6);
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s ease;
-  border: 3px dashed var(--color-border);
-  border-radius: var(--border-radius-lg);
-  margin: var(--spacing-lg);
+  border: var(--ds-border-width) dashed var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease);
 
-  &:hover,
-  &.drag-over {
-    border-color: var(--color-primary);
-    background: var(--color-light-blue, rgba(1, 79, 153, 0.05));
+  &:hover {
+    border-color: var(--ds-accent);
+    background: var(--ds-surface-2);
   }
 
-  i {
-    font-size: 3.5rem;
-    color: var(--color-primary);
-    margin-bottom: var(--spacing-md);
-    display: block;
+  &.drag-over {
+    border-color: var(--ds-accent);
+    background: var(--ds-accent-soft);
+
+    .app-icon {
+      background: var(--ds-accent);
+      color: var(--ds-on-accent);
+    }
+  }
+
+  // Icon im runden Feld (p-3, rounded-full)
+  .app-icon {
+    box-sizing: content-box;
+    padding: var(--ds-space-3);
+    margin-bottom: var(--ds-space-2);
+    border-radius: 50%;
+    background: var(--ds-surface-2);
+    color: var(--ds-text-2);
+    transition:
+      background-color var(--ds-duration) var(--ds-ease),
+      color var(--ds-duration) var(--ds-ease);
+  }
+
+  &:hover:not(.drag-over) .app-icon {
+    background: var(--ds-surface-3);
   }
 
   h3 {
-    font-size: 1.3rem;
-    margin-bottom: var(--spacing-sm);
-    color: var(--color-primary);
+    font-size: var(--ds-text-lg);
+    font-weight: var(--ds-weight-semibold);
+    line-height: var(--ds-leading);
+    color: var(--ds-text);
+    margin: 0;
   }
 
   p {
-    color: var(--color-text-secondary);
-    margin-bottom: var(--spacing-md);
+    font-size: var(--ds-text-sm);
+    color: var(--ds-text-2);
+    margin: 0 0 var(--ds-space-2);
   }
 
   .upload-formats {
-    display: inline-block;
-    padding: var(--spacing-xs) var(--spacing-md);
-    background: var(--color-primary);
-    color: #fff;
-    border-radius: var(--border-radius-md);
-    font-size: 0.9rem;
-    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    height: var(--ds-control-sm);
+    padding: 0 var(--ds-space-3);
+    background: var(--ds-surface-2);
+    border: var(--ds-border-width) solid var(--ds-border);
+    color: var(--ds-text-2);
+    border-radius: var(--ds-radius-full);
+    font-size: var(--ds-text-xs);
+    font-weight: var(--ds-weight-semibold);
+    line-height: 1;
   }
 }
 
 .processing-state {
-  padding: var(--spacing-3xl);
+  padding: var(--ds-space-12) var(--ds-space-6);
   text-align: center;
 
   p {
-    font-size: 1.1rem;
-    margin-top: var(--spacing-lg);
-    color: var(--color-text-primary);
+    font-size: var(--ds-text-lg);
+    color: var(--ds-text);
+    margin: var(--ds-space-4) 0 0;
   }
 
   .processing-detail {
-    font-size: 0.95rem;
-    color: var(--color-text-secondary);
-    margin-top: var(--spacing-xs);
+    font-size: var(--ds-text-sm);
+    color: var(--ds-text-2);
+    margin-top: var(--ds-space-1);
   }
 }
 
+// Lade-Spinner: einzige Dauer-Animation
 .spinner-large {
-  width: 50px;
-  height: 50px;
-  border: 4px solid var(--color-border);
-  border-top-color: var(--color-primary);
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--ds-border-strong);
+  border-top-color: var(--ds-accent);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin: 0 auto;
@@ -472,31 +514,34 @@ function resetConverter() {
 }
 
 .error-state {
-  padding: var(--spacing-3xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--ds-space-12) var(--ds-space-6);
   text-align: center;
 
-  i {
-    font-size: 3rem;
-    color: var(--color-danger, #dc3545);
-    margin-bottom: var(--spacing-md);
+  .app-icon {
+    color: var(--ds-danger);
+    margin-bottom: var(--ds-space-4);
   }
 
   p {
-    color: var(--color-danger, #dc3545);
-    margin-bottom: var(--spacing-lg);
+    font-size: var(--ds-text-md);
+    color: var(--ds-danger);
+    margin-bottom: var(--ds-space-6);
   }
 }
 
 .result-state {
-  padding: var(--spacing-xl);
+  padding: var(--ds-space-6);
 }
 
 .preview-comparison {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: var(--ds-space-4);
   justify-content: center;
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: var(--ds-space-6);
 
   @media (max-width: 500px) {
     flex-direction: column;
@@ -510,33 +555,32 @@ function resetConverter() {
 
   .preview-label {
     display: block;
-    font-weight: 600;
-    margin-bottom: var(--spacing-xs);
-    font-size: 0.85rem;
-    color: var(--color-primary);
-    text-transform: uppercase;
+    font-size: var(--ds-text-sm);
+    font-weight: var(--ds-weight-semibold);
+    color: var(--ds-text-2);
+    margin-bottom: var(--ds-space-2);
   }
 
   img {
     max-width: 100%;
     max-height: 200px;
-    border-radius: var(--border-radius-md);
-    box-shadow: var(--shadow-sm);
+    border: var(--ds-border-width) solid var(--ds-border);
+    border-radius: var(--ds-radius-md);
     object-fit: contain;
-    background: var(--color-bg-primary);
+    background: var(--ds-surface-2);
   }
 
   .preview-size {
     display: block;
-    margin-top: var(--spacing-xs);
-    font-size: 0.85rem;
-    color: var(--color-text-secondary);
+    margin-top: var(--ds-space-1);
+    font-size: var(--ds-text-sm);
+    color: var(--ds-text-2);
   }
 }
 
 .preview-arrow {
-  color: var(--color-primary);
-  font-size: 1.5rem;
+  display: flex;
+  color: var(--ds-text-3);
 
   @media (max-width: 500px) {
     transform: rotate(90deg);
@@ -545,136 +589,114 @@ function resetConverter() {
 
 .result-actions {
   display: flex;
-  gap: var(--spacing-md);
+  gap: var(--ds-space-3);
   justify-content: center;
   flex-wrap: wrap;
 }
 
 .widget-footer {
   text-align: center;
-  margin-top: var(--spacing-md);
-  padding-bottom: var(--spacing-sm);
+  margin-top: var(--ds-space-4);
 }
 
 .batch-link {
-  color: var(--color-text-secondary);
-  text-decoration: none;
-  font-size: 0.9rem;
-  transition: color 0.2s ease;
-
-  i {
-    margin-right: var(--spacing-xs);
-  }
-
-  &:hover {
-    color: var(--color-primary);
-  }
-}
-
-/* Buttons */
-.btn-large {
-  padding: 0.75rem 1.75rem;
-  font-size: 1rem;
-
-  i {
-    margin-right: var(--spacing-sm);
-  }
-}
-
-.btn-secondary {
-  background: var(--color-bg-secondary);
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-md);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-decoration: none;
   display: inline-flex;
   align-items: center;
+  gap: var(--ds-space-2);
+  color: var(--ds-link);
+  text-decoration: none;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-medium);
+  transition: color var(--ds-duration) var(--ds-ease);
 
   &:hover {
-    background: var(--color-bg-tertiary, var(--color-bg-primary));
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
+    color: var(--ds-accent);
   }
+}
+
+/* Sektionen */
+.info-section,
+.format-details,
+.steps-section,
+.other-conversions {
+  padding: var(--ds-space-12) var(--ds-space-8);
+
+  > h2 {
+    text-align: center;
+    font-size: var(--ds-text-xl);
+    font-weight: var(--ds-weight-bold);
+    line-height: var(--ds-leading-tight);
+    color: var(--ds-text);
+    margin-bottom: var(--ds-space-8);
+  }
+}
+
+.format-details,
+.other-conversions {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.steps-section {
+  border-top: var(--ds-border-width) solid var(--ds-border);
 }
 
 /* Info Section */
-.info-section {
-  padding: 3rem 2rem;
-  background: var(--color-bg-primary);
-}
-
 .info-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: var(--spacing-xl);
+  gap: var(--ds-space-6);
   max-width: 1000px;
   margin: 0 auto;
 }
 
 .info-card {
-  padding: var(--spacing-xl);
-  background: var(--color-bg-secondary);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-sm);
+  padding: var(--ds-space-6);
+  background: var(--ds-surface-1);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
   text-align: center;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: border-color var(--ds-duration) var(--ds-ease);
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
+    border-color: var(--ds-border-strong);
   }
 
   .info-icon {
-    width: 50px;
-    height: 50px;
-    background: var(--color-light-blue);
-    border-radius: var(--border-radius-md);
+    width: var(--ds-control-lg);
+    height: var(--ds-control-lg);
+    background: var(--ds-surface-2);
+    color: var(--ds-text-2);
+    border-radius: var(--ds-radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto var(--spacing-md);
-
-    i {
-      font-size: 1.5rem;
-      color: var(--color-primary);
-    }
+    margin: 0 auto var(--ds-space-4);
   }
 
   h3 {
-    font-size: 1.15rem;
-    margin-bottom: var(--spacing-sm);
+    font-size: var(--ds-text-lg);
+    font-weight: var(--ds-weight-semibold);
+    line-height: var(--ds-leading);
+    color: var(--ds-text);
+    margin-bottom: var(--ds-space-2);
   }
 
   p {
-    color: var(--color-text-secondary);
-    line-height: 1.6;
-    font-size: 0.95rem;
+    font-size: var(--ds-text-md);
+    color: var(--ds-text-2);
+    line-height: var(--ds-leading);
+    margin: 0;
   }
 }
 
 /* Format Details */
-.format-details {
-  padding: 3rem 2rem;
-  max-width: 900px;
-  margin: 0 auto;
-
-  h2 {
-    text-align: center;
-    font-size: 1.8rem;
-    margin-bottom: var(--spacing-xl);
-  }
-}
-
 .format-comparison {
   display: flex;
   align-items: center;
-  gap: var(--spacing-lg);
+  gap: var(--ds-space-4);
   justify-content: center;
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: var(--ds-space-6);
 
   @media (max-width: 600px) {
     flex-direction: column;
@@ -684,35 +706,35 @@ function resetConverter() {
 .format-box {
   flex: 1;
   max-width: 300px;
-  padding: var(--spacing-lg);
-  border-radius: var(--border-radius-lg);
+  padding: var(--ds-space-5);
+  background: var(--ds-surface-1);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
   text-align: center;
 
   h3 {
-    font-size: 1.5rem;
-    margin-bottom: var(--spacing-sm);
+    font-size: var(--ds-text-xl);
+    font-weight: var(--ds-weight-bold);
+    line-height: var(--ds-leading-tight);
+    color: var(--ds-text);
+    margin-bottom: var(--ds-space-2);
   }
 
   p {
-    color: var(--color-text-secondary);
-    font-size: 0.9rem;
-    line-height: 1.5;
-  }
-
-  &.source {
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
+    font-size: var(--ds-text-md);
+    color: var(--ds-text-2);
+    line-height: var(--ds-leading);
+    margin: 0;
   }
 
   &.target {
-    background: var(--color-light-blue, rgba(1, 79, 153, 0.08));
-    border: 1px solid var(--color-primary);
+    border-color: var(--ds-border-strong);
   }
 }
 
 .conversion-arrow {
-  font-size: 1.5rem;
-  color: var(--color-primary);
+  display: flex;
+  color: var(--ds-text-3);
 
   @media (max-width: 600px) {
     transform: rotate(90deg);
@@ -721,121 +743,114 @@ function resetConverter() {
 
 .advantage-text {
   text-align: center;
-  color: var(--color-text-secondary);
-  line-height: 1.7;
-  font-size: 1.05rem;
+  font-size: var(--ds-text-lg);
+  color: var(--ds-text-2);
+  line-height: var(--ds-leading);
+  margin: 0;
 }
 
-/* Steps */
-.steps-section {
-  padding: 3rem 2rem;
-  background: var(--color-bg-primary);
-
-  h2 {
-    text-align: center;
-    font-size: 1.8rem;
-    margin-bottom: var(--spacing-xl);
-  }
-}
-
+/* Steps (wie Landing-Page: 64-px-Kreise in Gold) */
 .steps-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--spacing-xl);
+  gap: var(--ds-space-8);
   max-width: 900px;
   margin: 0 auto;
 }
 
 .step {
   text-align: center;
-  padding: var(--spacing-lg);
 
   .step-number {
-    width: 45px;
-    height: 45px;
-    background: var(--color-primary);
-    color: #fff;
+    width: 64px;
+    height: 64px;
+    background: var(--ds-accent);
+    color: var(--ds-on-accent);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin: 0 auto var(--spacing-md);
+    font-size: var(--ds-text-2xl);
+    font-weight: var(--ds-weight-bold);
+    line-height: 1;
+    margin: 0 auto var(--ds-space-4);
   }
 
   h3 {
-    font-size: 1.1rem;
-    margin-bottom: var(--spacing-sm);
+    font-size: var(--ds-text-xl);
+    font-weight: var(--ds-weight-semibold);
+    line-height: var(--ds-leading-tight);
+    color: var(--ds-text);
+    margin-bottom: var(--ds-space-2);
   }
 
   p {
-    color: var(--color-text-secondary);
-    line-height: 1.6;
-    font-size: 0.95rem;
+    font-size: var(--ds-text-lg);
+    color: var(--ds-text-2);
+    line-height: var(--ds-leading);
+    margin: 0;
   }
 }
 
 /* Other Conversions */
-.other-conversions {
-  padding: 3rem 2rem;
-  max-width: 900px;
-  margin: 0 auto;
-
-  h2 {
-    text-align: center;
-    font-size: 1.6rem;
-    margin-bottom: var(--spacing-xl);
-  }
-}
-
 .conversion-links {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-sm);
+  gap: var(--ds-space-2);
   justify-content: center;
 }
 
 .conversion-link {
-  padding: 0.5rem 1rem;
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-md);
-  color: var(--color-text-primary);
+  display: inline-flex;
+  align-items: center;
+  height: var(--ds-control-md);
+  padding: 0 var(--ds-space-4);
+  background: var(--ds-surface-2);
+  border: var(--ds-border-width) solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-text);
   text-decoration: none;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
+  font-size: var(--ds-text-md);
+  font-weight: var(--ds-weight-medium);
+  line-height: 1;
+  transition: background-color var(--ds-duration) var(--ds-ease);
 
   &:hover {
-    background: var(--color-light-blue, rgba(1, 79, 153, 0.08));
-    border-color: var(--color-primary);
-    color: var(--color-primary);
+    background: var(--ds-surface-3);
+    color: var(--ds-text);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 }
 
 @media (max-width: 768px) {
   .conversion-hero {
-    padding: 2.5rem 1.5rem 1.5rem;
+    padding: var(--ds-space-10) var(--ds-space-4) var(--ds-space-6);
 
     h1 {
-      font-size: 1.8rem;
+      font-size: var(--ds-text-2xl);
     }
   }
 
   .converter-widget {
-    padding: 0 1rem 2rem;
+    padding: 0 var(--ds-space-4) var(--ds-space-8);
   }
 
-  .format-details h2,
-  .steps-section h2,
-  .other-conversions h2 {
-    font-size: 1.4rem;
+  .info-section,
+  .format-details,
+  .steps-section,
+  .other-conversions {
+    padding: var(--ds-space-10) var(--ds-space-4);
   }
 }
 
 @media (max-width: 480px) {
-  .conversion-hero h1 {
-    font-size: 1.5rem;
+  .upload-zone {
+    margin: var(--ds-space-4);
+    padding: var(--ds-space-8) var(--ds-space-4);
   }
 
   .result-actions {

@@ -4,144 +4,137 @@
  */
 
 // ===== COLORS =====
+// Alle Farben verweisen auf das Design-System v2 (src/design-system/tokens-v2.css)
+// und wechseln deshalb mit dem Theme. Keine Sass-Farbfunktionen auf diese Werte!
 
-// Primary Colors
-$color-primary: #014f99;
-$color-primary-light: #0160b8;
-$color-primary-dark: #003971;
+// Aktion (Gold) und Link (Blau)
+$color-primary: var(--ds-accent);
+$color-primary-light: var(--ds-accent-hover);
+$color-primary-dark: var(--ds-accent-hover);
+$color-on-primary: var(--ds-on-accent);
+$color-link: var(--ds-link);
 
-// Accent Colors (Gold)
-$color-accent: #c9984d;
-$color-accent-light: #f8e1a9;
-$color-accent-lighter: #f9f2d5;
-$color-bg-gradient: #f5f4d6;
+$color-accent: var(--ds-accent);
+$color-accent-light: var(--ds-accent-hover);
+$color-accent-lighter: var(--ds-surface-2);
+$color-accent-soft: var(--ds-accent-soft);
+$color-bg-gradient: var(--ds-surface-0);
 
-// Success, Warning, Error
-$color-success: #50e3c2;
-$color-warning: #f8e71c;
-$color-error: #f44336;
-$color-info: #2196f3;
+// Status
+$color-success: var(--ds-success);
+$color-warning: var(--ds-warning);
+$color-error: var(--ds-danger);
+$color-info: var(--ds-info);
 
-// Neutral Colors
-$color-white: #ffffff;
+// Flächen und Text (Light/Dark über die Tokens)
+$color-white: var(--ds-surface-1);
 $color-black: #000000;
-$color-gray-100: #f8f9fa;
-$color-gray-200: #e9ecef;
-$color-gray-300: #dee2e6;
-$color-gray-400: #ced4da;
-$color-gray-500: #adb5bd;
-$color-gray-600: #6c757d;
-$color-gray-700: #495057;
-$color-gray-800: #343a40;
-$color-gray-900: #212529;
+$color-gray-100: var(--ds-surface-2);
+$color-gray-200: var(--ds-border);
+$color-gray-300: var(--ds-border);
+$color-gray-400: var(--ds-border-strong);
+$color-gray-500: var(--ds-text-3);
+$color-gray-600: var(--ds-text-2);
+$color-gray-700: var(--ds-text-2);
+$color-gray-800: var(--ds-text);
+$color-gray-900: var(--ds-text);
 
-// Background & Text
-$color-bg: $color-white;
-$color-bg-secondary: $color-accent-lighter;
-$color-text: $color-gray-900;
-$color-text-light: $color-gray-600;
-$color-text-muted: $color-gray-500;
+$color-bg: var(--ds-surface-0);
+$color-bg-secondary: var(--ds-surface-2);
+$color-text: var(--ds-text);
+$color-text-secondary: var(--ds-text-2);
+$color-text-light: var(--ds-text-2);
+$color-text-muted: var(--ds-text-3);
 
-// Border
-$color-border: $color-gray-300;
-$color-border-light: $color-gray-200;
+$color-border: var(--ds-border);
+$color-border-light: var(--ds-border);
+$color-border-strong: var(--ds-border-strong);
 
-// Light Accent Colors
-$color-light-blue: rgba(1, 79, 153, 0.1);
-$color-medium-blue: rgba(1, 79, 153, 0.2);
-$color-light-gold: rgba(201, 152, 77, 0.15);
-$color-medium-gold: rgba(201, 152, 77, 0.25);
+$color-light-blue: var(--ds-surface-3);
+$color-medium-blue: var(--ds-accent-soft);
+$color-light-gold: var(--ds-accent-soft);
+$color-medium-gold: var(--ds-accent-soft);
 
-// ===== DARK MODE COLORS =====
-$dark-primary-bg: #091428; // Sehr dunkles Navy (Seitenhintergrund)
-$dark-secondary-bg: #0e1c32; // Dunkles Navy (Buttons/Controls)
-$dark-card-bg: #142640; // Etwas helleres Navy (Karten)
-$dark-accent-primary: #c9984d; // Gold (Hauptakzent)
-$dark-accent-secondary: #014f99; // Blau (Gradienten)
-$dark-accent-tertiary: #f8e1a9; // Helles Gold (Hover-Zustand)
-$dark-accent-text: #091428; // Dunkles Navy (Text auf Gold-Buttons)
-$dark-text-primary: #f9f2d5; // Warmes Creme (Haupttext)
-$dark-text-secondary: #f8e1a9; // Helles Gold (Sekundärtext)
-$dark-text-muted: #7a8da0; // Gedämpftes Blaugrau
-$dark-border: #1c3a5e;
+// Dark-Namen (Altlast) – zeigen auf dieselben Tokens
+$dark-primary-bg: var(--ds-surface-0);
+$dark-secondary-bg: var(--ds-surface-2);
+$dark-card-bg: var(--ds-surface-1);
+$dark-accent-primary: var(--ds-accent);
+$dark-accent-secondary: var(--ds-link);
+$dark-accent-tertiary: var(--ds-accent-hover);
+$dark-accent-text: var(--ds-on-accent);
+$dark-text-primary: var(--ds-text);
+$dark-text-secondary: var(--ds-text-2);
+$dark-text-muted: var(--ds-text-3);
+$dark-border: var(--ds-border);
 
-// ===== SPACING =====
-$spacing-xs: 0.25rem; // 4px
-$spacing-sm: 0.5rem; // 8px
-$spacing-md: 1rem; // 16px
-$spacing-lg: 1.5rem; // 24px
-$spacing-xl: 2rem; // 32px
-$spacing-2xl: 3rem; // 48px
-$spacing-3xl: 4rem; // 64px
+// ===== SPACING (4-px-Raster) =====
+$spacing-xs: var(--ds-space-1); // 4px
+$spacing-sm: var(--ds-space-2); // 8px
+$spacing-md: var(--ds-space-4); // 16px
+$spacing-lg: var(--ds-space-6); // 24px
+$spacing-xl: var(--ds-space-8); // 32px
+$spacing-2xl: var(--ds-space-12); // 48px
+$spacing-3xl: var(--ds-space-16); // 64px
 
 // ===== TYPOGRAPHY =====
+$font-family-sans: var(--ds-font-sans);
+$font-family-mono: var(--ds-font-mono);
 
-// Font Families
-$font-family-sans:
-  'Supreme',
-  -apple-system,
-  BlinkMacSystemFont,
-  'Segoe UI',
-  Roboto,
-  'Helvetica Neue',
-  Arial,
-  sans-serif;
-$font-family-mono: 'Courier New', Courier, monospace;
+// Sieben Grade: 12 / 13 / 14 / 16 / 20 / 24 / 32
+$font-size-xs: var(--ds-text-xs); // 12px
+$font-size-sm: var(--ds-text-sm); // 13px
+$font-size-md: var(--ds-text-md); // 14px
+$font-size-base: var(--ds-text-lg); // 16px (Body)
+$font-size-lg: var(--ds-text-lg); // 16px
+$font-size-xl: var(--ds-text-xl); // 20px
+$font-size-2xl: var(--ds-text-2xl); // 24px
+$font-size-3xl: var(--ds-text-3xl); // 32px
 
-// Font Sizes
-$font-size-xs: 0.75rem; // 12px
-$font-size-sm: 0.875rem; // 14px
-$font-size-base: 1rem; // 16px
-$font-size-lg: 1.125rem; // 18px
-$font-size-xl: 1.25rem; // 20px
-$font-size-2xl: 1.5rem; // 24px
-$font-size-3xl: 2rem; // 32px
+$font-weight-light: var(--ds-weight-regular);
+$font-weight-normal: var(--ds-weight-regular);
+$font-weight-medium: var(--ds-weight-medium);
+$font-weight-semibold: var(--ds-weight-semibold);
+$font-weight-bold: var(--ds-weight-bold);
 
-// Font Weights
-$font-weight-light: 300;
-$font-weight-normal: 400;
-$font-weight-medium: 500;
-$font-weight-semibold: 600;
-$font-weight-bold: 700;
-
-// Line Heights
-$line-height-tight: 1.2;
-$line-height-normal: 1.5;
-$line-height-relaxed: 1.75;
+$line-height-tight: var(--ds-leading-tight);
+$line-height-normal: var(--ds-leading);
+$line-height-relaxed: var(--ds-leading);
 
 // ===== BORDERS =====
-$border-width: 1px;
-$border-width-thick: 2px;
+$border-width: var(--ds-border-width);
+$border-width-thick: var(--ds-border-width);
 
-$border-radius-sm: 4px;
-$border-radius-md: 8px;
-$border-radius-lg: 12px;
-$border-radius-xl: 16px;
-$border-radius-full: 9999px;
+$border-radius-sm: var(--ds-radius-sm); // 6
+$border-radius-md: var(--ds-radius-md); // 10
+$border-radius-lg: var(--ds-radius-lg); // 16
+$border-radius-xl: var(--ds-radius-lg); // 16
+$border-radius-full: var(--ds-radius-full);
 
-// ===== SHADOWS =====
-$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-$shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-$shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-$shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+// ===== SHADOWS (nur Overlays) =====
+$shadow-sm: none;
+$shadow-md: none;
+$shadow-lg: var(--ds-shadow-overlay);
+$shadow-xl: var(--ds-shadow-overlay);
+$focus-ring: var(--ds-focus-ring);
 
 // ===== TRANSITIONS =====
-$transition-fast: 0.15s ease;
-$transition-base: 0.2s ease;
-$transition-slow: 0.3s ease;
+$transition-fast: var(--ds-duration) var(--ds-ease);
+$transition-base: var(--ds-duration) var(--ds-ease);
+$transition-slow: var(--ds-duration-slow) var(--ds-ease);
 
 // ===== LAYOUT =====
-$header-height: 60px;
-$header-height-mobile: 52px;
+$header-height: 56px; // --ds-topbar-height
+$header-height-mobile: 56px;
 $external-nav-height: 50px; // Höhe der externen/globalen Navigation
 
 // ===== Z-INDEX =====
-$z-header: 1000;
+$z-header: 500; // --ds-z-topbar
 $z-dropdown: 1000;
 $z-sticky: 1020;
 $z-fixed: 1030;
-$z-modal-backdrop: 1040;
-$z-modal: 1050;
+$z-modal-backdrop: 1000; // --ds-z-backdrop
+$z-modal: 1001; // --ds-z-dialog
 $z-popover: 1060;
 $z-tooltip: 1070;
 
@@ -206,10 +199,10 @@ $breakpoint-2xl: 1536px;
 
 // Card Style
 @mixin card {
-  background: $color-white;
-  border-radius: $border-radius-lg;
-  box-shadow: $shadow-md;
-  padding: $spacing-lg;
+  background: var(--ds-surface-1);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  padding: var(--ds-space-5);
 }
 
 // Button Reset
@@ -222,8 +215,9 @@ $breakpoint-2xl: 1536px;
   color: inherit;
   cursor: pointer;
 
-  &:focus {
+  &:focus-visible {
     outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 }
 

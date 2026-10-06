@@ -6,6 +6,7 @@
 import { buildTextFontString, applyTextTransform } from '@/utils/textRender';
 import { getAdjustedImage } from '@/utils/imageAdjustments';
 import { logger } from '@/utils/logger';
+import { currentThemeColorsV2 } from '@/design-system/tokens-v2';
 import {
   CORNERS,
   computeQuadCorners,
@@ -47,14 +48,14 @@ export function drawLayerSelection(context, layer) {
   }
 
   // Gestrichelter Rahmen
-  context.strokeStyle = '#014f99';
+  context.strokeStyle = currentThemeColorsV2().accent;
   context.lineWidth = 2;
   context.setLineDash([5, 5]);
   context.strokeRect(layer.x - 2, layer.y - 2, layer.width + 4, layer.height + 4);
 
   // Resize-Handles
   context.setLineDash([]);
-  context.fillStyle = '#014f99';
+  context.fillStyle = currentThemeColorsV2().accent;
   const handleSize = 8;
   const handles = [
     { x: layer.x - handleSize / 2, y: layer.y - handleSize / 2 },
@@ -133,7 +134,7 @@ export function useCanvasRenderer({
     ctx.save();
     ctx.font = buildTextFontString(text);
     const metrics = ctx.measureText(text.content || text.txt || '');
-    ctx.strokeStyle = '#0066ff';
+    ctx.strokeStyle = currentThemeColorsV2().accent;
     ctx.lineWidth = 2;
     ctx.setLineDash([5, 5]);
     ctx.strokeRect(
@@ -312,7 +313,7 @@ export function useCanvasRenderer({
       ctx.shadowBlur = 0;
       const metrics = ctx.measureText(content);
       const fontSize = text.fontSize || text.size || 32;
-      ctx.strokeStyle = '#007bff';
+      ctx.strokeStyle = currentThemeColorsV2().accent;
       ctx.lineWidth = 2;
       ctx.setLineDash([5, 5]);
       ctx.strokeRect(x - 4, y - 4, metrics.width + 8, fontSize + 8);
@@ -641,7 +642,7 @@ export function useCanvasRenderer({
     ctx.filter = 'none';
     ctx.shadowColor = 'transparent';
 
-    ctx.strokeStyle = '#014f99';
+    ctx.strokeStyle = currentThemeColorsV2().accent;
     ctx.lineWidth = 1.5 * px;
     ctx.setLineDash([6 * px, 4 * px]);
     ctx.beginPath();

@@ -188,10 +188,10 @@ defineEmits([
 <style scoped>
 .transform-panel {
   width: 280px;
-  background: var(--color-bg-secondary, #f9fafb);
-  border-left: 1px solid var(--color-border, #e5e7eb);
+  background: var(--ds-surface-0);
+  border-left: var(--ds-border-width) solid var(--ds-border);
   overflow-y: auto;
-  padding: 0.75rem;
+  padding: var(--ds-space-3);
   position: sticky;
   top: 0;
   height: calc(100vh - var(--external-nav-height, 50px) - var(--header-height, 60px) - 60px);
@@ -206,18 +206,13 @@ defineEmits([
   }
 
   &::-webkit-scrollbar-thumb {
-    background: var(--color-border);
-    border-radius: 2px;
+    background: var(--ds-border-strong);
+    border-radius: var(--ds-radius-full);
 
     &:hover {
-      background: var(--color-text-light);
+      background: var(--ds-text-3);
     }
   }
-}
-
-:root[data-theme='dark'] .transform-panel {
-  background: var(--color-bg-secondary);
-  border-left-color: var(--color-border);
 }
 
 @media (max-width: 768px) {
@@ -229,7 +224,7 @@ defineEmits([
     position: static;
     max-height: 40vh;
     border-left: none;
-    border-top: 1px solid var(--color-border, #e5e7eb);
+    border-top: var(--ds-border-width) solid var(--ds-border);
   }
 }
 </style>

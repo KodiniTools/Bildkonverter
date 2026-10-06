@@ -20,7 +20,8 @@
         class="backend-badge"
         :title="$t('editor.format.backendRequired', 'Benötigt Backend-API')"
       >
-        🌐 {{ $t('editor.format.backendBadge', 'Backend') }}
+        <AppIcon name="cloud" />
+        {{ $t('editor.format.backendBadge', 'Backend') }}
       </span>
     </div>
 
@@ -49,6 +50,7 @@
 </template>
 
 <script setup>
+import AppIcon from '@/components/ui/AppIcon.vue';
 import FilterSlider from './FilterSlider.vue';
 
 defineProps({

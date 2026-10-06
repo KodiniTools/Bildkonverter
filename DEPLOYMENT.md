@@ -7,7 +7,7 @@ außerhalb des öffentlich erreichbaren Verzeichnisses.
 |                   |                                               |
 | ----------------- | --------------------------------------------- |
 | Zielverzeichnis   | `/var/www/kodinitools.com/bildkonverter`      |
-| Öffentliche URL   | `https://kodinitools.com/bildkonverter/`  |
+| Öffentliche URL   | `https://kodinitools.com/bildkonverter/`      |
 | Build-Verzeichnis | `/opt/bildkonverter` (Clone + `node_modules`) |
 | Backups           | `/var/backups/bildkonverter/` (letzte 5)      |
 
@@ -93,19 +93,11 @@ Danach prüfen und übernehmen:
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-### Font Awesome prüfen
+### Icons
 
-`index.html` bindet die Icons **absolut vom Domain-Root** ein
-(`/fontawesome/css/…`), nicht aus dem App-Ordner. Diese Dateien liegen nicht im
-Repository und werden vom Deployment nicht angefasst:
-
-```bash
-ls /var/www/kodinitools.com/fontawesome/css/
-# fontawesome.min.css und solid.min.css müssen vorhanden sein
-```
-
-Fehlen sie, bleiben in der ganzen App die Icons unsichtbar – die Funktion selbst
-ist davon nicht betroffen.
+Die App bringt ihre Icons selbst mit (Lucide über `src/components/ui/AppIcon.vue`,
+im Bundle). Font Awesome vom Domain-Root (`/fontawesome/css/…`) wird nicht mehr
+eingebunden.
 
 ---
 

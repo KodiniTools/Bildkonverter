@@ -36,8 +36,8 @@ provide(LAYER_PANEL_KEY, panel);
   width: 280px;
   min-width: 280px;
   max-width: 280px;
-  background: var(--color-bg-secondary);
-  border-left: 1px solid var(--color-border);
+  background: var(--ds-surface-0);
+  border-left: var(--ds-border-width) solid var(--ds-border);
 
   /* Sticky Sidebar */
   position: sticky;
@@ -56,7 +56,7 @@ provide(LAYER_PANEL_KEY, panel);
     position: static;
     max-height: 40vh;
     border-left: none;
-    border-top: 1px solid var(--color-border);
+    border-top: var(--ds-border-width) solid var(--ds-border);
   }
 }
 </style>

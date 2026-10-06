@@ -2,19 +2,20 @@
   <div v-if="isDevelopment && isVisible" class="performance-monitor">
     <div class="monitor-header">
       <h4>
-        <i class="fas fa-tachometer-alt"></i>
+        <AppIcon name="tachometer-alt" />
         Performance Monitor
       </h4>
       <div class="monitor-actions">
         <button
           class="btn-icon"
           :title="isMinimized ? 'Expand' : 'Minimize'"
+          :aria-label="isMinimized ? 'Expand' : 'Minimize'"
           @click="toggleMinimize"
         >
-          <i :class="isMinimized ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
+          <AppIcon :name="isMinimized ? 'chevron-up' : 'chevron-down'" />
         </button>
-        <button class="btn-icon" title="Close" @click="isVisible = false">
-          <i class="fas fa-times"></i>
+        <button class="btn-icon" title="Close" aria-label="Close" @click="isVisible = false">
+          <AppIcon name="times" />
         </button>
       </div>
     </div>
@@ -51,6 +52,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
+import AppIcon from '@/components/ui/AppIcon.vue';
 
 const isDevelopment = import.meta.env.DEV;
 const isVisible = ref(true);
@@ -113,8 +115,13 @@ function drawGraph() {
 
   ctx.clearRect(0, 0, width, height);
 
+  // Farben aus den Design-Tokens (wechseln mit dem Theme)
+  const styles = getComputedStyle(fpsCanvas.value);
+  const gridColor = styles.getPropertyValue('--ds-border').trim();
+  const lineColor = styles.getPropertyValue('--ds-accent').trim();
+
   // Draw grid
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+  ctx.strokeStyle = gridColor;
   ctx.lineWidth = 1;
   for (let i = 0; i <= 60; i += 15) {
     const y = height - (i / 60) * height;
@@ -125,7 +132,7 @@ function drawGraph() {
   }
 
   // Draw FPS line
-  ctx.strokeStyle = '#007bff';
+  ctx.strokeStyle = lineColor;
   ctx.lineWidth = 2;
   ctx.beginPath();
 
@@ -157,107 +164,125 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
+/* Schwebendes Panel (Popover-Ebene): surface-1, 1-px-Rahmen, radius-lg,
+   Overlay-Schatten. Kennzahlen als Kacheln auf surface-2. */
 .performance-monitor {
   position: fixed;
-  bottom: var(--spacing-lg);
-  right: var(--spacing-lg);
-  background: rgba(0, 0, 0, 0.9);
-  color: white;
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-xl);
+  bottom: var(--ds-space-6);
+  right: var(--ds-space-6);
+  background: var(--ds-surface-1);
+  color: var(--ds-text);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-shadow-overlay);
   z-index: 9998;
   min-width: 320px;
-  backdrop-filter: blur(10px);
 }
 
 .monitor-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: var(--ds-space-2) var(--ds-space-4);
+  border-bottom: var(--ds-border-width) solid var(--ds-border);
 
   h4 {
     display: flex;
     align-items: center;
-    gap: var(--spacing-xs);
+    gap: var(--ds-space-2);
     margin: 0;
-    font-size: var(--font-size-sm);
-    font-weight: 600;
+    font-size: var(--ds-text-sm);
+    font-weight: var(--ds-weight-semibold);
+    line-height: var(--ds-leading);
 
-    i {
-      color: #007bff;
+    .app-icon {
+      color: var(--ds-text-2);
     }
   }
 }
 
 .monitor-actions {
   display: flex;
-  gap: var(--spacing-xs);
+  gap: var(--ds-space-1);
 }
 
+/* UiIconButton ghost, Größe sm */
 .btn-icon {
-  width: 24px;
-  height: 24px;
-  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ds-control-sm);
+  height: var(--ds-control-sm);
+  padding: 0;
+  border: var(--ds-border-width) solid transparent;
   background: transparent;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--ds-text-2);
   cursor: pointer;
-  border-radius: var(--border-radius-sm);
-  transition: all 0.2s ease;
+  border-radius: var(--ds-radius-sm);
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
+    background: var(--ds-surface-2);
+    color: var(--ds-text);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 }
 
 .monitor-body {
-  padding: var(--spacing-md);
+  padding: var(--ds-space-4);
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
+  gap: var(--ds-space-2);
+  margin-bottom: var(--ds-space-4);
 }
 
 .stat-item {
   display: flex;
   flex-direction: column;
-  padding: var(--spacing-xs);
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: var(--border-radius-sm);
+  gap: var(--ds-space-1);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  background: var(--ds-surface-2);
+  border-radius: var(--ds-radius-md);
 
   .stat-label {
-    font-size: var(--font-size-xs);
-    color: rgba(255, 255, 255, 0.6);
-    margin-bottom: 2px;
+    font-size: var(--ds-text-xs);
+    line-height: var(--ds-leading);
+    color: var(--ds-text-2);
   }
 
   .stat-value {
-    font-size: 1.2rem;
-    font-weight: 600;
+    font-size: var(--ds-text-xl);
+    font-weight: var(--ds-weight-semibold);
+    line-height: var(--ds-leading-tight);
+    color: var(--ds-text);
 
     &.stat-good {
-      color: #28a745;
+      color: var(--ds-success);
     }
 
     &.stat-warning {
-      color: #ffc107;
+      color: var(--ds-warning);
     }
 
     &.stat-bad {
-      color: #dc3545;
+      color: var(--ds-danger);
     }
   }
 }
 
 .graph-container {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: var(--border-radius-sm);
-  padding: var(--spacing-xs);
+  background: var(--ds-surface-2);
+  border-radius: var(--ds-radius-md);
+  padding: var(--ds-space-2);
 
   canvas {
     display: block;

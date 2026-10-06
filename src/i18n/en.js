@@ -8,6 +8,7 @@
 export default {
   nav: {
     home: 'Home',
+    menu: 'Menu',
     editor: 'Editor',
     gallery: 'Gallery',
     guide: 'Guide',
@@ -959,6 +960,7 @@ export default {
   },
   common: {
     cancel: 'Cancel',
+    close: 'Close',
     reset: 'Reset',
     increase: 'Increase',
     decrease: 'Decrease',

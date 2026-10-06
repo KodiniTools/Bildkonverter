@@ -12,13 +12,27 @@
           :key="index"
           class="faq-item"
           :class="{ active: activeFaq === index }"
-          @click="toggleFaq(index)"
         >
-          <div class="faq-question">
-            <h3>{{ $t(`faq.items.${faq.key}.question`) }}</h3>
-            <i class="fas" :class="activeFaq === index ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
-          </div>
-          <div v-show="activeFaq === index" class="faq-answer">
+          <h3 class="faq-heading">
+            <button
+              :id="`faq-question-${index}`"
+              type="button"
+              class="faq-question"
+              :aria-expanded="activeFaq === index ? 'true' : 'false'"
+              :aria-controls="`faq-answer-${index}`"
+              @click="toggleFaq(index)"
+            >
+              <span class="faq-question__text">{{ $t(`faq.items.${faq.key}.question`) }}</span>
+              <AppIcon :name="activeFaq === index ? 'chevron-up' : 'chevron-down'" :size="20" />
+            </button>
+          </h3>
+          <div
+            v-show="activeFaq === index"
+            :id="`faq-answer-${index}`"
+            class="faq-answer"
+            role="region"
+            :aria-labelledby="`faq-question-${index}`"
+          >
             <p>{{ $t(`faq.items.${faq.key}.answer`) }}</p>
           </div>
         </div>
@@ -30,6 +44,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import AppIcon from '@/components/ui/AppIcon.vue';
 
 const { t, locale } = useI18n({ useScope: 'global' });
 
@@ -84,61 +99,59 @@ watch(locale, updateFaqSchema);
 </script>
 
 <style lang="scss" scoped>
+// Inhaltsseite wie die FAQ-Seite des Collage Makers: flacher Kopf,
+// Akkordeons als Panels (surface-1, 1-px-Rahmen, radius-lg) mit 1-px-Trenner.
+
 .faq-view {
   min-height: 100vh;
+  background: var(--ds-surface-0);
 }
 
 .hero-section {
   text-align: center;
-  padding: 4rem 2rem 2rem;
-  background: linear-gradient(
-    135deg,
-    var(--color-accent-lighter) 0%,
-    var(--color-bg-gradient) 50%,
-    var(--color-bg) 100%
-  );
+  padding: var(--ds-space-16) var(--ds-space-8) var(--ds-space-8);
 
   h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: var(--spacing-md);
+    font-size: var(--ds-text-3xl);
+    font-weight: var(--ds-weight-bold);
+    line-height: var(--ds-leading-tight);
+    letter-spacing: var(--ds-tracking-tight);
+    color: var(--ds-text);
+    margin-bottom: var(--ds-space-4);
   }
 
   .subtitle {
-    font-size: 1.1rem;
-    color: var(--color-text-secondary);
+    font-size: var(--ds-text-lg);
+    line-height: var(--ds-leading);
+    color: var(--ds-text-2);
     max-width: 600px;
     margin: 0 auto;
   }
 
   @media (max-width: 768px) {
-    padding: 3rem 1.5rem 1.5rem;
+    padding: var(--ds-space-8) var(--ds-space-4) var(--ds-space-6);
 
     h1 {
-      font-size: 2rem;
+      font-size: var(--ds-text-2xl);
     }
   }
 
   @media (max-width: 480px) {
-    h1 {
-      font-size: 1.6rem;
-    }
-
     .subtitle {
-      font-size: 0.95rem;
+      font-size: var(--ds-text-md);
     }
   }
 }
 
 .faq-section {
-  padding: 3rem var(--spacing-xl) 5rem;
+  padding: var(--ds-space-8) var(--ds-space-8) var(--ds-space-16);
 
   @media (max-width: 768px) {
-    padding: 2rem var(--spacing-md) 3rem;
+    padding: var(--ds-space-6) var(--ds-space-4) var(--ds-space-12);
   }
 
   @media (max-width: 480px) {
-    padding: 1.5rem var(--spacing-sm) 2.5rem;
+    padding: var(--ds-space-4) var(--ds-space-4) var(--ds-space-10);
   }
 }
 
@@ -147,92 +160,96 @@ watch(locale, updateFaqSchema);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: var(--ds-space-4);
 }
 
 .faq-item {
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-lg);
+  background: var(--ds-surface-1);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
   overflow: hidden;
-  transition: all 0.3s ease;
-  cursor: pointer;
+  transition: border-color var(--ds-duration) var(--ds-ease);
 
   &:hover {
-    box-shadow: var(--shadow-md);
+    border-color: var(--ds-border-strong);
   }
 
   &.active {
-    border-color: var(--color-primary);
-    box-shadow: 0 4px 12px rgba(1, 79, 153, 0.15);
+    border-color: var(--ds-border-strong);
   }
 }
 
+.faq-heading {
+  margin: 0;
+  font-size: var(--ds-text-lg);
+  font-weight: var(--ds-weight-semibold);
+  line-height: var(--ds-leading);
+}
+
 .faq-question {
-  padding: var(--spacing-lg);
+  width: 100%;
+  padding: var(--ds-space-5) var(--ds-space-6);
+  border: none;
+  background: transparent;
+  color: var(--ds-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: var(--ds-space-4);
+  transition: background-color var(--ds-duration) var(--ds-ease);
 
-  h3 {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--color-text-primary);
-    margin: 0;
+  .faq-item:hover & {
+    background: var(--ds-surface-2);
   }
 
-  i {
-    font-size: 1rem;
-    color: var(--color-primary);
-    transition: transform 0.3s ease;
+  &:focus-visible {
+    outline: none;
+    // Innen liegender Ring, weil .faq-item overflow: hidden setzt
+    box-shadow: inset 0 0 0 2px var(--ds-accent);
+  }
+
+  .app-icon {
+    color: var(--ds-text-2);
   }
 
   @media (max-width: 768px) {
-    padding: var(--spacing-md);
-
-    h3 {
-      font-size: 1rem;
-    }
-  }
-
-  @media (max-width: 480px) {
-    padding: var(--spacing-sm) var(--spacing-md);
-
-    h3 {
-      font-size: 0.9rem;
-    }
+    padding: var(--ds-space-3) var(--ds-space-4);
+    font-size: var(--ds-text-md);
   }
 }
 
 .faq-answer {
-  padding: 0 var(--spacing-lg) var(--spacing-lg);
-  animation: fadeIn 0.3s ease;
+  padding: var(--ds-space-5) var(--ds-space-6);
+  border-top: var(--ds-border-width) solid var(--ds-border);
+  animation: faqFadeIn var(--ds-duration-slow) var(--ds-ease);
 
   p {
-    color: var(--color-text-secondary);
-    line-height: 1.7;
+    font-size: var(--ds-text-lg);
+    color: var(--ds-text-2);
+    line-height: var(--ds-leading);
     margin: 0;
     white-space: pre-line;
   }
 
-  @media (max-width: 480px) {
-    padding: 0 var(--spacing-md) var(--spacing-md);
+  @media (max-width: 768px) {
+    padding: var(--ds-space-3) var(--ds-space-4);
 
     p {
-      font-size: 0.9rem;
+      font-size: var(--ds-text-md);
     }
   }
 }
 
-@keyframes fadeIn {
+@keyframes faqFadeIn {
   from {
     opacity: 0;
-    transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 </style>

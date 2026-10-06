@@ -1,12 +1,9 @@
 <template>
   <div class="sidebar-section collapsible" :class="{ collapsed: !sectionsOpen.effects }">
     <h3 class="section-header" @click="$emit('toggle-section', 'effects')">
-      <i class="fas fa-magic section-icon"></i>
+      <AppIcon name="magic" class="section-icon" />
       {{ $t('editor.sidebar.effects', 'Effekte') }}
-      <i
-        :class="sectionsOpen.effects ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"
-        class="toggle-icon"
-      ></i>
+      <AppIcon :name="sectionsOpen.effects ? 'chevron-up' : 'chevron-down'" class="toggle-icon" />
     </h3>
 
     <div v-show="sectionsOpen.effects" class="section-content">
@@ -67,6 +64,7 @@
 </template>
 
 <script setup>
+import AppIcon from '@/components/ui/AppIcon.vue';
 import FilterSlider from './FilterSlider.vue';
 
 defineProps({
