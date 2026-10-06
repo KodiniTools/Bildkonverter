@@ -122,7 +122,12 @@ describe('Styles der Komponenten und Views', () => {
   });
 
   it('haben keine Dark-Overrides (die Tokens wechseln mit dem Theme)', () => {
-    expect(findInStyles(/data-theme=['"]?dark/)).toEqual([]);
+    // Einzige Ausnahme (wie im Collage Maker): das Bootstrap-Toggler-Icon der
+    // SSI-Navigation ist ein Hintergrundbild und wird im Dark-Theme invertiert.
+    const hits = findInStyles(/data-theme=['"]?dark/).filter(
+      (hit) => !hit.includes('toggler-icon')
+    );
+    expect(hits).toEqual([]);
   });
 
   it('animieren nicht `all`', () => {
@@ -159,6 +164,24 @@ describe('UI-Schrift Supreme', () => {
 
   it('setzt die Grundgröße des Body auf --ds-text-lg', () => {
     expect(global).toMatch(/body \{[^}]*font-size: var\(--ds-text-lg\)/);
+  });
+});
+
+describe('Globale SSI-Navigation (Partials)', () => {
+  const global = read('styles/global.scss');
+
+  it('übernimmt wie der Collage Maker Seitenfläche und Textfarben aus den Tokens', () => {
+    expect(global).toMatch(/background-color: transparent !important/);
+    expect(global).toMatch(
+      /\[class\*='drop'\][\s\S]*?background-color: var\(--ds-surface-1\) !important/
+    );
+    expect(global).toMatch(/color: var\(--ds-text\) !important/);
+    expect(global).toMatch(/color: var\(--ds-link\) !important/);
+  });
+
+  it('versetzt nur den Mount-Container um die Navigationshöhe (kein doppelter Abstand)', () => {
+    expect(global).toMatch(/body > #app \{\s*padding-top: var\(--external-nav-height/);
+    expect(global).not.toMatch(/^#app \{\s*padding-top/m);
   });
 });
 
