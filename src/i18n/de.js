@@ -963,6 +963,7 @@ export default {
   },
   common: {
     cancel: 'Abbrechen',
+    close: 'Schließen',
     reset: 'Zurücksetzen',
     increase: 'Erhöhen',
     decrease: 'Verringern',

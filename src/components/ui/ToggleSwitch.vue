@@ -31,6 +31,8 @@ defineEmits(['update:modelValue']);
 </script>
 
 <style scoped lang="scss">
+/* Umschalter: „an“ zeigt die Primärfarbe (Gold), „aus“ border-strong.
+   Hover ändert nur Farbe, Fokus ist der System-Ring. */
 .toggle-switch {
   position: relative;
   flex-shrink: 0;
@@ -38,22 +40,30 @@ defineEmits(['update:modelValue']);
   height: 18px;
   padding: 0;
   border: none;
-  border-radius: 9px;
-  background: var(--color-border, #d1d5db);
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-border-strong);
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color var(--ds-duration) var(--ds-ease);
 
   &.active {
-    background: var(--color-primary, #014f99);
+    background: var(--ds-accent);
+  }
+
+  &:hover:not(:disabled):not(.active) {
+    background: var(--ds-text-3);
+  }
+
+  &.active:hover:not(:disabled) {
+    background: var(--ds-accent-hover);
   }
 
   &:focus-visible {
-    outline: 2px solid var(--color-primary, #014f99);
-    outline-offset: 2px;
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
   }
 }
@@ -66,8 +76,7 @@ defineEmits(['update:modelValue']);
   height: 14px;
   border-radius: 50%;
   background: #ffffff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-  transition: transform 0.2s ease;
+  transition: transform var(--ds-duration) var(--ds-ease);
   pointer-events: none;
 
   .toggle-switch.active & {

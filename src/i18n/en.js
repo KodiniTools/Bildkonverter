@@ -959,6 +959,7 @@ export default {
   },
   common: {
     cancel: 'Cancel',
+    close: 'Close',
     reset: 'Reset',
     increase: 'Increase',
     decrease: 'Decrease',

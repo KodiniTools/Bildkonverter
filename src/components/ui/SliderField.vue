@@ -1,7 +1,7 @@
 <template>
   <div class="slider-control" :class="{ 'slider-control--disabled': disabled }">
     <label v-if="label" class="slider-control__label" :for="inputId">
-      <i v-if="icon" :class="icon" aria-hidden="true"></i>
+      <AppIcon v-if="icon" :name="icon" :size="14" />
       {{ label }}
     </label>
     <div class="slider-field">
@@ -38,7 +38,18 @@
         :disabled="disabled || isAtDefault"
         @click="reset"
       >
-        ↺
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.75"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
+        </svg>
       </button>
     </div>
   </div>
@@ -57,6 +68,7 @@
  */
 import { computed } from 'vue';
 import NumberSpinner from '@/components/ui/NumberSpinner.vue';
+import AppIcon from '@/components/ui/AppIcon.vue';
 
 const props = defineProps({
   modelValue: { type: Number, required: true },
@@ -104,67 +116,45 @@ function reset() {
 </script>
 
 <style scoped lang="scss">
-/* Label oben, darunter eine Zeile: Regler · Spinner · Reset (Visualizer-Layout) */
+/* ControlSlider (Design-System v2): Label klein darüber, darunter eine Zeile
+   Regler · Zahlenfeld · Reset (28-px-Platz dauerhaft reserviert). */
 .slider-control {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: var(--ds-space-1);
   min-width: 0;
 
   &--disabled {
-    opacity: 0.55;
+    opacity: 0.45;
   }
 }
 
 .slider-control__label {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--ds-space-1);
   margin: 0;
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--control-muted);
-
-  i {
-    font-size: 0.65rem;
-    opacity: 0.85;
-  }
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-regular);
+  line-height: var(--ds-leading);
+  color: var(--ds-text-2);
 }
 
 .slider-field {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--ds-space-2);
   width: 100%;
   min-width: 0;
 }
 
-/* Dünne Verlaufsspur, kleiner Thumb mit weißem Rand */
+/* Spur border-strong, Daumen Akzent (globaler Range-Stil); nur Farbton und
+   Wärme behalten ihre Verlaufsspur, weil sie den Wert selbst zeigen. */
 .slider-field__range {
   flex: 1 1 auto;
   width: auto;
   min-width: 0;
-  height: 3px;
   margin: 0;
-  padding: 0;
-  border: none;
-  border-radius: 2px;
-  background: linear-gradient(90deg, var(--slider-track-from) 0%, var(--slider-track-to) 100%);
-  outline: none;
-  cursor: pointer;
-  -webkit-appearance: none;
-  appearance: none;
-
-  &--center {
-    background: linear-gradient(
-      90deg,
-      var(--slider-track-to) 0%,
-      var(--slider-track-from) 50%,
-      var(--slider-track-to) 100%
-    );
-  }
 
   &--hue {
     background: linear-gradient(
@@ -180,103 +170,51 @@ function reset() {
   }
 
   &--warm {
-    background: linear-gradient(90deg, var(--slider-track-from) 0%, #d4a574 50%, #8b5a2b 100%);
-  }
-
-  &::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: var(--slider-thumb);
-    border: 2px solid #fff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    cursor: pointer;
-    transition: transform 0.15s ease;
-  }
-
-  &::-webkit-slider-thumb:hover {
-    transform: scale(1.15);
-  }
-
-  &::-moz-range-thumb {
-    width: 12px;
-    height: 12px;
-    box-sizing: border-box;
-    border-radius: 50%;
-    background: var(--slider-thumb);
-    border: 2px solid #fff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    cursor: pointer;
-  }
-
-  &::-moz-range-track {
-    background: transparent;
-  }
-
-  &:focus-visible {
-    box-shadow: 0 0 0 3px rgba(201, 152, 77, 0.3);
-  }
-
-  &:disabled {
-    cursor: not-allowed;
+    background: linear-gradient(
+      90deg,
+      var(--ds-info) 0%,
+      var(--ds-border-strong) 50%,
+      var(--ds-accent-hover) 100%
+    );
   }
 }
 
+/* ResetButton = UiIconButton size sm (ghost) */
 .slider-field__reset {
   flex: none;
-  width: 22px;
-  height: 22px;
-  padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--control-bg);
-  border: 1px solid var(--control-border);
-  border-radius: 4px;
-  color: var(--control-muted);
-  font-size: 0.8rem;
-  line-height: 1;
+  width: var(--ds-control-sm);
+  height: var(--ds-control-sm);
+  padding: 0;
+  border: var(--ds-border-width) solid transparent;
+  border-radius: var(--ds-radius-sm);
+  background: transparent;
+  color: var(--ds-text-2);
   cursor: pointer;
   transition:
-    color 0.15s ease,
-    border-color 0.15s ease;
+    background-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
+
+  svg {
+    width: var(--ds-icon-sm);
+    height: var(--ds-icon-sm);
+  }
 
   &:hover:not(:disabled) {
-    color: var(--color-accent);
-    border-color: var(--color-accent);
+    background: var(--ds-surface-2);
+    color: var(--ds-text);
   }
 
   &:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 1px;
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
   }
 
   &:disabled {
-    opacity: 0.35;
-    cursor: default;
-  }
-}
-
-/* Touch: größerer Thumb und Reset */
-@media (max-width: 768px) {
-  .slider-field__range {
-    &::-webkit-slider-thumb {
-      width: 20px;
-      height: 20px;
-    }
-
-    &::-moz-range-thumb {
-      width: 20px;
-      height: 20px;
-    }
-  }
-
-  .slider-field__reset {
-    width: 28px;
-    height: 28px;
-    font-size: 0.95rem;
+    opacity: 0.45;
+    cursor: not-allowed;
   }
 }
 </style>
