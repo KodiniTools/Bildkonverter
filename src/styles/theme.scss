@@ -12,6 +12,7 @@
 
   // Colors
   --color-primary: #{$color-primary};
+  --color-primary-dark: #{$color-primary-dark};
   --color-success: #{$color-success};
   --color-warning: #{$color-warning};
   --color-error: #{$color-error};
@@ -22,8 +23,11 @@
   --color-bg: #{$color-bg};
   --color-bg-secondary: #{$color-bg-secondary};
   --color-bg-gradient: #{$color-bg-gradient};
+  --color-card-bg: #{$color-white};
   --color-text: #{$color-text};
+  --color-text-secondary: #{$color-text-secondary};
   --color-text-light: #{$color-text-light};
+  --color-text-muted: #{$color-text-muted};
   --color-border: #{$color-border};
 
   --color-light-blue: #{$color-light-blue};
@@ -100,6 +104,7 @@
   --color-btn-text-light: #{$dark-accent-text};
 
   --color-text: #{$dark-text-primary};
+  --color-text-secondary: #{$dark-text-secondary};
   --color-text-light: #{$dark-text-secondary};
   --color-text-muted: #{$dark-text-muted};
   --color-border: #{$dark-border};
