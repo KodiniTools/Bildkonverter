@@ -260,7 +260,7 @@
     </div>
 
     <!-- Preview Modal -->
-    <Teleport to="body">
+    <Teleport to="#overlay-root">
       <div v-if="previewingFile" class="preview-modal" @click="closePreview">
         <div class="modal-content" @click.stop>
           <button

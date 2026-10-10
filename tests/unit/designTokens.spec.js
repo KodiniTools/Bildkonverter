@@ -179,6 +179,18 @@ describe('Globale SSI-Navigation (Partials)', () => {
     expect(global).toMatch(/color: var\(--ds-link\) !important/);
   });
 
+  it('nimmt das Teleport-Ziel der Modals aus (sonst transparente Popups)', () => {
+    const partialSelectors = global.match(/body\s*>\s*:not\(#app\)[^,{]*/g) ?? [];
+    expect(partialSelectors.length).toBeGreaterThan(0);
+    for (const selector of partialSelectors) {
+      expect(selector).toContain(':not(#overlay-root)');
+    }
+    expect(readFileSync(join(SRC_DIR, '..', 'index.html'), 'utf8')).toMatch(
+      /<div id="overlay-root"><\/div>/
+    );
+    expect(findInTemplates(/<Teleport\s+to="body"/)).toEqual([]);
+  });
+
   it('versetzt nur den Mount-Container um die Navigationshöhe (kein doppelter Abstand)', () => {
     expect(global).toMatch(/body > #app \{\s*padding-top: var\(--external-nav-height/);
     expect(global).not.toMatch(/^#app \{\s*padding-top/m);

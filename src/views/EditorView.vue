@@ -423,7 +423,7 @@
     />
 
     <!-- Export Dialog -->
-    <Teleport to="body">
+    <Teleport to="#overlay-root">
       <div
         v-if="showExportDialog"
         class="export-dialog-overlay"
@@ -460,7 +460,7 @@
     </Teleport>
 
     <!-- Weiterleitungs-Angebot nach erfolgreichem Download -->
-    <Teleport to="body">
+    <Teleport to="#overlay-root">
       <div v-if="showForwardOffer" class="forward-offer-overlay" @click.self="dismissForwardOffer">
         <div class="forward-offer">
           <div class="forward-offer__icon">

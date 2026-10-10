@@ -1,5 +1,5 @@
 <template>
-  <Teleport to="body">
+  <Teleport to="#overlay-root">
     <Transition name="confirm-fade">
       <div v-if="state.visible" class="confirm-backdrop" @click.self="cancel">
         <div
