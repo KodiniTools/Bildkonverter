@@ -1,5 +1,5 @@
 <template>
-  <Teleport to="body">
+  <Teleport to="#overlay-root">
     <!-- Shortcuts Help Modal -->
     <Transition name="modal">
       <div v-if="showHelp" class="shortcuts-modal" @click="closeHelp">

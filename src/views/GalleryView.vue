@@ -244,7 +244,7 @@
     </div>
 
     <!-- Preview Overlay -->
-    <Teleport to="body">
+    <Teleport to="#overlay-root">
       <div v-if="previewImage" class="preview-overlay" @click="closePreview">
         <div class="preview-modal" @click.stop>
           <button

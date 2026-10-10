@@ -1,5 +1,5 @@
 <template>
-  <Teleport to="body">
+  <Teleport to="#overlay-root">
     <div class="toast-container">
       <TransitionGroup name="toast">
         <div

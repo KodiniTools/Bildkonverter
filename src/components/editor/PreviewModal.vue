@@ -1,5 +1,5 @@
 <template>
-  <Teleport to="body">
+  <Teleport to="#overlay-root">
     <div v-if="show" class="preview-modal-overlay" @click="$emit('close')">
       <div class="preview-modal-content" @click.stop>
         <button
