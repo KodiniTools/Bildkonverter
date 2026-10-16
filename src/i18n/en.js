@@ -414,6 +414,18 @@ export default {
     export: {
       quality: 'Quality',
       transparentBackground: 'Transparent background',
+      estimate: 'Estimated file size',
+      estimating: 'Estimating…',
+      estimateValue: 'approx. {size}',
+      estimateQuality: 'approx. {size} at quality {quality} %',
+      estimateScaled: 'approx. {size} at quality {quality} %, downscaled to {width} × {height} px',
+      estimateMissed: 'Target not reachable, smallest file approx. {size}',
+      targetSize: {
+        enable: 'Limit file size',
+        max: 'Max. file size',
+        downscale: 'Downscale if needed',
+        hint: 'Quality is only lowered as far as needed.',
+      },
     },
     formats: {
       png: {
@@ -1000,6 +1012,8 @@ export default {
       galleryError: 'Error loading from gallery',
       resizeSuccess: 'Image size successfully changed: {width}×{height}px',
       resizeInvalid: 'Invalid image size – please enter values between 1 and {max} px',
+      targetSizeMissed:
+        'Target of {max} KB not reached – smallest possible file: {size}. Tip: enable "Downscale if needed".',
       imageReset: 'Image reset to original state',
       exporting: 'Exporting...',
       imageDetached: 'Image detached from background – now freely movable',

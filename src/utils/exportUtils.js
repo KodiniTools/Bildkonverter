@@ -20,6 +20,7 @@ import {
   canvasToBlob as canvasToBlobUtil,
 } from './conversionUtils';
 import { logger } from '@/utils/logger';
+import { encodeForExport } from './targetSize';
 
 export { FORMAT_INFO, SUPPORTED_FORMATS, CLIENT_FORMATS, BACKEND_FORMATS };
 
@@ -162,6 +163,9 @@ export class ExportManager {
   async exportJPEG(canvas, filename, options) {
     const quality = options.quality || 0.92;
     const processedCanvas = this.addWhiteBackground(canvas);
+    if (options.targetSize) {
+      return this.exportWithTargetSize(processedCanvas, 'jpeg', 'jpg', filename, quality, options);
+    }
     const dataURL = processedCanvas.toDataURL('image/jpeg', quality);
     this.downloadDataURL(dataURL, `${filename}.jpg`);
 
@@ -183,6 +187,9 @@ export class ExportManager {
     }
 
     const quality = options.quality || 0.85;
+    if (options.targetSize) {
+      return this.exportWithTargetSize(canvas, 'webp', 'webp', filename, quality, options);
+    }
     const dataURL = canvas.toDataURL('image/webp', quality);
     this.downloadDataURL(dataURL, `${filename}.webp`);
 
@@ -192,6 +199,28 @@ export class ExportManager {
       filename: `${filename}.webp`,
       quality: Math.round(quality * 100),
       size: this.getDataURLSize(dataURL),
+    };
+  }
+
+  /**
+   * Export mit Ziel-Dateigröße (JPEG/WebP): Qualität und ggf. Abmessungen
+   * werden so gewählt, dass die Datei höchstens options.targetSize.maxBytes
+   * groß ist. Die gewählte Qualität wird dabei nie überschritten.
+   */
+  async exportWithTargetSize(canvas, format, ext, filename, quality, options) {
+    const result = await encodeForExport(canvas, format, quality, options.targetSize);
+    this.downloadBlob(result.blob, `${filename}.${ext}`);
+
+    return {
+      success: true,
+      format,
+      filename: `${filename}.${ext}`,
+      quality: Math.round(result.quality * 100),
+      size: this.formatBytes(result.blob.size),
+      bytes: result.blob.size,
+      width: result.width,
+      height: result.height,
+      targetReached: result.reached,
     };
   }
 
