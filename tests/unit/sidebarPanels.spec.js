@@ -9,6 +9,8 @@ import LightColorPanel from '@/components/editor/sidebar/LightColorPanel.vue';
 import EffectsPanel from '@/components/editor/sidebar/EffectsPanel.vue';
 import BackgroundPanel from '@/components/editor/sidebar/BackgroundPanel.vue';
 import FilterSlider from '@/components/editor/sidebar/FilterSlider.vue';
+import ResizePanel from '@/components/editor/sidebar/ResizePanel.vue';
+import { defaultResizeSpec } from '@/utils/resizeModes';
 import { DEFAULT_FILTERS, DEFAULT_BACKGROUND } from '@/composables/useFilterManagement';
 
 const $t = (key, fallback) => fallback || key;
@@ -120,5 +122,43 @@ describe('BackgroundPanel', () => {
     const wrapper = mountPanel(BackgroundPanel, { background: { color: '#abcdef', opacity: 60 } });
     expect(wrapper.find('input[type="text"]').element.value).toBe('#abcdef');
     expect(wrapper.findComponent(FilterSlider).props('modelValue')).toBe(60);
+  });
+});
+
+describe('ResizePanel – Modi', () => {
+  const base = { resizeWidth: 800, resizeHeight: 400, baseWidth: 800, baseHeight: 400 };
+
+  it('zeigt im Modus "Exakt" Breite/Höhe wie bisher', () => {
+    const wrapper = mountPanel(ResizePanel, { ...base, resizeSpec: { ...defaultResizeSpec } });
+    expect(wrapper.find('#resize-percent').exists()).toBe(false);
+    expect(wrapper.findAll('.resize-input input[type="number"]')).toHaveLength(2);
+  });
+
+  it('meldet Moduswechsel und Eingaben als update:resizeSpec, ohne die Props zu verändern', async () => {
+    const resizeSpec = Object.freeze({ ...defaultResizeSpec });
+    const wrapper = mountPanel(ResizePanel, { ...base, resizeSpec });
+    await wrapper.find('#resize-mode-select').setValue('percent');
+    expect(wrapper.emitted('update:resizeSpec')[0][0]).toEqual({
+      ...defaultResizeSpec,
+      mode: 'percent',
+    });
+
+    await wrapper.setProps({ resizeSpec: { ...defaultResizeSpec, mode: 'percent' } });
+    const percent = wrapper.find('#resize-percent');
+    percent.element.value = '25';
+    await percent.trigger('input');
+    expect(wrapper.emitted('update:resizeSpec')[1][0].percent).toBe(25);
+    expect(resizeSpec.mode).toBe('exact');
+  });
+
+  it('zeigt das Ergebnis der relativen Modi', () => {
+    const wrapper = mountPanel(ResizePanel, {
+      ...base,
+      resizeWidth: 400,
+      resizeHeight: 200,
+      resizeSpec: { ...defaultResizeSpec, mode: 'percent' },
+    });
+    expect(wrapper.find('.resize-result').exists()).toBe(true);
+    expect(wrapper.find('.resize-result').text()).toContain('400 × 200');
   });
 });

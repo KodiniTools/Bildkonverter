@@ -293,9 +293,16 @@
     }
 
     .resize-presets select,
-    .resize-input input {
+    .resize-input input,
+    .resize-input select {
       width: auto;
       min-width: 96px;
+    }
+
+    .resize-result {
+      margin: 0 0 var(--ds-space-2) 0;
+      align-self: flex-end;
+      white-space: nowrap;
     }
 
     .checkbox-label {
@@ -340,6 +347,13 @@
       font-weight: var(--ds-weight-medium);
       color: var(--ds-text-2);
     }
+  }
+
+  .resize-result {
+    margin: 0;
+    font-size: var(--ds-text-sm);
+    color: var(--ds-text-2);
+    font-variant-numeric: tabular-nums;
   }
 
   .checkbox-label {

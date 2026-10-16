@@ -16,6 +16,7 @@
  * @param {Function} deps.t
  */
 import { ref, watch } from 'vue';
+import { computeResizeTarget, defaultResizeSpec } from '@/utils/resizeModes';
 
 /** Maximale Kantenlänge für Größenänderungen (identisch zur Live-Vorschau) */
 export const MAX_RESIZE_DIMENSION = 10000;
@@ -33,6 +34,35 @@ export function useEditorResize({
 
   // Aktuell im Dropdown gewähltes Größen-Preset ('' = keines)
   const selectedPreset = ref('');
+
+  // Resize-Modus. In den relativen Modi (Prozent, lange Kante, einpassen)
+  // werden Breite/Höhe aus den Eingaben und der aktuellen Bildgröße berechnet;
+  // Live-Vorschau und "Anwenden" laufen danach wie bei manueller Eingabe.
+  const resizeSpec = ref({ ...defaultResizeSpec });
+
+  /** Felder aus dem Modus neu berechnen (nur relative Modi) */
+  function syncFromSpec() {
+    const spec = resizeSpec.value;
+    if (spec.mode === 'exact') return;
+    const width = resizeManager.originalWidth.value;
+    const height = resizeManager.originalHeight.value;
+    if (!width || !height) return;
+    const target = computeResizeTarget({ width, height }, spec);
+    resizeWidth.value = target.width;
+    resizeHeight.value = target.height;
+  }
+
+  // Bewusst nur bei Änderungen des Modus und seiner Eingaben: Undo/Redo,
+  // Zuschnitt oder ein neues Bild setzen die Felder auf die aktuelle Größe,
+  // ohne dass der Modus sofort wieder eine Vorschau auslöst.
+  watch(resizeSpec, syncFromSpec, { deep: true });
+
+  /** Feste Größen (Presets, Originalgröße) gehören zum Modus "Exakt" */
+  function switchToExact() {
+    if (resizeSpec.value.mode !== 'exact') {
+      resizeSpec.value = { ...resizeSpec.value, mode: 'exact' };
+    }
+  }
 
   // Live-Vorschau: Das Bild im Canvas reagiert schon während des Tippens auf die
   // Werte in den "Grösse ändern"-Feldern (Breite/Höhe) sowie auf Presets. Die
@@ -119,6 +149,12 @@ export function useEditorResize({
     // dorthin zurückführt.
     resizeManager.initFromDimensions(width, height, { natural: false });
 
+    // Prozent bezieht sich auf die aktuelle Größe; nach dem Anwenden auf 100 %
+    // zurück, sonst würde der nächste Klick auf "Anwenden" erneut skalieren.
+    if (resizeSpec.value.mode === 'percent' && resizeSpec.value.percent !== 100) {
+      resizeSpec.value = { ...resizeSpec.value, percent: 100 };
+    }
+
     saveHistory();
 
     if (window.$toast) {
@@ -138,6 +174,7 @@ export function useEditorResize({
     // "Ohne Preset" → zurück auf die Originalgröße des geladenen Bildes
     if (presetName === 'none') {
       selectedPreset.value = '';
+      switchToExact();
 
       const width = naturalWidth.value;
       const height = naturalHeight.value;
@@ -162,6 +199,7 @@ export function useEditorResize({
     if (!preset) return;
 
     selectedPreset.value = presetName;
+    switchToExact();
     commitResize(preset.width, preset.height);
   }
 
@@ -203,6 +241,7 @@ export function useEditorResize({
 
   return {
     selectedPreset,
+    resizeSpec,
     onResizeChange,
     commitResize,
     applySocialPreset,

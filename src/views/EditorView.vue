@@ -130,7 +130,11 @@
           :selected-preset="selectedPreset"
           :natural-width="naturalWidth"
           :natural-height="naturalHeight"
+          :resize-spec="resizeSpec"
+          :base-width="resizeBaseWidth"
+          :base-height="resizeBaseHeight"
           :disabled="!currentImage"
+          @update:resize-spec="resizeSpec = $event"
           @update:resize-width="resizeWidth = $event"
           @update:resize-height="resizeHeight = $event"
           @update:maintain-aspect-ratio="maintainAspectRatio = $event"
@@ -610,8 +614,15 @@ const resizeManager = useResizeManager({
     // Resize wird in applyResize() gehandhabt
   },
 });
-const { resizeWidth, resizeHeight, maintainAspectRatio, naturalWidth, naturalHeight } =
-  resizeManager;
+const {
+  resizeWidth,
+  resizeHeight,
+  maintainAspectRatio,
+  naturalWidth,
+  naturalHeight,
+  originalWidth: resizeBaseWidth,
+  originalHeight: resizeBaseHeight,
+} = resizeManager;
 
 // Image Layer Interaction Composable (für Collage-Modus)
 const layerInteraction = useImageLayerInteraction(canvas);
@@ -670,15 +681,16 @@ const { canUndo, canRedo, saveHistory, undo, redo, resetHistory, unregisterHisto
   });
 
 // Größe ändern: Live-Vorschau, Presets, Anwenden
-const { selectedPreset, onResizeChange, applySocialPreset, applyResize } = useEditorResize({
-  canvas,
-  currentImage,
-  resizeManager,
-  renderImage,
-  updateImageSize,
-  saveHistory,
-  t,
-});
+const { selectedPreset, resizeSpec, onResizeChange, applySocialPreset, applyResize } =
+  useEditorResize({
+    canvas,
+    currentImage,
+    resizeManager,
+    renderImage,
+    updateImageSize,
+    saveHistory,
+    t,
+  });
 
 // Bild vom Hintergrund lösen / wieder verbinden
 const { handleToggleDetach } = useEditorDetach({
