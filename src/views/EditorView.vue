@@ -157,6 +157,15 @@
             :requires-backend="requiresBackend"
             :export-quality="exportQuality"
             :export-transparent="exportTransparent"
+            :target-size-available="targetSizeAvailable"
+            :target-size-enabled="targetSizeEnabled"
+            :target-size-kb="targetSizeKb"
+            :target-size-downscale="targetSizeDownscale"
+            :size-estimate="currentImage ? sizeEstimate : null"
+            :is-estimating="Boolean(currentImage) && isEstimating"
+            @update:target-size-enabled="targetSizeEnabled = $event"
+            @update:target-size-kb="targetSizeKb = $event"
+            @update:target-size-downscale="targetSizeDownscale = $event"
             @update:output-format="outputFormat = $event"
             @update:export-quality="exportQuality = $event"
             @update:export-transparent="exportTransparent = $event"
@@ -655,9 +664,13 @@ const {
   formatSize,
 } = useImageInfo({ canvas, outputFormat });
 
+// Wird nach useEditorExport gesetzt; renderImage kann schon vorher laufen
+let scheduleExportEstimate = () => {};
+
 function renderImage() {
   _renderImageCore();
   updateImageDimensions();
+  scheduleExportEstimate();
 }
 
 // Die einzige Undo/Redo-Historie (Bild, Filter, Transform, Texte, Crop, Ebenen);
@@ -719,6 +732,13 @@ const {
   exportTransparent,
   showExportDialog,
   exportDialogFilename,
+  targetSizeEnabled,
+  targetSizeKb,
+  targetSizeDownscale,
+  targetSizeAvailable,
+  sizeEstimate,
+  isEstimating,
+  scheduleEstimate,
   showForwardOffer,
   downloadImage,
   confirmExport,
@@ -734,6 +754,7 @@ const {
   renderImageForExport,
   t,
 });
+scheduleExportEstimate = scheduleEstimate;
 
 // Vorher/Nachher-Vorschau
 const {

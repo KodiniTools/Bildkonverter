@@ -10,6 +10,10 @@ import EffectsPanel from '@/components/editor/sidebar/EffectsPanel.vue';
 import BackgroundPanel from '@/components/editor/sidebar/BackgroundPanel.vue';
 import FilterSlider from '@/components/editor/sidebar/FilterSlider.vue';
 import ResizePanel from '@/components/editor/sidebar/ResizePanel.vue';
+import ExportPanel from '@/components/editor/sidebar/ExportPanel.vue';
+import { FORMAT_INFO } from '@/utils/formatInfo';
+import { createI18n } from 'vue-i18n';
+import de from '@/i18n/de';
 import { defaultResizeSpec } from '@/utils/resizeModes';
 import { DEFAULT_FILTERS, DEFAULT_BACKGROUND } from '@/composables/useFilterManagement';
 
@@ -160,5 +164,74 @@ describe('ResizePanel – Modi', () => {
     });
     expect(wrapper.find('.resize-result').exists()).toBe(true);
     expect(wrapper.find('.resize-result').text()).toContain('400 × 200');
+  });
+});
+
+describe('ExportPanel – Ziel-Dateigröße', () => {
+  const i18n = createI18n({ legacy: false, locale: 'de', messages: { de } });
+  const mountExport = (props) =>
+    mount(ExportPanel, {
+      props: {
+        formats: ['png', 'jpeg', 'webp'],
+        formatInfo: FORMAT_INFO,
+        currentFormatInfo: FORMAT_INFO[props.outputFormat],
+        ...props,
+      },
+      global: { plugins: [i18n] },
+    });
+
+  it('bietet die Option nur bei JPEG/WebP an', () => {
+    expect(mountExport({ outputFormat: 'png' }).find('.target-size').exists()).toBe(false);
+    expect(
+      mountExport({ outputFormat: 'jpeg', targetSizeAvailable: true }).find('.target-size').exists()
+    ).toBe(true);
+  });
+
+  it('meldet Aktivieren, KB-Wert (begrenzt) und Verkleinern als Ereignisse', async () => {
+    const wrapper = mountExport({ outputFormat: 'jpeg', targetSizeAvailable: true });
+    await wrapper.find('[data-testid="target-size-enable"]').setValue(true);
+    expect(wrapper.emitted('update:targetSizeEnabled')).toEqual([[true]]);
+
+    await wrapper.setProps({ targetSizeEnabled: true });
+    const kb = wrapper.find('#target-size-kb');
+    kb.element.value = '300';
+    await kb.trigger('input');
+    kb.element.value = '3';
+    await kb.trigger('change');
+    expect(wrapper.emitted('update:targetSizeKb')).toEqual([[300], [10]]);
+  });
+
+  it('zeigt die Schätzung mit Qualität, Verkleinerung oder Warnung', async () => {
+    const wrapper = mountExport({
+      outputFormat: 'jpeg',
+      targetSizeAvailable: true,
+      sizeEstimate: { bytes: 480 * 1024, quality: 71, width: 800, height: 600, reached: true },
+    });
+    const text = () => wrapper.find('[data-testid="size-estimate"]').text();
+    expect(text()).toContain('ca. 480 KB bei Qualität 71 %');
+
+    await wrapper.setProps({
+      sizeEstimate: {
+        bytes: 400 * 1024,
+        quality: 60,
+        width: 640,
+        height: 480,
+        reached: true,
+        scaled: true,
+      },
+    });
+    expect(text()).toContain('verkleinert auf 640 × 480 px');
+
+    await wrapper.setProps({ sizeEstimate: { bytes: 900 * 1024, quality: 5, reached: false } });
+    expect(text()).toContain('Ziel nicht erreichbar');
+    expect(wrapper.find('.size-estimate--warn').exists()).toBe(true);
+  });
+
+  it('PNG zeigt nur die geschätzte Größe', () => {
+    const wrapper = mountExport({
+      outputFormat: 'png',
+      sizeEstimate: { bytes: 2048, width: 10, height: 10, reached: true },
+    });
+    expect(wrapper.find('[data-testid="size-estimate"]').text()).toContain('ca. 2 KB');
   });
 });

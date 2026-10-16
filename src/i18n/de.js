@@ -414,6 +414,18 @@ export default {
     export: {
       quality: 'Qualität',
       transparentBackground: 'Transparenter Hintergrund',
+      estimate: 'Geschätzte Dateigröße',
+      estimating: 'Wird geschätzt…',
+      estimateValue: 'ca. {size}',
+      estimateQuality: 'ca. {size} bei Qualität {quality} %',
+      estimateScaled: 'ca. {size} bei Qualität {quality} %, verkleinert auf {width} × {height} px',
+      estimateMissed: 'Ziel nicht erreichbar, kleinste Datei ca. {size}',
+      targetSize: {
+        enable: 'Ziel-Dateigröße begrenzen',
+        max: 'Max. Dateigröße',
+        downscale: 'Notfalls verkleinern',
+        hint: 'Die Qualität wird nur so weit gesenkt wie nötig.',
+      },
     },
     formats: {
       png: {
@@ -1004,6 +1016,8 @@ export default {
       galleryError: 'Fehler beim Laden aus Galerie',
       resizeSuccess: 'Bildgröße erfolgreich geändert: {width}×{height}px',
       resizeInvalid: 'Ungültige Bildgröße – bitte Werte zwischen 1 und {max} px eingeben',
+      targetSizeMissed:
+        'Ziel von {max} KB nicht erreicht – kleinste mögliche Datei: {size}. Tipp: „Notfalls verkleinern“ aktivieren.',
       imageReset: 'Bild auf Originalzustand zurückgesetzt',
       exporting: 'Exportiere...',
       imageDetached: 'Bild vom Hintergrund gelöst – jetzt frei verschiebbar',

@@ -14,8 +14,17 @@
  * @param {Function} deps.renderImageForExport
  * @param {Function} deps.t
  */
-import { ref } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { exportImage } from '@/utils/exportUtils';
+import { canvasToBlob } from '@/utils/conversionUtils';
+import {
+  TARGET_KB_DEFAULT,
+  clampTargetKb,
+  encodeForExport,
+  kbToBytes,
+  supportsTargetSize,
+  withWhiteBackground,
+} from '@/utils/targetSize';
 import { prepareHandoff } from '@/lib/core/handoff';
 import { printImage } from '@/utils/printUtils';
 import { logger } from '@/utils/logger';
@@ -35,6 +44,94 @@ export function useEditorExport({
   const exportTransparent = ref(false); // Transparenter Hintergrund beim PNG-Export
   const showExportDialog = ref(false);
   const exportDialogFilename = ref('');
+
+  // ===== ZIEL-DATEIGRÖSSE (nur JPEG/WebP) =====
+  const targetSizeEnabled = ref(false);
+  const targetSizeKb = ref(TARGET_KB_DEFAULT);
+  // Notfalls Abmessungen verkleinern, wenn die Mindestqualität nicht reicht
+  const targetSizeDownscale = ref(false);
+
+  const targetSizeAvailable = computed(() => supportsTargetSize(outputFormat.value));
+
+  /** Zielgröße für den Export; null = aus, nicht unterstützt oder ungültig */
+  const targetSizeOptions = computed(() => {
+    if (!targetSizeEnabled.value || !targetSizeAvailable.value) return null;
+    const kb = clampTargetKb(targetSizeKb.value);
+    if (!kb) return null;
+    return { maxBytes: kbToBytes(kb), allowDownscale: targetSizeDownscale.value };
+  });
+
+  // ===== GRÖSSENSCHÄTZUNG VORAB =====
+  // Kodiert den aktuellen Canvas mit denselben Einstellungen wie der Export
+  // (JPEG/WebP inkl. Zielgröße, PNG). Entprellt, weil Kodieren großer Bilder
+  // spürbar dauert; veraltete Ergebnisse werden verworfen.
+  const sizeEstimate = ref(null);
+  const isEstimating = ref(false);
+  let estimateTimer = null;
+  let estimateRequest = 0;
+
+  function estimatableFormat() {
+    return outputFormat.value === 'png' || targetSizeAvailable.value;
+  }
+
+  async function runEstimate() {
+    estimateTimer = null;
+    const request = ++estimateRequest;
+    const source = canvas.value;
+    if (!source || !source.width || !source.height || !estimatableFormat()) {
+      sizeEstimate.value = null;
+      isEstimating.value = false;
+      return;
+    }
+
+    isEstimating.value = true;
+    try {
+      let result;
+      if (outputFormat.value === 'png') {
+        const blob = await canvasToBlob(source, 'image/png');
+        result = { bytes: blob.size, width: source.width, height: source.height, reached: true };
+      } else {
+        const prepared = outputFormat.value === 'webp' ? source : withWhiteBackground(source);
+        const target = targetSizeOptions.value;
+        const encoded = await encodeForExport(
+          prepared,
+          outputFormat.value,
+          exportQuality.value / 100,
+          target
+        );
+        result = {
+          bytes: encoded.blob.size,
+          quality: Math.round(encoded.quality * 100),
+          width: encoded.width,
+          height: encoded.height,
+          reached: encoded.reached,
+          scaled: encoded.scale < 1,
+        };
+      }
+      if (request === estimateRequest) sizeEstimate.value = result;
+    } catch (error) {
+      logger.warn('Größenschätzung fehlgeschlagen:', error);
+      if (request === estimateRequest) sizeEstimate.value = null;
+    } finally {
+      if (request === estimateRequest) isEstimating.value = false;
+    }
+  }
+
+  /** Schätzung nach kurzer Pause neu berechnen (z. B. nach jedem Neuzeichnen) */
+  function scheduleEstimate(delay = 600) {
+    if (estimateTimer) clearTimeout(estimateTimer);
+    if (isExporting.value) return;
+    estimateTimer = setTimeout(runEstimate, delay);
+  }
+
+  watch([outputFormat, exportQuality, targetSizeEnabled, targetSizeKb, targetSizeDownscale], () =>
+    scheduleEstimate(300)
+  );
+
+  onBeforeUnmount(() => {
+    if (estimateTimer) clearTimeout(estimateTimer);
+    estimateRequest++;
+  });
 
   // ===== FORWARD/HANDOFF STATE (nach Download zu anderem Tool weiterleiten) =====
   const showForwardOffer = ref(false);
@@ -61,6 +158,7 @@ export function useEditorExport({
       const result = await exportImage(canvas.value, outputFormat.value, filename, {
         quality: exportQuality.value / 100,
         texts: imageStore.texts || [],
+        targetSize: targetSizeOptions.value,
       });
 
       logger.log('✅ Export erfolgreich:', result);
@@ -84,6 +182,11 @@ export function useEditorExport({
           `Bild erfolgreich als ${result.format.toUpperCase()} exportiert` +
             (result.size ? ` (${result.size})` : '')
         );
+        if (result.targetReached === false) {
+          window.$toast.warning(
+            t('toast.editor.targetSizeMissed', { size: result.size, max: targetSizeKb.value })
+          );
+        }
       }
     } catch (error) {
       logger.error('❌ Export fehlgeschlagen:', error);
@@ -153,6 +256,13 @@ export function useEditorExport({
     exportTransparent,
     showExportDialog,
     exportDialogFilename,
+    targetSizeEnabled,
+    targetSizeKb,
+    targetSizeDownscale,
+    targetSizeAvailable,
+    sizeEstimate,
+    isEstimating,
+    scheduleEstimate,
     showForwardOffer,
     downloadImage,
     confirmExport,
