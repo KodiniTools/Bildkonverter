@@ -376,6 +376,20 @@ export default {
       presets: 'Presets',
       selectPreset: 'Select preset...',
       noPreset: 'No preset – original size',
+      mode: 'Mode',
+      modes: {
+        exact: 'Exact',
+        percent: 'Percent',
+        longEdge: 'Long edge',
+        fit: 'Fit',
+      },
+      percent: 'Scale (%)',
+      longEdge: 'Longer side (px)',
+      maxWidth: 'Max. width (px)',
+      maxHeight: 'Max. height (px)',
+      noUpscale: "Don't enlarge",
+      result: '{from} → {to} px',
+      resultUnchanged: 'Stays unchanged ({size} px)',
     },
     canvas: {
       empty: {

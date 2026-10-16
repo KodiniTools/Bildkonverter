@@ -194,3 +194,66 @@ describe('useEditorResize – Anwenden', () => {
     expect(resizeManager.resizeHeight.value).toBe(200);
   });
 });
+
+describe('useEditorResize – Resize-Modi', () => {
+  it('Prozent berechnet die Felder, zeigt sie live und springt nach dem Anwenden auf 100 %', async () => {
+    const { canvasEl, resizeManager, resize, saveHistory } = setup();
+    resize.resizeSpec.value = { ...resize.resizeSpec.value, mode: 'percent', percent: 50 };
+    await nextTick();
+    expect([resizeManager.resizeWidth.value, resizeManager.resizeHeight.value]).toEqual([400, 200]);
+    await wait(150);
+    expect([canvasEl.width, canvasEl.height]).toEqual([400, 200]);
+
+    resize.applyResize();
+    await nextTick();
+    expect(saveHistory).toHaveBeenCalledTimes(1);
+    expect(resize.resizeSpec.value.percent).toBe(100);
+    // Felder entsprechen der neuen Größe → kein zweites Skalieren
+    expect([resizeManager.resizeWidth.value, resizeManager.resizeHeight.value]).toEqual([400, 200]);
+  });
+
+  it('lange Kante und einpassen respektieren "nicht vergrößern"', async () => {
+    const { resizeManager, resize } = setup();
+    resize.resizeSpec.value = { ...resize.resizeSpec.value, mode: 'longEdge', longEdge: 1600 };
+    await nextTick();
+    expect([resizeManager.resizeWidth.value, resizeManager.resizeHeight.value]).toEqual([800, 400]);
+
+    resize.resizeSpec.value = { ...resize.resizeSpec.value, noUpscale: false };
+    await nextTick();
+    expect([resizeManager.resizeWidth.value, resizeManager.resizeHeight.value]).toEqual([
+      1600, 800,
+    ]);
+
+    resize.resizeSpec.value = {
+      ...resize.resizeSpec.value,
+      mode: 'fit',
+      fitWidth: 300,
+      fitHeight: 300,
+    };
+    await nextTick();
+    expect([resizeManager.resizeWidth.value, resizeManager.resizeHeight.value]).toEqual([300, 150]);
+  });
+
+  it('ein Größen-Preset wechselt zurück in den Modus "Exakt"', async () => {
+    const { canvasEl, resize } = setup();
+    resize.resizeSpec.value = { ...resize.resizeSpec.value, mode: 'percent', percent: 25 };
+    await nextTick();
+    resize.applySocialPreset('instagram');
+    await nextTick();
+    expect(resize.resizeSpec.value.mode).toBe('exact');
+    expect([canvasEl.width, canvasEl.height]).toEqual([1080, 1080]);
+  });
+
+  it('Undo/Zuschnitt (initFromDimensions) lösen im relativen Modus keine Vorschau aus', async () => {
+    const { canvasEl, resizeManager, resize, renderImage } = setup();
+    resize.resizeSpec.value = { ...resize.resizeSpec.value, mode: 'longEdge', longEdge: 400 };
+    await nextTick();
+    canvasEl.width = 1000;
+    canvasEl.height = 500;
+    resizeManager.initFromDimensions(1000, 500);
+    await nextTick();
+    await wait(150);
+    expect([canvasEl.width, canvasEl.height]).toEqual([1000, 500]);
+    expect(renderImage).not.toHaveBeenCalled();
+  });
+});
