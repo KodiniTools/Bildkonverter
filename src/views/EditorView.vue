@@ -163,6 +163,9 @@
             :target-size-downscale="targetSizeDownscale"
             :size-estimate="currentImage ? sizeEstimate : null"
             :is-estimating="Boolean(currentImage) && isEstimating"
+            :exif-available="exifAvailable"
+            :keep-exif="keepExif"
+            @update:keep-exif="keepExif = $event"
             @update:target-size-enabled="targetSizeEnabled = $event"
             @update:target-size-kb="targetSizeKb = $event"
             @update:target-size-downscale="targetSizeDownscale = $event"
@@ -571,6 +574,7 @@ const originalImageDataUrl = ref(''); // Speichert das Original als Data URL
 const outputFormat = ref('png');
 const currentImageFormat = ref(''); // Format des hochgeladenen Bildes
 const currentFileName = ref(''); // Dateiname ohne Endung (für Export und Ebenen)
+const sourceFile = ref(null); // Originaldatei (EXIF beim Export übernehmen)
 
 // ===== TEXT INTERACTION STATE =====
 const selectedTextId = ref(null);
@@ -743,6 +747,8 @@ const {
   sizeEstimate,
   isEstimating,
   scheduleEstimate,
+  keepExif,
+  exifAvailable,
   showForwardOffer,
   downloadImage,
   confirmExport,
@@ -753,6 +759,7 @@ const {
   canvas,
   outputFormat,
   currentFileName,
+  sourceFile,
   imageStore,
   renderImage,
   renderImageForExport,
@@ -792,6 +799,7 @@ const {
   isDraggingFile,
   imageStore,
   currentFileName,
+  sourceFile,
   onImageReady: (img) => loadImage(img, { replace: true }),
 });
 
@@ -1037,6 +1045,7 @@ async function clearImage() {
   currentImage.value = null;
   originalImage.value = null;
   originalImageDataUrl.value = ''; // Original-Bild Data URL zurücksetzen
+  sourceFile.value = null;
   currentImageFormat.value = ''; // Format zurücksetzen
 
   // Image-Info zurücksetzen

@@ -235,3 +235,31 @@ describe('ExportPanel – Ziel-Dateigröße', () => {
     expect(wrapper.find('[data-testid="size-estimate"]').text()).toContain('ca. 2 KB');
   });
 });
+
+describe('ExportPanel – EXIF', () => {
+  const i18n = createI18n({ legacy: false, locale: 'de', messages: { de } });
+  const mountExport = (props) =>
+    mount(ExportPanel, {
+      props: {
+        formats: ['png', 'jpeg', 'webp'],
+        formatInfo: FORMAT_INFO,
+        currentFormatInfo: FORMAT_INFO.jpeg,
+        outputFormat: 'jpeg',
+        ...props,
+      },
+      global: { plugins: [i18n] },
+    });
+
+  it('zeigt die Option nur mit Originaldatei, standardmäßig aus', () => {
+    expect(mountExport({}).find('[data-testid="keep-exif"]').exists()).toBe(false);
+    const box = mountExport({ exifAvailable: true }).find('[data-testid="keep-exif"]');
+    expect(box.exists()).toBe(true);
+    expect(box.element.checked).toBe(false);
+  });
+
+  it('meldet das Umschalten als update:keepExif', async () => {
+    const wrapper = mountExport({ exifAvailable: true });
+    await wrapper.find('[data-testid="keep-exif"]').setValue(true);
+    expect(wrapper.emitted('update:keepExif')).toEqual([[true]]);
+  });
+});

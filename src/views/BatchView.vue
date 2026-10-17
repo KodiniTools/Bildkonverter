@@ -110,6 +110,14 @@
             :placeholder="$t('batch.settings.prefixPlaceholder')"
           />
         </div>
+
+        <div v-if="supportsExif(settings.format)" class="setting-group">
+          <label class="checkbox-label">
+            <input v-model="settings.keepExif" type="checkbox" data-testid="batch-keep-exif" />
+            {{ $t('batch.settings.keepExif') }}
+          </label>
+          <p class="setting-hint">{{ $t('batch.settings.keepExifHint') }}</p>
+        </div>
       </div>
 
       <div class="action-buttons">
@@ -297,6 +305,7 @@ import { useI18n } from 'vue-i18n';
 import { useConfirm } from '@/composables/useConfirm';
 import { useBatchConversion } from '@/composables/useBatchConversion';
 import { formatSize } from '@/utils/fileUtils';
+import { supportsExif } from '@/utils/exif';
 import AppIcon from '@/components/ui/AppIcon.vue';
 import SliderField from '@/components/ui/SliderField.vue';
 
@@ -316,6 +325,7 @@ const settings = ref({
   maintainAspect: true,
   prefix: '',
   pdfMode: 'single', // 'single' = jedes Bild als eigenes PDF, 'merged' = alle in einem PDF
+  keepExif: false, // EXIF der Originale übernehmen (Standard: entfernen)
 });
 
 const {
@@ -562,6 +572,12 @@ function closePreview() {
   input[type='radio'] {
     width: auto;
   }
+}
+
+.setting-hint {
+  margin: 0;
+  font-size: var(--ds-text-xs);
+  color: var(--ds-text-3);
 }
 
 .pdf-mode-options {

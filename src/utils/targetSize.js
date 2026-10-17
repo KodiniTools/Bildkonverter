@@ -8,6 +8,7 @@
  * Vorschau dem späteren Ergebnis entspricht.
  */
 import { canvasToBlob } from './conversionUtils';
+import { exifOverhead, withExif } from './exif';
 
 export const MIN_QUALITY = 0.05;
 export const TARGET_KB_MIN = 10;
@@ -173,19 +174,44 @@ export async function encodeToTargetSize(
  * @param {number} quality 0-1
  * @param {TargetSizeOptions|null} [target]
  * @param {Function} [encode]
+ * @param {Uint8Array|null} [exif] normalisierter EXIF-Block (exif.js); wird
+ *   eingefügt, die Zielgröße hält dafür Platz frei
  * @returns {Promise<TargetSizeResult>}
  */
-export async function encodeForExport(canvas, format, quality, target, encode = canvasToBlob) {
+export async function encodeForExport(
+  canvas,
+  format,
+  quality,
+  target,
+  encode = canvasToBlob,
+  exif = null
+) {
   const mimeType = targetMimeType(format);
   if (!mimeType) throw new Error(`Zielgröße für Format ${format} nicht unterstützt`);
-  if (target) return encodeToTargetSize(canvas, mimeType, quality, target, encode);
-  const blob = await encode(canvas, mimeType, quality);
-  return {
-    blob,
-    quality,
-    scale: 1,
-    width: canvas.width,
-    height: canvas.height,
-    reached: true,
-  };
+  let result;
+  if (target) {
+    const reserve = exif ? exifOverhead(exif) : 0;
+    result = await encodeToTargetSize(
+      canvas,
+      mimeType,
+      quality,
+      { ...target, maxBytes: Math.max(1, target.maxBytes - reserve) },
+      encode
+    );
+  } else {
+    const blob = await encode(canvas, mimeType, quality);
+    result = {
+      blob,
+      quality,
+      scale: 1,
+      width: canvas.width,
+      height: canvas.height,
+      reached: true,
+    };
+  }
+  if (exif) {
+    result.blob = await withExif(result.blob, exif);
+    result.reached = !target || result.blob.size <= target.maxBytes;
+  }
+  return result;
 }

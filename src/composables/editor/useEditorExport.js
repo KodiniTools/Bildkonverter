@@ -9,6 +9,7 @@
  * @param {import('vue').Ref} deps.canvas
  * @param {import('vue').Ref} deps.outputFormat
  * @param {import('vue').Ref} deps.currentFileName
+ * @param {import('vue').Ref<Blob|null>} [deps.sourceFile] Originaldatei (für EXIF)
  * @param {object}   deps.imageStore
  * @param {Function} deps.renderImage
  * @param {Function} deps.renderImageForExport
@@ -25,6 +26,7 @@ import {
   supportsTargetSize,
   withWhiteBackground,
 } from '@/utils/targetSize';
+import { readSourceExif, supportsExif, withExif } from '@/utils/exif';
 import { prepareHandoff } from '@/lib/core/handoff';
 import { printImage } from '@/utils/printUtils';
 import { logger } from '@/utils/logger';
@@ -33,6 +35,7 @@ export function useEditorExport({
   canvas,
   outputFormat,
   currentFileName,
+  sourceFile = ref(null),
   imageStore,
   renderImage,
   renderImageForExport,
@@ -52,6 +55,18 @@ export function useEditorExport({
   const targetSizeDownscale = ref(false);
 
   const targetSizeAvailable = computed(() => supportsTargetSize(outputFormat.value));
+
+  // ===== EXIF (Standard: entfernen) =====
+  // Canvas-Exporte enthalten nie EXIF. Auf Wunsch werden die Metadaten der
+  // Originaldatei in PNG/JPEG/WebP übernommen (Orientation = 1, ohne Vorschaubild).
+  const keepExif = ref(false);
+  const exifAvailable = computed(() => supportsExif(outputFormat.value) && !!sourceFile.value);
+
+  /** Normalisierter EXIF-Block für den Export; null = entfernen/keiner vorhanden */
+  async function exportExif() {
+    if (!keepExif.value || !exifAvailable.value) return null;
+    return readSourceExif(sourceFile.value);
+  }
 
   /** Zielgröße für den Export; null = aus, nicht unterstützt oder ungültig */
   const targetSizeOptions = computed(() => {
@@ -87,8 +102,9 @@ export function useEditorExport({
     isEstimating.value = true;
     try {
       let result;
+      const exif = await exportExif();
       if (outputFormat.value === 'png') {
-        const blob = await canvasToBlob(source, 'image/png');
+        const blob = await withExif(await canvasToBlob(source, 'image/png'), exif);
         result = { bytes: blob.size, width: source.width, height: source.height, reached: true };
       } else {
         const prepared = outputFormat.value === 'webp' ? source : withWhiteBackground(source);
@@ -97,7 +113,9 @@ export function useEditorExport({
           prepared,
           outputFormat.value,
           exportQuality.value / 100,
-          target
+          target,
+          undefined,
+          exif
         );
         result = {
           bytes: encoded.blob.size,
@@ -124,8 +142,17 @@ export function useEditorExport({
     estimateTimer = setTimeout(runEstimate, delay);
   }
 
-  watch([outputFormat, exportQuality, targetSizeEnabled, targetSizeKb, targetSizeDownscale], () =>
-    scheduleEstimate(300)
+  watch(
+    [
+      outputFormat,
+      exportQuality,
+      targetSizeEnabled,
+      targetSizeKb,
+      targetSizeDownscale,
+      keepExif,
+      sourceFile,
+    ],
+    () => scheduleEstimate(300)
   );
 
   onBeforeUnmount(() => {
@@ -152,6 +179,9 @@ export function useEditorExport({
     isExporting.value = true;
 
     try {
+      // Vor dem Export-Render lesen: Zwischen Render und Kodierung darf kein
+      // await liegen, sonst könnte ein Vorschau-Neuzeichnen dazwischenkommen
+      const exif = await exportExif();
       const useTransparent = outputFormat.value === 'png' && exportTransparent.value;
       renderImageForExport(useTransparent);
 
@@ -159,6 +189,7 @@ export function useEditorExport({
         quality: exportQuality.value / 100,
         texts: imageStore.texts || [],
         targetSize: targetSizeOptions.value,
+        exif,
       });
 
       logger.log('✅ Export erfolgreich:', result);
@@ -263,6 +294,8 @@ export function useEditorExport({
     sizeEstimate,
     isEstimating,
     scheduleEstimate,
+    keepExif,
+    exifAvailable,
     showForwardOffer,
     downloadImage,
     confirmExport,

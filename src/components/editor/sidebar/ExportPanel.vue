@@ -85,6 +85,19 @@
       <span class="size-estimate__value">{{ estimateText }}</span>
     </p>
 
+    <div v-if="exifAvailable" class="filter-control checkbox-control exif-option">
+      <label class="checkbox-label">
+        <input
+          :checked="keepExif"
+          type="checkbox"
+          data-testid="keep-exif"
+          @change="$emit('update:keepExif', $event.target.checked)"
+        />
+        <span>{{ $t('editor.export.exif.keep') }}</span>
+      </label>
+      <p class="target-size__hint">{{ $t('editor.export.exif.hint') }}</p>
+    </div>
+
     <div v-if="outputFormat === 'png'" class="filter-control checkbox-control">
       <label class="checkbox-label">
         <input
@@ -125,6 +138,9 @@ const props = defineProps({
   // Ergebnis der Größenschätzung (useEditorExport), null = keine
   sizeEstimate: { type: Object, default: null },
   isEstimating: { type: Boolean, default: false },
+  // EXIF der Originaldatei übernehmen (nur PNG/JPEG/WebP mit Originaldatei)
+  exifAvailable: { type: Boolean, default: false },
+  keepExif: { type: Boolean, default: false },
 });
 
 const emit = defineEmits([
@@ -134,6 +150,7 @@ const emit = defineEmits([
   'update:targetSizeEnabled',
   'update:targetSizeKb',
   'update:targetSizeDownscale',
+  'update:keepExif',
 ]);
 
 /** Beim Verlassen des Felds auf den erlaubten Bereich begrenzen */

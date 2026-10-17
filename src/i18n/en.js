@@ -426,6 +426,10 @@ export default {
         downscale: 'Downscale if needed',
         hint: 'Quality is only lowered as far as needed.',
       },
+      exif: {
+        keep: 'Keep EXIF metadata (camera, date taken, GPS)',
+        hint: 'Default: metadata is removed. Copies it from the original file into PNG, JPG and WebP; orientation is reset. Note: a GPS location is kept.',
+      },
     },
     formats: {
       png: {
@@ -1202,6 +1206,9 @@ export default {
       maintainAspect: 'Maintain aspect ratio',
       prefix: 'Filename Prefix',
       prefixPlaceholder: 'e.g. converted_',
+      keepExif: 'Keep EXIF metadata (camera, date taken, GPS)',
+      keepExifHint:
+        'Default: metadata is removed. Applies to PNG, JPG and WebP; orientation is reset. Note: a GPS location is kept.',
       pdfMode: 'PDF Mode',
       pdfModeSingle: 'Each image as individual PDF',
       pdfModeMerged: 'All images into one PDF',
