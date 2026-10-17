@@ -18,8 +18,9 @@
           :src="heroImage"
           :alt="$t('home.heroAlt')"
           class="hero-img floating"
-          width="500"
-          height="333"
+          width="800"
+          height="800"
+          fetchpriority="high"
         />
       </div>
     </section>
@@ -114,9 +115,11 @@
 </template>
 
 <script setup>
-import heroImage from '@/assets/foto/foto1.jpg';
 import AppIcon from '@/components/ui/AppIcon.vue';
 import { formatConversions } from '@/router/index.js';
+
+// Hero-Bild liegt in public/ und wird daher über BASE_URL (/bildkonverter/) adressiert
+const heroImage = `${import.meta.env.BASE_URL}landingpage-bildkonverter-bild.webp`;
 
 // Feature-Karten (Texte unter home.features.<key>)
 const features = [
