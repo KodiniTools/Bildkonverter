@@ -10,6 +10,16 @@ import { useTransform } from '@/composables/useTransform';
 import { DEFAULT_FILTERS, DEFAULT_BACKGROUND } from '@/composables/useFilterManagement';
 import { makeImage, pixelAt, diffPixels, snapshot } from './helpers';
 import { themeColorsV2 } from '@/design-system/tokens-v2';
+import { onAdjustmentReady } from '@/utils/imageAdjustments';
+
+// Die Vorschau rechnet Tonwerte im Worker: auf das Ergebnis warten
+const nextAdjustment = () =>
+  new Promise((resolve) => {
+    const off = onAdjustmentReady(() => {
+      off();
+      resolve();
+    });
+  });
 
 let imgA, imgB;
 beforeAll(async () => {
@@ -56,12 +66,15 @@ function setup(state = {}) {
 }
 
 describe('useCanvasRenderer – Einzelbild', () => {
-  it('Vorschau und Export sind ohne Auswahl pixelidentisch', () => {
+  it('Vorschau und Export sind ohne Auswahl pixelidentisch', async () => {
     const { canvasEl, renderer } = setup({
       texts: [TEXT],
       transforms: { rotation: 15, borderRadius: 20, borderWidth: 4, shadowEnabled: true, skewX: 5 },
       filters: { sepia: 30, brightness: 110, vignette: 40 },
     });
+    const ready = nextAdjustment();
+    renderer.renderImage();
+    await ready;
     renderer.renderImage();
     const preview = snapshot(canvasEl);
     renderer.renderImageForExport();

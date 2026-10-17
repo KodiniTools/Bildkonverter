@@ -552,6 +552,7 @@ import { useEditorDetach } from '@/composables/editor/useEditorDetach';
 import { useEditorExport } from '@/composables/editor/useEditorExport';
 import { useEditorPreview } from '@/composables/editor/useEditorPreview';
 import { logger } from '@/utils/logger';
+import { onAdjustmentReady } from '@/utils/imageAdjustments';
 import { scaleTextsToCanvas } from '@/utils/textLayout';
 
 const { t } = useI18n({ useScope: 'global' });
@@ -672,6 +673,9 @@ function renderImage() {
   updateImageDimensions();
   scheduleExportEstimate();
 }
+
+// Fertige Worker-Tonwerte nachzeichnen (Vorschau rendert vorher mit Platzhalter)
+const offAdjustmentReady = onAdjustmentReady(() => renderImage());
 
 // Die einzige Undo/Redo-Historie (Bild, Filter, Transform, Texte, Crop, Ebenen);
 // wird im imageStore registriert, damit Ebenen-Panel und Text-Dialog sie nutzen
@@ -1387,6 +1391,7 @@ watch(
 );
 
 onUnmounted(() => {
+  offAdjustmentReady();
   window.removeEventListener('keydown', handleKeydown);
   window.removeEventListener('keyup', handleKeyup);
   window.removeEventListener('paste', handlePaste);

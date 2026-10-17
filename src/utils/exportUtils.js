@@ -146,14 +146,15 @@ export class ExportManager {
    * PNG Export
    */
   async exportPNG(canvas, filename) {
-    const dataURL = canvas.toDataURL('image/png');
-    this.downloadDataURL(dataURL, `${filename}.png`);
+    // Kodierung im Web Worker (Fallback: canvas.toBlob im Hauptthread)
+    const blob = await this.canvasToBlob(canvas, 'image/png');
+    this.downloadBlob(blob, `${filename}.png`);
 
     return {
       success: true,
       format: 'png',
       filename: `${filename}.png`,
-      size: this.getDataURLSize(dataURL),
+      size: this.formatBytes(blob.size),
     };
   }
 
@@ -166,15 +167,15 @@ export class ExportManager {
     if (options.targetSize) {
       return this.exportWithTargetSize(processedCanvas, 'jpeg', 'jpg', filename, quality, options);
     }
-    const dataURL = processedCanvas.toDataURL('image/jpeg', quality);
-    this.downloadDataURL(dataURL, `${filename}.jpg`);
+    const blob = await this.canvasToBlob(processedCanvas, 'image/jpeg', quality);
+    this.downloadBlob(blob, `${filename}.jpg`);
 
     return {
       success: true,
       format: 'jpeg',
       filename: `${filename}.jpg`,
       quality: Math.round(quality * 100),
-      size: this.getDataURLSize(dataURL),
+      size: this.formatBytes(blob.size),
     };
   }
 
@@ -190,15 +191,15 @@ export class ExportManager {
     if (options.targetSize) {
       return this.exportWithTargetSize(canvas, 'webp', 'webp', filename, quality, options);
     }
-    const dataURL = canvas.toDataURL('image/webp', quality);
-    this.downloadDataURL(dataURL, `${filename}.webp`);
+    const blob = await this.canvasToBlob(canvas, 'image/webp', quality);
+    this.downloadBlob(blob, `${filename}.webp`);
 
     return {
       success: true,
       format: 'webp',
       filename: `${filename}.webp`,
       quality: Math.round(quality * 100),
-      size: this.getDataURLSize(dataURL),
+      size: this.formatBytes(blob.size),
     };
   }
 
