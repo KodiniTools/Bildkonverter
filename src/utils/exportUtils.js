@@ -21,6 +21,7 @@ import {
 } from './conversionUtils';
 import { logger } from '@/utils/logger';
 import { encodeForExport } from './targetSize';
+import { withExif } from './exif';
 
 export { FORMAT_INFO, SUPPORTED_FORMATS, CLIENT_FORMATS, BACKEND_FORMATS };
 
@@ -61,7 +62,8 @@ export class ExportManager {
    * @param {HTMLCanvasElement} canvas - Das Canvas-Element
    * @param {string} format - Exportformat
    * @param {string} filename - Dateiname (ohne Extension)
-   * @param {Object} options - Export-Optionen
+   * @param {Object} options - Export-Optionen; `exif` (Uint8Array, exif.js)
+   *   übernimmt Metadaten in PNG/JPEG/WebP, ohne bleibt die Datei EXIF-frei
    * @returns {Promise<Object>} - Export-Ergebnis
    */
   async exportImage(canvas, format, filename = 'image', options = {}) {
@@ -145,9 +147,9 @@ export class ExportManager {
   /**
    * PNG Export
    */
-  async exportPNG(canvas, filename) {
+  async exportPNG(canvas, filename, options = {}) {
     // Kodierung im Web Worker (Fallback: canvas.toBlob im Hauptthread)
-    const blob = await this.canvasToBlob(canvas, 'image/png');
+    const blob = await withExif(await this.canvasToBlob(canvas, 'image/png'), options.exif);
     this.downloadBlob(blob, `${filename}.png`);
 
     return {
@@ -167,7 +169,10 @@ export class ExportManager {
     if (options.targetSize) {
       return this.exportWithTargetSize(processedCanvas, 'jpeg', 'jpg', filename, quality, options);
     }
-    const blob = await this.canvasToBlob(processedCanvas, 'image/jpeg', quality);
+    const blob = await withExif(
+      await this.canvasToBlob(processedCanvas, 'image/jpeg', quality),
+      options.exif
+    );
     this.downloadBlob(blob, `${filename}.jpg`);
 
     return {
@@ -191,7 +196,10 @@ export class ExportManager {
     if (options.targetSize) {
       return this.exportWithTargetSize(canvas, 'webp', 'webp', filename, quality, options);
     }
-    const blob = await this.canvasToBlob(canvas, 'image/webp', quality);
+    const blob = await withExif(
+      await this.canvasToBlob(canvas, 'image/webp', quality),
+      options.exif
+    );
     this.downloadBlob(blob, `${filename}.webp`);
 
     return {
@@ -209,7 +217,14 @@ export class ExportManager {
    * groß ist. Die gewählte Qualität wird dabei nie überschritten.
    */
   async exportWithTargetSize(canvas, format, ext, filename, quality, options) {
-    const result = await encodeForExport(canvas, format, quality, options.targetSize);
+    const result = await encodeForExport(
+      canvas,
+      format,
+      quality,
+      options.targetSize,
+      undefined,
+      options.exif
+    );
     this.downloadBlob(result.blob, `${filename}.${ext}`);
 
     return {

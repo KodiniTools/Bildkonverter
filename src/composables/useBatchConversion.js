@@ -8,7 +8,7 @@
  * Drag-and-Drop und Vorschau-Modal.
  *
  * @param {object} deps
- * @param {import('vue').Ref<object>} deps.settings  format, quality, width, height, maintainAspect, prefix, pdfMode
+ * @param {import('vue').Ref<object>} deps.settings  format, quality, width, height, maintainAspect, prefix, pdfMode, keepExif
  * @param {Function} deps.t                            i18n-Übersetzungsfunktion
  * @param {Function} deps.confirm                      Bestätigungsdialog (useConfirm)
  */
@@ -28,6 +28,7 @@ import {
   convertCanvasesToMergedPdf,
   convertCanvasToFormat,
 } from '@/utils/conversionUtils';
+import { readSourceExif, supportsExif, withExif } from '@/utils/exif';
 
 export function useBatchConversion({ settings, t, confirm }) {
   const files = ref([]);
@@ -140,12 +141,17 @@ export function useBatchConversion({ settings, t, confirm }) {
     const format = settings.value.format;
     const canvas = await prepareCanvas(file);
 
-    const blob = await convertCanvasToFormat(canvas, format, file.name, {
+    let blob = await convertCanvasToFormat(canvas, format, file.name, {
       quality: settings.value.quality / 100,
       onProgress: (p) => {
         file.progress = p;
       },
     });
+    // Canvas-Ergebnisse sind EXIF-frei; auf Wunsch die Metadaten des Originals
+    // übernehmen (gilt auch für den ZIP-Download, der diese Blobs bündelt)
+    if (settings.value.keepExif && supportsExif(format)) {
+      blob = await withExif(blob, await readSourceExif(file.file));
+    }
     file.progress = 90;
 
     file.processedBlob = blob;

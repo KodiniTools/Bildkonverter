@@ -9,6 +9,7 @@ export function useImageLoader({
   isDraggingFile,
   imageStore,
   currentFileName,
+  sourceFile,
   onImageReady,
 }) {
   async function loadFileIntoEditor(file) {
@@ -28,6 +29,7 @@ export function useImageLoader({
 
     originalImageDataUrl.value = imageUrl;
     originalImage.value = img;
+    if (sourceFile) sourceFile.value = file;
     await onImageReady(img);
 
     try {
@@ -99,6 +101,7 @@ export function useImageLoader({
         img.onload = async () => {
           originalImageDataUrl.value = galleryImage.url;
           originalImage.value = img;
+          if (sourceFile) sourceFile.value = galleryImage.file || null;
           const formatMatch = galleryImage.name.match(/\.(\w+)$/);
           if (formatMatch) {
             const ext = formatMatch[1].toLowerCase();
