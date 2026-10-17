@@ -143,8 +143,11 @@ describe('ExportManager mit Zielgröße', () => {
     const blobDownload = vi.spyOn(manager, 'downloadBlob').mockImplementation(() => {});
     const urlDownload = vi.spyOn(manager, 'downloadDataURL').mockImplementation(() => {});
     const result = await manager.exportImage(gradient, 'webp', 'bild', { quality: 0.8 });
-    expect(urlDownload).toHaveBeenCalledTimes(1);
-    expect(blobDownload).not.toHaveBeenCalled();
+    // Kodierung läuft jetzt über canvasToBlob (Worker zuerst) statt toDataURL
+    expect(urlDownload).not.toHaveBeenCalled();
+    expect(blobDownload).toHaveBeenCalledTimes(1);
+    expect(blobDownload.mock.calls[0][0].type).toBe('image/webp');
+    expect(blobDownload.mock.calls[0][1]).toBe('bild.webp');
     expect(result.targetReached).toBeUndefined();
   });
 });

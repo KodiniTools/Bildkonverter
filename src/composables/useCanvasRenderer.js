@@ -433,10 +433,13 @@ export function useCanvasRenderer({
     // Echte Tonwert-Anpassungen (Belichtung, Helligkeit, Kontrast, Lichter,
     // Schatten, Sättigung) werden pixelbasiert in die Zeichenquelle gebacken.
     // Die verbleibenden Effekt-Filter (Blur, Farbton, Sepia, Graustufen,
-    // Invertieren) bleiben CSS-Filter.
+    // Invertieren) bleiben CSS-Filter. In der Vorschau rechnet der Web Worker
+    // (bis er fertig ist, zeigt der Canvas das letzte Ergebnis); Export,
+    // Druck und Vorschau-Modal rechnen synchron, damit nichts veraltet ist.
     const { el: adjustedSource, cssFilter: filterString } = getAdjustedImage(
       currentImage.value,
-      filters.value
+      filters.value,
+      { async: showSelection }
     );
     ctx.filter = filterString;
 

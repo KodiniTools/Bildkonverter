@@ -9,6 +9,7 @@
 import { ApiClient } from '@/api/api';
 import { FORMAT_INFO } from '@/utils/formatInfo';
 import { logger } from '@/utils/logger';
+import { encodeInWorker } from '@/lib/imageWorker';
 
 /** Formate ohne Transparenz, die einen weißen Hintergrund brauchen */
 export const OPAQUE_FORMATS = ['jpg', 'bmp', 'pdf'];
@@ -20,8 +21,25 @@ const MIME_TYPES = {
   bmp: 'image/bmp',
 };
 
-/** Konvertiert einen Canvas in einen Blob */
-export function canvasToBlob(canvas, mimeType = 'image/png', quality) {
+/** Formate, die der Bild-Worker zuverlässig kodiert */
+const WORKER_ENCODE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
+
+/**
+ * Konvertiert einen Canvas in einen Blob. Kodiert bevorzugt im Web Worker
+ * (blockiert die Oberfläche nicht) und fällt sonst auf canvas.toBlob zurück.
+ * Der Worker erfasst den Inhalt beim Aufruf; der seltene Rückfall kodiert den
+ * Canvas danach erneut, Aufrufer übergeben daher einen stabilen Canvas.
+ */
+export async function canvasToBlob(canvas, mimeType = 'image/png', quality) {
+  if (WORKER_ENCODE_TYPES.includes(mimeType)) {
+    const blob = await encodeInWorker(canvas, mimeType, quality);
+    if (blob && blob.type === mimeType) return blob;
+  }
+  return canvasToBlobOnMainThread(canvas, mimeType, quality);
+}
+
+/** canvas.toBlob als Promise (Hauptthread) */
+export function canvasToBlobOnMainThread(canvas, mimeType = 'image/png', quality) {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
