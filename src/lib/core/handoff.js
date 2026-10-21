@@ -129,6 +129,25 @@ export function prepareHandoff(canvases, target, source = 'unknown') {
   }
 }
 
+const DATA_URL_PATTERN = /^data:image\/(jpeg|png|webp|gif);base64,/;
+
+/**
+ * Filtert die Bilder eines Payloads auf gültige Einträge mit Bild-Data-URL.
+ * @param {unknown} payload
+ * @returns {HandoffImage[]}
+ */
+function validImages(payload) {
+  const images = payload && Array.isArray(payload.images) ? payload.images : [];
+  return images.filter(
+    (img) =>
+      !!img &&
+      typeof img === 'object' &&
+      typeof img.name === 'string' &&
+      typeof img.dataUrl === 'string' &&
+      DATA_URL_PATTERN.test(img.dataUrl)
+  );
+}
+
 /**
  * RECEIVER: Check if a handoff is waiting in localStorage.
  * Checks localStorage directly — no URL query param required.
@@ -144,18 +163,19 @@ export function checkHandoff() {
     const payload = JSON.parse(raw);
 
     // Check expiry
-    if (Date.now() - payload.timestamp > EXPIRY_MS) {
+    if (typeof payload.timestamp !== 'number' || Date.now() - payload.timestamp > EXPIRY_MS) {
       localStorage.removeItem(STORAGE_KEY);
       return null;
     }
 
-    // Validate structure
-    if (!payload.images || !Array.isArray(payload.images) || payload.images.length === 0) {
+    // Nur gültige Bild-Data-URLs annehmen; der Speicher ist für alle Tools der Domain beschreibbar
+    const images = validImages(payload);
+    if (images.length === 0) {
       localStorage.removeItem(STORAGE_KEY);
       return null;
     }
 
-    return payload;
+    return { ...payload, images };
   } catch {
     localStorage.removeItem(STORAGE_KEY);
     return null;
@@ -175,7 +195,9 @@ export function consumeHandoff() {
     localStorage.removeItem(STORAGE_KEY);
     cleanHandoffUrl();
 
-    return payload.images;
+    // Kein erneuter Ablauf-Check: der Nutzer hat das Banner bereits gesehen
+    const images = validImages(payload);
+    return images.length ? images : null;
   } catch {
     localStorage.removeItem(STORAGE_KEY);
     return null;

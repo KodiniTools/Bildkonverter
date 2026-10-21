@@ -7,10 +7,8 @@
         </div>
 
         <div class="handoff-text">
-          <strong>{{ $t('handoff.title', { count: handoffPayload.images.length }) }}</strong>
-          <span class="handoff-source">{{
-            $t('handoff.from', { tool: handoffPayload.source })
-          }}</span>
+          <strong>{{ $t('handoff.title', handoffPayload.images.length) }}</strong>
+          <span class="handoff-source">{{ $t('handoff.from', { tool: sourceLabel }) }}</span>
         </div>
 
         <div class="handoff-preview">
@@ -44,6 +42,19 @@ import AppIcon from '@/components/ui/AppIcon.vue';
 
 const emit = defineEmits(['accept', 'dismiss']);
 const handoffPayload = ref(null);
+
+// Produktnamen der sendenden Tools; unbekannte Kennungen werden roh angezeigt
+const SOURCE_LABELS = {
+  bildergalerie: 'Bildergalerie',
+  collagemaker: 'Collage Maker',
+  'color-extractor': 'Color Extractor',
+  visualizer: 'Visualizer',
+};
+
+const sourceLabel = computed(() => {
+  const source = handoffPayload.value?.source;
+  return (source && SOURCE_LABELS[source]) || source || '';
+});
 
 const previewImages = computed(() => {
   if (!handoffPayload.value) return [];
