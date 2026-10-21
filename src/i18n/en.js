@@ -1239,7 +1239,7 @@ export default {
     backHome: 'Back to Home',
   },
   handoff: {
-    title: '{count} image(s) ready for import',
+    title: '{count} image ready for import | {count} images ready for import',
     from: 'Transferred from {tool}',
     accept: 'Import images',
     dismiss: 'Dismiss',
