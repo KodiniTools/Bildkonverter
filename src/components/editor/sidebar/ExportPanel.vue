@@ -95,7 +95,6 @@
         />
         <span>{{ $t('editor.export.exif.keep') }}</span>
       </label>
-      <p class="target-size__hint">{{ $t('editor.export.exif.hint') }}</p>
     </div>
 
     <div v-if="outputFormat === 'png'" class="filter-control checkbox-control">

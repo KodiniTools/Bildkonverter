@@ -349,9 +349,6 @@ export default {
     detach: {
       on: 'Als freie Ebene aktiv',
       off: 'Bild vom Hintergrund lösen',
-      hint: 'Löst das Bild vom Canvas und macht es zu einer eigenen Ebene.',
-      hintActive: 'Das Bild ist jetzt eine frei verschieb-, skalier- und drehbare Ebene.',
-      hintDisabled: 'Bild laden um es vom Hintergrund zu lösen',
       layerName: 'Bild',
     },
     filters: {
@@ -428,7 +425,6 @@ export default {
       },
       exif: {
         keep: 'EXIF-Metadaten erhalten (Kamera, Aufnahmedatum, GPS)',
-        hint: 'Standard: Metadaten werden entfernt. Übernimmt sie aus der Originaldatei in PNG, JPG und WebP; die Ausrichtung wird zurückgesetzt. Achtung: Eine GPS-Position bleibt enthalten.',
       },
     },
     formats: {
@@ -1211,8 +1207,6 @@ export default {
       prefix: 'Dateiname-Präfix',
       prefixPlaceholder: 'z.B. konvertiert_',
       keepExif: 'EXIF-Metadaten erhalten (Kamera, Aufnahmedatum, GPS)',
-      keepExifHint:
-        'Standard: Metadaten werden entfernt. Gilt für PNG, JPG und WebP; die Ausrichtung wird zurückgesetzt. Achtung: Eine GPS-Position bleibt enthalten.',
       pdfMode: 'PDF-Modus',
       pdfModeSingle: 'Jedes Bild als einzelne PDF',
       pdfModeMerged: 'Alle Bilder in eine gemeinsame PDF',

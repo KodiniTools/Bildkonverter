@@ -11,6 +11,7 @@ import BackgroundPanel from '@/components/editor/sidebar/BackgroundPanel.vue';
 import FilterSlider from '@/components/editor/sidebar/FilterSlider.vue';
 import ResizePanel from '@/components/editor/sidebar/ResizePanel.vue';
 import ExportPanel from '@/components/editor/sidebar/ExportPanel.vue';
+import DetachPanel from '@/components/editor/sidebar/DetachPanel.vue';
 import { FORMAT_INFO } from '@/utils/formatInfo';
 import { createI18n } from 'vue-i18n';
 import de from '@/i18n/de';
@@ -261,5 +262,28 @@ describe('ExportPanel – EXIF', () => {
     const wrapper = mountExport({ exifAvailable: true });
     await wrapper.find('[data-testid="keep-exif"]').setValue(true);
     expect(wrapper.emitted('update:keepExif')).toEqual([[true]]);
+  });
+
+  it('zeigt keinen Erklärtext unter der Checkbox', () => {
+    const option = mountExport({ exifAvailable: true }).find('.exif-option');
+    expect(option.find('p').exists()).toBe(false);
+  });
+});
+
+describe('DetachPanel', () => {
+  it.each([
+    [{ detached: false, disabled: false }],
+    [{ detached: true, disabled: false }],
+    [{ detached: false, disabled: true }],
+  ])('zeigt nur den Schalter, keine Info-Box (%o)', async (props) => {
+    const wrapper = mountPanel(DetachPanel, props);
+    expect(wrapper.find('.hint-text').exists()).toBe(false);
+    expect(wrapper.find('#detach-toggle').exists()).toBe(true);
+  });
+
+  it('meldet das Umschalten als toggle', async () => {
+    const wrapper = mountPanel(DetachPanel, { detached: false, disabled: false });
+    await wrapper.find('#detach-toggle').trigger('click');
+    expect(wrapper.emitted('toggle')).toBeTruthy();
   });
 });
