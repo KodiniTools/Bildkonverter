@@ -116,7 +116,6 @@
             <input v-model="settings.keepExif" type="checkbox" data-testid="batch-keep-exif" />
             {{ $t('batch.settings.keepExif') }}
           </label>
-          <p class="setting-hint">{{ $t('batch.settings.keepExifHint') }}</p>
         </div>
       </div>
 
@@ -572,12 +571,6 @@ function closePreview() {
   input[type='radio'] {
     width: auto;
   }
-}
-
-.setting-hint {
-  margin: 0;
-  font-size: var(--ds-text-xs);
-  color: var(--ds-text-3);
 }
 
 .pdf-mode-options {

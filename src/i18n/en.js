@@ -349,9 +349,6 @@ export default {
     detach: {
       on: 'Active as a free layer',
       off: 'Detach image from background',
-      hint: 'Detaches the image from the canvas and turns it into its own layer.',
-      hintActive: 'The image is now a freely movable, resizable and rotatable layer.',
-      hintDisabled: 'Load an image to detach it from the background',
       layerName: 'Image',
     },
     filters: {
@@ -428,7 +425,6 @@ export default {
       },
       exif: {
         keep: 'Keep EXIF metadata (camera, date taken, GPS)',
-        hint: 'Default: metadata is removed. Copies it from the original file into PNG, JPG and WebP; orientation is reset. Note: a GPS location is kept.',
       },
     },
     formats: {
@@ -1207,8 +1203,6 @@ export default {
       prefix: 'Filename Prefix',
       prefixPlaceholder: 'e.g. converted_',
       keepExif: 'Keep EXIF metadata (camera, date taken, GPS)',
-      keepExifHint:
-        'Default: metadata is removed. Applies to PNG, JPG and WebP; orientation is reset. Note: a GPS location is kept.',
       pdfMode: 'PDF Mode',
       pdfModeSingle: 'Each image as individual PDF',
       pdfModeMerged: 'All images into one PDF',
