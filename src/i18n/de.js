@@ -326,10 +326,19 @@ export default {
       preview: 'Vorschau',
       print: 'Drucken',
       download: 'Download',
+      share: 'Teilen',
+      shareHint: 'Bild teilen (Apps, Mail, AirDrop …)',
+      copy: 'In Zwischenablage kopieren',
       undo: 'Rückgängig',
       redo: 'Wiederholen',
       addText: 'Text hinzufügen (T)',
       exitCollage: 'Collage-Modus beenden',
+    },
+    share: {
+      ready: 'Die Datei ist fertig. Tippe auf „Jetzt teilen“, um das Teilen-Menü zu öffnen.',
+      now: 'Jetzt teilen',
+      privacy:
+        'Das Teilen-Menü deines Geräts öffnet sich. Das Bild wird direkt aus dem Browser übergeben und nicht hochgeladen.',
     },
     sidebar: {
       format: 'Format',
@@ -1010,6 +1019,13 @@ export default {
       cancelled: 'Zuschneiden abgebrochen',
     },
     editor: {
+      shared: 'Bild geteilt',
+      shareFailed: 'Teilen fehlgeschlagen',
+      shareUnsupported:
+        'Teilen wird hier nicht unterstützt – das Bild wird stattdessen heruntergeladen.',
+      copied: 'Bild als PNG in die Zwischenablage kopiert',
+      copyFailed: 'Kopieren in die Zwischenablage fehlgeschlagen',
+      copyUnsupported: 'Dieser Browser kann keine Bilder in die Zwischenablage kopieren',
       printFailed: 'Drucken fehlgeschlagen',
       imageDeleted: 'Bild erfolgreich gelöscht',
       galleryLoaded: 'Bild aus Galerie geladen',

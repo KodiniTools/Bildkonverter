@@ -79,6 +79,15 @@
             </button>
             <button
               class="tb-btn tb-btn--icon"
+              :disabled="(!currentImage && !isCollageMode) || isExporting"
+              :title="$t('editor.toolbar.copy')"
+              :aria-label="$t('editor.toolbar.copy')"
+              @click="copyToClipboard"
+            >
+              <AppIcon name="clipboard-copy" />
+            </button>
+            <button
+              class="tb-btn tb-btn--icon"
               :disabled="!currentImage && !isCollageMode"
               :title="$t('editor.toolbar.reset', 'Zurücksetzen')"
               :aria-label="$t('editor.toolbar.reset', 'Zurücksetzen')"
@@ -102,8 +111,17 @@
           </div>
         </div>
 
-        <!-- Rechts: Download -->
+        <!-- Rechts: Teilen + Download -->
         <div class="toolbar-group">
+          <button
+            class="tb-btn tb-btn--primary"
+            :disabled="(!currentImage && !isCollageMode) || isExporting"
+            :title="$t('editor.toolbar.shareHint')"
+            @click="shareImage"
+          >
+            <AppIcon name="share" />
+            {{ $t('editor.toolbar.share') }}
+          </button>
           <button
             class="tb-btn tb-btn--success"
             :disabled="(!currentImage && !isCollageMode) || isExporting"
@@ -438,39 +456,78 @@
       @close="closePreview"
     />
 
-    <!-- Export Dialog -->
+    <!-- Export Dialog (Download oder Teilen) -->
     <Teleport to="#overlay-root">
-      <div
-        v-if="showExportDialog"
-        class="export-dialog-overlay"
-        @click.self="showExportDialog = false"
-      >
+      <div v-if="showExportDialog" class="export-dialog-overlay" @click.self="closeExportDialog">
         <div class="export-dialog">
-          <h3 class="export-dialog__title">{{ $t('editor.toolbar.download') }}</h3>
-          <div class="export-dialog__input-row">
-            <input
-              v-model="exportDialogFilename"
-              class="export-dialog__input"
-              type="text"
-              :placeholder="$t('editor.toolbar.download')"
-              autofocus
-              @keydown.enter="confirmExport"
-              @keydown.escape="showExportDialog = false"
-            />
-            <span class="export-dialog__ext">.{{ outputFormat }}</span>
-          </div>
-          <div class="export-dialog__actions">
-            <button
-              class="export-dialog__btn export-dialog__btn--cancel"
-              @click="showExportDialog = false"
-            >
-              {{ $t('common.cancel', 'Abbrechen') }}
-            </button>
-            <button class="export-dialog__btn export-dialog__btn--confirm" @click="confirmExport">
-              <AppIcon name="download" />
-              {{ $t('editor.toolbar.download') }}
-            </button>
-          </div>
+          <h3 class="export-dialog__title">
+            {{
+              exportDialogMode === 'share'
+                ? $t('editor.toolbar.share')
+                : $t('editor.toolbar.download')
+            }}
+          </h3>
+          <template v-if="pendingShareFile">
+            <p class="export-dialog__text">{{ $t('editor.share.ready') }}</p>
+            <div class="export-dialog__actions">
+              <button
+                class="export-dialog__btn export-dialog__btn--cancel"
+                @click="closeExportDialog"
+              >
+                {{ $t('common.cancel', 'Abbrechen') }}
+              </button>
+              <button class="export-dialog__btn export-dialog__btn--confirm" @click="shareNow">
+                <AppIcon name="share" />
+                {{ $t('editor.share.now') }}
+              </button>
+            </div>
+          </template>
+          <template v-else>
+            <div class="export-dialog__input-row">
+              <input
+                v-model="exportDialogFilename"
+                class="export-dialog__input"
+                type="text"
+                :placeholder="$t('editor.toolbar.download')"
+                :disabled="isExporting"
+                autofocus
+                @keydown.enter="confirmExportDialog"
+                @keydown.escape="closeExportDialog"
+              />
+              <span class="export-dialog__ext">.{{ outputFormat }}</span>
+            </div>
+            <p v-if="exportDialogMode === 'share'" class="export-dialog__text">
+              {{ $t('editor.share.privacy') }}
+            </p>
+            <div class="export-dialog__actions">
+              <button
+                class="export-dialog__btn export-dialog__btn--cancel"
+                @click="closeExportDialog"
+              >
+                {{ $t('common.cancel', 'Abbrechen') }}
+              </button>
+              <button
+                class="export-dialog__btn export-dialog__btn--confirm"
+                :disabled="isExporting"
+                @click="confirmExportDialog"
+              >
+                <AppIcon
+                  :name="
+                    isExporting
+                      ? 'spinner fa-spin'
+                      : exportDialogMode === 'share'
+                        ? 'share'
+                        : 'download'
+                  "
+                />
+                {{
+                  exportDialogMode === 'share'
+                    ? $t('editor.toolbar.share')
+                    : $t('editor.toolbar.download')
+                }}
+              </button>
+            </div>
+          </template>
         </div>
       </div>
     </Teleport>
@@ -739,6 +796,8 @@ const {
   isExporting,
   exportTransparent,
   showExportDialog,
+  exportDialogMode,
+  pendingShareFile,
   exportDialogFilename,
   targetSizeEnabled,
   targetSizeKb,
@@ -751,7 +810,11 @@ const {
   exifAvailable,
   showForwardOffer,
   downloadImage,
-  confirmExport,
+  shareImage,
+  confirmExportDialog,
+  closeExportDialog,
+  shareNow,
+  copyToClipboard,
   printCurrentImage,
   forwardTo,
   dismissForwardOffer,
