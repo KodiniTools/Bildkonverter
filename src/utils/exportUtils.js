@@ -63,7 +63,8 @@ export class ExportManager {
    * @param {string} format - Exportformat
    * @param {string} filename - Dateiname (ohne Extension)
    * @param {Object} options - Export-Optionen; `exif` (Uint8Array, exif.js)
-   *   übernimmt Metadaten in PNG/JPEG/WebP, ohne bleibt die Datei EXIF-frei
+   *   übernimmt Metadaten in PNG/JPEG/WebP, ohne bleibt die Datei EXIF-frei;
+   *   `download: false` liefert die Datei nur als `result.blob` (z. B. zum Teilen)
    * @returns {Promise<Object>} - Export-Ergebnis
    */
   async exportImage(canvas, format, filename = 'image', options = {}) {
@@ -150,13 +151,14 @@ export class ExportManager {
   async exportPNG(canvas, filename, options = {}) {
     // Kodierung im Web Worker (Fallback: canvas.toBlob im Hauptthread)
     const blob = await withExif(await this.canvasToBlob(canvas, 'image/png'), options.exif);
-    this.downloadBlob(blob, `${filename}.png`);
+    this.deliver(blob, `${filename}.png`, options);
 
     return {
       success: true,
       format: 'png',
       filename: `${filename}.png`,
       size: this.formatBytes(blob.size),
+      blob,
     };
   }
 
@@ -173,7 +175,7 @@ export class ExportManager {
       await this.canvasToBlob(processedCanvas, 'image/jpeg', quality),
       options.exif
     );
-    this.downloadBlob(blob, `${filename}.jpg`);
+    this.deliver(blob, `${filename}.jpg`, options);
 
     return {
       success: true,
@@ -181,6 +183,7 @@ export class ExportManager {
       filename: `${filename}.jpg`,
       quality: Math.round(quality * 100),
       size: this.formatBytes(blob.size),
+      blob,
     };
   }
 
@@ -200,7 +203,7 @@ export class ExportManager {
       await this.canvasToBlob(canvas, 'image/webp', quality),
       options.exif
     );
-    this.downloadBlob(blob, `${filename}.webp`);
+    this.deliver(blob, `${filename}.webp`, options);
 
     return {
       success: true,
@@ -208,6 +211,7 @@ export class ExportManager {
       filename: `${filename}.webp`,
       quality: Math.round(quality * 100),
       size: this.formatBytes(blob.size),
+      blob,
     };
   }
 
@@ -225,7 +229,7 @@ export class ExportManager {
       undefined,
       options.exif
     );
-    this.downloadBlob(result.blob, `${filename}.${ext}`);
+    this.deliver(result.blob, `${filename}.${ext}`, options);
 
     return {
       success: true,
@@ -233,6 +237,7 @@ export class ExportManager {
       filename: `${filename}.${ext}`,
       quality: Math.round(result.quality * 100),
       size: this.formatBytes(result.blob.size),
+      blob: result.blob,
       bytes: result.blob.size,
       width: result.width,
       height: result.height,
@@ -246,13 +251,14 @@ export class ExportManager {
   async exportTIFF(canvas, filename, options) {
     const blob = await this.canvasToBlob(canvas, 'image/png');
     const tiffBlob = await ApiClient.convertImage(blob, 'tiff', filename, options);
-    this.downloadBlob(tiffBlob, `${filename}.tiff`);
+    this.deliver(tiffBlob, `${filename}.tiff`, options);
 
     return {
       success: true,
       format: 'tiff',
       filename: `${filename}.tiff`,
       size: this.formatBytes(tiffBlob.size),
+      blob: tiffBlob,
     };
   }
 
@@ -262,7 +268,7 @@ export class ExportManager {
   async exportHEIF(canvas, filename, options) {
     const blob = await this.canvasToBlob(canvas, 'image/png');
     const heifBlob = await ApiClient.convertImage(blob, 'heif', filename, options);
-    this.downloadBlob(heifBlob, `${filename}.heif`);
+    this.deliver(heifBlob, `${filename}.heif`, options);
 
     return {
       success: true,
@@ -270,6 +276,7 @@ export class ExportManager {
       filename: `${filename}.heif`,
       quality: options.quality ? Math.round(options.quality * 100) : null,
       size: this.formatBytes(heifBlob.size),
+      blob: heifBlob,
     };
   }
 
@@ -279,20 +286,21 @@ export class ExportManager {
   async exportGIF(canvas, filename, options) {
     const blob = await this.canvasToBlob(canvas, 'image/png');
     const gifBlob = await ApiClient.convertImage(blob, 'gif', filename, options);
-    this.downloadBlob(gifBlob, `${filename}.gif`);
+    this.deliver(gifBlob, `${filename}.gif`, options);
 
     return {
       success: true,
       format: 'gif',
       filename: `${filename}.gif`,
       size: this.formatBytes(gifBlob.size),
+      blob: gifBlob,
     };
   }
 
   /**
    * PDF Export (Client-side mit jsPDF)
    */
-  async exportPDF(canvas, filename) {
+  async exportPDF(canvas, filename, options = {}) {
     if (!this.jsPDF) {
       await this.initializePDF();
       if (!this.jsPDF) {
@@ -332,13 +340,19 @@ export class ExportManager {
       'FAST'
     );
 
-    // PDF speichern
-    pdf.save(`${filename}.pdf`);
+    // PDF speichern (oder nur als Blob zurückgeben)
+    let blob;
+    if (options.download === false) {
+      blob = pdf.output('blob');
+    } else {
+      pdf.save(`${filename}.pdf`);
+    }
 
     return {
       success: true,
       format: 'pdf',
       filename: `${filename}.pdf`,
+      blob,
       pages: 1,
       orientation: pdfConfig.orientation,
     };
@@ -362,13 +376,14 @@ export class ExportManager {
       svgBlob = this.createSVGWrapper(canvas);
     }
 
-    this.downloadBlob(svgBlob, `${filename}.svg`);
+    this.deliver(svgBlob, `${filename}.svg`, options);
 
     return {
       success: true,
       format: 'svg',
       filename: `${filename}.svg`,
       size: this.formatBytes(svgBlob.size),
+      blob: svgBlob,
     };
   }
 
@@ -410,6 +425,15 @@ export class ExportManager {
    */
   canvasToBlob(canvas, type = 'image/png', quality = 0.92) {
     return canvasToBlobUtil(canvas, type, quality);
+  }
+
+  /**
+   * Liefert die fertige Datei aus: Download, außer `options.download === false`
+   * (dann gibt der Aufrufer `result.blob` selbst weiter, z. B. an navigator.share)
+   */
+  deliver(blob, filename, options = {}) {
+    if (options.download === false) return;
+    this.downloadBlob(blob, filename);
   }
 
   /**

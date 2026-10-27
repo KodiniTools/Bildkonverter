@@ -326,10 +326,19 @@ export default {
       preview: 'Preview',
       print: 'Print',
       download: 'Download',
+      share: 'Share',
+      shareHint: 'Share image (apps, mail, AirDrop …)',
+      copy: 'Copy to clipboard',
       undo: 'Undo',
       redo: 'Redo',
       addText: 'Add text (T)',
       exitCollage: 'Exit collage mode',
+    },
+    share: {
+      ready: 'The file is ready. Tap “Share now” to open the share menu.',
+      now: 'Share now',
+      privacy:
+        'Your device’s share menu opens. The image is handed over directly from the browser and is not uploaded.',
     },
     sidebar: {
       format: 'Format',
@@ -1006,6 +1015,12 @@ export default {
       cancelled: 'Cropping cancelled',
     },
     editor: {
+      shared: 'Image shared',
+      shareFailed: 'Sharing failed',
+      shareUnsupported: 'Sharing is not supported here – the image is downloaded instead.',
+      copied: 'Image copied to clipboard as PNG',
+      copyFailed: 'Copying to clipboard failed',
+      copyUnsupported: 'This browser cannot copy images to the clipboard',
       printFailed: 'Printing failed',
       imageDeleted: 'Image successfully deleted',
       galleryLoaded: 'Image loaded from gallery',

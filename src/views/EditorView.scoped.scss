@@ -402,6 +402,13 @@
     border-left: var(--ds-border-width) solid var(--ds-border);
   }
 
+  &__text {
+    margin: calc(-1 * var(--ds-space-2)) 0 var(--ds-space-5);
+    font-size: var(--ds-text-sm);
+    line-height: var(--ds-leading);
+    color: var(--ds-text-2);
+  }
+
   &__actions {
     display: flex;
     justify-content: flex-end;
@@ -432,6 +439,11 @@
       box-shadow: var(--ds-focus-ring);
     }
 
+    &:disabled {
+      opacity: 0.6;
+      cursor: progress;
+    }
+
     &--cancel {
       background: var(--ds-surface-2);
       border-color: var(--ds-border-strong);
@@ -447,7 +459,7 @@
       color: var(--ds-on-accent);
       font-weight: var(--ds-weight-semibold);
 
-      &:hover {
+      &:hover:not(:disabled) {
         background: var(--ds-accent-hover);
       }
     }

@@ -1,9 +1,9 @@
 /**
  * useEditorExport
  *
- * Export-Dialog, Datei-Export, Drucken und die optionale Weiterleitung des
- * exportierten Bildes an ein anderes Kodini-Tool (Handoff). Ausgelagert aus
- * EditorView.vue, Verhalten unverändert.
+ * Export-Dialog, Datei-Export, Teilen (Systemdialog/Zwischenablage), Drucken
+ * und die optionale Weiterleitung des exportierten Bildes an ein anderes
+ * Kodini-Tool (Handoff). Ausgelagert aus EditorView.vue.
  *
  * @param {object} deps
  * @param {import('vue').Ref} deps.canvas
@@ -29,6 +29,13 @@ import {
 import { readSourceExif, supportsExif, withExif } from '@/utils/exif';
 import { prepareHandoff } from '@/lib/core/handoff';
 import { printImage } from '@/utils/printUtils';
+import {
+  copyImageToClipboard,
+  canCopyImage,
+  mimeForFormat,
+  pickShareStrategy,
+  shareFile,
+} from '@/utils/shareUtils';
 import { logger } from '@/utils/logger';
 
 export function useEditorExport({
@@ -47,6 +54,10 @@ export function useEditorExport({
   const exportTransparent = ref(false); // Transparenter Hintergrund beim PNG-Export
   const showExportDialog = ref(false);
   const exportDialogFilename = ref('');
+  // 'download' oder 'share': derselbe Dialog (Dateiname) für beide Aktionen
+  const exportDialogMode = ref('download');
+  // Fertig kodierte Datei, falls der Systemdialog einen zweiten Klick braucht
+  const pendingShareFile = ref(null);
 
   // ===== ZIEL-DATEIGRÖSSE (nur JPEG/WebP) =====
   const targetSizeEnabled = ref(false);
@@ -165,32 +176,67 @@ export function useEditorExport({
   const forwardCanvasSnapshot = ref(null); // Kopie des exportierten Canvas
   const forwardFilename = ref('');
 
-  // Export mit Dateiname-Dialog
-  function downloadImage() {
+  /** Dateiname aus dem Dialog, mit sicherem Default */
+  function dialogFilename() {
+    return exportDialogFilename.value.trim() || currentFileName.value || 'image';
+  }
+
+  function openExportDialog(mode) {
     if (!canvas.value) return;
+    exportDialogMode.value = mode;
+    pendingShareFile.value = null;
     exportDialogFilename.value = currentFileName.value || 'image';
     showExportDialog.value = true;
   }
 
+  function closeExportDialog() {
+    showExportDialog.value = false;
+    pendingShareFile.value = null;
+  }
+
+  // Export mit Dateiname-Dialog
+  function downloadImage() {
+    openExportDialog('download');
+  }
+
+  // Teilen mit Dateiname-Dialog
+  function shareImage() {
+    openExportDialog('share');
+  }
+
+  /**
+   * Rendert ohne Auswahl-Markierung und kodiert mit den Export-Einstellungen
+   * (Format, Qualität, Zielgröße, EXIF). `download: false` liefert nur den Blob.
+   */
+  async function renderAndExport(filename, { download }) {
+    // Vor dem Export-Render lesen: Zwischen Render und Kodierung darf kein
+    // await liegen, sonst könnte ein Vorschau-Neuzeichnen dazwischenkommen
+    const exif = await exportExif();
+    const useTransparent = outputFormat.value === 'png' && exportTransparent.value;
+    renderImageForExport(useTransparent);
+
+    return exportImage(canvas.value, outputFormat.value, filename, {
+      quality: exportQuality.value / 100,
+      texts: imageStore.texts || [],
+      targetSize: targetSizeOptions.value,
+      exif,
+      download,
+    });
+  }
+
+  function confirmExportDialog() {
+    if (exportDialogMode.value === 'share') return confirmShare();
+    return confirmExport();
+  }
+
   async function confirmExport() {
     showExportDialog.value = false;
-    const filename = exportDialogFilename.value.trim() || currentFileName.value || 'image';
+    const filename = dialogFilename();
 
     isExporting.value = true;
 
     try {
-      // Vor dem Export-Render lesen: Zwischen Render und Kodierung darf kein
-      // await liegen, sonst könnte ein Vorschau-Neuzeichnen dazwischenkommen
-      const exif = await exportExif();
-      const useTransparent = outputFormat.value === 'png' && exportTransparent.value;
-      renderImageForExport(useTransparent);
-
-      const result = await exportImage(canvas.value, outputFormat.value, filename, {
-        quality: exportQuality.value / 100,
-        texts: imageStore.texts || [],
-        targetSize: targetSizeOptions.value,
-        exif,
-      });
+      const result = await renderAndExport(filename, { download: true });
 
       logger.log('✅ Export erfolgreich:', result);
 
@@ -228,6 +274,111 @@ export function useEditorExport({
     } finally {
       isExporting.value = false;
       renderImage();
+    }
+  }
+
+  // ===== TEILEN =====
+  // Systemdialog mit Datei, sonst Zwischenablage, sonst Download.
+  // Die Strategie wird synchron gewählt, solange die Nutzergeste noch gilt.
+  async function confirmShare() {
+    const strategy = pickShareStrategy(mimeForFormat(outputFormat.value));
+
+    if (strategy === 'clipboard') {
+      showExportDialog.value = false;
+      return copyToClipboard();
+    }
+    if (strategy === 'download') {
+      window.$toast?.info(t('toast.editor.shareUnsupported'));
+      return confirmExport();
+    }
+
+    const filename = dialogFilename();
+    isExporting.value = true;
+    let file = null;
+
+    try {
+      const result = await renderAndExport(filename, { download: false });
+      file = new File([result.blob], result.filename, {
+        type: result.blob.type || mimeForFormat(result.format),
+      });
+      if (result.targetReached === false) {
+        window.$toast?.warning(
+          t('toast.editor.targetSizeMissed', { size: result.size, max: targetSizeKb.value })
+        );
+      }
+    } catch (error) {
+      logger.error('❌ Export zum Teilen fehlgeschlagen:', error);
+      window.$toast?.error(`Export fehlgeschlagen: ${error.message}`);
+      showExportDialog.value = false;
+      return;
+    } finally {
+      isExporting.value = false;
+      renderImage();
+    }
+
+    await openShareSheet(file);
+  }
+
+  /** Zweiter Klick, wenn der Browser die erste Geste nach dem Kodieren nicht mehr gelten ließ */
+  function shareNow() {
+    const file = pendingShareFile.value;
+    if (file) return openShareSheet(file);
+  }
+
+  async function openShareSheet(file) {
+    try {
+      const outcome = await shareFile(file, { title: file.name });
+      pendingShareFile.value = null;
+      showExportDialog.value = false;
+      if (outcome === 'shared') window.$toast?.success(t('toast.editor.shared'));
+    } catch (error) {
+      if (error?.name === 'NotAllowedError' && !pendingShareFile.value) {
+        // Geste abgelaufen (v. a. Safari nach längerem Kodieren): Dialog bleibt
+        // offen und bietet „Jetzt teilen“ mit der fertigen Datei an
+        pendingShareFile.value = file;
+        return;
+      }
+      logger.error('❌ Teilen fehlgeschlagen:', error);
+      pendingShareFile.value = null;
+      showExportDialog.value = false;
+      window.$toast?.error(t('toast.editor.shareFailed'));
+    }
+  }
+
+  // ===== ZWISCHENABLAGE =====
+  // Immer PNG (die Clipboard API unterstützt Bilder verlässlich nur als PNG).
+  async function copyToClipboard() {
+    if (!canvas.value) return;
+    if (!canCopyImage()) {
+      window.$toast?.error(t('toast.editor.copyUnsupported'));
+      return;
+    }
+
+    let pngPromise;
+    try {
+      // Snapshot synchron nach dem Export-Render, damit das Neuzeichnen der
+      // Vorschau (mit Auswahl-Markierung) die Kodierung nicht beeinflusst
+      renderImageForExport(outputFormat.value === 'png' && exportTransparent.value);
+      const snap = document.createElement('canvas');
+      snap.width = canvas.value.width;
+      snap.height = canvas.value.height;
+      snap.getContext('2d').drawImage(canvas.value, 0, 0);
+      pngPromise = canvasToBlob(snap, 'image/png');
+    } catch (error) {
+      logger.error('❌ Kopieren fehlgeschlagen:', error);
+      window.$toast?.error(t('toast.editor.copyFailed'));
+      return;
+    } finally {
+      renderImage();
+    }
+
+    try {
+      // clipboard.write startet synchron in der Geste, der Blob folgt
+      await copyImageToClipboard(pngPromise);
+      window.$toast?.success(t('toast.editor.copied'));
+    } catch (error) {
+      logger.error('❌ Kopieren fehlgeschlagen:', error);
+      window.$toast?.error(t('toast.editor.copyFailed'));
     }
   }
 
@@ -287,6 +438,8 @@ export function useEditorExport({
     exportTransparent,
     showExportDialog,
     exportDialogFilename,
+    exportDialogMode,
+    pendingShareFile,
     targetSizeEnabled,
     targetSizeKb,
     targetSizeDownscale,
@@ -298,7 +451,12 @@ export function useEditorExport({
     exifAvailable,
     showForwardOffer,
     downloadImage,
+    shareImage,
     confirmExport,
+    confirmExportDialog,
+    closeExportDialog,
+    shareNow,
+    copyToClipboard,
     printCurrentImage,
     forwardTo,
     dismissForwardOffer,
