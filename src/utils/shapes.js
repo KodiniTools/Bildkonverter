@@ -31,6 +31,9 @@
  * }
  */
 
+import { SOCIAL_ICONS, SOCIAL_ICON_GRID } from './socialIcons';
+import { scaleSvgPath } from './svgPath';
+
 /**
  * Zeichenart: Flächenformen werden gefüllt (+ optionale Kontur), Linienformen
  * nur gestrichen, Marker zeigen zusätzlich eine Nummer, Effekte (Verpixeln,
@@ -219,6 +222,20 @@ function arrowHead(tip, dir, length, spread) {
     `L ${r2(tip.x)} ${r2(tip.y)} ` +
     `L ${r2(back.x - nx)} ${r2(back.y - ny)}`
   );
+}
+
+/**
+ * Pfad-Generator für ein Symbol auf dem 24er-Raster: der Inhaltsbereich
+ * (2 … 22, Lucide-Konvention) füllt den Rahmen w × h.
+ */
+function socialIconPath(d) {
+  const content = SOCIAL_ICON_GRID - 4;
+  const half = SOCIAL_ICON_GRID / 2;
+  return (w, h) => {
+    const sx = w / content;
+    const sy = h / content;
+    return scaleSvgPath(d, sx, sy, -half * sx, -half * sy);
+  };
 }
 
 /** Breite der Etiketten-Spitze */
@@ -592,6 +609,13 @@ export const SHAPE_PATHS = Object.freeze({
     path: (w, h) => starPath(16, 0.82, w, h),
     textBox: (w, h) => ({ x: 0, y: 0, width: w * 0.6, height: h * 0.52 }),
   },
+  // Social-Media-Symbole (Umrisse, optional füllbar)
+  ...Object.fromEntries(
+    Object.entries(SOCIAL_ICONS).map(([id, d]) => [
+      id,
+      { kind: SHAPE_KIND.FILL, path: socialIconPath(d) },
+    ])
+  ),
   // Emoji: Rahmen nur für Auswahl/Hit-Test, gezeichnet wird das Zeichen
   emoji: {
     kind: SHAPE_KIND.EMOJI,
@@ -687,6 +711,14 @@ export const SHAPE_GALLERY = Object.freeze([
     preset: { fillColor: '#ffffff', strokeColor: '#1f2937', strokeRatio: 0.025 },
   },
   { id: 'pin', type: 'pin', category: 'symbols', aspect: 0.75 },
+  // Social-Media-Symbole: Umriss, Füllung zuschaltbar
+  ...Object.keys(SOCIAL_ICONS).map((id) => ({
+    id,
+    type: id,
+    category: 'symbols',
+    aspect: 1,
+    preset: { filled: false, strokeRatio: 0.07 },
+  })),
 
   { id: 'marker', type: 'marker', category: 'annotate', aspect: 1 },
   {
