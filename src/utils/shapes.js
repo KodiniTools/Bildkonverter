@@ -26,6 +26,8 @@
  *   text, textColor, fontFamily,      // nur Formen mit Textfeld (SHAPE_PATHS[type].textBox)
  *   textScale, textAlign,             // Schriftgröße relativ zu min(Breite, Höhe)
  *   points, tool,                     // nur Freihand: normierte Punkte, 'pen'|'highlighter'
+ *   fillType, fillColor2, gradientAngle, // Füllung: 'solid'|'linear'|'radial'
+ *   emoji,                            // nur Emoji-Sticker
  * }
  */
 
@@ -38,6 +40,7 @@ export const SHAPE_KIND = Object.freeze({
   FILL: 'fill',
   STROKE: 'stroke',
   MARKER: 'marker',
+  EMOJI: 'emoji',
   EFFECT: 'effect',
 });
 
@@ -47,8 +50,29 @@ export const SHAPE_CATEGORIES = Object.freeze([
   'lines',
   'symbols',
   'annotate',
+  'stickers',
   'draw',
 ]);
+
+/** Füllarten: einfarbig oder Farbverlauf */
+export const FILL_TYPES = Object.freeze(['solid', 'linear', 'radial']);
+
+/** Emoji-Sticker der Galerie (id → Zeichen) */
+export const EMOJI_SET = Object.freeze({
+  emojiThumbsUp: '👍',
+  emojiSmile: '😀',
+  emojiLove: '😍',
+  emojiParty: '🎉',
+  emojiFire: '🔥',
+  emojiHeart: '❤️',
+  emojiStar: '⭐',
+  emojiCheck: '✅',
+  emojiWarning: '⚠️',
+  emojiIdea: '💡',
+  emojiEyes: '👀',
+  emojiHundred: '💯',
+});
+const EMOJI_FONT = '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
 
 /** Effekte der Zensur-Form und ihre Umrissformen */
 export const CENSOR_EFFECTS = Object.freeze(['pixelate', 'blur']);
@@ -522,6 +546,37 @@ export const SHAPE_PATHS = Object.freeze({
         ? roundedRectPath(w, h, Math.min(w, h) * 0.22)
         : ellipsePath(0, 0, w / 2, h / 2),
   },
+  // Daumen hoch: Hand mit Manschette
+  thumbsUp: {
+    kind: SHAPE_KIND.FILL,
+    path: (w, h) => {
+      // Entwurf auf einem 100 × 100-Raster, auf den Rahmen gestreckt
+      const p = (x, y) => `${r2(((x - 50) / 100) * w)} ${r2(((y - 50) / 100) * h)}`;
+      return (
+        `M ${p(31, 96)} L ${p(31, 46)} L ${p(46, 26)} ` +
+        `C ${p(50, 20)} ${p(51, 13)} ${p(51, 8)} ` +
+        `C ${p(51, 1)} ${p(63, 0)} ${p(66, 7)} ` +
+        `C ${p(69, 14)} ${p(68, 25)} ${p(64, 36)} ` +
+        `L ${p(88, 36)} ` +
+        `C ${p(97, 36)} ${p(99, 46)} ${p(93, 51)} ` +
+        `C ${p(99, 55)} ${p(98, 64)} ${p(92, 67)} ` +
+        `C ${p(97, 71)} ${p(96, 80)} ${p(89, 82)} ` +
+        `C ${p(93, 88)} ${p(90, 96)} ${p(82, 96)} Z ` +
+        `M ${p(4, 46)} L ${p(25, 46)} L ${p(25, 96)} L ${p(4, 96)} Z`
+      );
+    },
+  },
+  // Siegel/Stern-Badge für „Neu“, „Sale“ usw.
+  burst: {
+    kind: SHAPE_KIND.FILL,
+    path: (w, h) => starPath(16, 0.82, w, h),
+    textBox: (w, h) => ({ x: 0, y: 0, width: w * 0.6, height: h * 0.52 }),
+  },
+  // Emoji: Rahmen nur für Auswahl/Hit-Test, gezeichnet wird das Zeichen
+  emoji: {
+    kind: SHAPE_KIND.EMOJI,
+    path: (w, h) => roundedRectPath(w, h, 0),
+  },
   // Freihand (Stift/Textmarker): geglättete Linie durch normierte Punkte
   freehand: {
     kind: SHAPE_KIND.STROKE,
@@ -670,6 +725,76 @@ export const SHAPE_GALLERY = Object.freeze([
     preset: { text: 'Text', fillColor: '#facc15' },
   },
 
+  // Sticker: Daumen hoch, Ausrufe-/Fragezeichen, Badges mit Text, Emojis
+  {
+    id: 'thumbsUp',
+    type: 'thumbsUp',
+    category: 'stickers',
+    aspect: 1,
+    preset: { fillColor: '#f5b301' },
+  },
+  {
+    id: 'exclamation',
+    type: 'ellipse',
+    category: 'stickers',
+    aspect: 1,
+    preset: { text: '!', textColor: '#ffffff', textScale: 0.7, fillColor: '#e53935' },
+  },
+  {
+    id: 'question',
+    type: 'ellipse',
+    category: 'stickers',
+    aspect: 1,
+    preset: { text: '?', textColor: '#ffffff', textScale: 0.7, fillColor: '#2563eb' },
+  },
+  {
+    id: 'badgeNew',
+    type: 'burst',
+    category: 'stickers',
+    aspect: 1,
+    preset: {
+      text: 'NEW',
+      textKey: 'new',
+      textColor: '#ffffff',
+      textScale: 0.28,
+      fillColor: '#e53935',
+    },
+  },
+  {
+    id: 'badgeSale',
+    type: 'burst',
+    category: 'stickers',
+    aspect: 1,
+    preset: {
+      text: 'SALE',
+      textKey: 'sale',
+      textColor: '#1f2937',
+      textScale: 0.26,
+      fillColor: '#f5b301',
+    },
+  },
+  {
+    id: 'badgeSaleGradient',
+    type: 'burst',
+    category: 'stickers',
+    aspect: 1,
+    preset: {
+      text: '-50%',
+      textColor: '#ffffff',
+      textScale: 0.26,
+      fillColor: '#e53935',
+      fillType: 'radial',
+      fillColor2: '#f5b301',
+    },
+  },
+  ...Object.entries(EMOJI_SET).map(([id, emoji]) => ({
+    id,
+    type: 'emoji',
+    category: 'stickers',
+    aspect: 1,
+    preset: { emoji },
+  })),
+
   // Zeichenwerkzeuge: Kachel schaltet den Zeichenmodus um (keine Form einfügen)
   { id: 'pen', type: 'freehand', category: 'draw', aspect: 1.6, tool: 'pen' },
   { id: 'highlighter', type: 'freehand', category: 'draw', aspect: 1.6, tool: 'highlighter' },
@@ -756,6 +881,7 @@ export function getGalleryPreview(item, size = 40, padding = 6) {
     filled: item.preset?.filled ?? true,
     dash: item.preset?.dash ?? 'solid',
     label: kind === SHAPE_KIND.MARKER ? '1' : null,
+    emoji: kind === SHAPE_KIND.EMOJI ? (item.preset?.emoji ?? '🙂') : null,
     effect: kind === SHAPE_KIND.EFFECT ? (item.preset?.effect ?? 'pixelate') : null,
     pattern: '',
   };
@@ -881,6 +1007,14 @@ export function createShape(galleryId, canvasWidth, canvasHeight) {
         }
       : {}),
     ...(item.type === 'freehand' ? { points: [], tool: item.tool ?? 'pen' } : {}),
+    ...(kind === SHAPE_KIND.FILL || kind === SHAPE_KIND.MARKER
+      ? {
+          fillType: FILL_TYPES.includes(preset.fillType) ? preset.fillType : 'solid',
+          fillColor2: preset.fillColor2 ?? '#ffffff',
+          gradientAngle: preset.gradientAngle ?? 90,
+        }
+      : {}),
+    ...(kind === SHAPE_KIND.EMOJI ? { emoji: preset.emoji ?? '🙂', strokeWidth: 0 } : {}),
   };
 }
 
@@ -971,6 +1105,10 @@ export function drawShape(ctx, shape) {
     drawCensor(ctx, shape, path);
     return;
   }
+  if (kind === SHAPE_KIND.EMOJI) {
+    drawEmoji(ctx, shape, width, height);
+    return;
+  }
   const isMarker = kind === SHAPE_KIND.MARKER;
   const strokeWidth = Math.max(0, Number(shape.strokeWidth) || 0);
   const hasFill = (kind === SHAPE_KIND.FILL || isMarker) && shape.filled !== false;
@@ -1002,7 +1140,7 @@ export function drawShape(ctx, shape) {
   }
 
   if (hasFill) {
-    ctx.fillStyle = shape.fillColor || DEFAULT_COLOR;
+    ctx.fillStyle = getFillStyle(ctx, shape, width, height);
     ctx.fill(path, def.fillRule || 'nonzero');
     // Schatten nur einmal (sonst doppelt unter der Kontur)
     ctx.shadowColor = 'transparent';
@@ -1095,6 +1233,67 @@ function drawShapeText(ctx, shape) {
   ctx.textAlign = align;
   ctx.textBaseline = 'middle';
   lines.forEach((line, i) => ctx.fillText(line, x, top + i * lineHeight));
+}
+
+/**
+ * Füllung im lokalen System der Form: Farbe oder Farbverlauf.
+ * Linear: `gradientAngle` in Grad (0 = links → rechts, 90 = oben → unten),
+ * so lang, dass der Verlauf den ganzen Rahmen abdeckt. Radial: von der Mitte
+ * (fillColor) nach außen (fillColor2).
+ */
+export function getFillStyle(ctx, shape, width, height) {
+  const from = shape.fillColor || DEFAULT_COLOR;
+  const type = shape.fillType;
+  if (type !== 'linear' && type !== 'radial') return from;
+  const to = shape.fillColor2 || '#ffffff';
+  let gradient;
+  if (type === 'linear') {
+    const rad = ((Number(shape.gradientAngle) || 0) * Math.PI) / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const half = Math.abs((width / 2) * cos) + Math.abs((height / 2) * sin);
+    gradient = ctx.createLinearGradient(-cos * half, -sin * half, cos * half, sin * half);
+  } else {
+    gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, Math.max(width, height) / 2);
+  }
+  gradient.addColorStop(0, from);
+  gradient.addColorStop(1, to);
+  return gradient;
+}
+
+/** Emoji-Sticker: Zeichen füllt den Rahmen (Drehen, Spiegeln, Deckkraft, Schatten) */
+function drawEmoji(ctx, shape, width, height) {
+  const glyph = String(shape.emoji || '').trim();
+  if (!glyph) return;
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, Math.min(100, shape.opacity ?? 100)) / 100;
+  ctx.translate(shape.x, shape.y);
+  if (shape.rotation) ctx.rotate((shape.rotation * Math.PI) / 180);
+  if (shape.flipX || shape.flipY) ctx.scale(shape.flipX ? -1 : 1, shape.flipY ? -1 : 1);
+  if (shape.shadowBlur > 0) {
+    ctx.shadowColor = shape.shadowColor || '#000000';
+    ctx.shadowBlur = shape.shadowBlur;
+    const offset = Math.max(2, shape.shadowBlur / 3);
+    ctx.shadowOffsetX = offset;
+    ctx.shadowOffsetY = offset;
+  }
+  // In Referenzgröße messen und die tatsächliche Glyphe auf 92 % des Rahmens strecken
+  const ref = 100;
+  ctx.font = `${ref}px ${EMOJI_FONT}`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#000000';
+  const m = ctx.measureText(glyph);
+  const left = m.actualBoundingBoxLeft ?? ref / 2;
+  const right = m.actualBoundingBoxRight ?? ref / 2;
+  const ascent = m.actualBoundingBoxAscent ?? ref / 2;
+  const descent = m.actualBoundingBoxDescent ?? ref / 2;
+  const glyphW = Math.max(1, left + right);
+  const glyphH = Math.max(1, ascent + descent);
+  ctx.scale((width * 0.92) / glyphW, (height * 0.92) / glyphH);
+  // Mittelpunkt der Glyphe auf den Ursprung legen
+  ctx.fillText(glyph, (left - right) / 2, (ascent - descent) / 2);
+  ctx.restore();
 }
 
 /** Nummer mittig in den (bereits transformierten) Marker schreiben */
