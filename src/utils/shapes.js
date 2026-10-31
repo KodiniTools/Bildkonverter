@@ -21,13 +21,30 @@
  *   filled, fillColor,   // Füllung (nur Flächenformen)
  *   strokeColor, strokeWidth, dash,  // Kontur bzw. Linie ('solid'|'dashed'|'dotted')
  *   shadowBlur, shadowColor,
+ *   number, textColor, markerStyle,   // nur Marker ('circle'|'square')
+ *   effect, region, intensity,        // nur Verpixeln/Weichzeichnen
  * }
  */
 
-/** Zeichenart: Flächenformen werden gefüllt (+ optionale Kontur), Linienformen nur gestrichen. */
-export const SHAPE_KIND = Object.freeze({ FILL: 'fill', STROKE: 'stroke' });
+/**
+ * Zeichenart: Flächenformen werden gefüllt (+ optionale Kontur), Linienformen
+ * nur gestrichen, Marker zeigen zusätzlich eine Nummer, Effekte (Verpixeln,
+ * Weichzeichnen) verändern den Bildinhalt unter sich.
+ */
+export const SHAPE_KIND = Object.freeze({
+  FILL: 'fill',
+  STROKE: 'stroke',
+  MARKER: 'marker',
+  EFFECT: 'effect',
+});
 
-export const SHAPE_CATEGORIES = Object.freeze(['basic', 'arrows', 'lines', 'symbols']);
+export const SHAPE_CATEGORIES = Object.freeze(['basic', 'arrows', 'lines', 'symbols', 'annotate']);
+
+/** Effekte der Zensur-Form und ihre Umrissformen */
+export const CENSOR_EFFECTS = Object.freeze(['pixelate', 'blur']);
+export const CENSOR_REGIONS = Object.freeze(['rect', 'ellipse']);
+export const MARKER_STYLES = Object.freeze(['circle', 'square']);
+export const MARKER_MAX = 999;
 
 export const DASH_STYLES = Object.freeze(['solid', 'dashed', 'dotted']);
 
@@ -396,6 +413,21 @@ export const SHAPE_PATHS = Object.freeze({
       );
     },
   },
+
+  // Nummerierter Marker: Kreis oder abgerundetes Quadrat (Nummer zeichnet drawShape)
+  marker: {
+    kind: SHAPE_KIND.MARKER,
+    path: (w, h, shape) =>
+      shape?.markerStyle === 'square'
+        ? roundedRectPath(w, h, Math.min(w, h) * 0.22)
+        : ellipsePath(0, 0, w / 2, h / 2),
+  },
+  // Verpixeln / Weichzeichnen: Pfad ist nur der Umriss des Bereichs
+  censor: {
+    kind: SHAPE_KIND.EFFECT,
+    path: (w, h, shape) =>
+      shape?.region === 'ellipse' ? ellipsePath(0, 0, w / 2, h / 2) : roundedRectPath(w, h, 0),
+  },
 });
 
 // ===== GALERIE =====
@@ -475,6 +507,31 @@ export const SHAPE_GALLERY = Object.freeze([
     preset: { fillColor: '#ffffff', strokeColor: '#1f2937', strokeRatio: 0.025 },
   },
   { id: 'pin', type: 'pin', category: 'symbols', aspect: 0.75 },
+
+  { id: 'marker', type: 'marker', category: 'annotate', aspect: 1 },
+  {
+    id: 'markerSquare',
+    type: 'marker',
+    category: 'annotate',
+    aspect: 1,
+    preset: { markerStyle: 'square' },
+  },
+  { id: 'pixelate', type: 'censor', category: 'annotate', aspect: 1.3 },
+  {
+    id: 'pixelateEllipse',
+    type: 'censor',
+    category: 'annotate',
+    aspect: 0.8,
+    preset: { region: 'ellipse' },
+  },
+  { id: 'blur', type: 'censor', category: 'annotate', aspect: 1.3, preset: { effect: 'blur' } },
+  {
+    id: 'blurEllipse',
+    type: 'censor',
+    category: 'annotate',
+    aspect: 0.8,
+    preset: { effect: 'blur', region: 'ellipse' },
+  },
 ]);
 
 export function getShapeKind(type) {
@@ -486,11 +543,33 @@ export function isHeightless(type) {
   return type === 'line';
 }
 
-/** SVG-Pfaddaten der Form im lokalen System (leer bei unbekanntem Typ) */
-export function getShapePathData(type, width, height) {
+/**
+ * SVG-Pfaddaten der Form im lokalen System (leer bei unbekanntem Typ).
+ * `options` liefert formabhängige Varianten (markerStyle, region).
+ */
+export function getShapePathData(type, width, height, options = null) {
   const def = SHAPE_PATHS[type];
   if (!def) return '';
-  return def.path(Math.max(width, 0.01), Math.max(height, 0.01));
+  return def.path(Math.max(width, 0.01), Math.max(height, 0.01), options);
+}
+
+/** Nächste freie Marker-Nummer (höchste vorhandene + 1) */
+export function nextMarkerNumber(shapes) {
+  if (!Array.isArray(shapes)) return 1;
+  const max = shapes.reduce(
+    (m, s) => (s?.type === 'marker' ? Math.max(m, Number(s.number) || 0) : m),
+    0
+  );
+  return Math.min(MARKER_MAX, max + 1);
+}
+
+/** Pixelgröße der Verpixelung bzw. Radius der Unschärfe in Canvas-px */
+export function getCensorStrength(shape) {
+  const minSide = Math.max(1, Math.min(shape.width, shape.height));
+  const intensity = Math.max(1, Math.min(100, Number(shape.intensity) || 50));
+  return shape.effect === 'blur'
+    ? Math.max(1, (minSide * intensity) / 400)
+    : Math.max(2, Math.round((minSide * intensity) / 250));
 }
 
 /**
@@ -502,14 +581,42 @@ export function getGalleryPreview(item, size = 40, padding = 6) {
   const aspect = item.aspect || 1;
   const width = aspect >= 1 ? box : box * aspect;
   const height = isHeightless(item.type) ? box / 4 : aspect >= 1 ? box / aspect : box;
-  return {
-    d: getShapePathData(item.type, width, height),
+  const kind = getShapeKind(item.type);
+  const preview = {
+    d: getShapePathData(item.type, width, height, item.preset),
     viewBox: `${-size / 2} ${-size / 2} ${size} ${size}`,
-    kind: getShapeKind(item.type),
+    kind,
     fillRule: SHAPE_PATHS[item.type]?.fillRule ?? 'nonzero',
     filled: item.preset?.filled ?? true,
     dash: item.preset?.dash ?? 'solid',
+    label: kind === SHAPE_KIND.MARKER ? '1' : null,
+    effect: kind === SHAPE_KIND.EFFECT ? (item.preset?.effect ?? 'pixelate') : null,
+    pattern: '',
   };
+  if (preview.effect === 'pixelate') {
+    // Schachbrett im inneren Bereich als Symbol für Verpixeln
+    const cells = 4;
+    const inner = Math.min(width, height) * (item.preset?.region === 'ellipse' ? 0.62 : 0.8);
+    const cell = inner / cells;
+    const squares = [];
+    for (let r = 0; r < cells; r++) {
+      for (let c = 0; c < cells; c++) {
+        if ((r + c) % 2) continue;
+        const x = -inner / 2 + c * cell;
+        const y = -inner / 2 + r * cell;
+        squares.push(
+          polygonPath([
+            [x, y],
+            [x + cell, y],
+            [x + cell, y + cell],
+            [x, y + cell],
+          ])
+        );
+      }
+    }
+    preview.pattern = squares.join(' ');
+  }
+  return preview;
 }
 
 let idCounter = 0;
@@ -546,6 +653,12 @@ export function createShape(galleryId, canvasWidth, canvasHeight) {
   width = Math.round(width);
   height = Math.round(height);
 
+  if (kind === SHAPE_KIND.MARKER) {
+    const size = Math.max(24, Math.round(Math.min(W, H) * 0.09));
+    width = size;
+    height = size;
+  }
+
   const lineStroke = Math.max(2, Math.round(base * 0.05));
   const strokeRatio = preset.strokeRatio;
   const strokeWidth =
@@ -575,6 +688,23 @@ export function createShape(galleryId, canvasWidth, canvasHeight) {
     dash: preset.dash ?? 'solid',
     shadowBlur: 0,
     shadowColor: '#000000',
+    ...(kind === SHAPE_KIND.MARKER
+      ? {
+          number: 1,
+          textColor: preset.textColor ?? '#ffffff',
+          markerStyle: preset.markerStyle ?? 'circle',
+          strokeColor: '#ffffff',
+          strokeWidth: Math.max(2, Math.round(width * 0.07)),
+        }
+      : {}),
+    ...(kind === SHAPE_KIND.EFFECT
+      ? {
+          effect: preset.effect ?? 'pixelate',
+          region: preset.region ?? 'rect',
+          intensity: 50,
+          strokeWidth: 0,
+        }
+      : {}),
   };
 }
 
@@ -595,18 +725,26 @@ export function drawShape(ctx, shape) {
   if (!def) return;
   const width = Math.max(shape.width, 0.01);
   const height = Math.max(shape.height, 0.01);
-  const path = new Path2D(def.path(width, height));
+  const path = new Path2D(def.path(width, height, shape));
   const kind = def.kind;
+  if (kind === SHAPE_KIND.EFFECT) {
+    drawCensor(ctx, shape, path);
+    return;
+  }
+  const isMarker = kind === SHAPE_KIND.MARKER;
   const strokeWidth = Math.max(0, Number(shape.strokeWidth) || 0);
-  const hasFill = kind === SHAPE_KIND.FILL && shape.filled !== false;
+  const hasFill = (kind === SHAPE_KIND.FILL || isMarker) && shape.filled !== false;
   const hasStroke = strokeWidth > 0;
-  if (!hasFill && !hasStroke) return;
+  if (!hasFill && !hasStroke && !isMarker) return;
 
   ctx.save();
   ctx.globalAlpha = Math.max(0, Math.min(100, shape.opacity ?? 100)) / 100;
   ctx.translate(shape.x, shape.y);
   if (shape.rotation) ctx.rotate((shape.rotation * Math.PI) / 180);
-  if (shape.flipX || shape.flipY) ctx.scale(shape.flipX ? -1 : 1, shape.flipY ? -1 : 1);
+  // Marker nicht spiegeln (die Nummer bliebe sonst spiegelverkehrt)
+  if (!isMarker && (shape.flipX || shape.flipY)) {
+    ctx.scale(shape.flipX ? -1 : 1, shape.flipY ? -1 : 1);
+  }
 
   if (shape.shadowBlur > 0) {
     ctx.shadowColor = shape.shadowColor || '#000000';
@@ -629,10 +767,97 @@ export function drawShape(ctx, shape) {
     ctx.lineWidth = strokeWidth;
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
-    ctx.setLineDash(getDashPattern(shape.dash, strokeWidth));
+    ctx.setLineDash(getDashPattern(isMarker ? 'solid' : shape.dash, strokeWidth));
     ctx.stroke(path);
   }
 
+  if (isMarker) drawMarkerNumber(ctx, shape, width, height);
+
+  ctx.restore();
+}
+
+/** Nummer mittig in den (bereits transformierten) Marker schreiben */
+function drawMarkerNumber(ctx, shape, width, height) {
+  const label = String(Math.max(0, Math.round(Number(shape.number) || 0)));
+  const factor = label.length >= 3 ? 0.4 : label.length === 2 ? 0.5 : 0.6;
+  const fontSize = Math.max(6, Math.min(width, height) * factor);
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.setLineDash([]);
+  ctx.fillStyle = shape.textColor || '#ffffff';
+  ctx.font = `${fontSize}px "Satoshi Bold", "Helvetica Neue", Arial, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  // Ziffern sitzen optisch etwas hoch → leicht nach unten versetzen
+  ctx.fillText(label, 0, fontSize * 0.05);
+}
+
+/** true, wenn der Kontext CSS-Filter unterstützt (Safari: nein) */
+function supportsCanvasFilter(ctx) {
+  return typeof ctx.filter === 'string';
+}
+
+/**
+ * Verpixeln/Weichzeichnen: kopiert den bereits gezeichneten Canvas-Inhalt unter
+ * dem Bereich, verarbeitet ihn und zeichnet ihn – auf den (gedrehten) Umriss
+ * beschnitten – zurück. Wirkt daher auf Bild und darunterliegende Ebenen.
+ * Erwartet, dass der Kontext im Canvas-Pixelsystem steht (Overlay-Pass).
+ */
+function drawCensor(ctx, shape, path) {
+  const source = ctx.canvas;
+  if (!source || !source.width || !source.height || typeof document === 'undefined') return;
+
+  const strength = getCensorStrength(shape);
+  const isBlur = shape.effect === 'blur';
+  const pad = isBlur ? Math.ceil(strength * 2) : 0;
+
+  // Achsenparalleler Rahmen des gedrehten Bereichs, auf den Canvas begrenzt
+  const corners = [
+    toCanvas(shape, -shape.width / 2, -shape.height / 2),
+    toCanvas(shape, shape.width / 2, -shape.height / 2),
+    toCanvas(shape, shape.width / 2, shape.height / 2),
+    toCanvas(shape, -shape.width / 2, shape.height / 2),
+  ];
+  const x0 = Math.max(0, Math.floor(Math.min(...corners.map((p) => p.x)) - pad));
+  const y0 = Math.max(0, Math.floor(Math.min(...corners.map((p) => p.y)) - pad));
+  const x1 = Math.min(source.width, Math.ceil(Math.max(...corners.map((p) => p.x)) + pad));
+  const y1 = Math.min(source.height, Math.ceil(Math.max(...corners.map((p) => p.y)) + pad));
+  const sw = x1 - x0;
+  const sh = y1 - y0;
+  if (sw <= 0 || sh <= 0) return;
+
+  const out = document.createElement('canvas');
+  out.width = sw;
+  out.height = sh;
+  const octx = out.getContext('2d');
+
+  if (isBlur && supportsCanvasFilter(octx)) {
+    octx.filter = `blur(${strength}px)`;
+    octx.drawImage(source, x0, y0, sw, sh, 0, 0, sw, sh);
+  } else {
+    // Verpixeln – und Ersatz-Unschärfe ohne ctx.filter: verkleinern, wieder vergrößern
+    const step = isBlur ? Math.max(2, strength / 2) : strength;
+    const smallW = Math.max(1, Math.ceil(sw / step));
+    const smallH = Math.max(1, Math.ceil(sh / step));
+    const small = document.createElement('canvas');
+    small.width = smallW;
+    small.height = smallH;
+    const sctx = small.getContext('2d');
+    sctx.imageSmoothingEnabled = true;
+    sctx.imageSmoothingQuality = 'high';
+    sctx.drawImage(source, x0, y0, sw, sh, 0, 0, smallW, smallH);
+    octx.imageSmoothingEnabled = isBlur;
+    octx.drawImage(small, 0, 0, smallW, smallH, 0, 0, smallW * step, smallH * step);
+  }
+
+  ctx.save();
+  const base = ctx.getTransform();
+  ctx.globalAlpha = Math.max(0, Math.min(100, shape.opacity ?? 100)) / 100;
+  ctx.translate(shape.x, shape.y);
+  if (shape.rotation) ctx.rotate((shape.rotation * Math.PI) / 180);
+  ctx.clip(path);
+  ctx.setTransform(base);
+  ctx.drawImage(out, x0, y0);
   ctx.restore();
 }
 

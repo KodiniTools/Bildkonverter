@@ -12,7 +12,7 @@ import {
   normalizeText,
   validateText,
 } from '@/utils/textUtils';
-import { createShape, drawShape } from '@/utils/shapes';
+import { createShape, drawShape, nextMarkerNumber } from '@/utils/shapes';
 import { logger } from '@/utils/logger';
 
 /**
@@ -357,6 +357,8 @@ export const useImageStore = defineStore('image', () => {
   function addShape(galleryId, canvasWidth, canvasHeight) {
     const shape = createShape(galleryId, canvasWidth, canvasHeight);
     if (!shape) return null;
+    // Marker zählen automatisch weiter
+    if (shape.type === 'marker') shape.number = nextMarkerNumber(shapes.value);
     shapes.value.push(shape);
     selectShape(shape.id);
     return shapes.value[shapes.value.length - 1];
@@ -388,6 +390,7 @@ export const useImageStore = defineStore('image', () => {
       x: source.x + offset,
       y: source.y + offset,
     });
+    if (copy.type === 'marker') copy.number = nextMarkerNumber(shapes.value);
     const index = shapes.value.indexOf(source);
     shapes.value.splice(index + 1, 0, copy);
     selectShape(copy.id);

@@ -9,7 +9,7 @@
         </h3>
       </div>
 
-      <div class="segmented" role="tablist" :aria-label="$t('shapes.title')">
+      <div class="segmented segmented--wrap" role="tablist" :aria-label="$t('shapes.title')">
         <button
           v-for="category in SHAPE_CATEGORIES"
           :key="category"
@@ -83,9 +83,109 @@
 
       <p class="control-hint shape-hint">{{ $t('shapes.edit.hint') }}</p>
 
+      <!-- Marker: Nummer und Stil -->
+      <template v-if="isMarker">
+        <div class="control-group">
+          <SliderField
+            :model-value="Number(selectedShape.number) || 1"
+            :min="1"
+            :max="Math.max(99, Number(selectedShape.number) || 1)"
+            :label="$t('shapes.edit.number')"
+            icon="list"
+            input-id="shape-marker-number"
+            @update:model-value="update({ number: Math.min(MARKER_MAX, Math.max(1, $event)) })"
+            @commit="commit"
+          />
+        </div>
+        <div class="control-group">
+          <div class="segmented" :aria-label="$t('shapes.edit.markerStyle')">
+            <button
+              v-for="style in MARKER_STYLES"
+              :key="style"
+              type="button"
+              class="segmented__option"
+              :class="{ active: (selectedShape.markerStyle || 'circle') === style }"
+              :aria-pressed="(selectedShape.markerStyle || 'circle') === style"
+              @click="setAndCommit({ markerStyle: style })"
+            >
+              {{ $t(`shapes.markerStyles.${style}`) }}
+            </button>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="mini-label">{{ $t('shapes.edit.textColor') }}</label>
+          <div class="color-picker-row">
+            <input
+              type="color"
+              class="color-input"
+              :value="selectedShape.textColor || '#ffffff'"
+              :aria-label="$t('shapes.edit.textColor')"
+              @input="update({ textColor: $event.target.value })"
+              @change="commit"
+            />
+            <input
+              type="text"
+              class="color-text"
+              maxlength="7"
+              :value="selectedShape.textColor || '#ffffff'"
+              :aria-label="$t('shapes.edit.textColor')"
+              @input="updateColor('textColor', $event.target.value)"
+              @change="commit"
+            />
+          </div>
+        </div>
+      </template>
+
+      <!-- Verpixeln / Weichzeichnen -->
+      <template v-if="isEffect">
+        <div class="control-group">
+          <div class="segmented" :aria-label="$t('shapes.edit.effect')">
+            <button
+              v-for="effect in CENSOR_EFFECTS"
+              :key="effect"
+              type="button"
+              class="segmented__option"
+              :class="{ active: (selectedShape.effect || 'pixelate') === effect }"
+              :aria-pressed="(selectedShape.effect || 'pixelate') === effect"
+              @click="setAndCommit({ effect })"
+            >
+              {{ $t(`shapes.effects.${effect}`) }}
+            </button>
+          </div>
+          <div class="segmented mt-2" :aria-label="$t('shapes.edit.region')">
+            <button
+              v-for="region in CENSOR_REGIONS"
+              :key="region"
+              type="button"
+              class="segmented__option"
+              :class="{ active: (selectedShape.region || 'rect') === region }"
+              :aria-pressed="(selectedShape.region || 'rect') === region"
+              @click="setAndCommit({ region })"
+            >
+              {{ $t(`shapes.regions.${region}`) }}
+            </button>
+          </div>
+        </div>
+        <div class="control-group">
+          <SliderField
+            :model-value="Number(selectedShape.intensity) || 50"
+            :min="1"
+            :max="100"
+            unit="%"
+            :default-value="50"
+            :label="$t('shapes.edit.intensity')"
+            icon="sliders-h"
+            input-id="shape-intensity"
+            @update:model-value="update({ intensity: $event })"
+            @commit="commit"
+          />
+        </div>
+      </template>
+
       <!-- Farbe / Füllung -->
-      <div v-if="isFillKind" class="control-group">
-        <div class="toggle-row">
+      <div v-if="isFillKind || isMarker" class="control-group">
+        <label v-if="isMarker" class="mini-label">{{ $t('shapes.edit.fillColor') }}</label>
+        <div v-if="isFillKind" class="toggle-row">
           <ToggleSwitch
             id="shape-fill-toggle"
             :model-value="selectedShape.filled !== false"
@@ -93,7 +193,11 @@
           />
           <label for="shape-fill-toggle">{{ $t('shapes.edit.fill') }}</label>
         </div>
-        <div v-if="selectedShape.filled !== false" class="color-picker-row mt-2">
+        <div
+          v-if="selectedShape.filled !== false"
+          class="color-picker-row"
+          :class="{ 'mt-2': isFillKind }"
+        >
           <input
             type="color"
             class="color-input"
@@ -115,13 +219,13 @@
       </div>
 
       <!-- Linie bzw. Umrandung -->
-      <div class="control-group">
+      <div v-if="!isEffect" class="control-group">
         <SliderField
           :model-value="selectedShape.strokeWidth || 0"
-          :min="isFillKind ? 0 : 1"
+          :min="isStrokeKind ? 1 : 0"
           :max="SHAPE_LIMITS.maxStroke"
           unit="px"
-          :label="isFillKind ? $t('shapes.edit.stroke') : $t('shapes.edit.lineWidth')"
+          :label="isStrokeKind ? $t('shapes.edit.lineWidth') : $t('shapes.edit.stroke')"
           icon="border-style"
           input-id="shape-stroke-width"
           @update:model-value="update({ strokeWidth: $event })"
@@ -146,7 +250,11 @@
             @change="commit"
           />
         </div>
-        <div v-if="hasStroke" class="segmented mt-2" :aria-label="$t('shapes.edit.lineStyle')">
+        <div
+          v-if="hasStroke && !isMarker"
+          class="segmented mt-2"
+          :aria-label="$t('shapes.edit.lineStyle')"
+        >
           <button
             v-for="dash in DASH_STYLES"
             :key="dash"
@@ -191,7 +299,7 @@
           @update:model-value="update({ rotation: $event })"
           @commit="commit"
         />
-        <div class="segmented mt-2">
+        <div v-if="!isMarker && !isEffect" class="segmented mt-2">
           <button
             type="button"
             class="segmented__option"
@@ -216,7 +324,20 @@
       </div>
 
       <!-- Größe -->
-      <div class="control-group">
+      <div v-if="isMarker" class="control-group">
+        <SliderField
+          :model-value="Math.round(selectedShape.width)"
+          :min="SHAPE_LIMITS.minSize"
+          :max="sizeMax(selectedShape.width)"
+          unit="px"
+          :label="$t('shapes.edit.size')"
+          icon="expand-arrows-alt"
+          input-id="shape-size"
+          @update:model-value="update({ width: $event, height: $event })"
+          @commit="commit"
+        />
+      </div>
+      <div v-if="!isMarker" class="control-group">
         <SliderField
           :model-value="Math.round(selectedShape.width)"
           :min="SHAPE_LIMITS.minSize"
@@ -229,7 +350,7 @@
           @commit="commit"
         />
       </div>
-      <div v-if="!heightless" class="control-group">
+      <div v-if="!heightless && !isMarker" class="control-group">
         <SliderField
           :model-value="Math.round(selectedShape.height)"
           :min="SHAPE_LIMITS.minSize"
@@ -276,7 +397,7 @@
       </div>
 
       <!-- Schatten -->
-      <div class="control-group">
+      <div v-if="!isEffect" class="control-group">
         <SliderField
           :model-value="selectedShape.shadowBlur || 0"
           :min="0"
@@ -366,7 +487,11 @@ import SliderField from '@/components/ui/SliderField.vue';
 import ToggleSwitch from '@/components/ui/ToggleSwitch.vue';
 import ShapeIcon from './ShapeIcon.vue';
 import {
+  CENSOR_EFFECTS,
+  CENSOR_REGIONS,
   DASH_STYLES,
+  MARKER_MAX,
+  MARKER_STYLES,
   SHAPE_CATEGORIES,
   SHAPE_GALLERY,
   SHAPE_KIND,
@@ -397,7 +522,11 @@ const reversedShapes = computed(() => [...shapes.value].reverse());
 const selectedId = computed(() => imageStore.selectedShapeId);
 const selectedShape = computed(() => imageStore.selectedShape);
 
-const isFillKind = computed(() => getShapeKind(selectedShape.value?.type) === SHAPE_KIND.FILL);
+const selectedKind = computed(() => getShapeKind(selectedShape.value?.type));
+const isFillKind = computed(() => selectedKind.value === SHAPE_KIND.FILL);
+const isStrokeKind = computed(() => selectedKind.value === SHAPE_KIND.STROKE);
+const isMarker = computed(() => selectedKind.value === SHAPE_KIND.MARKER);
+const isEffect = computed(() => selectedKind.value === SHAPE_KIND.EFFECT);
 const heightless = computed(() => isHeightless(selectedShape.value?.type));
 const hasStroke = computed(() => (selectedShape.value?.strokeWidth || 0) > 0);
 const shapeIndex = computed(() => shapes.value.findIndex((s) => s.id === selectedId.value));
@@ -531,6 +660,16 @@ function reorder(direction) {
 
   &.mt-2 {
     margin-top: var(--ds-space-2);
+  }
+}
+
+// Kategorien: bei Platzmangel in zwei Zeilen (3 + 2) statt abgeschnitten
+.segmented--wrap {
+  flex-wrap: wrap;
+
+  .segmented__option {
+    flex: 1 1 30%;
+    min-height: calc(var(--ds-control-md) - 6px);
   }
 }
 
@@ -730,7 +869,8 @@ function reorder(direction) {
 
   .transform-btn {
     min-width: 0;
-    padding: 0 var(--ds-space-2);
+    gap: var(--ds-space-1);
+    padding: 0 var(--ds-space-1);
     font-size: var(--ds-text-sm);
   }
 }
