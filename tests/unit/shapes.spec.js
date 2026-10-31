@@ -603,6 +603,10 @@ describe('Sticker und Emojis', () => {
       expect.arrayContaining(['thumbsUp', 'exclamation', 'question', 'badgeNew', 'badgeSale'])
     );
     for (const id of Object.keys(EMOJI_SET)) expect(ids).toContain(id);
+    // 32 Emojis, jedes Zeichen nur einmal
+    const glyphs = Object.values(EMOJI_SET);
+    expect(glyphs).toHaveLength(32);
+    expect(new Set(glyphs).size).toBe(glyphs.length);
   });
 
   it('Badges und Zeichen sind Textformen; Emojis haben ihr Zeichen und keine Kontur', () => {
