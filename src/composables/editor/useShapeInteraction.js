@@ -3,7 +3,8 @@
  *
  * Zeiger-Interaktion mit Formen-Ebenen auf dem Editor-Canvas: Auswählen,
  * Verschieben, Größe über die Eck-Griffe (Shift = Seitenverhältnis halten)
- * und Drehen über den Drehgriff (Shift = 15°-Schritte). Wird von
+ * und Drehen über den Drehgriff (Shift = 15°-Schritte). Im Zeichenmodus
+ * (imageStore.drawTool) entsteht pro Strich eine Freihand-Form. Wird von
  * useCanvasInteraction für Maus und Touch aufgerufen.
  *
  * Alle Positionen sind Canvas-Koordinaten; Griffgrößen werden über die
@@ -15,9 +16,13 @@
  * @param {Function} deps.renderImage
  * @param {Function} deps.saveHistory
  */
+import { nextTick } from 'vue';
 import {
   findShapeAt,
   findShapeHandleAt,
+  fitFreehandPoints,
+  getDefaultDrawWidth,
+  supportsShapeText,
   resizeFromCorner,
   rotationFromPointer,
 } from '@/utils/shapes';
@@ -32,6 +37,8 @@ import {
 const HIT_SLOP = 4;
 const HIT_SLOP_TOUCH = 12;
 const ROTATE_SNAP = 15;
+// Mindestabstand zwischen zwei Freihand-Punkten in Bildschirm-Pixeln
+const DRAW_MIN_DISTANCE = 2;
 
 // Cursor je Ecke (ohne Rotation; reicht als Hinweis)
 const CORNER_CURSORS = {
@@ -42,7 +49,10 @@ const CORNER_CURSORS = {
 };
 
 export function useShapeInteraction({ canvas, imageStore, renderImage, saveHistory }) {
-  /** Laufende Aktion: { mode: 'move'|'resize'|'rotate', id, corner?, start, pointer } */
+  /**
+   * Laufende Aktion: { mode: 'move'|'resize'|'rotate', id, corner?, start, pointer }
+   * bzw. { mode: 'draw', id, points } beim Freihand-Zeichnen.
+   */
   let drag = null;
 
   function px() {
@@ -99,6 +109,31 @@ export function useShapeInteraction({ canvas, imageStore, renderImage, saveHisto
     return true;
   }
 
+  function isDrawMode() {
+    return !!imageStore.drawTool;
+  }
+
+  /**
+   * Zeichenmodus aktiv: neuen Strich an der Position beginnen.
+   * @returns {boolean} true, wenn ein Strich gestartet wurde
+   */
+  function startDraw(pos) {
+    const tool = imageStore.drawTool;
+    if (!tool || typeof imageStore.addFreehandShape !== 'function') return false;
+    if (imageStore.drawSettings?.[tool]?.width == null && canvas.value) {
+      imageStore.updateDrawSettings?.(tool, {
+        width: getDefaultDrawWidth(tool, canvas.value.width, canvas.value.height),
+      });
+    }
+    if (imageStore.selectedShapeId !== null) imageStore.selectShape(null);
+    const points = [{ x: pos.x, y: pos.y }];
+    const shape = imageStore.addFreehandShape(points, tool);
+    if (!shape) return false;
+    drag = { mode: 'draw', id: shape.id, points };
+    renderImage();
+    return true;
+  }
+
   function isDragging() {
     return drag !== null;
   }
@@ -111,7 +146,12 @@ export function useShapeInteraction({ canvas, imageStore, renderImage, saveHisto
       drag = null;
       return false;
     }
-    if (drag.mode === 'move') {
+    if (drag.mode === 'draw') {
+      const last = drag.points[drag.points.length - 1];
+      if (Math.hypot(pos.x - last.x, pos.y - last.y) < DRAW_MIN_DISTANCE * px()) return true;
+      drag.points.push({ x: pos.x, y: pos.y });
+      Object.assign(shape, fitFreehandPoints(drag.points));
+    } else if (drag.mode === 'move') {
       shape.x = Math.round(drag.start.x + pos.x - drag.pointer.x);
       shape.y = Math.round(drag.start.y + pos.y - drag.pointer.y);
     } else if (drag.mode === 'resize') {
@@ -132,10 +172,12 @@ export function useShapeInteraction({ canvas, imageStore, renderImage, saveHisto
     if (!drag) return false;
     const shape = imageStore.shapes.find((s) => s.id === drag.id);
     const changed =
-      shape &&
-      ['x', 'y', 'width', 'height', 'rotation'].some((key) => shape[key] !== drag.start[key]);
+      drag.mode === 'draw'
+        ? !!shape
+        : shape &&
+          ['x', 'y', 'width', 'height', 'rotation'].some((key) => shape[key] !== drag.start[key]);
     drag = null;
-    if (canvas.value) canvas.value.style.cursor = 'default';
+    if (canvas.value) canvas.value.style.cursor = isDrawMode() ? 'crosshair' : 'default';
     if (changed) saveHistory();
     renderImage();
     return true;
@@ -143,9 +185,32 @@ export function useShapeInteraction({ canvas, imageStore, renderImage, saveHisto
 
   /** Hover-Cursor (null = keine Form/kein Griff unter dem Zeiger) */
   function cursorAt(pos) {
+    if (isDrawMode()) return 'crosshair';
     const hit = handleAt(pos);
     if (hit) return hit.mode === 'rotate' ? 'grab' : CORNER_CURSORS[hit.corner];
     return shapeAt(pos) ? 'move' : null;
+  }
+
+  /**
+   * Doppelklick: Form mit Textfeld auswählen und die Texteingabe im Panel
+   * fokussieren. @returns {boolean} true, wenn eine Textform getroffen wurde
+   */
+  function editTextAt(pos) {
+    if (isDrawMode()) return false;
+    const shape = shapeAt(pos);
+    if (!shape || !supportsShapeText(shape.type)) return false;
+    imageStore.selectShape(shape.id);
+    nextTick(() => {
+      if (typeof document === 'undefined') return;
+      const input = [...document.querySelectorAll('.shape-text-input')].find(
+        (el) => el.offsetParent !== null
+      );
+      if (input) {
+        input.focus();
+        input.select?.();
+      }
+    });
+    return true;
   }
 
   /** Auswahl aufheben (Klick ins Leere) */
@@ -154,12 +219,15 @@ export function useShapeInteraction({ canvas, imageStore, renderImage, saveHisto
   }
 
   return {
+    startDraw,
+    isDrawMode,
     startHandleDrag,
     startBodyDrag,
     moveDrag,
     endDrag,
     isDragging,
     cursorAt,
+    editTextAt,
     deselect,
   };
 }

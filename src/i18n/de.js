@@ -604,6 +604,7 @@ export default {
       lines: 'Linien',
       symbols: 'Symbole',
       annotate: 'Markieren',
+      draw: 'Zeichnen',
     },
     items: {
       rect: 'Rechteck',
@@ -642,6 +643,11 @@ export default {
       pixelateEllipse: 'Verpixeln (oval)',
       blur: 'Weichzeichnen',
       blurEllipse: 'Weichzeichnen (oval)',
+      textBox: 'Textfeld',
+      speechBubbleText: 'Sprechblase mit Text',
+      label: 'Etikett',
+      pen: 'Stift',
+      highlighter: 'Textmarker',
     },
     dash: {
       solid: 'Durchgehend',
@@ -655,6 +661,17 @@ export default {
     effects: {
       pixelate: 'Verpixeln',
       blur: 'Weichzeichnen',
+    },
+    align: {
+      left: 'Links',
+      center: 'Mitte',
+      right: 'Rechts',
+    },
+    draw: {
+      hint: 'Stift oder Textmarker wählen und direkt auf dem Bild zeichnen.',
+      activeHint: 'Auf dem Bild zeichnen. Jeder Strich wird eine eigene Form. Esc beendet.',
+      color: 'Farbe',
+      done: 'Zeichnen beenden',
     },
     regions: {
       rect: 'Rechteck',
@@ -693,6 +710,12 @@ export default {
       duplicate: 'Duplizieren',
       delete: 'Form löschen',
       deselect: 'Auswahl aufheben',
+      text: 'Text',
+      textPlaceholder: 'Text eingeben …',
+      font: 'Schriftart',
+      fontSize: 'Schriftgröße',
+      textFill: 'Textfarbe',
+      textAlign: 'Ausrichtung',
     },
   },
   gallery: {

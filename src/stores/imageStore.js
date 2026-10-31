@@ -12,7 +12,13 @@ import {
   normalizeText,
   validateText,
 } from '@/utils/textUtils';
-import { createShape, drawShape, nextMarkerNumber } from '@/utils/shapes';
+import {
+  createFreehandShape,
+  createShape,
+  DRAW_TOOLS,
+  drawShape,
+  nextMarkerNumber,
+} from '@/utils/shapes';
 import { logger } from '@/utils/logger';
 
 /**
@@ -51,6 +57,12 @@ export const useImageStore = defineStore('image', () => {
   // Formen & Symbole (Overlay-Ebenen unter den Texten)
   const shapes = ref([]);
   const selectedShapeId = ref(null);
+  // Zeichenmodus: null | 'pen' | 'highlighter' und Stil je Werkzeug (width null = automatisch)
+  const drawTool = ref(null);
+  const drawSettings = ref({
+    pen: { color: '#e53935', width: null, opacity: 100 },
+    highlighter: { color: '#ffeb3b', width: null, opacity: 60 },
+  });
 
   // Bild-Layer für Collage
   const imageLayers = ref([]);
@@ -421,6 +433,31 @@ export const useImageStore = defineStore('image', () => {
   function clearShapes() {
     shapes.value = [];
     selectedShapeId.value = null;
+    drawTool.value = null;
+  }
+
+  /** Zeichenwerkzeug ein-/ausschalten; beim Einschalten wird die Auswahl aufgehoben */
+  function setDrawTool(tool) {
+    drawTool.value = DRAW_TOOLS.includes(tool) ? tool : null;
+    if (drawTool.value) selectShape(null);
+  }
+
+  function updateDrawSettings(tool, patch) {
+    if (!DRAW_TOOLS.includes(tool)) return;
+    drawSettings.value[tool] = { ...drawSettings.value[tool], ...patch };
+  }
+
+  /**
+   * Fügt einen gezeichneten Strich als Form hinzu (ohne ihn auszuwählen, damit
+   * direkt weitergezeichnet werden kann).
+   * @param {{x:number,y:number}[]} canvasPoints
+   */
+  function addFreehandShape(canvasPoints, tool = drawTool.value) {
+    const settings = drawSettings.value[tool] ?? drawSettings.value.pen;
+    const shape = createFreehandShape(canvasPoints, { tool, ...settings });
+    if (!shape) return null;
+    shapes.value.push(shape);
+    return shapes.value[shapes.value.length - 1];
   }
 
   // ===== BILD-LAYER FUNKTIONEN (COLLAGE) =====
@@ -735,6 +772,8 @@ export const useImageStore = defineStore('image', () => {
     selectedTextId,
     shapes,
     selectedShapeId,
+    drawTool,
+    drawSettings,
     imageLayers,
     selectedLayerId,
     canvasBackgroundColor,
@@ -768,6 +807,9 @@ export const useImageStore = defineStore('image', () => {
     moveShapeOrder,
     selectShape,
     clearShapes,
+    setDrawTool,
+    updateDrawSettings,
+    addFreehandShape,
 
     // Actions - Image Layers (Collage)
     addImageLayer,

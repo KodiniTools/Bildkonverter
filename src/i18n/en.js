@@ -605,6 +605,7 @@ export default {
       lines: 'Lines',
       symbols: 'Symbols',
       annotate: 'Annotate',
+      draw: 'Draw',
     },
     items: {
       rect: 'Rectangle',
@@ -643,6 +644,11 @@ export default {
       pixelateEllipse: 'Pixelate (oval)',
       blur: 'Blur',
       blurEllipse: 'Blur (oval)',
+      textBox: 'Text box',
+      speechBubbleText: 'Speech bubble with text',
+      label: 'Label',
+      pen: 'Pen',
+      highlighter: 'Highlighter',
     },
     dash: {
       solid: 'Solid',
@@ -656,6 +662,17 @@ export default {
     effects: {
       pixelate: 'Pixelate',
       blur: 'Blur',
+    },
+    align: {
+      left: 'Left',
+      center: 'Center',
+      right: 'Right',
+    },
+    draw: {
+      hint: 'Choose the pen or highlighter and draw directly on the image.',
+      activeHint: 'Draw on the image. Each stroke becomes its own shape. Esc stops drawing.',
+      color: 'Color',
+      done: 'Stop drawing',
     },
     regions: {
       rect: 'Rectangle',
@@ -694,6 +711,12 @@ export default {
       duplicate: 'Duplicate',
       delete: 'Delete shape',
       deselect: 'Deselect',
+      text: 'Text',
+      textPlaceholder: 'Enter text …',
+      font: 'Font',
+      fontSize: 'Font size',
+      textFill: 'Text color',
+      textAlign: 'Alignment',
     },
   },
   gallery: {

@@ -55,6 +55,22 @@ provide(LAYER_PANEL_KEY, panel);
   flex: 1;
   overflow-y: auto;
   padding: var(--ds-space-2);
+
+  @supports not selector(::-webkit-scrollbar) {
+    scrollbar-width: thin;
+    scrollbar-color: var(--ds-text-3) transparent;
+  }
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--ds-text-3);
+    border-radius: var(--ds-radius-full);
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
 }
 
 /* Mobile Responsiveness */

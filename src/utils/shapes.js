@@ -23,6 +23,9 @@
  *   shadowBlur, shadowColor,
  *   number, textColor, markerStyle,   // nur Marker ('circle'|'square')
  *   effect, region, intensity,        // nur Verpixeln/Weichzeichnen
+ *   text, textColor, fontFamily,      // nur Formen mit Textfeld (SHAPE_PATHS[type].textBox)
+ *   textScale, textAlign,             // Schriftgröße relativ zu min(Breite, Höhe)
+ *   points, tool,                     // nur Freihand: normierte Punkte, 'pen'|'highlighter'
  * }
  */
 
@@ -38,7 +41,14 @@ export const SHAPE_KIND = Object.freeze({
   EFFECT: 'effect',
 });
 
-export const SHAPE_CATEGORIES = Object.freeze(['basic', 'arrows', 'lines', 'symbols', 'annotate']);
+export const SHAPE_CATEGORIES = Object.freeze([
+  'basic',
+  'arrows',
+  'lines',
+  'symbols',
+  'annotate',
+  'draw',
+]);
 
 /** Effekte der Zensur-Form und ihre Umrissformen */
 export const CENSOR_EFFECTS = Object.freeze(['pixelate', 'blur']);
@@ -47,6 +57,25 @@ export const MARKER_STYLES = Object.freeze(['circle', 'square']);
 export const MARKER_MAX = 999;
 
 export const DASH_STYLES = Object.freeze(['solid', 'dashed', 'dotted']);
+
+/** Text in Formen */
+export const TEXT_ALIGNS = Object.freeze(['left', 'center', 'right']);
+export const SHAPE_TEXT_DEFAULTS = Object.freeze({
+  fontFamily: 'Satoshi Bold',
+  textColor: '#1f2937',
+  textScale: 0.22,
+  textAlign: 'center',
+});
+/** Grenzen für textScale (Anteil an min(Breite, Höhe)) */
+export const TEXT_SCALE_LIMITS = Object.freeze({ min: 0.04, max: 0.9 });
+const TEXT_LINE_HEIGHT = 1.2;
+
+/** Freihand-Werkzeuge: Stift und halbtransparenter Textmarker */
+export const DRAW_TOOLS = Object.freeze(['pen', 'highlighter']);
+export const DRAW_TOOL_DEFAULTS = Object.freeze({
+  pen: { color: '#e53935', widthRatio: 0.006, opacity: 100 },
+  highlighter: { color: '#ffeb3b', widthRatio: 0.03, opacity: 60 },
+});
 
 export const SHAPE_LIMITS = Object.freeze({
   minSize: 4,
@@ -148,6 +177,40 @@ function arrowHead(tip, dir, length, spread) {
   );
 }
 
+/** Breite der Etiketten-Spitze */
+function labelPointWidth(w, h) {
+  return Math.min(h * 0.5, w * 0.3);
+}
+
+// Wellenlinie als Vorschau, solange eine Freihand-Form keine Punkte hat
+const FREEHAND_PREVIEW = Object.freeze([
+  [-0.5, 0.2],
+  [-0.32, -0.3],
+  [-0.14, 0.1],
+  [0.04, 0.5],
+  [0.22, -0.1],
+  [0.38, -0.5],
+  [0.5, -0.2],
+]);
+
+/**
+ * Glatter Pfad durch Punkte (quadratische Kurven über die Mittelpunkte).
+ * Punkte sind auf den Rahmen normiert (-0,5 … 0,5).
+ */
+function freehandPath(w, h, points) {
+  const src = Array.isArray(points) && points.length ? points : FREEHAND_PREVIEW;
+  const p = src.map(([x, y]) => [x * w, y * h]);
+  const pt = ([x, y]) => `${r2(x)} ${r2(y)}`;
+  if (p.length === 1) return `M ${pt(p[0])} L ${pt(p[0])}`;
+  if (p.length === 2) return `M ${pt(p[0])} L ${pt(p[1])}`;
+  let d = `M ${pt(p[0])}`;
+  for (let i = 1; i < p.length - 1; i++) {
+    const mid = [(p[i][0] + p[i + 1][0]) / 2, (p[i][1] + p[i + 1][1]) / 2];
+    d += ` Q ${pt(p[i])} ${pt(mid)}`;
+  }
+  return `${d} L ${pt(p[p.length - 1])}`;
+}
+
 // ===== PFADE =====
 
 /**
@@ -159,14 +222,18 @@ export const SHAPE_PATHS = Object.freeze({
   rect: {
     kind: SHAPE_KIND.FILL,
     path: (w, h) => roundedRectPath(w, h, 0),
+    textBox: (w, h) => ({ x: 0, y: 0, width: w * 0.88, height: h * 0.84 }),
   },
   roundedRect: {
     kind: SHAPE_KIND.FILL,
     path: (w, h) => roundedRectPath(w, h, Math.min(w, h) * 0.2),
+    textBox: (w, h) => ({ x: 0, y: 0, width: w * 0.86, height: h * 0.8 }),
   },
   ellipse: {
     kind: SHAPE_KIND.FILL,
     path: (w, h) => ellipsePath(0, 0, w / 2, h / 2),
+    // Größtes einbeschriebenes Rechteck ≈ 0,707 × Achsen, mit etwas Rand
+    textBox: (w, h) => ({ x: 0, y: 0, width: w * 0.66, height: h * 0.64 }),
   },
   triangle: {
     kind: SHAPE_KIND.FILL,
@@ -195,6 +262,7 @@ export const SHAPE_PATHS = Object.freeze({
         [0, h / 2],
         [-w / 2, 0],
       ]),
+    textBox: (w, h) => ({ x: 0, y: 0, width: w * 0.48, height: h * 0.46 }),
   },
   pentagon: { kind: SHAPE_KIND.FILL, path: (w, h) => regularPolygon(5, w, h) },
   hexagon: { kind: SHAPE_KIND.FILL, path: (w, h) => regularPolygon(6, w, h) },
@@ -393,6 +461,38 @@ export const SHAPE_PATHS = Object.freeze({
         'Z',
       ].join(' ');
     },
+    // Nur der Blasenkörper (oberhalb des Zipfels)
+    textBox: (w, h) => ({ x: 0, y: -h * 0.125, width: w * 0.86, height: h * 0.62 }),
+  },
+  // Etikett / Anhänger: Spitze links mit Loch, Text im Rechteckteil
+  label: {
+    kind: SHAPE_KIND.FILL,
+    fillRule: 'evenodd',
+    path: (w, h) => {
+      const a = w / 2;
+      const b = h / 2;
+      const p = labelPointWidth(w, h);
+      const r = Math.min(w, h) * 0.12;
+      const hole = Math.min(h * 0.1, p * 0.28);
+      return (
+        [
+          `M ${r2(-a)} 0`,
+          `L ${r2(-a + p)} ${r2(-b)}`,
+          `H ${r2(a - r)}`,
+          `Q ${r2(a)} ${r2(-b)} ${r2(a)} ${r2(-b + r)}`,
+          `V ${r2(b - r)}`,
+          `Q ${r2(a)} ${r2(b)} ${r2(a - r)} ${r2(b)}`,
+          `H ${r2(-a + p)}`,
+          'Z',
+        ].join(' ') +
+        ' ' +
+        ellipsePath(-a + p * 0.62, 0, hole, hole)
+      );
+    },
+    textBox: (w, h) => {
+      const p = labelPointWidth(w, h);
+      return { x: p / 2, y: 0, width: (w - p) * 0.86, height: h * 0.78 };
+    },
   },
   pin: {
     kind: SHAPE_KIND.FILL,
@@ -421,6 +521,11 @@ export const SHAPE_PATHS = Object.freeze({
       shape?.markerStyle === 'square'
         ? roundedRectPath(w, h, Math.min(w, h) * 0.22)
         : ellipsePath(0, 0, w / 2, h / 2),
+  },
+  // Freihand (Stift/Textmarker): geglättete Linie durch normierte Punkte
+  freehand: {
+    kind: SHAPE_KIND.STROKE,
+    path: (w, h, shape) => freehandPath(w, h, shape?.points),
   },
   // Verpixeln / Weichzeichnen: Pfad ist nur der Umriss des Bereichs
   censor: {
@@ -532,10 +637,69 @@ export const SHAPE_GALLERY = Object.freeze([
     aspect: 0.8,
     preset: { effect: 'blur', region: 'ellipse' },
   },
+  // Formen mit Text (Text wandert beim Skalieren mit)
+  {
+    id: 'textBox',
+    type: 'roundedRect',
+    category: 'annotate',
+    aspect: 1.8,
+    preset: {
+      text: 'Text',
+      fillColor: '#ffffff',
+      strokeColor: '#1f2937',
+      strokeRatio: 0.02,
+    },
+  },
+  {
+    id: 'speechBubbleText',
+    type: 'speechBubble',
+    category: 'annotate',
+    aspect: 1.4,
+    preset: {
+      text: 'Text',
+      fillColor: '#ffffff',
+      strokeColor: '#1f2937',
+      strokeRatio: 0.025,
+    },
+  },
+  {
+    id: 'label',
+    type: 'label',
+    category: 'annotate',
+    aspect: 2.2,
+    preset: { text: 'Text', fillColor: '#facc15' },
+  },
+
+  // Zeichenwerkzeuge: Kachel schaltet den Zeichenmodus um (keine Form einfügen)
+  { id: 'pen', type: 'freehand', category: 'draw', aspect: 1.6, tool: 'pen' },
+  { id: 'highlighter', type: 'freehand', category: 'draw', aspect: 1.6, tool: 'highlighter' },
 ]);
 
 export function getShapeKind(type) {
   return SHAPE_PATHS[type]?.kind ?? SHAPE_KIND.FILL;
+}
+
+/** true, wenn die Form ein eingebettetes Textfeld hat */
+export function supportsShapeText(type) {
+  return typeof SHAPE_PATHS[type]?.textBox === 'function';
+}
+
+/** Textbereich der Form im lokalen System ({ x, y, width, height }, x/y = Mitte) */
+export function getShapeTextBox(shape) {
+  const def = SHAPE_PATHS[shape?.type];
+  if (!def?.textBox) return null;
+  return def.textBox(Math.max(shape.width, 0.01), Math.max(shape.height, 0.01));
+}
+
+/** Gewünschte Schriftgröße in Canvas-px (skaliert mit der Form) */
+export function getShapeFontSize(shape) {
+  const scale = Number(shape?.textScale) || SHAPE_TEXT_DEFAULTS.textScale;
+  return Math.max(1, Math.min(shape.width, shape.height) * scale);
+}
+
+/** true, wenn die Galerie-Kachel ein Zeichenwerkzeug ist */
+export function isDrawToolItem(item) {
+  return !!item?.tool;
 }
 
 /** true, wenn die Höhe der Form keine sichtbare Wirkung hat (gerade Linie) */
@@ -585,6 +749,8 @@ export function getGalleryPreview(item, size = 40, padding = 6) {
   const preview = {
     d: getShapePathData(item.type, width, height, item.preset),
     viewBox: `${-size / 2} ${-size / 2} ${size} ${size}`,
+    width,
+    height,
     kind,
     fillRule: SHAPE_PATHS[item.type]?.fillRule ?? 'nonzero',
     filled: item.preset?.filled ?? true,
@@ -705,7 +871,81 @@ export function createShape(galleryId, canvasWidth, canvasHeight) {
           strokeWidth: 0,
         }
       : {}),
+    ...(supportsShapeText(item.type)
+      ? {
+          text: preset.text ?? '',
+          textColor: preset.textColor ?? SHAPE_TEXT_DEFAULTS.textColor,
+          fontFamily: preset.fontFamily ?? SHAPE_TEXT_DEFAULTS.fontFamily,
+          textScale: preset.textScale ?? SHAPE_TEXT_DEFAULTS.textScale,
+          textAlign: preset.textAlign ?? SHAPE_TEXT_DEFAULTS.textAlign,
+        }
+      : {}),
+    ...(item.type === 'freehand' ? { points: [], tool: item.tool ?? 'pen' } : {}),
   };
+}
+
+// ===== FREIHAND =====
+
+/**
+ * Begrenzungsrahmen und normierte Punkte aus Canvas-Punkten. Der Rahmen
+ * umschließt die Mittellinie; normierte Punkte liegen in -0,5 … 0,5, so dass
+ * Verschieben, Skalieren und Drehen wie bei jeder anderen Form funktionieren.
+ *
+ * @param {{x:number,y:number}[]} canvasPoints
+ * @returns {{x:number,y:number,width:number,height:number,points:number[][]}|null}
+ */
+export function fitFreehandPoints(canvasPoints) {
+  if (!Array.isArray(canvasPoints) || canvasPoints.length === 0) return null;
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const p of canvasPoints) {
+    if (p.x < minX) minX = p.x;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.y > maxY) maxY = p.y;
+  }
+  // Mindestgröße 1 px, damit gerade Striche normierbar bleiben
+  const width = Math.max(1, maxX - minX);
+  const height = Math.max(1, maxY - minY);
+  const cx = (minX + maxX) / 2;
+  const cy = (minY + maxY) / 2;
+  const n4 = (v) => Math.round(v * 10000) / 10000;
+  return {
+    x: cx,
+    y: cy,
+    width,
+    height,
+    points: canvasPoints.map((p) => [n4((p.x - cx) / width), n4((p.y - cy) / height)]),
+  };
+}
+
+/**
+ * Neue Freihand-Form aus Canvas-Punkten.
+ * @param {{x:number,y:number}[]} canvasPoints
+ * @param {{tool?:string,color?:string,width?:number,opacity?:number}} style
+ */
+export function createFreehandShape(canvasPoints, style = {}) {
+  const fit = fitFreehandPoints(canvasPoints);
+  if (!fit) return null;
+  const tool = DRAW_TOOLS.includes(style.tool) ? style.tool : 'pen';
+  const defaults = DRAW_TOOL_DEFAULTS[tool];
+  const shape = createShape(tool, 1, 1);
+  return Object.assign(shape, fit, {
+    tool,
+    strokeColor: style.color || defaults.color,
+    fillColor: style.color || defaults.color,
+    strokeWidth: Math.max(1, Math.min(SHAPE_LIMITS.maxStroke, Number(style.width) || 4)),
+    opacity: Math.max(0, Math.min(100, style.opacity ?? defaults.opacity)),
+  });
+}
+
+/** Standard-Strichstärke eines Werkzeugs passend zur Canvas-Größe */
+export function getDefaultDrawWidth(tool, canvasWidth, canvasHeight) {
+  const ratio = (DRAW_TOOL_DEFAULTS[tool] ?? DRAW_TOOL_DEFAULTS.pen).widthRatio;
+  const base = Math.min(Number(canvasWidth) || 800, Number(canvasHeight) || 600);
+  return Math.max(2, Math.min(SHAPE_LIMITS.maxStroke, Math.round(base * ratio)));
 }
 
 /** Linienmuster in Canvas-Pixeln (abhängig von der Linienstärke) */
@@ -735,13 +975,20 @@ export function drawShape(ctx, shape) {
   const strokeWidth = Math.max(0, Number(shape.strokeWidth) || 0);
   const hasFill = (kind === SHAPE_KIND.FILL || isMarker) && shape.filled !== false;
   const hasStroke = strokeWidth > 0;
-  if (!hasFill && !hasStroke && !isMarker) return;
+
+  const hasText = supportsShapeText(shape.type) && String(shape.text ?? '').trim() !== '';
+  if (!hasFill && !hasStroke && !isMarker && !hasText) return;
 
   ctx.save();
   ctx.globalAlpha = Math.max(0, Math.min(100, shape.opacity ?? 100)) / 100;
+  // Textmarker: multiplizieren – dunkle Bildteile (Schrift) bleiben lesbar
+  if (shape.type === 'freehand' && shape.tool === 'highlighter') {
+    ctx.globalCompositeOperation = 'multiply';
+  }
   ctx.translate(shape.x, shape.y);
   if (shape.rotation) ctx.rotate((shape.rotation * Math.PI) / 180);
-  // Marker nicht spiegeln (die Nummer bliebe sonst spiegelverkehrt)
+  // Nur der Umriss wird gespiegelt; Marker-Nummer und Text bleiben lesbar
+  ctx.save();
   if (!isMarker && (shape.flipX || shape.flipY)) {
     ctx.scale(shape.flipX ? -1 : 1, shape.flipY ? -1 : 1);
   }
@@ -770,10 +1017,84 @@ export function drawShape(ctx, shape) {
     ctx.setLineDash(getDashPattern(isMarker ? 'solid' : shape.dash, strokeWidth));
     ctx.stroke(path);
   }
+  ctx.restore();
 
   if (isMarker) drawMarkerNumber(ctx, shape, width, height);
+  if (hasText) drawShapeText(ctx, shape);
 
   ctx.restore();
+}
+
+/**
+ * Zerlegt Text in Zeilen, die in `maxWidth` passen (Umbruch an Leerzeichen,
+ * Zeilenumbrüche bleiben erhalten). Zu lange Einzelwörter bleiben ganz.
+ */
+export function wrapShapeText(ctx, text, maxWidth) {
+  const lines = [];
+  for (const paragraph of String(text ?? '').split(/\r?\n/)) {
+    const words = paragraph.split(/\s+/).filter(Boolean);
+    if (words.length === 0) {
+      lines.push('');
+      continue;
+    }
+    let line = words[0];
+    for (let i = 1; i < words.length; i++) {
+      const candidate = `${line} ${words[i]}`;
+      if (ctx.measureText(candidate).width <= maxWidth) line = candidate;
+      else {
+        lines.push(line);
+        line = words[i];
+      }
+    }
+    lines.push(line);
+  }
+  return lines;
+}
+
+function shapeFont(size, family) {
+  return `${size}px "${family || SHAPE_TEXT_DEFAULTS.fontFamily}", "Helvetica Neue", Arial, sans-serif`;
+}
+
+/**
+ * Text-Layout im Textbereich: Schriftgröße folgt der Form (textScale) und wird
+ * verkleinert, bis Breite und Höhe passen.
+ * @returns {{ lines: string[], fontSize: number, box: object }|null}
+ */
+export function layoutShapeText(ctx, shape) {
+  const box = getShapeTextBox(shape);
+  if (!box) return null;
+  let fontSize = getShapeFontSize(shape);
+  let lines = [];
+  for (let i = 0; i < 30; i++) {
+    ctx.font = shapeFont(fontSize, shape.fontFamily);
+    lines = wrapShapeText(ctx, shape.text, box.width);
+    const tooWide = lines.some((l) => ctx.measureText(l).width > box.width);
+    const tooHigh = lines.length * fontSize * TEXT_LINE_HEIGHT > box.height;
+    if ((!tooWide && !tooHigh) || fontSize <= 4) break;
+    fontSize = Math.max(4, fontSize * 0.9);
+  }
+  return { lines, fontSize, box };
+}
+
+/** Text in die (bereits verschobene/gedrehte, ungespiegelte) Form schreiben */
+function drawShapeText(ctx, shape) {
+  const layout = layoutShapeText(ctx, shape);
+  if (!layout) return;
+  const { lines, fontSize, box } = layout;
+  const align = TEXT_ALIGNS.includes(shape.textAlign) ? shape.textAlign : 'center';
+  const x =
+    align === 'left' ? box.x - box.width / 2 : align === 'right' ? box.x + box.width / 2 : box.x;
+  const lineHeight = fontSize * TEXT_LINE_HEIGHT;
+  const top = box.y - (lines.length * lineHeight) / 2 + lineHeight / 2;
+
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.setLineDash([]);
+  ctx.fillStyle = shape.textColor || SHAPE_TEXT_DEFAULTS.textColor;
+  ctx.font = shapeFont(fontSize, shape.fontFamily);
+  ctx.textAlign = align;
+  ctx.textBaseline = 'middle';
+  lines.forEach((line, i) => ctx.fillText(line, x, top + i * lineHeight));
 }
 
 /** Nummer mittig in den (bereits transformierten) Marker schreiben */

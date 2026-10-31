@@ -188,7 +188,7 @@ defineEmits([
 ]);
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .transform-panel {
   width: 280px;
   background: var(--ds-surface-0);
@@ -200,8 +200,17 @@ defineEmits([
   height: calc(100vh - var(--external-nav-height, 50px) - var(--header-height, 60px) - 60px);
   align-self: stretch;
 
+  /* Firefox: Standard-Eigenschaften. In Chromium/Safari NICHT setzen – dort
+     würden sie die ::-webkit-scrollbar-Stile ersetzen und die Leiste auf macOS
+     zur ausgeblendeten Overlay-Leiste machen. */
+  @supports not selector(::-webkit-scrollbar) {
+    scrollbar-width: thin;
+    scrollbar-color: var(--ds-text-3) transparent;
+  }
+
+  /* Gut sichtbare Scrollbar (WebKit), wie in der linken Sidebar */
   &::-webkit-scrollbar {
-    width: 4px;
+    width: 8px;
   }
 
   &::-webkit-scrollbar-track {
@@ -209,12 +218,15 @@ defineEmits([
   }
 
   &::-webkit-scrollbar-thumb {
-    background: var(--ds-border-strong);
+    background: var(--ds-text-3);
     border-radius: var(--ds-radius-full);
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
 
-    &:hover {
-      background: var(--ds-text-3);
-    }
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--ds-text-2);
+    background-clip: content-box;
   }
 }
 

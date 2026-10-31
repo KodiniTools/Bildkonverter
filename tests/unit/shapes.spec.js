@@ -28,7 +28,16 @@ import {
   scaleShapesToCanvas,
   toCanvas,
   toLocal,
+  createFreehandShape,
+  fitFreehandPoints,
+  getDefaultDrawWidth,
+  getShapeFontSize,
+  getShapeTextBox,
+  layoutShapeText,
+  supportsShapeText,
+  wrapShapeText,
 } from '@/utils/shapes';
+import { useShapeInteraction } from '@/composables/editor/useShapeInteraction';
 import { useImageStore } from '@/stores/imageStore';
 import ShapesPanel from '@/components/features/shapes/ShapesPanel.vue';
 import SliderField from '@/components/ui/SliderField.vue';
@@ -47,7 +56,7 @@ describe('Katalog', () => {
 
   it('jede Kategorie ist befüllt', () => {
     for (const c of SHAPE_CATEGORIES) {
-      expect(SHAPE_GALLERY.filter((g) => g.category === c).length).toBeGreaterThan(2);
+      expect(SHAPE_GALLERY.filter((g) => g.category === c).length).toBeGreaterThanOrEqual(2);
     }
   });
 
@@ -397,5 +406,180 @@ describe('Marker und Verpixeln', () => {
     const blurBtn = w.findAll('.segmented__option').find((b) => b.text() === 'shapes.effects.blur');
     await blurBtn.trigger('click');
     expect(store.shapes[1].effect).toBe('blur');
+  });
+});
+
+// Messkontext ohne Canvas: jedes Zeichen ist 0,5 × Schriftgröße breit
+function fakeCtx() {
+  return {
+    font: '10px x',
+    measureText(text) {
+      const size = parseFloat(this.font) || 10;
+      return { width: String(text).length * size * 0.5 };
+    },
+  };
+}
+
+describe('Text in Formen', () => {
+  it('Textformen der Galerie haben Text, Schrift und relative Größe', () => {
+    for (const id of ['textBox', 'speechBubbleText', 'label']) {
+      const shape = createShape(id, 1000, 800);
+      expect(supportsShapeText(shape.type), id).toBe(true);
+      expect(shape).toMatchObject({ text: 'Text', textAlign: 'center' });
+      expect(shape.textScale).toBeGreaterThan(0);
+      expect(getShapePathData(shape.type, shape.width, shape.height, shape)).not.toBe('');
+    }
+    // Rechteck/Kreis bekommen ein (leeres) Textfeld, Pfeile nicht
+    expect(createShape('rect', 800, 600).text).toBe('');
+    expect(supportsShapeText('arrow')).toBe(false);
+    expect(createShape('arrow', 800, 600).text).toBeUndefined();
+  });
+
+  it('Textbereich liegt in der Form; bei der Sprechblase über dem Zipfel', () => {
+    for (const type of ['rect', 'roundedRect', 'ellipse', 'diamond', 'speechBubble', 'label']) {
+      const box = getShapeTextBox({ type, width: 200, height: 100 });
+      expect(Math.abs(box.x) + box.width / 2, type).toBeLessThanOrEqual(100);
+      expect(Math.abs(box.y) + box.height / 2, type).toBeLessThanOrEqual(50);
+    }
+    const bubble = getShapeTextBox({ type: 'speechBubble', width: 200, height: 100 });
+    // Körper endet bei y = +25 (h/2 · 0,5)
+    expect(bubble.y + bubble.height / 2).toBeLessThanOrEqual(25);
+  });
+
+  it('Schriftgröße wandert mit der Form', () => {
+    const shape = createShape('textBox', 1000, 800);
+    const before = getShapeFontSize(shape);
+    shape.width *= 2;
+    shape.height *= 2;
+    expect(getShapeFontSize(shape)).toBeCloseTo(before * 2, 5);
+  });
+
+  it('bricht Text um und verkleinert ihn, bis er passt', () => {
+    const ctx = fakeCtx();
+    ctx.font = '10px x';
+    expect(wrapShapeText(ctx, 'eins zwei drei', 40)).toEqual(['eins', 'zwei', 'drei']);
+    expect(wrapShapeText(ctx, 'a\n\nb', 100)).toEqual(['a', '', 'b']);
+
+    const shape = { type: 'rect', width: 200, height: 100, text: 'Hallo', textScale: 0.3 };
+    const fits = layoutShapeText(ctx, shape);
+    expect(fits.fontSize).toBeCloseTo(30, 5);
+    expect(fits.lines).toEqual(['Hallo']);
+
+    const long = { ...shape, text: 'Ein ziemlich langer Satz für eine kleine Form' };
+    const layout = layoutShapeText(ctx, long);
+    expect(layout.fontSize).toBeLessThan(30);
+    expect(layout.lines.length * layout.fontSize * 1.2).toBeLessThanOrEqual(layout.box.height);
+  });
+
+  it('Panel: Text, Schriftgröße und Ausrichtung bearbeiten', async () => {
+    setActivePinia(createPinia());
+    const store = useImageStore();
+    store.saveState = vi.fn();
+    store.addShape('textBox', 800, 600);
+    const w = mount(ShapesPanel, {
+      props: { canvasWidth: 800, canvasHeight: 600 },
+      global: { mocks: { $t: (k) => k } },
+    });
+    const input = w.find('#shape-text-input');
+    expect(input.exists()).toBe(true);
+    await input.setValue('Hallo Welt');
+    expect(store.shapes[0].text).toBe('Hallo Welt');
+
+    const field = (id) => w.findAllComponents(SliderField).find((f) => f.props('inputId') === id);
+    const minSide = Math.min(store.shapes[0].width, store.shapes[0].height);
+    field('shape-font-size').vm.$emit('update:modelValue', Math.round(minSide * 0.5));
+    expect(store.shapes[0].textScale).toBeCloseTo(Math.round(minSide * 0.5) / minSide, 3);
+
+    const right = w.findAll('.segmented__option').find((b) => b.text() === 'shapes.align.right');
+    await right.trigger('click');
+    expect(store.shapes[0].textAlign).toBe('right');
+  });
+});
+
+describe('Freihand: Stift und Textmarker', () => {
+  it('normiert Punkte auf den Begrenzungsrahmen', () => {
+    const fit = fitFreehandPoints([
+      { x: 100, y: 200 },
+      { x: 300, y: 300 },
+      { x: 200, y: 400 },
+    ]);
+    expect(fit).toMatchObject({ x: 200, y: 300, width: 200, height: 200 });
+    expect(fit.points).toEqual([
+      [-0.5, -0.5],
+      [0.5, 0],
+      [0, 0.5],
+    ]);
+    // Gerader Strich: Höhe mindestens 1 px
+    expect(
+      fitFreehandPoints([
+        { x: 0, y: 5 },
+        { x: 10, y: 5 },
+      ]).height
+    ).toBe(1);
+    expect(fitFreehandPoints([])).toBeNull();
+  });
+
+  it('Textmarker ist halbtransparent, Stift deckend', () => {
+    const pts = [
+      { x: 0, y: 0 },
+      { x: 50, y: 20 },
+    ];
+    const hl = createFreehandShape(pts, { tool: 'highlighter', width: 20 });
+    const pen = createFreehandShape(pts, { tool: 'pen', color: '#123456', width: 3 });
+    expect(hl).toMatchObject({ type: 'freehand', tool: 'highlighter', strokeWidth: 20 });
+    expect(hl.opacity).toBeLessThan(100);
+    expect(pen).toMatchObject({ tool: 'pen', strokeColor: '#123456', opacity: 100 });
+    expect(getShapePathData('freehand', pen.width, pen.height, pen)).toMatch(/^M /);
+    expect(getDefaultDrawWidth('highlighter', 1000, 1000)).toBeGreaterThan(
+      getDefaultDrawWidth('pen', 1000, 1000)
+    );
+  });
+
+  it('zeichnet einen Strich als Form (Historie, ohne Auswahl)', () => {
+    setActivePinia(createPinia());
+    const store = useImageStore();
+    const saveHistory = vi.fn();
+    const renderImage = vi.fn();
+    const canvas = {
+      value: { width: 800, height: 600, style: {}, getBoundingClientRect: () => ({ width: 800 }) },
+    };
+    const it2 = useShapeInteraction({ canvas, imageStore: store, renderImage, saveHistory });
+
+    expect(it2.startDraw({ x: 10, y: 10 })).toBe(false);
+    store.setDrawTool('pen');
+    expect(it2.cursorAt({ x: 0, y: 0 })).toBe('crosshair');
+    expect(it2.startDraw({ x: 10, y: 10 })).toBe(true);
+    it2.moveDrag({ x: 10.5, y: 10 }); // zu nah → ignoriert
+    it2.moveDrag({ x: 60, y: 40 });
+    it2.moveDrag({ x: 110, y: 10 });
+    it2.endDrag();
+
+    expect(store.shapes).toHaveLength(1);
+    const stroke = store.shapes[0];
+    expect(stroke).toMatchObject({ type: 'freehand', tool: 'pen', galleryId: 'pen' });
+    expect(stroke.points).toHaveLength(3);
+    expect(stroke).toMatchObject({ x: 60, y: 25, width: 100, height: 30 });
+    expect(store.selectedShapeId).toBeNull();
+    expect(saveHistory).toHaveBeenCalledTimes(1);
+    expect(store.drawSettings.pen.width).toBeGreaterThan(0);
+  });
+
+  it('Panel: Werkzeug-Kachel schaltet den Zeichenmodus, Reiterwechsel beendet ihn', async () => {
+    setActivePinia(createPinia());
+    const store = useImageStore();
+    store.saveState = vi.fn();
+    const w = mount(ShapesPanel, {
+      props: { canvasWidth: 800, canvasHeight: 600 },
+      global: { mocks: { $t: (k) => k } },
+    });
+    const tabs = () => w.findAll('[role="tab"]');
+    await tabs()[SHAPE_CATEGORIES.indexOf('draw')].trigger('click');
+    await w.find('[data-shape="highlighter"]').trigger('click');
+    expect(store.drawTool).toBe('highlighter');
+    expect(store.shapes).toHaveLength(0);
+    expect(w.find('[data-shape="highlighter"]').classes()).toContain('active');
+
+    await tabs()[0].trigger('click');
+    expect(store.drawTool).toBeNull();
   });
 });

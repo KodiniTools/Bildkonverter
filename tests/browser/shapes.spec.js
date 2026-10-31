@@ -180,3 +180,78 @@ describe('Marker und Verpixeln', () => {
     expect(changes(c)).toBeLessThan(changes(before));
   });
 });
+
+describe('Text in Formen und Freihand (Canvas)', () => {
+  function inkInRegion(c, x0, y0, x1, y1, test) {
+    const data = c.getContext('2d').getImageData(x0, y0, x1 - x0, y1 - y0).data;
+    let n = 0;
+    for (let i = 0; i < data.length; i += 4)
+      if (test(data[i], data[i + 1], data[i + 2], data[i + 3])) n++;
+    return n;
+  }
+  const isDark = (r, g, b, a) => a > 200 && r < 90 && g < 90 && b < 90;
+
+  it('Text liegt mittig in der Form und bleibt beim Spiegeln lesbar', () => {
+    const base = shape({ fillColor: '#ffffff', text: 'HH', textColor: '#000000', textScale: 0.5 });
+    const a = blankCanvas();
+    drawShape(a.getContext('2d'), base);
+    expect(inkInRegion(a, 60, 85, 140, 115, isDark)).toBeGreaterThan(20);
+    // außerhalb des Textbereichs bleibt die Füllung weiß
+    expect(pixelAt(a, 55, 100)).toEqual([255, 255, 255, 255]);
+
+    const b = blankCanvas();
+    drawShape(b.getContext('2d'), { ...base, flipX: true });
+    // Gespiegelt wird nur der Umriss: Text identisch
+    expect(diffPixels(snapshot(a), snapshot(b))).toBe(0);
+  });
+
+  it('Text skaliert mit der Form', () => {
+    const count = (w, h) => {
+      const c = blankCanvas(400, 400);
+      drawShape(
+        c.getContext('2d'),
+        shape({
+          x: 200,
+          y: 200,
+          width: w,
+          height: h,
+          fillColor: '#ffffff',
+          text: 'Hallo',
+          textColor: '#000000',
+        })
+      );
+      return inkInRegion(c, 0, 0, 400, 400, isDark);
+    };
+    expect(count(240, 120)).toBeGreaterThan(count(120, 60) * 2.5);
+  });
+
+  it('Textmarker multipliziert: dunkle Bildteile bleiben dunkel, Weiß wird gelb', () => {
+    const c = blankCanvas();
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 200, 200);
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, 100, 200);
+    const stroke = {
+      ...createShape('highlighter', 200, 200),
+      ...{
+        x: 100,
+        y: 100,
+        width: 180,
+        height: 1,
+        points: [
+          [-0.5, 0],
+          [0.5, 0],
+        ],
+      },
+      tool: 'highlighter',
+      strokeColor: '#ffff00',
+      strokeWidth: 20,
+      opacity: 100,
+    };
+    drawShape(ctx, stroke);
+    expect(pixelAt(c, 150, 100)).toEqual([255, 255, 0, 255]);
+    expect(pixelAt(c, 50, 100)).toEqual([0, 0, 0, 255]);
+    expect(pixelAt(c, 150, 130)).toEqual([255, 255, 255, 255]);
+  });
+});
