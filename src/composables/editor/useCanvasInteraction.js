@@ -59,6 +59,8 @@ export function useCanvasInteraction({
 }) {
   // Formen sind optional (ältere Aufrufer ohne Formen funktionieren unverändert)
   const shapes = shapeInteraction ?? {
+    startDraw: () => false,
+    isDrawMode: () => false,
     startHandleDrag: () => false,
     startBodyDrag: () => false,
     moveDrag: () => false,
@@ -206,6 +208,13 @@ export function useCanvasInteraction({
       return;
     }
 
+    // Zeichenmodus (Stift/Textmarker): jeder Linksklick beginnt einen Strich
+    if (e.button === 0 && shapes.startDraw(pos)) {
+      selectedTextId.value = null;
+      if (isCollageMode.value) imageStore.selectImageLayer(null);
+      return;
+    }
+
     // Griffe der ausgewählten Form (Größe/Drehen) liegen über allem
     if (e.button === 0 && shapes.startHandleDrag(pos)) {
       selectedTextId.value = null;
@@ -317,7 +326,7 @@ export function useCanvasInteraction({
 
       // Cursor für Text- und Formen-Hover im Collage-Modus
       if (!layerInteraction.isDragging.value && !layerInteraction.isResizing.value) {
-        const text = findTextAtPosition(pos.x, pos.y);
+        const text = shapes.isDrawMode() ? null : findTextAtPosition(pos.x, pos.y);
         const shapeCursor = text ? null : shapes.cursorAt(pos);
         if (text) {
           canvas.value.style.cursor = 'grab';
@@ -346,6 +355,8 @@ export function useCanvasInteraction({
         // Nutze den Cursor vom Crop-Composable mit Display-Skalierung
         const displayScale = getDisplayScale();
         cursorStyle = crop.getCursorForPosition(pos.x, pos.y, displayScale);
+      } else if (shapes.isDrawMode()) {
+        cursorStyle = 'crosshair';
       } else if (findDistortCorner(pos)) {
         cursorStyle = 'move';
       } else if (text) {
@@ -412,7 +423,10 @@ export function useCanvasInteraction({
 
     if (text) {
       textModal.openEditTextModal(text.id);
+      return;
     }
+    // Doppelklick auf eine Form mit Textfeld: Texteingabe im Panel fokussieren
+    shapes.editTextAt?.(pos);
   }
 
   // ===== TOUCH HANDLER =====
@@ -453,6 +467,13 @@ export function useCanvasInteraction({
     // Verzerr-Griffe (nur Einzelbild, Modus aktiv)
     if (!isCollageMode.value && startDistortDrag(pos, true)) {
       renderImage();
+      return;
+    }
+
+    // Zeichenmodus (Stift/Textmarker)
+    if (shapes.startDraw(pos)) {
+      selectedTextId.value = null;
+      if (isCollageMode.value) imageStore.selectImageLayer(null);
       return;
     }
 

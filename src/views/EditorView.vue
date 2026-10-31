@@ -1364,6 +1364,18 @@ const {
   shapeInteraction,
 });
 
+function handleFontsLoaded() {
+  renderImage();
+}
+
+// Zeichenmodus: Fadenkreuz-Cursor, beim Beenden zurücksetzen
+watch(
+  () => imageStore.drawTool,
+  (tool) => {
+    if (canvas.value) canvas.value.style.cursor = tool ? 'crosshair' : 'default';
+  }
+);
+
 // Formen: jede Änderung (Panel, Canvas, Undo) neu zeichnen
 watch(
   () => imageStore.shapes,
@@ -1426,6 +1438,8 @@ onMounted(async () => {
   // Global mouse events für Drag/Resize außerhalb des Canvas
   window.addEventListener('mousemove', handleGlobalMouseMove);
   window.addEventListener('mouseup', handleGlobalMouseUp);
+  // Nachgeladene Schriften (z. B. Text in Formen) erst danach korrekt zeichnen
+  document.fonts?.addEventListener?.('loadingdone', handleFontsLoaded);
 
   await nextTick();
 
@@ -1495,6 +1509,8 @@ onUnmounted(() => {
   window.removeEventListener('paste', handlePaste);
   window.removeEventListener('mousemove', handleGlobalMouseMove);
   window.removeEventListener('mouseup', handleGlobalMouseUp);
+  document.fonts?.removeEventListener?.('loadingdone', handleFontsLoaded);
+  imageStore.setDrawTool?.(null);
   // Layer-Interaktion Listener entfernen
   if (isCollageMode.value) {
     layerInteraction.removeListeners();

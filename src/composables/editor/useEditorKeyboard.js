@@ -144,6 +144,15 @@ export function useEditorKeyboard({
         handleRotate90();
         break;
 
+      // Zeichenmodus (Stift/Textmarker) beenden
+      case 'Escape':
+        if (imageStore.drawTool) {
+          e.preventDefault();
+          imageStore.setDrawTool(null);
+          if (canvas.value) canvas.value.style.cursor = 'default';
+        }
+        break;
+
       // Delete selected text or shape
       case 'Delete':
       case 'Backspace':
