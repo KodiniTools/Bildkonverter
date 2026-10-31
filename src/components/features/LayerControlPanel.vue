@@ -3,6 +3,9 @@
     <PanelTopBar />
     <LayersTab />
     <TextTab />
+    <div v-show="panel.activeTab.value === 'shapes'" class="shapes-tab">
+      <ShapesPanel />
+    </div>
   </div>
 </template>
 
@@ -12,6 +15,7 @@ import { useLayerPanel, LAYER_PANEL_KEY } from '@/composables/useLayerPanel';
 import PanelTopBar from './layer-control/PanelTopBar.vue';
 import LayersTab from './layer-control/LayersTab.vue';
 import TextTab from './layer-control/TextTab.vue';
+import ShapesPanel from './shapes/ShapesPanel.vue';
 
 const props = defineProps({
   canvasSelectedTextId: {
@@ -44,6 +48,13 @@ provide(LAYER_PANEL_KEY, panel);
   top: 0;
   height: calc(100vh - var(--external-nav-height, 50px) - var(--header-height, 60px) - 60px);
   align-self: stretch;
+}
+
+/* Reiter „Formen“: gleiche Scroll-Fläche wie die anderen Reiter */
+.shapes-tab {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--ds-space-2);
 }
 
 /* Mobile Responsiveness */

@@ -144,7 +144,7 @@ export function useEditorKeyboard({
         handleRotate90();
         break;
 
-      // Delete selected text
+      // Delete selected text or shape
       case 'Delete':
       case 'Backspace':
         if (selectedTextId.value) {
@@ -152,6 +152,11 @@ export function useEditorKeyboard({
           imageStore.deleteText(selectedTextId.value);
           selectedTextId.value = null;
           imageStore.saveState('Text gelöscht', 'text');
+        } else if (imageStore.selectedShapeId) {
+          e.preventDefault();
+          imageStore.deleteShape(imageStore.selectedShapeId);
+          renderImage();
+          imageStore.saveState('Form gelöscht');
         }
         break;
     }

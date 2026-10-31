@@ -6,6 +6,7 @@
 import { buildTextFontString, applyTextTransform } from '@/utils/textRender';
 import { getAdjustedImage } from '@/utils/imageAdjustments';
 import { logger } from '@/utils/logger';
+import { drawShape, getShapeHandles, SHAPE_CORNERS } from '@/utils/shapes';
 import { currentThemeColorsV2 } from '@/design-system/tokens-v2';
 import {
   CORNERS,
@@ -20,6 +21,12 @@ const DISTORT_SUBDIVISIONS = 16;
 
 // Größe der Verzerr-Griffe in Bildschirm-Pixeln (unabhängig von der Canvas-Auflösung)
 export const DISTORT_HANDLE_SIZE = 12;
+
+// Formen-Auswahl (Bildschirm-Pixel): Abstand Rahmen ↔ Form, Griffgröße,
+// Abstand des Drehgriffs über dem Rahmen
+export const SHAPE_SELECTION_PAD = 6;
+export const SHAPE_HANDLE_SIZE = 10;
+export const SHAPE_ROTATE_GAP = 26;
 
 /**
  * Anzeige-Skalierung des Canvas (Bildschirm-Pixel pro Canvas-Pixel).
@@ -71,6 +78,60 @@ export function drawLayerSelection(context, layer) {
   handles.forEach((pos) => {
     context.fillRect(pos.x, pos.y, handleSize, handleSize);
   });
+
+  context.restore();
+}
+
+/**
+ * Zeichnet Auswahlrahmen, Eck-Griffe (Größe) und Drehgriff einer Form.
+ * Nur Vorschau – wird nie exportiert.
+ * @param {number} displayScale Bildschirm-Pixel pro Canvas-Pixel
+ */
+export function drawShapeSelection(context, shape, displayScale = 1) {
+  const px = 1 / (displayScale || 1);
+  const handles = getShapeHandles(shape, SHAPE_SELECTION_PAD * px, SHAPE_ROTATE_GAP * px);
+  const accent = currentThemeColorsV2().accent;
+  const size = SHAPE_HANDLE_SIZE * px;
+
+  context.save();
+  context.globalAlpha = 1;
+  context.filter = 'none';
+  context.shadowColor = 'transparent';
+
+  // Gestrichelter, mitgedrehter Rahmen
+  context.strokeStyle = accent;
+  context.lineWidth = 1.5 * px;
+  context.setLineDash([6 * px, 4 * px]);
+  context.beginPath();
+  SHAPE_CORNERS.forEach((c, i) => {
+    const p = handles.corners[c];
+    if (i === 0) context.moveTo(p.x, p.y);
+    else context.lineTo(p.x, p.y);
+  });
+  context.closePath();
+  context.stroke();
+  context.setLineDash([]);
+
+  // Verbindung zum Drehgriff
+  context.beginPath();
+  context.moveTo(handles.topCenter.x, handles.topCenter.y);
+  context.lineTo(handles.rotate.x, handles.rotate.y);
+  context.stroke();
+
+  // Eck-Griffe
+  context.fillStyle = '#ffffff';
+  context.lineWidth = 2 * px;
+  for (const c of SHAPE_CORNERS) {
+    const p = handles.corners[c];
+    context.fillRect(p.x - size / 2, p.y - size / 2, size, size);
+    context.strokeRect(p.x - size / 2, p.y - size / 2, size, size);
+  }
+
+  // Drehgriff (Kreis)
+  context.beginPath();
+  context.arc(handles.rotate.x, handles.rotate.y, size / 2 + px, 0, Math.PI * 2);
+  context.fillStyle = accent;
+  context.fill();
 
   context.restore();
 }
@@ -324,6 +385,26 @@ export function useCanvasRenderer({
   }
 
   /**
+   * Formen-Ebenen (liegen über dem Bild/den Ebenen und unter den Texten).
+   * Die Auswahl wird hier nicht gezeichnet – siehe drawSelectedShapeOverlay.
+   */
+  function drawShapes(ctx) {
+    const list = imageStore.shapes;
+    if (!list || list.length === 0) return;
+    ctx.filter = 'none';
+    list.forEach((shape) => drawShape(ctx, shape));
+  }
+
+  // Auswahl der Form als oberstes Overlay (nur Vorschau)
+  function drawSelectedShapeOverlay(ctx) {
+    const id = imageStore.selectedShapeId;
+    if (!id) return;
+    const shape = imageStore.shapes?.find((s) => s.id === id);
+    if (!shape) return;
+    drawShapeSelection(ctx, shape, getCanvasDisplayScale(canvas.value));
+  }
+
+  /**
    * Collage-Modus: Canvas-Hintergrund, alle sichtbaren Bild-Ebenen und Texte.
    */
   function renderCollage(ctx, { showSelection, forceTransparent, includeTexts }) {
@@ -353,9 +434,11 @@ export function useCanvasRenderer({
     });
 
     ctx.filter = 'none';
+    if (includeTexts) drawShapes(ctx);
     if (includeTexts && imageStore.texts && imageStore.texts.length > 0) {
       imageStore.texts.forEach((text) => drawTextLayer(ctx, text, showSelection));
     }
+    if (showSelection && includeTexts) drawSelectedShapeOverlay(ctx);
   }
 
   /**
@@ -563,9 +646,12 @@ export function useCanvasRenderer({
       restoreTransform();
     }
 
+    if (includeTexts) drawShapes(ctx);
     if (includeTexts && imageStore.texts && imageStore.texts.length > 0) {
       imageStore.texts.forEach((text) => drawTextLayer(ctx, text));
     }
+
+    if (showSelection && includeTexts) drawSelectedShapeOverlay(ctx);
 
     // Verzerr-Griffe als Overlay (nur Vorschau)
     if (showSelection && tf.distortEnabled) {
@@ -673,7 +759,7 @@ export function useCanvasRenderer({
    * @param {Object}  opts
    * @param {boolean} opts.showSelection    Auswahl-Rahmen für Ebene/Text zeichnen (nur Vorschau)
    * @param {boolean} opts.forceTransparent Hintergrund weglassen (transparenter Export)
-   * @param {boolean} opts.includeTexts     Text-Ebenen mitzeichnen
+   * @param {boolean} opts.includeTexts     Overlays (Formen und Texte) mitzeichnen
    */
   function renderScene(opts) {
     if (!canvas.value) return;

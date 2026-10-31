@@ -12,6 +12,7 @@ import {
   normalizeText,
   validateText,
 } from '@/utils/textUtils';
+import { createShape, drawShape } from '@/utils/shapes';
 import { logger } from '@/utils/logger';
 
 /**
@@ -20,6 +21,7 @@ import { logger } from '@/utils/logger';
  * Gemeinsamer Zustand des Editors:
  * - das geladene Basisbild (Referenz für Galerie/Handoff)
  * - Text-Ebenen
+ * - Formen-Ebenen (Formen & Symbole aus der Galerie)
  * - Bild-Ebenen und Canvas-Hintergrund für den Collage-/Ebenen-Modus
  *
  * Es gibt genau eine Undo/Redo-Historie: useEditorHistory im Editor. Der
@@ -46,6 +48,10 @@ export const useImageStore = defineStore('image', () => {
   const texts = ref([]);
   const selectedTextId = ref(null);
 
+  // Formen & Symbole (Overlay-Ebenen unter den Texten)
+  const shapes = ref([]);
+  const selectedShapeId = ref(null);
+
   // Bild-Layer für Collage
   const imageLayers = ref([]);
   const selectedLayerId = ref(null);
@@ -69,6 +75,10 @@ export const useImageStore = defineStore('image', () => {
   const historyLength = computed(() => historyHandlers.value?.history.value.length ?? 0);
 
   // Computed für Bild-Layer
+  const selectedShape = computed(
+    () => shapes.value.find((s) => s.id === selectedShapeId.value) || null
+  );
+
   const hasImageLayers = computed(() => imageLayers.value.length > 0);
 
   const imageLayerCount = computed(() => imageLayers.value.length);
@@ -186,6 +196,9 @@ export const useImageStore = defineStore('image', () => {
     }
 
     c.filter = 'none';
+
+    // Formen unter den Texten
+    shapes.value.forEach((shape) => drawShape(c, shape));
 
     // Texte zeichnen
     drawTexts(c);
@@ -332,6 +345,79 @@ export const useImageStore = defineStore('image', () => {
       }
       draw();
     }
+  }
+
+  // ===== FORMEN & SYMBOLE =====
+  // Gezeichnet wird vom Editor (useCanvasRenderer), der shapes beobachtet.
+
+  /**
+   * Fügt eine Form aus der Galerie hinzu und wählt sie aus.
+   * @returns {object|null} die neue Form (null bei unbekanntem Galerie-Eintrag)
+   */
+  function addShape(galleryId, canvasWidth, canvasHeight) {
+    const shape = createShape(galleryId, canvasWidth, canvasHeight);
+    if (!shape) return null;
+    shapes.value.push(shape);
+    selectShape(shape.id);
+    return shapes.value[shapes.value.length - 1];
+  }
+
+  function updateShape(shapeId, updates) {
+    const shape = shapes.value.find((s) => s.id === shapeId);
+    if (!shape) return false;
+    Object.assign(shape, updates);
+    return true;
+  }
+
+  function deleteShape(shapeId) {
+    const index = shapes.value.findIndex((s) => s.id === shapeId);
+    if (index === -1) return false;
+    shapes.value.splice(index, 1);
+    if (selectedShapeId.value === shapeId) selectedShapeId.value = null;
+    return true;
+  }
+
+  /** Kopie leicht versetzt darüberlegen und auswählen */
+  function duplicateShape(shapeId) {
+    const source = shapes.value.find((s) => s.id === shapeId);
+    if (!source) return null;
+    const copy = createShape(source.type, 1, 1);
+    const offset = Math.max(10, Math.round(Math.min(source.width, source.height) * 0.1));
+    Object.assign(copy, JSON.parse(JSON.stringify(source)), {
+      id: copy.id,
+      x: source.x + offset,
+      y: source.y + offset,
+    });
+    const index = shapes.value.indexOf(source);
+    shapes.value.splice(index + 1, 0, copy);
+    selectShape(copy.id);
+    return copy;
+  }
+
+  /** Reihenfolge ändern: 'up' = eine Ebene nach vorn, 'down' = nach hinten */
+  function moveShapeOrder(shapeId, direction) {
+    const index = shapes.value.findIndex((s) => s.id === shapeId);
+    if (index === -1) return false;
+    const target = direction === 'up' ? index + 1 : index - 1;
+    if (target < 0 || target >= shapes.value.length) return false;
+    const [shape] = shapes.value.splice(index, 1);
+    shapes.value.splice(target, 0, shape);
+    return true;
+  }
+
+  /** Auswahl setzen; hebt Text- und Ebenen-Auswahl auf (es ist immer nur eins aktiv) */
+  function selectShape(shapeId) {
+    if (shapeId !== null && !shapes.value.some((s) => s.id === shapeId)) return;
+    selectedShapeId.value = shapeId;
+    if (shapeId !== null) {
+      selectedTextId.value = null;
+      selectedLayerId.value = null;
+    }
+  }
+
+  function clearShapes() {
+    shapes.value = [];
+    selectedShapeId.value = null;
   }
 
   // ===== BILD-LAYER FUNKTIONEN (COLLAGE) =====
@@ -502,9 +588,10 @@ export const useImageStore = defineStore('image', () => {
   function selectImageLayer(layerId) {
     if (layerId === null || imageLayers.value.some((l) => l.id === layerId)) {
       selectedLayerId.value = layerId;
-      // Text-Auswahl aufheben wenn Layer ausgewählt wird
+      // Text- und Formen-Auswahl aufheben wenn Layer ausgewählt wird
       if (layerId !== null) {
         selectedTextId.value = null;
+        selectedShapeId.value = null;
       }
       draw();
     }
@@ -643,6 +730,8 @@ export const useImageStore = defineStore('image', () => {
     imageHeight,
     texts,
     selectedTextId,
+    shapes,
+    selectedShapeId,
     imageLayers,
     selectedLayerId,
     canvasBackgroundColor,
@@ -656,6 +745,7 @@ export const useImageStore = defineStore('image', () => {
     hasImageLayers,
     imageLayerCount,
     selectedImageLayer,
+    selectedShape,
 
     // Actions - Image
     initCanvas,
@@ -666,6 +756,15 @@ export const useImageStore = defineStore('image', () => {
     addText,
     updateText,
     deleteText,
+
+    // Actions - Formen & Symbole
+    addShape,
+    updateShape,
+    deleteShape,
+    duplicateShape,
+    moveShapeOrder,
+    selectShape,
+    clearShapes,
 
     // Actions - Image Layers (Collage)
     addImageLayer,

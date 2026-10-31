@@ -611,9 +611,11 @@ import { useEditorResize } from '@/composables/editor/useEditorResize';
 import { useEditorDetach } from '@/composables/editor/useEditorDetach';
 import { useEditorExport } from '@/composables/editor/useEditorExport';
 import { useEditorPreview } from '@/composables/editor/useEditorPreview';
+import { useShapeInteraction } from '@/composables/editor/useShapeInteraction';
 import { logger } from '@/utils/logger';
 import { onAdjustmentReady } from '@/utils/imageAdjustments';
 import { scaleTextsToCanvas } from '@/utils/textLayout';
+import { scaleShapesToCanvas } from '@/utils/shapes';
 
 const { t } = useI18n({ useScope: 'global' });
 const route = useRoute();
@@ -989,12 +991,11 @@ async function loadImage(img, options = {}) {
   canvas.value.width = img.width;
   canvas.value.height = img.height;
 
-  // Texte bleiben beim Ersetzen erhalten – an neue Größe anpassen
+  // Texte und Formen bleiben beim Ersetzen erhalten – an neue Größe anpassen
   if (previousSize) {
-    scaleTextsToCanvas(imageStore.texts, previousSize, {
-      width: img.width,
-      height: img.height,
-    });
+    const nextSize = { width: img.width, height: img.height };
+    scaleTextsToCanvas(imageStore.texts, previousSize, nextSize);
+    scaleShapesToCanvas(imageStore.shapes, previousSize, nextSize);
   }
 
   // Initialisiere ResizeManager mit korrektem Seitenverhältnis
@@ -1034,9 +1035,10 @@ async function resetFilters() {
     layerInteraction.removeListeners();
   }
 
-  // Alle Texte entfernen
+  // Alle Texte und Formen entfernen
   imageStore.texts.splice(0, imageStore.texts.length);
   selectedTextId.value = null;
+  imageStore.clearShapes();
 
   // Bild auf Original zurücksetzen
   currentImage.value = originalImage.value;
@@ -1146,6 +1148,7 @@ async function clearImage() {
     textModal.clearAllTexts();
   }
   selectedTextId.value = null;
+  imageStore.clearShapes();
 
   // ImageStore zurücksetzen (falls Methode existiert)
   if (imageStore && typeof imageStore.clearImage === 'function') {
@@ -1325,6 +1328,9 @@ const {
   saveHistory,
 });
 
+// Formen: Auswählen, Verschieben, Größe und Drehen auf dem Canvas
+const shapeInteraction = useShapeInteraction({ canvas, imageStore, renderImage, saveHistory });
+
 const {
   onSelectTextFromPanel,
   onCanvasMouseDown,
@@ -1355,6 +1361,26 @@ const {
   saveHistory,
   getDistortHandlePoints,
   getDistortGeometry,
+  shapeInteraction,
+});
+
+// Formen: jede Änderung (Panel, Canvas, Undo) neu zeichnen
+watch(
+  () => imageStore.shapes,
+  () => renderImage(),
+  { deep: true }
+);
+
+// Es ist immer nur Text ODER Form ausgewählt
+watch(
+  () => imageStore.selectedShapeId,
+  (shapeId) => {
+    if (shapeId) selectedTextId.value = null;
+    renderImage();
+  }
+);
+watch(selectedTextId, (textId) => {
+  if (textId && imageStore.selectedShapeId) imageStore.selectShape(null);
 });
 
 // Watch texts

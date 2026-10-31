@@ -326,3 +326,29 @@ describe('useEditorHistory – Ebenen-/Collage-Modus', () => {
     expect(s.imageStore.canvasBackgroundColor).toBe('#ff0000');
   });
 });
+
+describe('useEditorHistory – Formen', () => {
+  it('Undo/Redo stellt Formen und ihre Auswahl wieder her (Kopien, keine Referenzen)', async () => {
+    const s = setup();
+    s.imageStore.shapes = [];
+    s.imageStore.selectedShapeId = null;
+    s.history.saveHistory(); // A: keine Formen
+
+    s.imageStore.shapes.push({ id: 'f1', type: 'rect', x: 50, y: 40, width: 30, height: 20 });
+    s.imageStore.selectedShapeId = 'f1';
+    s.history.saveHistory(); // B: eine Form, ausgewählt
+    s.imageStore.shapes[0].x = 999; // nachträgliche Änderung darf B nicht verändern
+
+    s.history.undo();
+    await restored(s.renderImage, 1);
+    expect(s.imageStore.shapes).toEqual([]);
+    expect(s.imageStore.selectedShapeId).toBeNull();
+
+    s.history.redo();
+    await restored(s.renderImage, 2);
+    expect(s.imageStore.shapes).toEqual([
+      { id: 'f1', type: 'rect', x: 50, y: 40, width: 30, height: 20 },
+    ]);
+    expect(s.imageStore.selectedShapeId).toBe('f1');
+  });
+});

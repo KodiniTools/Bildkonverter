@@ -72,6 +72,17 @@ export function useLayerPanel(props, emit) {
     }
   );
 
+  // Wenn eine Form ausgewählt wird (Canvas oder Liste), zum Formen-Tab wechseln
+  watch(
+    () => imageStore.selectedShapeId,
+    (shapeId) => {
+      if (shapeId) {
+        activeTab.value = 'shapes';
+        selectedTextId.value = null;
+      }
+    }
+  );
+
   // Wenn ein Layer ausgewählt wird, zu Layers-Tab wechseln
   watch(
     () => imageStore.selectedLayerId,
