@@ -19,6 +19,14 @@
           <AppIcon name="font" />
           {{ $t('layerPanel.tabs.text') }}
         </button>
+        <button
+          class="tab-btn"
+          :class="{ active: activeTab === 'shapes' }"
+          @click="activeTab = 'shapes'"
+        >
+          <AppIcon name="shapes" />
+          {{ $t('layerPanel.tabs.shapes') }}
+        </button>
       </div>
     </div>
 
@@ -85,7 +93,7 @@ const { imageStore, activeTab, historyInfo, handleUndo, handleRedo, handlePrevie
 .tab-btn {
   flex: 1;
   min-width: 0;
-  padding: 0 var(--ds-space-3);
+  padding: 0 var(--ds-space-2);
   border: var(--ds-border-width) solid transparent;
   border-radius: var(--ds-radius-sm);
   background: transparent;
@@ -99,7 +107,8 @@ const { imageStore, activeTab, historyInfo, handleUndo, handleRedo, handlePrevie
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--ds-space-2);
+  gap: var(--ds-space-1);
+  overflow: hidden;
   transition:
     background-color var(--ds-duration) var(--ds-ease),
     border-color var(--ds-duration) var(--ds-ease),

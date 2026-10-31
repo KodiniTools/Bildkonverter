@@ -2,7 +2,7 @@
  * useEditorHistory
  *
  * Die einzige Undo/Redo-Historie des Editors. Ein Snapshot umfasst Bild,
- * Canvas-Größe, Filter, Hintergrund, Transformationen, Texte, Crop-Zustand
+ * Canvas-Größe, Filter, Hintergrund, Transformationen, Texte, Formen, Crop-Zustand
  * sowie im Ebenen-/Collage-Modus die Bild-Ebenen, ihre Auswahl und den
  * Canvas-Hintergrund. Baut auf useImageHistory (Stack-Verwaltung) auf.
  *
@@ -85,6 +85,9 @@ export function useEditorHistory({
       // gesamten Editor-Zustand umfasst (nicht nur Bild/Filter/Transform)
       texts: JSON.parse(JSON.stringify(imageStore.texts || [])),
       selectedTextId: selectedTextId.value,
+      // Formen & Symbole
+      shapes: JSON.parse(JSON.stringify(imageStore.shapes || [])),
+      selectedShapeId: imageStore.selectedShapeId ?? null,
       width: canvas.value.width,
       height: canvas.value.height,
       // Originalgröße des Bildes mitsichern, damit "Ohne Preset" auch nach
@@ -139,6 +142,11 @@ export function useEditorHistory({
       imageStore.texts = JSON.parse(JSON.stringify(state.texts));
     }
     selectedTextId.value = state.selectedTextId ?? null;
+    // Formen wiederherstellen (ältere Snapshots ohne Formen → leer)
+    imageStore.shapes = JSON.parse(JSON.stringify(state.shapes || []));
+    const shapeId = state.selectedShapeId ?? null;
+    imageStore.selectedShapeId =
+      shapeId && imageStore.shapes.some((s) => s.id === shapeId) ? shapeId : null;
     // Crop-State zurücksetzen wenn der gespeicherte State kein Zuschnitt war
     if (!state.hasCropped) {
       crop.resetCropState();

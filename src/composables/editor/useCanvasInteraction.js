@@ -26,6 +26,7 @@
  * @param {Function} deps.saveHistory
  * @param {Function} [deps.getDistortHandlePoints] Eckpunkte des Bildes im Canvas-System (Renderer)
  * @param {Function} [deps.getDistortGeometry]     Matrix + Zeichen-Rechteck des Bildes (Renderer)
+ * @param {object}   [deps.shapeInteraction]       useShapeInteraction()-Instanz (Formen)
  */
 import { buildTextFontString } from '@/utils/textRender';
 import { findCornerAt, offsetForLocalPoint } from '@/utils/warpImage';
@@ -54,7 +55,19 @@ export function useCanvasInteraction({
   saveHistory,
   getDistortHandlePoints = () => null,
   getDistortGeometry = () => null,
+  shapeInteraction = null,
 }) {
+  // Formen sind optional (ältere Aufrufer ohne Formen funktionieren unverändert)
+  const shapes = shapeInteraction ?? {
+    startHandleDrag: () => false,
+    startBodyDrag: () => false,
+    moveDrag: () => false,
+    endDrag: () => false,
+    isDragging: () => false,
+    cursorAt: () => null,
+    deselect: () => {},
+  };
+
   // Freies Verzerren: gerade gezogene Ecke (null = keine Verzerr-Interaktion)
   let distortCorner = null;
 
@@ -193,12 +206,20 @@ export function useCanvasInteraction({
       return;
     }
 
-    // Im Collage-Modus: Erst Text prüfen, dann Layer
+    // Griffe der ausgewählten Form (Größe/Drehen) liegen über allem
+    if (e.button === 0 && shapes.startHandleDrag(pos)) {
+      selectedTextId.value = null;
+      renderImage();
+      return;
+    }
+
+    // Im Collage-Modus: Erst Text prüfen, dann Formen, dann Layer
     if (isCollageMode.value) {
       // Text hat Priorität (liegt visuell über Layern)
       const text = findTextAtPosition(pos.x, pos.y);
       if (text) {
         selectedTextId.value = text.id;
+        shapes.deselect();
         isDraggingText.value = true;
         dragOffset.value = {
           x: pos.x - text.x,
@@ -211,8 +232,16 @@ export function useCanvasInteraction({
         return;
       }
 
-      // Kein Text getroffen, Layer-Interaktion
+      // Formen liegen über den Bild-Ebenen
       selectedTextId.value = null;
+      if (e.button === 0 && shapes.startBodyDrag(pos)) {
+        imageStore.selectImageLayer(null);
+        renderImage();
+        return;
+      }
+
+      // Weder Text noch Form getroffen, Layer-Interaktion
+      shapes.deselect();
       layerInteraction.handleMouseDown(e);
       renderImage();
       return;
@@ -223,6 +252,7 @@ export function useCanvasInteraction({
 
     if (text) {
       selectedTextId.value = text.id;
+      shapes.deselect();
       isDraggingText.value = true;
       dragOffset.value = {
         x: pos.x - text.x,
@@ -231,6 +261,7 @@ export function useCanvasInteraction({
       canvas.value.style.cursor = 'grabbing';
     } else {
       selectedTextId.value = null;
+      if (!(e.button === 0 && shapes.startBodyDrag(pos))) shapes.deselect();
     }
 
     renderImage();
@@ -252,6 +283,12 @@ export function useCanvasInteraction({
     // Verzerr-Ecke ziehen
     if (distortCorner) {
       moveDistortCorner(pos);
+      return;
+    }
+
+    // Form verschieben/skalieren/drehen
+    if (shapes.isDragging()) {
+      shapes.moveDrag(pos, e.shiftKey);
       return;
     }
 
@@ -278,11 +315,14 @@ export function useCanvasInteraction({
         renderImage();
       }
 
-      // Cursor für Text-Hover im Collage-Modus
+      // Cursor für Text- und Formen-Hover im Collage-Modus
       if (!layerInteraction.isDragging.value && !layerInteraction.isResizing.value) {
         const text = findTextAtPosition(pos.x, pos.y);
+        const shapeCursor = text ? null : shapes.cursorAt(pos);
         if (text) {
           canvas.value.style.cursor = 'grab';
+        } else if (shapeCursor) {
+          canvas.value.style.cursor = shapeCursor;
         }
       }
       return;
@@ -310,6 +350,8 @@ export function useCanvasInteraction({
         cursorStyle = 'move';
       } else if (text) {
         cursorStyle = 'grab';
+      } else {
+        cursorStyle = shapes.cursorAt(pos) ?? 'default';
       }
       canvas.value.style.cursor = cursorStyle;
     }
@@ -329,6 +371,9 @@ export function useCanvasInteraction({
       renderImage();
       return;
     }
+
+    // Form-Aktion beenden (speichert die Historie)
+    if (shapes.endDrag()) return;
 
     // Crop-Handler über Composable (hat Priorität)
     const cropHandled = crop.handleMouseUp();
@@ -411,18 +456,31 @@ export function useCanvasInteraction({
       return;
     }
 
+    // Griffe der ausgewählten Form
+    if (shapes.startHandleDrag(pos, true)) {
+      selectedTextId.value = null;
+      renderImage();
+      return;
+    }
+
     // Im Collage-Modus
     if (isCollageMode.value) {
       const text = findTextAtPosition(pos.x, pos.y);
       if (text) {
         selectedTextId.value = text.id;
+        shapes.deselect();
         isDraggingText.value = true;
         dragOffset.value = { x: pos.x - text.x, y: pos.y - text.y };
         if (canvas.value) canvas.value.style.cursor = 'grabbing';
         imageStore.selectImageLayer(null);
         renderImage();
+      } else if (shapes.startBodyDrag(pos, true)) {
+        selectedTextId.value = null;
+        imageStore.selectImageLayer(null);
+        renderImage();
       } else {
         selectedTextId.value = null;
+        shapes.deselect();
         // Synthetisches Event für Layer-Interaktion
         const syntheticEvent = {
           clientX,
@@ -441,11 +499,13 @@ export function useCanvasInteraction({
     const text = findTextAtPosition(pos.x, pos.y);
     if (text) {
       selectedTextId.value = text.id;
+      shapes.deselect();
       isDraggingText.value = true;
       dragOffset.value = { x: pos.x - text.x, y: pos.y - text.y };
       if (canvas.value) canvas.value.style.cursor = 'grabbing';
     } else {
       selectedTextId.value = null;
+      if (!shapes.startBodyDrag(pos, true)) shapes.deselect();
     }
     renderImage();
 
@@ -502,6 +562,12 @@ export function useCanvasInteraction({
       return;
     }
 
+    // Form verschieben/skalieren/drehen
+    if (shapes.isDragging()) {
+      shapes.moveDrag(pos);
+      return;
+    }
+
     // Crop-Handler
     const cropHandled = crop.handleMouseMove(pos);
     if (cropHandled) return;
@@ -550,6 +616,9 @@ export function useCanvasInteraction({
       return;
     }
 
+    // Form-Aktion beenden
+    if (shapes.endDrag()) return;
+
     // Crop-Handler
     const cropHandled = crop.handleMouseUp();
     if (cropHandled) {
@@ -582,7 +651,13 @@ export function useCanvasInteraction({
   function handleGlobalMouseMove(e) {
     // Nur wenn wir gerade draggen, resizen, erstellen oder andere Aktionen ausführen
     const isCropActive = crop.isDragging.value || crop.isResizing.value || crop.isCreating.value;
-    if (!isCropActive && !isPanning.value && !isDraggingText.value && !distortCorner) {
+    if (
+      !isCropActive &&
+      !isPanning.value &&
+      !isDraggingText.value &&
+      !distortCorner &&
+      !shapes.isDragging()
+    ) {
       return;
     }
 
@@ -610,6 +685,12 @@ export function useCanvasInteraction({
     // Verzerr-Ecke auch außerhalb des Canvas weiterziehen (wird geklemmt)
     if (distortCorner) {
       moveDistortCorner(pos);
+      return;
+    }
+
+    // Form auch außerhalb des Canvas weiterziehen
+    if (shapes.isDragging()) {
+      shapes.moveDrag(pos, e.shiftKey);
       return;
     }
 
@@ -644,6 +725,8 @@ export function useCanvasInteraction({
     if (endDistortDrag()) {
       renderImage();
     }
+    // Form-Aktion außerhalb des Canvas beendet
+    shapes.endDrag();
     // Stoppe auch Text-Dragging
     if (isDraggingText.value) {
       isDraggingText.value = false;

@@ -40,6 +40,8 @@
       @deselect-text="$emit('deselect-text')"
     />
 
+    <ShapesPanel :canvas-width="canvasWidth" :canvas-height="canvasHeight" />
+
     <CropPanel
       :crop-mode="cropMode"
       :has-cropped="hasCropped"
@@ -98,6 +100,7 @@ import TextPanel from './transform/TextPanel.vue';
 import TextListPanel from './transform/TextListPanel.vue';
 import CropPanel from './transform/CropPanel.vue';
 import ImageTransformPanel from './transform/ImageTransformPanel.vue';
+import ShapesPanel from './shapes/ShapesPanel.vue';
 
 defineProps({
   cropMode: { type: Boolean, required: true },

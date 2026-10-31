@@ -8,6 +8,7 @@ import { useI18n } from 'vue-i18n';
 import { useConfirm } from '@/composables/useConfirm';
 import { getAdjustedImage } from '@/utils/imageAdjustments';
 import { logger } from '@/utils/logger';
+import { cropShapes } from '@/utils/shapes';
 
 // Seitenverhältnis-Presets
 export const ASPECT_RATIO_PRESETS = [
@@ -567,6 +568,7 @@ export function useCrop() {
           height: canvas.value.height,
           filters: { ...filters.value },
           texts: imageStore ? [...imageStore.texts] : [],
+          shapes: imageStore?.shapes ? JSON.parse(JSON.stringify(imageStore.shapes)) : [],
           borderRadius: context.borderRadiusBeforeCrop ?? 0,
         };
         logger.log('Original-Bild (ohne Texte) vor Crop gespeichert');
@@ -690,6 +692,17 @@ export function useCrop() {
         logger.log(`Text-Positionen angepasst. ${textsToRemove.length} Texte entfernt.`);
       }
 
+      // Formen verschieben bzw. entfernen (Mittelpunkt außerhalb des Ausschnitts)
+      if (imageStore && Array.isArray(imageStore.shapes)) {
+        cropShapes(imageStore.shapes, { x: cropX, y: cropY, width: cropWidth, height: cropHeight });
+        if (
+          imageStore.selectedShapeId &&
+          !imageStore.shapes.some((s) => s.id === imageStore.selectedShapeId)
+        ) {
+          imageStore.selectedShapeId = null;
+        }
+      }
+
       // Lade das zugeschnittene Bild
       const croppedDataUrl = cropCanvas.toDataURL('image/png');
       const img = new Image();
@@ -761,6 +774,11 @@ export function useCrop() {
         imageStore.texts.splice(0, 0, ...beforeCropImage.value.texts);
 
         logger.log(`✅ ${imageStore.texts.length} Texte wiederhergestellt`);
+      }
+      // Formen wiederherstellen
+      if (imageStore && Array.isArray(beforeCropImage.value.shapes)) {
+        imageStore.shapes = JSON.parse(JSON.stringify(beforeCropImage.value.shapes));
+        imageStore.selectedShapeId = null;
       }
 
       // Callback für externe Updates
