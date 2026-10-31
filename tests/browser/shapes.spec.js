@@ -115,3 +115,68 @@ describe('useCanvasRenderer – Formen', () => {
     expect(diffPixels(plain, canvasEl)).toBe(0);
   });
 });
+
+describe('Marker und Verpixeln', () => {
+  /** Canvas mit kleinem Schachbrett (scharfe Kanten) */
+  function checkerCanvas() {
+    const c = blankCanvas();
+    const x = c.getContext('2d');
+    for (let i = 0; i < 20; i++) {
+      for (let j = 0; j < 20; j++) {
+        x.fillStyle = (i + j) % 2 ? '#000000' : '#ffffff';
+        x.fillRect(i * 10, j * 10, 10, 10);
+      }
+    }
+    return c;
+  }
+
+  it('Marker zeigt die Nummer in der Zahlenfarbe auf der Füllfarbe', () => {
+    const c = blankCanvas();
+    const m = {
+      ...createShape('marker', 200, 200),
+      x: 100,
+      y: 100,
+      width: 120,
+      height: 120,
+      fillColor: '#ff0000',
+      textColor: '#0000ff',
+      number: 1,
+    };
+    drawShape(c.getContext('2d'), m);
+    const ctx = c.getContext('2d');
+    const data = ctx.getImageData(70, 70, 60, 60).data;
+    let blue = 0;
+    for (let i = 0; i < data.length; i += 4) if (data[i + 2] > 200 && data[i] < 60) blue++;
+    expect(blue).toBeGreaterThan(30);
+    expect(pixelAt(c, 50, 100)).toEqual([255, 0, 0, 255]); // Füllung links der Zahl
+    expect(pixelAt(c, 2, 2)[3]).toBe(0);
+  });
+
+  it.each(['pixelate', 'blur'])('%s verändert nur den Bereich', (effect) => {
+    const c = checkerCanvas();
+    const before = snapshot(c);
+    const shape = {
+      ...createShape('pixelate', 200, 200),
+      effect,
+      x: 100,
+      y: 100,
+      width: 80,
+      height: 80,
+      intensity: 80,
+    };
+    drawShape(c.getContext('2d'), shape);
+    // außerhalb identisch
+    expect(pixelAt(c, 5, 5)).toEqual(
+      Array.from(before.getContext('2d').getImageData(5, 5, 1, 1).data)
+    );
+    // innen: deutlich weniger harte Wechsel als vorher
+    const changes = (canvas) => {
+      const d = canvas.getContext('2d').getImageData(70, 100, 60, 1).data;
+      let n = 0;
+      for (let i = 4; i < d.length; i += 4) if (Math.abs(d[i] - d[i - 4]) > 128) n++;
+      return n;
+    };
+    expect(changes(before)).toBeGreaterThan(4);
+    expect(changes(c)).toBeLessThan(changes(before));
+  });
+});

@@ -13,6 +13,9 @@ import {
   SHAPE_KIND,
   SHAPE_PATHS,
   createShape,
+  getCensorStrength,
+  getGalleryPreview,
+  nextMarkerNumber,
   cropShapes,
   findShapeAt,
   findShapeHandleAt,
@@ -309,5 +312,90 @@ describe('ShapesPanel', () => {
     await w.find('.shape-item .icon-btn--danger').trigger('click');
     expect(store.shapes).toHaveLength(0);
     expect(w.find('.shape-edit-section').exists()).toBe(false);
+  });
+});
+
+describe('Marker und Verpixeln', () => {
+  it('Marker: quadratisch, Nummer, Zahlenfarbe, weiße Kontur', () => {
+    const m = createShape('marker', 1000, 800);
+    expect(m.width).toBe(m.height);
+    expect(m).toMatchObject({
+      type: 'marker',
+      number: 1,
+      textColor: '#ffffff',
+      markerStyle: 'circle',
+    });
+    expect(m.strokeWidth).toBeGreaterThan(0);
+    expect(createShape('markerSquare', 100, 100).markerStyle).toBe('square');
+  });
+
+  it('nextMarkerNumber zählt nur Marker', () => {
+    expect(nextMarkerNumber([])).toBe(1);
+    expect(
+      nextMarkerNumber([
+        { type: 'marker', number: 2 },
+        { type: 'rect', number: 9 },
+        { type: 'marker', number: 5 },
+      ])
+    ).toBe(6);
+  });
+
+  it('Zensur-Form: Effekt, Umriss und Stärke', () => {
+    const p = createShape('pixelate', 1000, 800);
+    expect(p).toMatchObject({ type: 'censor', effect: 'pixelate', region: 'rect', intensity: 50 });
+    const b = createShape('blurEllipse', 1000, 800);
+    expect(b).toMatchObject({ effect: 'blur', region: 'ellipse' });
+    expect(getShapePathData('censor', 100, 50, { region: 'ellipse' })).toMatch(/A /);
+    expect(getShapePathData('censor', 100, 50, { region: 'rect' })).not.toMatch(/A /);
+    const strong = getCensorStrength({ ...p, width: 200, height: 200, intensity: 100 });
+    const weak = getCensorStrength({ ...p, width: 200, height: 200, intensity: 10 });
+    expect(strong).toBeGreaterThan(weak);
+    expect(weak).toBeGreaterThanOrEqual(2);
+  });
+
+  it('Galerie-Vorschau: Marker mit Nummer, Verpixeln mit Raster', () => {
+    const marker = SHAPE_GALLERY.find((g) => g.id === 'marker');
+    expect(getGalleryPreview(marker).label).toBe('1');
+    const pix = SHAPE_GALLERY.find((g) => g.id === 'pixelate');
+    expect(getGalleryPreview(pix).pattern).toMatch(/^M /);
+    const blur = SHAPE_GALLERY.find((g) => g.id === 'blur');
+    expect(getGalleryPreview(blur).effect).toBe('blur');
+  });
+
+  it('Store nummeriert Marker fortlaufend, auch beim Duplizieren', () => {
+    setActivePinia(createPinia());
+    const store = useImageStore();
+    store.addShape('marker', 400, 300);
+    store.addShape('rect', 400, 300);
+    const second = store.addShape('markerSquare', 400, 300);
+    expect(second.number).toBe(2);
+    expect(store.duplicateShape(second.id).number).toBe(3);
+  });
+
+  it('Panel: Marker-Nummer und Effekt umschalten', async () => {
+    setActivePinia(createPinia());
+    const store = useImageStore();
+    store.saveState = vi.fn();
+    const $t = (key) => key;
+    store.addShape('marker', 800, 600);
+    const w = mount(ShapesPanel, {
+      props: { canvasWidth: 800, canvasHeight: 600 },
+      global: { mocks: { $t } },
+    });
+    const field = (id) => w.findAllComponents(SliderField).find((f) => f.props('inputId') === id);
+    expect(field('shape-marker-number')).toBeTruthy();
+    expect(field('shape-height')).toBeUndefined();
+    field('shape-marker-number').vm.$emit('update:modelValue', 7);
+    expect(store.shapes[0].number).toBe(7);
+    field('shape-size').vm.$emit('update:modelValue', 120);
+    expect(store.shapes[0]).toMatchObject({ width: 120, height: 120 });
+
+    store.addShape('pixelate', 800, 600);
+    await w.vm.$nextTick();
+    expect(field('shape-intensity')).toBeTruthy();
+    expect(field('shape-shadow')).toBeUndefined();
+    const blurBtn = w.findAll('.segmented__option').find((b) => b.text() === 'shapes.effects.blur');
+    await blurBtn.trigger('click');
+    expect(store.shapes[1].effect).toBe('blur');
   });
 });

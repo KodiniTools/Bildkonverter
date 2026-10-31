@@ -10,6 +10,7 @@
     <path
       :d="preview.d"
       :fill="fill"
+      :fill-opacity="isEffect && preview.effect === 'blur' ? 0.35 : undefined"
       :fill-rule="preview.fillRule"
       :stroke="stroke"
       :stroke-width="strokeWidth"
@@ -17,6 +18,21 @@
       stroke-linecap="round"
       stroke-linejoin="round"
     />
+    <path v-if="preview.pattern" :d="preview.pattern" fill="currentColor" />
+    <text
+      v-if="isMarker"
+      class="shape-icon__label"
+      x="0"
+      y="1"
+      text-anchor="middle"
+      dominant-baseline="central"
+      :style="{
+        fill: shape?.textColor || 'var(--ds-surface-1)',
+        fontSize: markerLabel.length > 2 ? '11px' : '15px',
+      }"
+    >
+      {{ markerLabel }}
+    </text>
   </svg>
 </template>
 
@@ -39,23 +55,33 @@ const props = defineProps({
 
 const VIEW = 40;
 const preview = computed(() => {
-  const base = getGalleryPreview(props.item, VIEW);
-  if (!props.shape) return base;
-  return { ...base, filled: props.shape.filled !== false, dash: props.shape.dash || 'solid' };
+  const s = props.shape;
+  if (!s) return getGalleryPreview(props.item, VIEW);
+  // Varianten der konkreten Form (Marker-Stil, Effekt, Umriss) übernehmen
+  const preset = { ...(props.item.preset || {}) };
+  for (const key of ['markerStyle', 'region', 'effect']) if (s[key]) preset[key] = s[key];
+  const base = getGalleryPreview({ ...props.item, preset }, VIEW);
+  return { ...base, filled: s.filled !== false, dash: s.dash || 'solid' };
 });
 
 const isStroke = computed(() => preview.value.kind === SHAPE_KIND.STROKE);
+const isMarker = computed(() => preview.value.kind === SHAPE_KIND.MARKER);
+const isEffect = computed(() => preview.value.kind === SHAPE_KIND.EFFECT);
+const markerLabel = computed(() => String(props.shape?.number ?? 1));
 const fill = computed(() => {
+  if (isEffect.value) return preview.value.effect === 'blur' ? 'currentColor' : 'none';
   if (isStroke.value || !preview.value.filled) return 'none';
   return props.shape?.fillColor || 'currentColor';
 });
 const stroke = computed(() => {
+  if (isEffect.value) return 'currentColor';
   if (isStroke.value || !preview.value.filled) return props.shape?.strokeColor || 'currentColor';
   // Gefüllte Form mit Umrandung (z. B. weiße Sprechblase) bleibt so erkennbar
   return props.shape?.strokeWidth > 0 ? props.shape.strokeColor : 'none';
 });
-const strokeWidth = computed(() => (isStroke.value ? 3 : 2.5));
+const strokeWidth = computed(() => (isStroke.value ? 3 : isEffect.value ? 1.5 : 2.5));
 const dashArray = computed(() => {
+  if (isEffect.value) return '3 2';
   if (preview.value.dash === 'dashed') return '6 4';
   if (preview.value.dash === 'dotted') return '0.1 5';
   return undefined;
@@ -67,5 +93,10 @@ const dashArray = computed(() => {
   display: block;
   flex-shrink: 0;
   overflow: visible;
+}
+
+.shape-icon__label {
+  font-family: var(--ds-font-sans, sans-serif);
+  font-weight: 700;
 }
 </style>
