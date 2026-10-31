@@ -255,3 +255,48 @@ describe('Text in Formen und Freihand (Canvas)', () => {
     expect(pixelAt(c, 150, 130)).toEqual([255, 255, 255, 255]);
   });
 });
+
+describe('Farbverlauf und Emojis (Canvas)', () => {
+  it('linearer Verlauf: links Start-, rechts Endfarbe', () => {
+    const c = blankCanvas();
+    drawShape(
+      c.getContext('2d'),
+      shape({ fillType: 'linear', fillColor: '#ff0000', fillColor2: '#0000ff', gradientAngle: 0 })
+    );
+    const [lr, , lb] = pixelAt(c, 52, 100);
+    const [rr, , rb] = pixelAt(c, 148, 100);
+    expect(lr).toBeGreaterThan(230);
+    expect(lb).toBeLessThan(25);
+    expect(rb).toBeGreaterThan(230);
+    expect(rr).toBeLessThan(25);
+  });
+
+  it('radialer Verlauf: Mitte Start-, Rand Endfarbe', () => {
+    const c = blankCanvas();
+    drawShape(
+      c.getContext('2d'),
+      shape({ height: 100, fillType: 'radial', fillColor: '#ff0000', fillColor2: '#0000ff' })
+    );
+    expect(pixelAt(c, 100, 100)[0]).toBeGreaterThan(240);
+    expect(pixelAt(c, 148, 100)[2]).toBeGreaterThan(200);
+  });
+
+  it('Emoji wird farbig im Rahmen gezeichnet, außerhalb bleibt der Canvas leer', () => {
+    const c = blankCanvas();
+    const emoji = { ...createShape('emojiHeart', 200, 200), x: 100, y: 100, width: 80, height: 80 };
+    drawShape(c.getContext('2d'), emoji);
+    const data = c.getContext('2d').getImageData(0, 0, 200, 200).data;
+    let inside = 0;
+    let outside = 0;
+    for (let y = 0; y < 200; y++) {
+      for (let x = 0; x < 200; x++) {
+        const a = data[(y * 200 + x) * 4 + 3];
+        if (!a) continue;
+        if (Math.abs(x - 100) <= 42 && Math.abs(y - 100) <= 42) inside++;
+        else outside++;
+      }
+    }
+    expect(inside).toBeGreaterThan(1500);
+    expect(outside).toBe(0);
+  });
+});

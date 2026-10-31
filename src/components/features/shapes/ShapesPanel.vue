@@ -38,7 +38,7 @@
           :aria-pressed="isDrawToolItem(item) ? drawTool === item.tool : undefined"
           @click="onTileClick(item)"
         >
-          <ShapeIcon :item="item" :size="30" />
+          <ShapeIcon :item="item" :size="30" :text="stickerText(item)" />
         </button>
       </div>
 
@@ -50,23 +50,12 @@
         <template v-if="drawTool">
           <div class="control-group">
             <label class="mini-label">{{ $t('shapes.draw.color') }}</label>
-            <div class="color-picker-row">
-              <input
-                type="color"
-                class="color-input"
-                :value="drawStyle.color"
-                :aria-label="$t('shapes.draw.color')"
-                @input="setDrawSetting({ color: $event.target.value })"
-              />
-              <input
-                type="text"
-                class="color-text"
-                maxlength="7"
-                :value="drawStyle.color"
-                :aria-label="$t('shapes.draw.color')"
-                @input="setDrawColor($event.target.value)"
-              />
-            </div>
+            <ColorField
+              :model-value="drawStyle.color"
+              :label="$t('shapes.draw.color')"
+              :recent-label="$t('shapes.edit.recentColors')"
+              @update:model-value="setDrawSetting({ color: $event })"
+            />
           </div>
           <div class="control-group">
             <SliderField
@@ -173,27 +162,35 @@
         </div>
         <div class="control-group">
           <label class="mini-label">{{ $t('shapes.edit.textColor') }}</label>
-          <div class="color-picker-row">
-            <input
-              type="color"
-              class="color-input"
-              :value="selectedShape.textColor || '#ffffff'"
-              :aria-label="$t('shapes.edit.textColor')"
-              @input="update({ textColor: $event.target.value })"
-              @change="commit"
-            />
-            <input
-              type="text"
-              class="color-text"
-              maxlength="7"
-              :value="selectedShape.textColor || '#ffffff'"
-              :aria-label="$t('shapes.edit.textColor')"
-              @input="updateColor('textColor', $event.target.value)"
-              @change="commit"
-            />
-          </div>
+          <ColorField
+            :model-value="selectedShape.textColor || '#ffffff'"
+            :label="$t('shapes.edit.textColor')"
+            :recent-label="$t('shapes.edit.recentColors')"
+            @update:model-value="update({ textColor: $event })"
+            @commit="commit"
+          />
         </div>
       </template>
+
+      <!-- Emoji tauschen -->
+      <div v-if="isEmoji" class="control-group">
+        <label class="mini-label">{{ $t('shapes.edit.emoji') }}</label>
+        <div class="emoji-grid">
+          <button
+            v-for="(glyph, id) in EMOJI_SET"
+            :key="id"
+            type="button"
+            class="emoji-option"
+            :class="{ active: selectedShape.emoji === glyph }"
+            :aria-pressed="selectedShape.emoji === glyph"
+            :title="$t(`shapes.items.${id}`)"
+            :aria-label="$t(`shapes.items.${id}`)"
+            @click="setAndCommit({ emoji: glyph, galleryId: id })"
+          >
+            {{ glyph }}
+          </button>
+        </div>
+      </div>
 
       <!-- Text in der Form (skaliert mit der Form) -->
       <template v-if="hasTextBox">
@@ -242,25 +239,13 @@
         </div>
         <div class="control-group">
           <label class="mini-label">{{ $t('shapes.edit.textFill') }}</label>
-          <div class="color-picker-row">
-            <input
-              type="color"
-              class="color-input"
-              :value="selectedShape.textColor || SHAPE_TEXT_DEFAULTS.textColor"
-              :aria-label="$t('shapes.edit.textFill')"
-              @input="update({ textColor: $event.target.value })"
-              @change="commit"
-            />
-            <input
-              type="text"
-              class="color-text"
-              maxlength="7"
-              :value="selectedShape.textColor || SHAPE_TEXT_DEFAULTS.textColor"
-              :aria-label="$t('shapes.edit.textFill')"
-              @input="updateColor('textColor', $event.target.value)"
-              @change="commit"
-            />
-          </div>
+          <ColorField
+            :model-value="selectedShape.textColor || SHAPE_TEXT_DEFAULTS.textColor"
+            :label="$t('shapes.edit.textFill')"
+            :recent-label="$t('shapes.edit.recentColors')"
+            @update:model-value="update({ textColor: $event })"
+            @commit="commit"
+          />
           <div class="segmented mt-2" :aria-label="$t('shapes.edit.textAlign')">
             <button
               v-for="align in TEXT_ALIGNS"
@@ -334,33 +319,69 @@
           />
           <label for="shape-fill-toggle">{{ $t('shapes.edit.fill') }}</label>
         </div>
-        <div
-          v-if="selectedShape.filled !== false"
-          class="color-picker-row"
-          :class="{ 'mt-2': isFillKind }"
-        >
-          <input
-            type="color"
-            class="color-input"
-            :value="selectedShape.fillColor"
-            :aria-label="$t('shapes.edit.fillColor')"
-            @input="update({ fillColor: $event.target.value })"
-            @change="commit"
+        <template v-if="selectedShape.filled !== false">
+          <div
+            class="segmented"
+            :class="{ 'mt-2': isFillKind }"
+            :aria-label="$t('shapes.edit.fillType')"
+          >
+            <button
+              v-for="type in FILL_TYPES"
+              :key="type"
+              type="button"
+              class="segmented__option"
+              :class="{ active: fillType === type }"
+              :aria-pressed="fillType === type"
+              :data-fill-type="type"
+              @click="setAndCommit({ fillType: type })"
+            >
+              {{ $t(`shapes.fillTypes.${type}`) }}
+            </button>
+          </div>
+          <label v-if="isGradient" class="mini-label mt-2">{{
+            $t('shapes.edit.gradientFrom')
+          }}</label>
+          <ColorField
+            :class="{ 'mt-2': !isGradient }"
+            :model-value="selectedShape.fillColor"
+            :label="isGradient ? $t('shapes.edit.gradientFrom') : $t('shapes.edit.fillColor')"
+            :recent-label="$t('shapes.edit.recentColors')"
+            @update:model-value="update({ fillColor: $event })"
+            @commit="commit"
           />
-          <input
-            type="text"
-            class="color-text"
-            maxlength="7"
-            :value="selectedShape.fillColor"
-            :aria-label="$t('shapes.edit.fillColor')"
-            @input="updateColor('fillColor', $event.target.value)"
-            @change="commit"
-          />
-        </div>
+          <template v-if="isGradient">
+            <label class="mini-label mt-2">{{ $t('shapes.edit.gradientTo') }}</label>
+            <ColorField
+              :model-value="selectedShape.fillColor2 || '#ffffff'"
+              :label="$t('shapes.edit.gradientTo')"
+              :recent-label="$t('shapes.edit.recentColors')"
+              @update:model-value="update({ fillColor2: $event })"
+              @commit="commit"
+            />
+            <button type="button" class="transform-btn swap-btn mt-2" @click="swapGradient">
+              <AppIcon name="exchange-alt" />
+              <span>{{ $t('shapes.edit.gradientSwap') }}</span>
+            </button>
+            <SliderField
+              v-if="fillType === 'linear'"
+              class="mt-2"
+              :model-value="Math.round(selectedShape.gradientAngle ?? 90)"
+              :min="0"
+              :max="360"
+              unit="°"
+              :default-value="90"
+              :label="$t('shapes.edit.gradientAngle')"
+              icon="redo"
+              input-id="shape-gradient-angle"
+              @update:model-value="update({ gradientAngle: $event })"
+              @commit="commit"
+            />
+          </template>
+        </template>
       </div>
 
       <!-- Linie bzw. Umrandung -->
-      <div v-if="!isEffect" class="control-group">
+      <div v-if="!isEffect && !isEmoji" class="control-group">
         <SliderField
           :model-value="selectedShape.strokeWidth || 0"
           :min="isStrokeKind ? 1 : 0"
@@ -372,25 +393,15 @@
           @update:model-value="update({ strokeWidth: $event })"
           @commit="commit"
         />
-        <div v-if="hasStroke" class="color-picker-row mt-2">
-          <input
-            type="color"
-            class="color-input"
-            :value="selectedShape.strokeColor"
-            :aria-label="$t('shapes.edit.strokeColor')"
-            @input="update({ strokeColor: $event.target.value })"
-            @change="commit"
-          />
-          <input
-            type="text"
-            class="color-text"
-            maxlength="7"
-            :value="selectedShape.strokeColor"
-            :aria-label="$t('shapes.edit.strokeColor')"
-            @input="updateColor('strokeColor', $event.target.value)"
-            @change="commit"
-          />
-        </div>
+        <ColorField
+          v-if="hasStroke"
+          class="mt-2"
+          :model-value="selectedShape.strokeColor"
+          :label="$t('shapes.edit.strokeColor')"
+          :recent-label="$t('shapes.edit.recentColors')"
+          @update:model-value="update({ strokeColor: $event })"
+          @commit="commit"
+        />
         <div
           v-if="hasStroke && !isMarker"
           class="segmented mt-2"
@@ -465,7 +476,7 @@
       </div>
 
       <!-- Größe -->
-      <div v-if="isMarker" class="control-group">
+      <div v-if="isMarker || isEmoji" class="control-group">
         <SliderField
           :model-value="Math.round(selectedShape.width)"
           :min="SHAPE_LIMITS.minSize"
@@ -478,7 +489,7 @@
           @commit="commit"
         />
       </div>
-      <div v-if="!isMarker" class="control-group">
+      <div v-if="!isMarker && !isEmoji" class="control-group">
         <SliderField
           :model-value="Math.round(selectedShape.width)"
           :min="SHAPE_LIMITS.minSize"
@@ -491,7 +502,7 @@
           @commit="commit"
         />
       </div>
-      <div v-if="!heightless && !isMarker" class="control-group">
+      <div v-if="!heightless && !isMarker && !isEmoji" class="control-group">
         <SliderField
           :model-value="Math.round(selectedShape.height)"
           :min="SHAPE_LIMITS.minSize"
@@ -621,13 +632,14 @@
  * Wird im Einzelbild-Modus (TransformPanel) und im Ebenen-Modus
  * (LayerControlPanel, Reiter „Formen“) verwendet.
  */
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, getCurrentInstance, onBeforeUnmount, ref, watch } from 'vue';
 import { availableFonts } from '@/assets/fonts/fontList.js';
 import { useImageStore } from '@/stores/imageStore';
 import AppIcon from '@/components/ui/AppIcon.vue';
 import SliderField from '@/components/ui/SliderField.vue';
 import ToggleSwitch from '@/components/ui/ToggleSwitch.vue';
 import ShapeIcon from './ShapeIcon.vue';
+import ColorField from './ColorField.vue';
 import {
   CENSOR_EFFECTS,
   CENSOR_REGIONS,
@@ -639,6 +651,8 @@ import {
   SHAPE_KIND,
   SHAPE_LIMITS,
   SHAPE_TEXT_DEFAULTS,
+  EMOJI_SET,
+  FILL_TYPES,
   TEXT_ALIGNS,
   TEXT_SCALE_LIMITS,
   getDefaultDrawWidth,
@@ -676,6 +690,17 @@ const isFillKind = computed(() => selectedKind.value === SHAPE_KIND.FILL);
 const isStrokeKind = computed(() => selectedKind.value === SHAPE_KIND.STROKE);
 const isMarker = computed(() => selectedKind.value === SHAPE_KIND.MARKER);
 const isEffect = computed(() => selectedKind.value === SHAPE_KIND.EFFECT);
+const isEmoji = computed(() => selectedKind.value === SHAPE_KIND.EMOJI);
+const fillType = computed(() =>
+  FILL_TYPES.includes(selectedShape.value?.fillType) ? selectedShape.value.fillType : 'solid'
+);
+const isGradient = computed(() => fillType.value !== 'solid');
+
+function swapGradient() {
+  const shape = selectedShape.value;
+  if (!shape) return;
+  setAndCommit({ fillColor: shape.fillColor2 || '#ffffff', fillColor2: shape.fillColor });
+}
 const heightless = computed(() => isHeightless(selectedShape.value?.type));
 const hasStroke = computed(() => (selectedShape.value?.strokeWidth || 0) > 0);
 const shapeIndex = computed(() => shapes.value.findIndex((s) => s.id === selectedId.value));
@@ -725,10 +750,6 @@ function setDrawTool(tool) {
 
 function setDrawSetting(patch) {
   if (drawTool.value) imageStore.updateDrawSettings?.(drawTool.value, patch);
-}
-
-function setDrawColor(value) {
-  if (/^#[0-9a-f]{6}$/i.test(value)) setDrawSetting({ color: value });
 }
 
 function onTileClick(item) {
@@ -840,10 +861,26 @@ function setHeight(height) {
   update(patch);
 }
 
+const instance = getCurrentInstance();
+/** Übersetzung über das globale $t (ohne useI18n, damit Tests $t mocken können) */
+function t(key) {
+  return instance?.proxy?.$t ? instance.proxy.$t(key) : key;
+}
+
+/** Sticker mit übersetzbarem Text (z. B. „Neu“) */
+function stickerText(item) {
+  const key = item?.preset?.textKey;
+  return key ? t(`shapes.stickerText.${key}`) : null;
+}
+
 function addShape(galleryId) {
   if (props.disabled) return;
   const { width, height } = canvasSize();
-  if (imageStore.addShape(galleryId, width, height)) commit();
+  const shape = imageStore.addShape(galleryId, width, height);
+  if (!shape) return;
+  const text = stickerText(SHAPE_GALLERY.find((g) => g.id === galleryId));
+  if (text) imageStore.updateShape(shape.id, { text });
+  commit();
 }
 
 function select(id) {
@@ -1071,6 +1108,57 @@ function reorder(direction) {
   background: var(--ds-accent-soft);
   border-color: var(--ds-accent);
   color: var(--ds-accent);
+}
+
+.color-field.mt-2,
+.mini-label.mt-2,
+.slider-control.mt-2 {
+  margin-top: var(--ds-space-2);
+}
+
+.mini-label.mt-2 {
+  display: block;
+}
+
+.swap-btn {
+  width: 100%;
+}
+
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--ds-space-1);
+}
+
+.emoji-option {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface-2);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease);
+
+  &:hover {
+    border-color: var(--ds-accent);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
+  }
+
+  &.active {
+    border-color: var(--ds-accent);
+    background: var(--ds-accent-soft);
+  }
 }
 
 .draw-settings {

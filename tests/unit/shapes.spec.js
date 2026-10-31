@@ -36,7 +36,19 @@ import {
   layoutShapeText,
   supportsShapeText,
   wrapShapeText,
+  EMOJI_SET,
+  FILL_TYPES,
+  getFillStyle,
 } from '@/utils/shapes';
+import {
+  RECENT_COLORS_KEY,
+  RECENT_COLORS_MAX,
+  addRecentColor,
+  clearRecentColors,
+  reloadRecentColors,
+  useRecentColors,
+} from '@/composables/useRecentColors';
+import ColorField from '@/components/features/shapes/ColorField.vue';
 import { useShapeInteraction } from '@/composables/editor/useShapeInteraction';
 import { useImageStore } from '@/stores/imageStore';
 import ShapesPanel from '@/components/features/shapes/ShapesPanel.vue';
@@ -581,5 +593,145 @@ describe('Freihand: Stift und Textmarker', () => {
 
     await tabs()[0].trigger('click');
     expect(store.drawTool).toBeNull();
+  });
+});
+
+describe('Sticker und Emojis', () => {
+  it('Sticker-Kategorie enthält Daumen hoch, !, ?, Neu, Sale und alle Emojis', () => {
+    const ids = SHAPE_GALLERY.filter((g) => g.category === 'stickers').map((g) => g.id);
+    expect(ids).toEqual(
+      expect.arrayContaining(['thumbsUp', 'exclamation', 'question', 'badgeNew', 'badgeSale'])
+    );
+    for (const id of Object.keys(EMOJI_SET)) expect(ids).toContain(id);
+  });
+
+  it('Badges und Zeichen sind Textformen; Emojis haben ihr Zeichen und keine Kontur', () => {
+    expect(createShape('exclamation', 800, 600)).toMatchObject({ text: '!', textColor: '#ffffff' });
+    expect(createShape('badgeSale', 800, 600)).toMatchObject({ type: 'burst', text: 'SALE' });
+    const emoji = createShape('emojiFire', 800, 600);
+    expect(emoji).toMatchObject({ type: 'emoji', emoji: EMOJI_SET.emojiFire, strokeWidth: 0 });
+    expect(emoji.width).toBe(emoji.height);
+    expect(getGalleryPreview(SHAPE_GALLERY.find((g) => g.id === 'emojiFire')).emoji).toBe('🔥');
+  });
+
+  it('Panel: „Neu“-Badge erhält den übersetzten Text; Emoji lässt sich tauschen', async () => {
+    setActivePinia(createPinia());
+    const store = useImageStore();
+    store.saveState = vi.fn();
+    const w = mount(ShapesPanel, {
+      props: { canvasWidth: 800, canvasHeight: 600 },
+      global: { mocks: { $t: (k) => (k === 'shapes.stickerText.new' ? 'NEU' : k) } },
+    });
+    await w.findAll('[role="tab"]')[SHAPE_CATEGORIES.indexOf('stickers')].trigger('click');
+    await w.find('[data-shape="badgeNew"]').trigger('click');
+    expect(store.shapes[0].text).toBe('NEU');
+    expect(store.saveState).toHaveBeenCalledTimes(1);
+
+    await w.find('[data-shape="emojiSmile"]').trigger('click');
+    expect(w.find('#shape-stroke-width').exists()).toBe(false);
+    const options = w.findAll('.emoji-option');
+    expect(options).toHaveLength(Object.keys(EMOJI_SET).length);
+    await options.find((o) => o.text() === EMOJI_SET.emojiParty).trigger('click');
+    expect(store.shapes[1]).toMatchObject({ emoji: EMOJI_SET.emojiParty, galleryId: 'emojiParty' });
+  });
+});
+
+describe('Farbverlauf', () => {
+  function gradientCtx() {
+    const calls = [];
+    const gradient = { stops: [], addColorStop: (o, c) => gradient.stops.push([o, c]) };
+    return {
+      calls,
+      gradient,
+      createLinearGradient: (...a) => (calls.push(['linear', ...a]), gradient),
+      createRadialGradient: (...a) => (calls.push(['radial', ...a]), gradient),
+    };
+  }
+
+  it('einfarbig liefert die Farbe, linear/radial einen Verlauf über den Rahmen', () => {
+    const base = { fillColor: '#ff0000', fillColor2: '#0000ff', gradientAngle: 0 };
+    expect(getFillStyle(gradientCtx(), { ...base, fillType: 'solid' }, 100, 50)).toBe('#ff0000');
+
+    const lin = gradientCtx();
+    getFillStyle(lin, { ...base, fillType: 'linear' }, 100, 50);
+    expect(lin.calls[0]).toEqual(['linear', -50, -0, 50, 0]);
+    expect(lin.gradient.stops).toEqual([
+      [0, '#ff0000'],
+      [1, '#0000ff'],
+    ]);
+
+    const down = gradientCtx();
+    getFillStyle(down, { ...base, fillType: 'linear', gradientAngle: 90 }, 100, 50);
+    const [, x0, y0, x1, y1] = down.calls[0];
+    close(x0, 0, 1e-9);
+    close(x1, 0, 1e-9);
+    close(y0, -25);
+    close(y1, 25);
+
+    const rad = gradientCtx();
+    getFillStyle(rad, { ...base, fillType: 'radial' }, 100, 50);
+    expect(rad.calls[0]).toEqual(['radial', 0, 0, 0, 0, 0, 50]);
+  });
+
+  it('neue Flächenformen starten einfarbig; Panel schaltet auf Verlauf und tauscht Farben', async () => {
+    expect(FILL_TYPES).toEqual(['solid', 'linear', 'radial']);
+    setActivePinia(createPinia());
+    const store = useImageStore();
+    store.saveState = vi.fn();
+    store.addShape('rect', 800, 600);
+    expect(store.shapes[0]).toMatchObject({ fillType: 'solid', gradientAngle: 90 });
+    const w = mount(ShapesPanel, {
+      props: { canvasWidth: 800, canvasHeight: 600 },
+      global: { mocks: { $t: (k) => k } },
+    });
+    await w.find('[data-fill-type="linear"]').trigger('click');
+    expect(store.shapes[0].fillType).toBe('linear');
+    const field = (id) => w.findAllComponents(SliderField).find((f) => f.props('inputId') === id);
+    field('shape-gradient-angle').vm.$emit('update:modelValue', 45);
+    expect(store.shapes[0].gradientAngle).toBe(45);
+    const { fillColor, fillColor2 } = store.shapes[0];
+    await w.find('.swap-btn').trigger('click');
+    expect(store.shapes[0]).toMatchObject({ fillColor: fillColor2, fillColor2: fillColor });
+  });
+});
+
+describe('Zuletzt verwendete Farben', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    clearRecentColors();
+  });
+
+  it('neueste zuerst, ohne Duplikate, begrenzt und gespeichert', () => {
+    const { recentColors } = useRecentColors();
+    expect(addRecentColor('#FF0000')).toBe(true);
+    addRecentColor('#00ff00');
+    addRecentColor('#ff0000');
+    expect(addRecentColor('rot')).toBe(false);
+    expect(recentColors.value).toEqual(['#ff0000', '#00ff00']);
+    for (let i = 0; i < 12; i++) addRecentColor(`#0000${String(i).padStart(2, '0')}`);
+    expect(recentColors.value).toHaveLength(RECENT_COLORS_MAX);
+    expect(JSON.parse(localStorage.getItem(RECENT_COLORS_KEY))).toEqual(recentColors.value);
+
+    localStorage.setItem(RECENT_COLORS_KEY, '["#123456","kaputt"]');
+    reloadRecentColors();
+    expect(recentColors.value).toEqual(['#123456']);
+    localStorage.setItem(RECENT_COLORS_KEY, '{kein json');
+    reloadRecentColors();
+    expect(recentColors.value).toEqual([]);
+  });
+
+  it('ColorField merkt sich die Farbe beim Abschließen; Klick auf ein Feld übernimmt sie', async () => {
+    const w = mount(ColorField, { props: { modelValue: '#000000', label: 'Farbe' } });
+    expect(w.findAll('.recent-color')).toHaveLength(0);
+    await w.find('input[type="color"]').setValue('#abcdef');
+    expect(w.emitted('update:modelValue').at(-1)).toEqual(['#abcdef']);
+    expect(w.emitted('commit').at(-1)).toEqual(['#abcdef']);
+    addRecentColor('#112233');
+    await w.vm.$nextTick();
+    const swatches = w.findAll('.recent-color');
+    expect(swatches.map((b) => b.attributes('data-color'))).toEqual(['#112233', '#abcdef']);
+    await swatches[0].trigger('click');
+    expect(w.emitted('update:modelValue').at(-1)).toEqual(['#112233']);
+    expect(w.emitted('commit').at(-1)).toEqual(['#112233']);
   });
 });
