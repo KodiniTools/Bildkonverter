@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { i18n } from '@/i18n';
+import { i18n, initialLocale } from '@/i18n';
 import { logger } from '@/utils/logger';
 
 /**
@@ -22,10 +22,8 @@ export const useSettingsStore = defineStore('settings', () => {
   );
 
   // Sprache - globale Nav nutzt 'locale', Vue App nutzte bisher 'bildkonverter-locale'
-  // Priorität: globale Nav Key > alter App Key > Fallback 'de'
-  const locale = ref(
-    localStorage.getItem('locale') || localStorage.getItem('bildkonverter-locale') || 'de'
-  );
+  // Priorität: ?lang=de|en (hreflang-Ziel) > globale Nav Key > alter App Key > Fallback 'de'
+  const locale = ref(initialLocale());
 
   // Performance
   const performanceMode = ref(localStorage.getItem('bildkonverter-performance') || 'balanced');

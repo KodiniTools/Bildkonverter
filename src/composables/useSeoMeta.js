@@ -5,7 +5,11 @@
  * bei jedem Routenwechsel. Da die App eine CSR-SPA ist, werden die
  * Tags per DOM-Manipulation gesetzt – für Crawler ohne JS-Ausführung
  * bleiben die statischen Werte aus index.html bestehen.
+ *
+ * Sprachfassungen: Deutsch ohne Parameter, Englisch mit ?lang=en.
  */
+
+import { localeUrls } from '@/utils/localeSeo';
 
 const BASE_URL = 'https://kodinitools.com/bildkonverter';
 const SITE_NAME = 'KodiniTools';
@@ -40,7 +44,6 @@ function setCanonical(url) {
 
 /**
  * Setzt oder aktualisiert <link rel="alternate" hreflang="...">
- * (beide Sprachen teilen sich eine URL, Umschaltung erfolgt clientseitig)
  */
 function setAlternate(hreflang, url) {
   let link = document.querySelector(`link[rel="alternate"][hreflang="${hreflang}"]`);
@@ -60,20 +63,25 @@ function setAlternate(hreflang, url) {
  * @param {string} meta.title - Seitentitel (wird mit Suffix kombiniert)
  * @param {string} meta.description - Meta-Description
  * @param {string} meta.path - URL-Pfad der Route (z.B. '/editor')
+ * @param {{ title?: string, description?: string }} [meta.en] - englische Texte
+ * @param {'de' | 'en'} [locale] - aktive Sprache
  */
-export function updateSeoMeta(meta) {
-  const { title, description, path = '' } = meta;
+export function updateSeoMeta(meta, locale = 'de') {
+  const lang = locale === 'en' ? 'en' : 'de';
+  const texts = lang === 'en' && meta.en ? meta.en : meta;
+  const { title, description } = texts;
+  const { path = '' } = meta;
 
-  // Title
-  const fullTitle = title
-    ? `${title} - ${DEFAULT_TITLE_SUFFIX} | ${SITE_NAME}`
-    : `${DEFAULT_TITLE_SUFFIX} | ${SITE_NAME}`;
+  // Title (Produktname je Sprache)
+  const suffix = lang === 'en' ? 'Image Converter Pro' : DEFAULT_TITLE_SUFFIX;
+  const fullTitle = title ? `${title} - ${suffix} | ${SITE_NAME}` : `${suffix} | ${SITE_NAME}`;
   document.title = fullTitle;
 
-  // Canonical URL
-  const canonicalUrl = `${BASE_URL}${path}`;
+  // Canonical URL (EN = ?lang=en) und hreflang de/en/x-default
+  const { canonical: canonicalUrl, alternates } = localeUrls(`${BASE_URL}${path}`, lang);
   setCanonical(canonicalUrl);
-  for (const lang of ['de', 'en', 'x-default']) setAlternate(lang, canonicalUrl);
+  for (const { hreflang, href } of alternates) setAlternate(hreflang, href);
+  updateHreflang(lang);
 
   // Meta Description
   if (description) {
