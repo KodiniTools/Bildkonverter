@@ -1,5 +1,7 @@
+import { watch } from 'vue';
 import { createRouter, createWebHistory } from 'vue-router';
 import { updateSeoMeta } from '@/composables/useSeoMeta';
+import { i18n } from '@/i18n';
 import HomeView from '@/views/HomeView.vue';
 
 /**
@@ -41,6 +43,11 @@ const router = createRouter({
         keywords:
           'Bildkonverter, Bild umwandeln, PNG zu WebP, HEIC zu JPG, Online Bildbearbeitung, Batch Bildkonverter, Bilder komprimieren',
         path: '/',
+        en: {
+          title: 'Free Image Editing in Your Browser',
+          description:
+            'Free online image converter: convert, edit, compress and crop images right in your browser. Supports JPG, PNG, WebP, TIFF, GIF, HEIF and PDF. GDPR-compliant.',
+        },
       },
     },
     {
@@ -54,6 +61,11 @@ const router = createRouter({
         keywords:
           'Bild bearbeiten online, Bildeditor, Filter anwenden, Bild zuschneiden, Bild drehen',
         path: '/editor',
+        en: {
+          title: 'Image Editor',
+          description:
+            'Online image editor: edit images with filters, effects, brightness, contrast and saturation. Convert between JPG, PNG, WebP, TIFF, GIF and PDF. Free in your browser.',
+        },
       },
     },
     {
@@ -67,6 +79,11 @@ const router = createRouter({
         keywords:
           'Batch Bildkonverter, mehrere Bilder konvertieren, Massenkonvertierung, Bilder gleichzeitig umwandeln',
         path: '/batch',
+        en: {
+          title: 'Batch Image Converter – Convert Many Images at Once',
+          description:
+            'Convert hundreds of images at once: choose target format, quality and size. Batch processing for PNG, JPG, WebP and more – fast and free.',
+        },
       },
     },
     {
@@ -79,6 +96,11 @@ const router = createRouter({
           'Bildergalerie mit bearbeiteten Bildern. Verwalten und vergleichen Sie Ihre konvertierten und bearbeiteten Bilder im Bildkonverter Pro.',
         keywords: 'Bildergalerie, Bilder verwalten, Fotocollage erstellen, Bilder herunterladen',
         path: '/gallery',
+        en: {
+          title: 'Gallery',
+          description:
+            'Gallery of your edited images. Manage and compare your converted and edited images in Image Converter Pro.',
+        },
       },
     },
     {
@@ -92,6 +114,11 @@ const router = createRouter({
         keywords:
           'Bildkonverter Anleitung, Bilder konvertieren Anleitung, WebP Anleitung, Bildbearbeitung Tutorial',
         path: '/guide',
+        en: {
+          title: 'Guide',
+          description:
+            'Step-by-step guide to Image Converter Pro: upload, edit, convert and export images. Tips on filters, cropping and choosing a format.',
+        },
       },
     },
     {
@@ -104,6 +131,11 @@ const router = createRouter({
           'Über Bildkonverter Pro von KodiniTools: Datenschutz-fokussierte Bildbearbeitung mit lokaler Verarbeitung im Browser. Server in Deutschland, DSGVO-konform.',
         keywords: 'Kodini Bildkonverter, KodiniTools, Über uns, Datenschutz Bildkonverter',
         path: '/about',
+        en: {
+          title: 'About Us',
+          description:
+            'About Image Converter Pro by KodiniTools: privacy-focused image editing with local processing in your browser. Servers in Germany, GDPR-compliant.',
+        },
       },
     },
     {
@@ -117,6 +149,11 @@ const router = createRouter({
         keywords:
           'FAQ Bildkonverter, häufig gestellte Fragen, Bildkonverter Hilfe, Bildformate FAQ',
         path: '/faq',
+        en: {
+          title: 'Frequently Asked Questions (FAQ)',
+          description:
+            'Answers to frequently asked questions about Image Converter Pro: supported formats, privacy, filters, cropping, rotating and download.',
+        },
       },
     },
     // Format-spezifische Konvertierungs-Landingpages
@@ -148,6 +185,25 @@ const router = createRouter({
   ],
 });
 
+/** Titel, Beschreibung, Canonical und hreflang einer Route in der aktiven Sprache. */
+function applyRouteSeo(route) {
+  updateSeoMeta(
+    {
+      title: route.meta.title,
+      description: route.meta.description,
+      en: route.meta.en,
+      path: route.meta.path || route.path,
+    },
+    i18n.global.locale.value
+  );
+}
+
+// Sprachwechsel: Meta-Tags der aktuellen Route neu setzen
+watch(
+  () => i18n.global.locale.value,
+  () => applyRouteSeo(router.currentRoute.value)
+);
+
 // Navigation Guard: SEO Meta-Tags bei jedem Routenwechsel aktualisieren
 router.beforeEach((to, from, next) => {
   // Handoff-Redirect: Eingehende Handoffs immer zur Galerie umleiten
@@ -169,15 +225,15 @@ router.beforeEach((to, from, next) => {
       to.meta.description = `${srcFormat} Dateien kostenlos in ${destFormat} konvertieren. Schnelle Umwandlung direkt im Browser, ohne Upload. Perfekt für Web-Optimierung und Kompatibilität.`;
       to.meta.keywords = `${srcFormat} zu ${destFormat}, ${srcFormat} in ${destFormat} umwandeln, ${srcFormat} konvertieren, ${pair} Konverter, Bildformat ändern`;
       to.meta.path = `/konvertieren/${pair}`;
+      to.meta.en = {
+        title: `Convert ${srcFormat} to ${destFormat} – Fast & Free`,
+        description: `Convert ${srcFormat} files to ${destFormat} for free. Fast conversion right in your browser, no upload. Perfect for web optimization and compatibility.`,
+      };
     }
   }
 
-  // SEO-Meta-Tags aktualisieren
-  updateSeoMeta({
-    title: to.meta.title,
-    description: to.meta.description,
-    path: to.meta.path || to.path,
-  });
+  // SEO-Meta-Tags aktualisieren (Sprache: EN = ?lang=en)
+  applyRouteSeo(to);
 
   // noindex für 404 und andere nicht-indexierbare Seiten
   if (to.meta.noIndex) {
