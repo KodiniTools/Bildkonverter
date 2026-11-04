@@ -538,7 +538,6 @@ export default {
       title: 'Distort',
       hint: 'Drag each corner point individually to freely deform the image.',
       reset: 'Reset distortion',
-      resetShort: 'Reset',
       apply: 'Apply',
       applyHint:
         'Apply the distortion to the image – border, shadow and corners work again afterwards',

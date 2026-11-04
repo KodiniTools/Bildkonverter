@@ -58,7 +58,7 @@ const ALLOWED_RADII = new Set([
   'components/editor/canvas/CropOverlay.vue: border-radius: 50%',
   'views/EditorView.styles.scss: border-radius: 50%',
   'views/FormatConversionView.vue: border-radius: 50%',
-  'views/GalleryView.vue: border-radius: 50%',
+  'components/gallery/GalleryCard.vue: border-radius: 50%',
   'views/GuideView.vue: border-radius: 50%',
 ]);
 const ALLOWED_SHADOWS = new Set([
@@ -82,7 +82,7 @@ const ALLOWED_Z_INDEX = new Set([
   'views/BatchView.vue: z-index: 9999',
   'components/editor/canvas/CropOverlay.vue: z-index: 101',
   'components/editor/canvas/CropOverlay.vue: z-index: 102',
-  'views/GalleryView.vue: z-index: 10000',
+  'components/gallery/GalleryPreviewDialog.vue: z-index: 10000',
 ]);
 
 function collect(dir: string, out: string[] = []): string[] {
