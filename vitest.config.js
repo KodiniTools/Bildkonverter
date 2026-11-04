@@ -43,7 +43,7 @@ export default defineConfig({
         test: {
           name: 'unit',
           environment: 'happy-dom',
-          include: ['tests/unit/**/*.spec.js'],
+          include: ['tests/unit/**/*.spec.{js,ts}'],
         },
       },
       {

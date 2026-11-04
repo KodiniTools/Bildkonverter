@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import tokens from '@/design-system/tokens-v2.json';
-import { themeColorsV2 } from '@/design-system/tokens-v2.js';
+import { themeColorsV2 } from '@/design-system/tokens-v2';
 
 const SRC_DIR = join(__dirname, '..', '..', 'src');
 const read = (path) => readFileSync(join(SRC_DIR, path), 'utf8');
