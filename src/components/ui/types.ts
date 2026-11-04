@@ -1,5 +1,7 @@
 /** Gemeinsame Typen der UI-Komponenten (src/components/ui). */
 
+import type { StyleValue } from 'vue';
+
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 export type ButtonType = 'button' | 'submit' | 'reset';
@@ -18,4 +20,12 @@ export interface SegmentedOption {
   disabled?: boolean;
 }
 
-export type SelectOption = SegmentedOption;
+/**
+ * Option von UiSelect. Abweichung von der Vorlage (Bildkonverter): `group`
+ * fasst aufeinanderfolgende Optionen in eine <optgroup>, `style` gilt für die
+ * einzelne <option> (Schriftvorschau in den Schriftauswahlen).
+ */
+export interface SelectOption extends SegmentedOption {
+  group?: string;
+  style?: StyleValue;
+}

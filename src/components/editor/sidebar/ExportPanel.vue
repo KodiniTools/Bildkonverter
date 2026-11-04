@@ -2,15 +2,13 @@
   <div class="sidebar-section">
     <h3>{{ $t('editor.sidebar.format') }}</h3>
 
-    <select
-      :value="outputFormat"
-      class="form-select"
-      @change="$emit('update:outputFormat', $event.target.value)"
-    >
-      <option v-for="format in formats" :key="format" :value="format">
-        {{ format.toUpperCase() }}
-      </option>
-    </select>
+    <UiSelect
+      :model-value="outputFormat"
+      :label="$t('editor.sidebar.format')"
+      label-hidden
+      :options="formatOptions"
+      @update:model-value="$emit('update:outputFormat', $event)"
+    />
 
     <div v-if="currentFormatInfo" class="format-info">
       <p class="format-description">{{ $t(`editor.formats.${outputFormat}.description`) }}</p>
@@ -37,15 +35,12 @@
     />
 
     <div v-if="targetSizeAvailable" class="target-size">
-      <label class="checkbox-label">
-        <input
-          :checked="targetSizeEnabled"
-          type="checkbox"
-          data-testid="target-size-enable"
-          @change="$emit('update:targetSizeEnabled', $event.target.checked)"
-        />
-        <span>{{ $t('editor.export.targetSize.enable') }}</span>
-      </label>
+      <UiSwitch
+        :model-value="targetSizeEnabled"
+        :label="$t('editor.export.targetSize.enable')"
+        data-testid="target-size-enable"
+        @update:model-value="$emit('update:targetSizeEnabled', $event)"
+      />
       <template v-if="targetSizeEnabled">
         <div class="target-size__row">
           <label for="target-size-kb">{{ $t('editor.export.targetSize.max') }}</label>
@@ -63,14 +58,11 @@
             <span class="target-size__unit">KB</span>
           </div>
         </div>
-        <label class="checkbox-label">
-          <input
-            :checked="targetSizeDownscale"
-            type="checkbox"
-            @change="$emit('update:targetSizeDownscale', $event.target.checked)"
-          />
-          <span>{{ $t('editor.export.targetSize.downscale') }}</span>
-        </label>
+        <UiSwitch
+          :model-value="targetSizeDownscale"
+          :label="$t('editor.export.targetSize.downscale')"
+          @update:model-value="$emit('update:targetSizeDownscale', $event)"
+        />
         <p class="target-size__hint">{{ $t('editor.export.targetSize.hint') }}</p>
       </template>
     </div>
@@ -86,26 +78,20 @@
     </p>
 
     <div v-if="exifAvailable" class="filter-control checkbox-control exif-option">
-      <label class="checkbox-label">
-        <input
-          :checked="keepExif"
-          type="checkbox"
-          data-testid="keep-exif"
-          @change="$emit('update:keepExif', $event.target.checked)"
-        />
-        <span>{{ $t('editor.export.exif.keep') }}</span>
-      </label>
+      <UiSwitch
+        :model-value="keepExif"
+        :label="$t('editor.export.exif.keep')"
+        data-testid="keep-exif"
+        @update:model-value="$emit('update:keepExif', $event)"
+      />
     </div>
 
     <div v-if="outputFormat === 'png'" class="filter-control checkbox-control">
-      <label class="checkbox-label">
-        <input
-          :checked="exportTransparent"
-          type="checkbox"
-          @change="$emit('update:exportTransparent', $event.target.checked)"
-        />
-        <span>{{ $t('editor.export.transparentBackground', 'Transparenter Hintergrund') }}</span>
-      </label>
+      <UiSwitch
+        :model-value="exportTransparent"
+        :label="$t('editor.export.transparentBackground', 'Transparenter Hintergrund')"
+        @update:model-value="$emit('update:exportTransparent', $event)"
+      />
     </div>
   </div>
 </template>
@@ -114,6 +100,8 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import AppIcon from '@/components/ui/AppIcon.vue';
+import UiSelect from '@/components/ui/UiSelect.vue';
+import UiSwitch from '@/components/ui/UiSwitch.vue';
 import FilterSlider from './FilterSlider.vue';
 import { formatSize } from '@/utils/fileUtils';
 import { TARGET_KB_MAX, TARGET_KB_MIN, clampTargetKb } from '@/utils/targetSize';
@@ -152,6 +140,10 @@ const emit = defineEmits([
   'update:keepExif',
 ]);
 
+const formatOptions = computed(() =>
+  props.formats.map((format) => ({ value: format, label: format.toUpperCase() }))
+);
+
 /** Beim Verlassen des Felds auf den erlaubten Bereich begrenzen */
 function onKbCommit(event) {
   const kb = clampTargetKb(event.target.value) ?? props.targetSizeKb;
@@ -183,24 +175,6 @@ const estimateText = computed(() => {
   flex-direction: column;
   gap: var(--ds-space-2);
   margin-top: var(--ds-space-3);
-}
-
-// wie .filter-control.checkbox-control in EditorView.styles.scss
-.target-size .checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: var(--ds-space-2);
-  cursor: pointer;
-  font-size: var(--ds-text-sm);
-  color: var(--ds-text);
-
-  input[type='checkbox'] {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
-    cursor: pointer;
-    accent-color: var(--ds-accent);
-  }
 }
 
 .target-size__row {

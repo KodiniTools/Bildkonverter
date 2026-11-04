@@ -42,17 +42,12 @@
       </div>
 
       <div class="form-group">
-        <label>{{ $t('textModal.fontFamily') }}:</label>
-        <select v-model="localText.fontFamily" class="font-select" @change="saveToHistory">
-          <option
-            v-for="font in availableFonts"
-            :key="font"
-            :value="font"
-            :style="{ fontFamily: font }"
-          >
-            {{ font }}
-          </option>
-        </select>
+        <UiSelect
+          v-model="localText.fontFamily"
+          :label="`${$t('textModal.fontFamily')}:`"
+          :options="FONT_OPTIONS"
+          @change="saveToHistory"
+        />
       </div>
 
       <div class="modal-actions">
@@ -76,12 +71,15 @@ import { ref, watch, computed } from 'vue';
 import { availableFonts } from '@/assets/fonts/fontList.js';
 import HistoryActions from '@/components/ui/HistoryActions.vue';
 import SliderField from '@/components/ui/SliderField.vue';
+import UiSelect from '@/components/ui/UiSelect.vue';
+import { fontOptions } from '@/utils/fontOptions';
 import { useTextModal } from '@/composables/useTextModal';
 
 const { editingText, modalMode, saveText, deleteText, closeModal } = useTextModal();
 
 // Maximum history steps
 const MAX_HISTORY_SIZE = 50;
+const FONT_OPTIONS = fontOptions(availableFonts);
 
 // History state
 const history = ref([]);
@@ -292,9 +290,8 @@ function close() {
   color: var(--ds-text-2);
 }
 
-/* UiTextField / UiSelect */
-.form-group input,
-.form-group select {
+/* UiTextField */
+.form-group input {
   box-sizing: border-box;
   width: 100%;
   height: var(--ds-control-lg);
@@ -308,13 +305,11 @@ function close() {
   transition: border-color var(--ds-duration) var(--ds-ease);
 }
 
-.form-group input:focus,
-.form-group select:focus {
+.form-group input:focus {
   outline: none;
 }
 
-.form-group input:focus-visible,
-.form-group select:focus-visible {
+.form-group input:focus-visible {
   outline: none;
   border-color: var(--ds-accent);
   box-shadow: var(--ds-focus-ring);
@@ -324,17 +319,6 @@ function close() {
   height: var(--ds-control-lg);
   padding: var(--ds-space-1);
   cursor: pointer;
-}
-
-/* Font-Select mit Preview */
-.font-select {
-  max-height: 300px;
-  font-size: var(--ds-text-md);
-}
-
-.font-select option {
-  padding: var(--ds-space-2);
-  font-size: var(--ds-text-md);
 }
 
 .modal-actions {
@@ -436,8 +420,7 @@ function close() {
   }
 
   .form-group input,
-  .form-group select,
-  .font-select {
+  .form-group :deep(select) {
     height: var(--ds-row-height);
     font-size: var(--ds-text-lg);
   }

@@ -100,31 +100,14 @@
     text-align: right;
   }
 
-  &.checkbox-control {
-    .checkbox-label {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      gap: var(--ds-space-2);
-      cursor: pointer;
-      font-size: var(--ds-text-sm);
-      color: var(--ds-text);
-
-      span {
-        min-width: 0;
-        font-size: var(--ds-text-sm);
-        font-weight: var(--ds-weight-regular);
-        color: var(--ds-text);
-        text-align: left;
-      }
-
-      input[type='checkbox'] {
-        width: 16px;
-        height: 16px;
-        cursor: pointer;
-        accent-color: var(--ds-accent);
-      }
-    }
+  // Schalter (UiSwitch): die Wert-Optik der Regler-Spans oben nicht übernehmen,
+  // sonst bekäme der Knopf min-width 40px
+  &.checkbox-control span {
+    min-width: 0;
+    font-size: var(--ds-text-sm);
+    font-weight: var(--ds-weight-regular);
+    color: var(--ds-text);
+    text-align: left;
   }
 }
 
@@ -305,7 +288,7 @@
       white-space: nowrap;
     }
 
-    .checkbox-label {
+    .resize-switch {
       margin: 0 0 var(--ds-space-2) 0;
       align-self: flex-end;
       white-space: nowrap;
@@ -356,21 +339,8 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: var(--ds-space-2);
-    font-size: var(--ds-text-sm);
-    font-weight: var(--ds-weight-medium);
-    color: var(--ds-text);
+  .resize-switch {
     margin-top: var(--ds-space-1);
-
-    input[type='checkbox'] {
-      width: 16px;
-      height: 16px;
-      cursor: pointer;
-      accent-color: var(--ds-accent);
-    }
   }
 }
 

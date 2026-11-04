@@ -387,14 +387,11 @@
       </div>
       <div v-show="openSections.shadow" class="section-content">
         <div class="control-group">
-          <label class="toggle-label">
-            <input
-              type="checkbox"
-              :checked="layerShadow.enabled"
-              @change="updateShadow('enabled', $event.target.checked)"
-            />
-            {{ $t('layerPanel.shadow.enable') }}
-          </label>
+          <UiSwitch
+            :model-value="layerShadow.enabled"
+            :label="$t('layerPanel.shadow.enable')"
+            @update:model-value="updateShadow('enabled', $event)"
+          />
         </div>
         <template v-if="layerShadow.enabled">
           <FilterSlider
@@ -472,6 +469,7 @@ import { inject } from 'vue';
 import { LAYER_PANEL_KEY } from '@/composables/useLayerPanel';
 import FilterSlider from '@/components/editor/sidebar/FilterSlider.vue';
 import AppIcon from '@/components/ui/AppIcon.vue';
+import UiSwitch from '@/components/ui/UiSwitch.vue';
 
 const {
   imageStore,
