@@ -22,7 +22,7 @@ function sourceFiles(dir) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
     const p = path.join(dir, e.name);
     if (e.isDirectory()) return p.includes('assets') || p.endsWith('i18n') ? [] : sourceFiles(p);
-    return /\.(vue|js)$/.test(e.name) ? [p] : [];
+    return /\.(vue|js|ts)$/.test(e.name) && !e.name.endsWith('.d.ts') ? [p] : [];
   });
 }
 

@@ -39,7 +39,7 @@ const ALLOWED_GRADIENTS = new Set([
 const ALLOWED_FONT_SIZES = new Set([
   // Emoji-Sticker und Symbol-Vorschau: Bildgröße, keine Textstufe
   'components/features/shapes/ShapeIcon.vue: font-size: 26px',
-  'components/features/shapes/ShapesPanel.vue: font-size: 18px',
+  'components/features/shapes/ShapeStyleControls.vue: font-size: 18px',
   // rem-Basis des Dokuments
   'styles/global.scss: font-size: 16px',
 ]);
