@@ -12,7 +12,7 @@ basierend auf der Vue.js/Vite-Architektur des Projekts.
 | Massnahme                                           | Datei(en)                                              | Status    |
 | --------------------------------------------------- | ------------------------------------------------------ | --------- |
 | robots.txt                                          | `public/robots.txt`                                    | Umgesetzt |
-| sitemap.xml mit hreflang                            | `public/sitemap.xml`                                   | Umgesetzt |
+| sitemap.xml mit hreflang                            | zentral in Kodinitools-Home (`/sitemap.xml`)           | Umgesetzt |
 | Erweiterte Meta-Tags (OG, Twitter Cards, Canonical) | `index.html`                                           | Umgesetzt |
 | Dynamisches SEO-Meta-Management pro Route           | `src/composables/useSeoMeta.js`, `src/router/index.js` | Umgesetzt |
 | JSON-LD WebApplication Schema                       | `index.html`                                           | Umgesetzt |
@@ -377,7 +377,7 @@ Umsetzung mit vue-router:
 ### 3.1 Google Search Console
 
 - Website-Property einrichten unter `https://kodinitools.com/bildkonverter/`
-- Sitemap einreichen: `https://kodinitools.com/bildkonverter/sitemap.xml`
+- Sitemap einreichen: `https://kodinitools.com/sitemap.xml` (zentrale Sitemap, enthält alle Bildkonverter-Seiten)
 - Crawling-Fehler ueberwachen
 - Core Web Vitals kontrollieren
 - Indexierungsstatus pruefen (besonders wichtig bei CSR-SPA)
