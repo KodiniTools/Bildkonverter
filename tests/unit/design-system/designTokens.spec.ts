@@ -58,7 +58,8 @@ const ALLOWED_RADII = new Set([
   'components/batch/BatchUploadZone.vue: border-radius: 50%',
   'components/editor/canvas/CropOverlay.vue: border-radius: 50%',
   'views/EditorView.styles.scss: border-radius: 50%',
-  'views/FormatConversionView.vue: border-radius: 50%',
+  'components/conversion/ConversionWidget.vue: border-radius: 50%',
+  'components/conversion/ConversionSteps.vue: border-radius: 50%',
   'components/gallery/GalleryCard.vue: border-radius: 50%',
   'views/GuideView.vue: border-radius: 50%',
 ]);

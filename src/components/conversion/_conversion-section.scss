@@ -1,0 +1,17 @@
+// Gemeinsamer Abschnitts-Stil der Formatseiten (aus FormatConversionView ausgelagert)
+@mixin conversion-section {
+  padding: var(--ds-space-12) var(--ds-space-8);
+
+  > h2 {
+    text-align: center;
+    font-size: var(--ds-text-xl);
+    font-weight: var(--ds-weight-bold);
+    line-height: var(--ds-leading-tight);
+    color: var(--ds-text);
+    margin-bottom: var(--ds-space-8);
+  }
+
+  @media (max-width: 768px) {
+    padding: var(--ds-space-10) var(--ds-space-4);
+  }
+}

@@ -91,3 +91,23 @@ test.describe('Batch (Smoke)', () => {
     expect(errors).toEqual([]);
   });
 });
+
+test.describe('Formatseite (Smoke)', () => {
+  test('PNG in WebP umwandeln, herunterladen und zurücksetzen', async ({ page }) => {
+    const errors = collectPageErrors(page);
+    await prepare(page, 'de');
+    await page.goto('./konvertieren/png-zu-webp');
+    await uploadImages(page, [imageFile('bild.png')]);
+
+    const download = page.getByRole('button', { name: 'Herunterladen (WebP)' });
+    await expect(download).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('.result-state img')).toHaveCount(2);
+
+    const [file] = await Promise.all([page.waitForEvent('download'), download.click()]);
+    expect(file.suggestedFilename()).toBe('bild.webp');
+
+    await page.getByRole('button', { name: 'Weiteres Bild konvertieren' }).click();
+    await expect(page.locator('.upload-zone')).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+});
