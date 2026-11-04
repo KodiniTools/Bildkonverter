@@ -96,7 +96,9 @@ unveränderte Kopien; Werte werden nur dort geändert und hierher kopiert.
 - Buttons: `.btn` + `.btn-primary | .btn-secondary | .btn-ghost | .btn-danger`,
   Größen `.btn-small` (28) / `.btn-large` (40). `.btn-success` ist Alias zu Primär.
 - Panels/Karten: `.card` (surface-1, 1-px-Rahmen, radius-lg, Padding 20).
-- Regler: `SliderField`, `NumberSpinner`; Verlauf: `HistoryActions` (`.btn-history`).
+- Regler: `SliderField` (Spur/Daumen aus `src/components/ui/range.css` der Vorlage, scoped;
+  Abweichungen: Label/Icon, NumberSpinner, `commit`, Farbton-/Wärme-Spur, größere Touch-Daumen),
+  `NumberSpinner`; Verlauf: `HistoryActions` (`.btn-history`).
 - UI-Bausteine aus dem Collage Maker in `src/components/ui/` (Export über `index.ts`):
   `UiButton`, `UiIconButton`, `UiDialog` (Standard-Teleport `#overlay-root`), `UiToast`,
   `UiSwitch` (alle An/Aus-Optionen, keine nativen Checkboxen), `UiSelect` (alle Auswahllisten;

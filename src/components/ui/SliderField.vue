@@ -55,10 +55,15 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * SliderField – eine Zeile aus Regler, Zahlen-Spinner und Reset-Button
- * (Muster aus dem Visualizer). Das Label steht klein darüber.
+ * (Muster aus dem Visualizer, Regler-Anatomie aus `range.css` der Vorlage
+ * KodiniTools/Collage-Maker). Das Label steht klein darüber.
+ *
+ * Abweichung von der Vorlage (Bildkonverter): Label/Icon/inputId als Props,
+ * Zahleneingabe über NumberSpinner (mit Einheit), `commit` statt `start`/`change`
+ * und Spur-Varianten für Farbton/Wärme.
  *
  * Events:
  * - `update:modelValue` (number) – live bei jeder Änderung
@@ -70,28 +75,43 @@ import { computed } from 'vue';
 import NumberSpinner from '@/components/ui/NumberSpinner.vue';
 import AppIcon from '@/components/ui/AppIcon.vue';
 
-const props = defineProps({
-  modelValue: { type: Number, required: true },
-  min: { type: Number, required: true },
-  max: { type: Number, required: true },
-  step: { type: Number, default: 1 },
-  unit: { type: String, default: '' },
-  /** Wert für den Reset-Button. Ohne Angabe gibt es keinen Reset-Button. */
-  defaultValue: { type: Number, default: undefined },
-  label: { type: String, default: '' },
-  /** Optionale FontAwesome-Klasse vor dem Label. */
-  icon: { type: String, default: '' },
-  /** id des Reglers (für `<label for>` und Tests). */
-  inputId: { type: String, default: undefined },
-  /**
-   * Spur-Variante: 'default' | 'center' (Nullpunkt mittig) | 'hue' | 'warm'.
-   * 'default' wird bei Bereichen um null automatisch zu 'center'.
-   */
-  variant: { type: String, default: 'default' },
-  disabled: { type: Boolean, default: false },
-});
+/** Spur-Variante; 'default' wird bei Bereichen um null automatisch zu 'center'. */
+export type SliderVariant = 'default' | 'center' | 'hue' | 'warm';
 
-const emit = defineEmits(['update:modelValue', 'commit', 'reset']);
+const props = withDefaults(
+  defineProps<{
+    modelValue: number;
+    min: number;
+    max: number;
+    step?: number;
+    unit?: string;
+    /** Wert für den Reset-Button. Ohne Angabe gibt es keinen Reset-Button. */
+    defaultValue?: number;
+    label?: string;
+    /** Optionaler Icon-Name vor dem Label. */
+    icon?: string;
+    /** id des Reglers (für `<label for>` und Tests). */
+    inputId?: string;
+    variant?: SliderVariant;
+    disabled?: boolean;
+  }>(),
+  {
+    step: 1,
+    unit: '',
+    defaultValue: undefined,
+    label: '',
+    icon: '',
+    inputId: undefined,
+    variant: 'default',
+    disabled: false,
+  }
+);
+
+const emit = defineEmits<{
+  'update:modelValue': [value: number];
+  commit: [];
+  reset: [];
+}>();
 
 const hasDefault = computed(() => typeof props.defaultValue === 'number');
 const isAtDefault = computed(() => hasDefault.value && props.modelValue === props.defaultValue);
@@ -102,18 +122,20 @@ const trackClass = computed(() => {
   return variant === 'default' ? null : `slider-field__range--${variant}`;
 });
 
-function onRangeInput(event) {
-  const value = Number(event.target.value);
+function onRangeInput(event: Event) {
+  const value = Number((event.target as HTMLInputElement).value);
   if (Number.isFinite(value)) emit('update:modelValue', value);
 }
 
 function reset() {
-  if (!hasDefault.value || isAtDefault.value) return;
+  if (props.defaultValue === undefined || isAtDefault.value) return;
   emit('update:modelValue', props.defaultValue);
   emit('reset');
   emit('commit');
 }
 </script>
+
+<style scoped src="./range.css"></style>
 
 <style scoped lang="scss">
 /* ControlSlider (Design-System v2): Label klein darüber, darunter eine Zeile
@@ -148,15 +170,16 @@ function reset() {
   min-width: 0;
 }
 
-/* Spur border-strong, Daumen Akzent (globaler Range-Stil); nur Farbton und
-   Wärme behalten ihre Verlaufsspur, weil sie den Wert selbst zeigen. */
+/* Spur und Daumen aus range.css (Vorlage); nur Farbton und Wärme behalten
+   ihre Verlaufsspur, weil sie den Wert selbst zeigen. Doppelte Klasse, damit
+   sie den Hintergrund aus range.css (input[type='range']) überstimmen. */
 .slider-field__range {
   flex: 1 1 auto;
   width: auto;
   min-width: 0;
   margin: 0;
 
-  &--hue {
+  &.slider-field__range--hue {
     background: linear-gradient(
       to right,
       hsl(0, 100%, 50%),
@@ -169,13 +192,31 @@ function reset() {
     );
   }
 
-  &--warm {
+  &.slider-field__range--warm {
     background: linear-gradient(
       90deg,
       var(--ds-info) 0%,
       var(--ds-border-strong) 50%,
       var(--ds-accent-hover) 100%
     );
+  }
+}
+
+/* Abweichung von range.css: auf Touch-Geräten größere Spur und Daumen
+   (wie bisher in global.scss) */
+@media (pointer: coarse) {
+  input[type='range'].slider-field__range {
+    height: 8px;
+
+    &::-webkit-slider-thumb {
+      width: 20px;
+      height: 20px;
+    }
+
+    &::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+    }
   }
 }
 
