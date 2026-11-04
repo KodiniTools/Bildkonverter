@@ -207,22 +207,13 @@
           />
         </div>
         <div class="control-group">
-          <label class="mini-label" for="shape-font">{{ $t('shapes.edit.font') }}</label>
-          <select
+          <UiSelect
             id="shape-font"
-            class="font-select"
-            :value="selectedShape.fontFamily || SHAPE_TEXT_DEFAULTS.fontFamily"
-            @change="setFont($event.target.value)"
-          >
-            <option
-              v-for="font in availableFonts"
-              :key="font"
-              :value="font"
-              :style="{ fontFamily: font }"
-            >
-              {{ font }}
-            </option>
-          </select>
+            :label="$t('shapes.edit.font')"
+            :options="FONT_OPTIONS"
+            :model-value="selectedShape.fontFamily || SHAPE_TEXT_DEFAULTS.fontFamily"
+            @update:model-value="setFont"
+          />
         </div>
         <div class="control-group">
           <SliderField
@@ -312,12 +303,12 @@
       <div v-if="isFillKind || isMarker" class="control-group">
         <label v-if="isMarker" class="mini-label">{{ $t('shapes.edit.fillColor') }}</label>
         <div v-if="isFillKind" class="toggle-row">
-          <ToggleSwitch
+          <UiSwitch
             id="shape-fill-toggle"
             :model-value="selectedShape.filled !== false"
+            :label="$t('shapes.edit.fill')"
             @update:model-value="toggleFill"
           />
-          <label for="shape-fill-toggle">{{ $t('shapes.edit.fill') }}</label>
         </div>
         <template v-if="selectedShape.filled !== false">
           <div
@@ -515,8 +506,11 @@
           @commit="commit"
         />
         <div class="toggle-row mt-2">
-          <ToggleSwitch id="shape-lock-ratio" v-model="lockRatio" />
-          <label for="shape-lock-ratio">{{ $t('shapes.edit.lockRatio') }}</label>
+          <UiSwitch
+            id="shape-lock-ratio"
+            v-model="lockRatio"
+            :label="$t('shapes.edit.lockRatio')"
+          />
         </div>
       </div>
 
@@ -637,7 +631,9 @@ import { availableFonts } from '@/assets/fonts/fontList.js';
 import { useImageStore } from '@/stores/imageStore';
 import AppIcon from '@/components/ui/AppIcon.vue';
 import SliderField from '@/components/ui/SliderField.vue';
-import ToggleSwitch from '@/components/ui/ToggleSwitch.vue';
+import UiSelect from '@/components/ui/UiSelect.vue';
+import UiSwitch from '@/components/ui/UiSwitch.vue';
+import { fontOptions } from '@/utils/fontOptions';
 import ShapeIcon from './ShapeIcon.vue';
 import ColorField from './ColorField.vue';
 import {
@@ -671,6 +667,7 @@ const props = defineProps({
 });
 
 const imageStore = useImageStore();
+const FONT_OPTIONS = fontOptions(availableFonts);
 
 const activeCategory = ref(SHAPE_CATEGORIES[0]);
 const lockRatio = ref(false);
@@ -1179,10 +1176,6 @@ function reorder(direction) {
   resize: vertical;
 }
 
-.font-select {
-  width: 100%;
-}
-
 .toggle-row {
   display: flex;
   align-items: center;
@@ -1190,13 +1183,6 @@ function reorder(direction) {
 
   &.mt-2 {
     margin-top: var(--ds-space-2);
-  }
-
-  label {
-    margin: 0;
-    font-size: var(--ds-text-sm);
-    color: var(--ds-text);
-    cursor: pointer;
   }
 }
 

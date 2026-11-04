@@ -3,6 +3,7 @@
  * verändern ihre Props nicht (vue/no-mutating-props).
  */
 import { describe, it, expect } from 'vitest';
+import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import AdjustmentsPanel from '@/components/editor/sidebar/AdjustmentsPanel.vue';
 import LightColorPanel from '@/components/editor/sidebar/LightColorPanel.vue';
@@ -168,6 +169,34 @@ describe('ResizePanel – Modi', () => {
   });
 });
 
+describe('ResizePanel – UiSelect/UiSwitch', () => {
+  const base = { resizeWidth: 800, resizeHeight: 400, baseWidth: 800, baseHeight: 400 };
+
+  it('meldet ein Preset und setzt die Anzeige auf den Parent-Wert zurück', async () => {
+    const wrapper = mountPanel(ResizePanel, { ...base, selectedPreset: '' });
+    const select = wrapper.findAll('select')[0];
+    expect(select.findAll('option')).toHaveLength(9);
+    await select.setValue('none');
+    expect(wrapper.emitted('apply-preset')).toEqual([['none']]);
+    await nextTick();
+    expect(select.element.value).toBe('');
+  });
+
+  it('meldet „Seitenverhältnis beibehalten“ und „Nicht vergrößern“ über UiSwitch', async () => {
+    const wrapper = mountPanel(ResizePanel, {
+      ...base,
+      maintainAspectRatio: true,
+      resizeSpec: { ...defaultResizeSpec },
+    });
+    await wrapper.get('[role="switch"]').trigger('click');
+    expect(wrapper.emitted('update:maintainAspectRatio')).toEqual([[false]]);
+
+    await wrapper.setProps({ resizeSpec: { ...defaultResizeSpec, mode: 'fit', noUpscale: true } });
+    await wrapper.get('[role="switch"]').trigger('click');
+    expect(wrapper.emitted('update:resizeSpec').at(-1)[0].noUpscale).toBe(false);
+  });
+});
+
 describe('ExportPanel – Ziel-Dateigröße', () => {
   const i18n = createI18n({ legacy: false, locale: 'de', messages: { de } });
   const mountExport = (props) =>
@@ -190,7 +219,8 @@ describe('ExportPanel – Ziel-Dateigröße', () => {
 
   it('meldet Aktivieren, KB-Wert (begrenzt) und Verkleinern als Ereignisse', async () => {
     const wrapper = mountExport({ outputFormat: 'jpeg', targetSizeAvailable: true });
-    await wrapper.find('[data-testid="target-size-enable"]').setValue(true);
+    // UiSwitch statt Checkbox: Schalter per Klick
+    await wrapper.find('[data-testid="target-size-enable"] [role="switch"]').trigger('click');
     expect(wrapper.emitted('update:targetSizeEnabled')).toEqual([[true]]);
 
     await wrapper.setProps({ targetSizeEnabled: true });
@@ -255,13 +285,26 @@ describe('ExportPanel – EXIF', () => {
     expect(mountExport({}).find('[data-testid="keep-exif"]').exists()).toBe(false);
     const box = mountExport({ exifAvailable: true }).find('[data-testid="keep-exif"]');
     expect(box.exists()).toBe(true);
-    expect(box.element.checked).toBe(false);
+    // UiSwitch statt Checkbox: Zustand über aria-checked
+    expect(box.get('[role="switch"]').attributes('aria-checked')).toBe('false');
   });
 
   it('meldet das Umschalten als update:keepExif', async () => {
     const wrapper = mountExport({ exifAvailable: true });
-    await wrapper.find('[data-testid="keep-exif"]').setValue(true);
+    await wrapper.find('[data-testid="keep-exif"] [role="switch"]').trigger('click');
     expect(wrapper.emitted('update:keepExif')).toEqual([[true]]);
+  });
+
+  it('meldet das Format über UiSelect', async () => {
+    const wrapper = mountExport({});
+    const select = wrapper.get('select');
+    expect(select.findAll('option').map((option) => option.text())).toEqual([
+      'PNG',
+      'JPEG',
+      'WEBP',
+    ]);
+    await select.setValue('webp');
+    expect(wrapper.emitted('update:outputFormat')).toEqual([['webp']]);
   });
 
   it('zeigt keinen Erklärtext unter der Checkbox', () => {

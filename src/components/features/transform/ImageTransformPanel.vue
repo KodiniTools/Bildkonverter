@@ -143,8 +143,10 @@
           <AppIcon name="vector-square" />
           {{ $t('transform.distort.title') }}
         </span>
-        <ToggleSwitch
+        <UiSwitch
           :model-value="!!transforms.distortEnabled"
+          :label="$t('transform.distort.title')"
+          label-hidden
           :title="$t('transform.distort.hint')"
           @update:model-value="$emit('toggle-distort')"
         />
@@ -252,8 +254,10 @@
           <AppIcon name="clone" />
           {{ $t('transform.shadow.title', 'Schlagschatten') }}
         </span>
-        <ToggleSwitch
+        <UiSwitch
           :model-value="!!transforms.shadowEnabled"
+          :label="$t('transform.shadow.title', 'Schlagschatten')"
+          label-hidden
           @update:model-value="$emit('update:shadow-enabled', $event)"
         />
       </label>
@@ -353,7 +357,7 @@
 import AppIcon from '@/components/ui/AppIcon.vue';
 import HistoryActions from '@/components/ui/HistoryActions.vue';
 import SliderField from '@/components/ui/SliderField.vue';
-import ToggleSwitch from '@/components/ui/ToggleSwitch.vue';
+import UiSwitch from '@/components/ui/UiSwitch.vue';
 
 defineProps({
   transforms: { type: Object, required: true },

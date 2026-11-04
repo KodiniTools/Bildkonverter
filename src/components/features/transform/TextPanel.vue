@@ -80,36 +80,24 @@
 
     <!-- Schriftart -->
     <div class="control-group">
-      <label>
+      <!-- sichtbare Beschriftung mit Icon; den Namen trägt das versteckte UiSelect-Label -->
+      <label aria-hidden="true">
         <AppIcon name="font" :size="14" />
         {{ $t('textPanel.fontFamily', 'Schriftart') }}
       </label>
-      <select
-        :value="selectedText.fontFamily || 'Satoshi Regular'"
-        class="font-select"
-        @change="$emit('update:text-font-family', $event.target.value)"
-      >
-        <optgroup :label="$t('textPanel.customFonts', 'Benutzerdefinierte Schriften')">
-          <option
-            v-for="font in availableFonts"
-            :key="font"
-            :value="font"
-            :style="{ fontFamily: font }"
-          >
-            {{ font }}
-          </option>
-        </optgroup>
-        <optgroup :label="$t('textPanel.systemFonts', 'System-Schriften')">
-          <option
-            v-for="font in systemFonts"
-            :key="font"
-            :value="font"
-            :style="{ fontFamily: font }"
-          >
-            {{ font }}
-          </option>
-        </optgroup>
-      </select>
+      <UiSelect
+        :label="$t('textPanel.fontFamily', 'Schriftart')"
+        label-hidden
+        :options="[
+          ...fontOptions(
+            availableFonts,
+            $t('textPanel.customFonts', 'Benutzerdefinierte Schriften')
+          ),
+          ...fontOptions(systemFonts, $t('textPanel.systemFonts', 'System-Schriften')),
+        ]"
+        :model-value="selectedText.fontFamily || 'Satoshi Regular'"
+        @update:model-value="$emit('update:text-font-family', $event)"
+      />
     </div>
 
     <!-- Textstil: Fett / Kursiv -->
@@ -357,9 +345,11 @@ import AppIcon from '@/components/ui/AppIcon.vue';
 import HistoryActions from '@/components/ui/HistoryActions.vue';
 import NumberSpinner from '@/components/ui/NumberSpinner.vue';
 import SliderField from '@/components/ui/SliderField.vue';
+import UiSelect from '@/components/ui/UiSelect.vue';
 import { computed, ref, watch } from 'vue';
 import { availableFonts } from '@/assets/fonts/fontList.js';
 import { isFontBold, isFontItalic } from '@/utils/textRender';
+import { fontOptions } from '@/utils/fontOptions';
 
 const systemFonts = ['Arial', 'Helvetica', 'Times New Roman', 'Georgia', 'Verdana', 'Courier New'];
 
@@ -450,9 +440,8 @@ function toggleItalic() {
 <style scoped lang="scss">
 @import './shared';
 
-// Eingaben nutzen die globalen Feldstile (UiTextField / UiSelect)
-.text-input,
-.font-select {
+// Eingaben nutzen die globalen Feldstile (UiTextField)
+.text-input {
   width: 100%;
 }
 

@@ -75,33 +75,15 @@
         />
 
         <div class="control-group">
-          <label>{{ $t('layerPanel.text.fontFamily') }}</label>
-          <select
-            :value="selectedText.fontFamily || 'Arial'"
-            class="form-select font-select"
-            @change="updateTextProperty('fontFamily', $event.target.value)"
-          >
-            <optgroup :label="$t('layerPanel.text.customFonts')">
-              <option
-                v-for="font in availableFonts"
-                :key="font"
-                :value="font"
-                :style="{ fontFamily: font }"
-              >
-                {{ font }}
-              </option>
-            </optgroup>
-            <optgroup :label="$t('layerPanel.text.systemFonts')">
-              <option
-                v-for="font in systemFonts"
-                :key="font"
-                :value="font"
-                :style="{ fontFamily: font }"
-              >
-                {{ font }}
-              </option>
-            </optgroup>
-          </select>
+          <UiSelect
+            :label="$t('layerPanel.text.fontFamily')"
+            :options="[
+              ...fontOptions(availableFonts, $t('layerPanel.text.customFonts')),
+              ...fontOptions(systemFonts, $t('layerPanel.text.systemFonts')),
+            ]"
+            :model-value="selectedText.fontFamily || 'Arial'"
+            @update:model-value="updateTextProperty('fontFamily', $event)"
+          />
         </div>
 
         <div class="control-group">
@@ -250,6 +232,8 @@ import { inject } from 'vue';
 import { LAYER_PANEL_KEY } from '@/composables/useLayerPanel';
 import FilterSlider from '@/components/editor/sidebar/FilterSlider.vue';
 import AppIcon from '@/components/ui/AppIcon.vue';
+import UiSelect from '@/components/ui/UiSelect.vue';
+import { fontOptions } from '@/utils/fontOptions';
 
 const {
   imageStore,

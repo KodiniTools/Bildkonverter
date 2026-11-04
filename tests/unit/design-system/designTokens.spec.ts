@@ -52,7 +52,6 @@ const ALLOWED_FONT_FAMILIES = new Set([
 const ALLOWED_RADII = new Set([
   // Altlast: Kreise mit 50 % statt --ds-radius-full, gemeldet
   'components/editor/PreviewModal.vue: border-radius: 50%',
-  'components/ui/ToggleSwitch.vue: border-radius: 50%',
   'styles/global.scss: border-radius: 50%',
   'views/AboutView.vue: border-radius: 50%',
   'views/BatchView.vue: border-radius: 50%',

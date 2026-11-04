@@ -305,15 +305,8 @@
 .control-group {
   margin-bottom: var(--ds-space-3);
 
-  /* Checkbox-Labels: Caption 13 */
-  > label.toggle-label {
-    font-size: var(--ds-text-sm);
-    color: var(--ds-text-2);
-    margin-bottom: var(--ds-space-2);
-  }
-
   /* Feld-Labels wie SliderField: 12, --ds-text-2 */
-  > label:not(.toggle-label) {
+  > label {
     display: block;
     font-size: var(--ds-text-xs);
     font-weight: var(--ds-weight-regular);
@@ -334,39 +327,6 @@
     background: var(--ds-surface-2);
     color: var(--ds-text);
     font-size: var(--ds-text-md);
-  }
-
-  /* Select: Fläche, Chevron und Fokus aus global.scss (UiSelect) */
-  .form-select {
-    width: 100%;
-
-    &.font-select {
-      max-height: 300px;
-
-      optgroup {
-        font-weight: var(--ds-weight-semibold);
-        font-style: normal;
-        color: var(--ds-text-2);
-      }
-
-      option {
-        font-weight: var(--ds-weight-regular);
-        color: var(--ds-text);
-      }
-    }
-  }
-}
-
-.toggle-label {
-  display: flex !important;
-  align-items: center;
-  gap: var(--ds-space-2);
-  cursor: pointer;
-
-  input[type='checkbox'] {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
   }
 }
 

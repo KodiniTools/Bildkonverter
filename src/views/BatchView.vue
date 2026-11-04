@@ -38,17 +38,11 @@
 
       <div class="settings-grid">
         <div class="setting-group">
-          <label>{{ $t('batch.settings.format') }}</label>
-          <select v-model="settings.format">
-            <option value="jpg">JPG</option>
-            <option value="png">PNG</option>
-            <option value="webp">WebP</option>
-            <option value="gif">GIF</option>
-            <option value="bmp">BMP</option>
-            <option value="tiff">TIFF</option>
-            <option value="pdf">PDF</option>
-            <option value="svg">SVG</option>
-          </select>
+          <UiSelect
+            v-model="settings.format"
+            :label="$t('batch.settings.format')"
+            :options="BATCH_FORMAT_OPTIONS"
+          />
         </div>
 
         <!-- PDF Options: shown when PDF format is selected -->
@@ -95,10 +89,10 @@
               min="1"
               @input="onHeightInput"
             />
-            <label class="checkbox-label">
-              <input v-model="settings.maintainAspect" type="checkbox" />
-              {{ $t('batch.settings.maintainAspect') }}
-            </label>
+            <UiSwitch
+              v-model="settings.maintainAspect"
+              :label="$t('batch.settings.maintainAspect')"
+            />
           </div>
         </div>
 
@@ -112,10 +106,11 @@
         </div>
 
         <div v-if="supportsExif(settings.format)" class="setting-group">
-          <label class="checkbox-label">
-            <input v-model="settings.keepExif" type="checkbox" data-testid="batch-keep-exif" />
-            {{ $t('batch.settings.keepExif') }}
-          </label>
+          <UiSwitch
+            v-model="settings.keepExif"
+            :label="$t('batch.settings.keepExif')"
+            data-testid="batch-keep-exif"
+          />
         </div>
       </div>
 
@@ -307,6 +302,19 @@ import { formatSize } from '@/utils/fileUtils';
 import { supportsExif } from '@/utils/exif';
 import AppIcon from '@/components/ui/AppIcon.vue';
 import SliderField from '@/components/ui/SliderField.vue';
+import UiSelect from '@/components/ui/UiSelect.vue';
+import UiSwitch from '@/components/ui/UiSwitch.vue';
+
+const BATCH_FORMAT_OPTIONS = [
+  { value: 'jpg', label: 'JPG' },
+  { value: 'png', label: 'PNG' },
+  { value: 'webp', label: 'WebP' },
+  { value: 'gif', label: 'GIF' },
+  { value: 'bmp', label: 'BMP' },
+  { value: 'tiff', label: 'TIFF' },
+  { value: 'pdf', label: 'PDF' },
+  { value: 'svg', label: 'SVG' },
+];
 
 const { t } = useI18n({ useScope: 'global' });
 const { confirm: confirmDialog } = useConfirm();
@@ -540,7 +548,6 @@ function closePreview() {
     color: var(--ds-text-2);
   }
 
-  select,
   input[type='text'],
   input[type='number'] {
     width: 100%;
@@ -558,7 +565,6 @@ function closePreview() {
   }
 }
 
-.checkbox-label,
 .radio-label {
   display: flex;
   align-items: center;
@@ -567,7 +573,6 @@ function closePreview() {
   font-size: var(--ds-text-md);
   color: var(--ds-text);
 
-  input[type='checkbox'],
   input[type='radio'] {
     width: auto;
   }

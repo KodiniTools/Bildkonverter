@@ -4,43 +4,24 @@
     <div class="resize-controls">
       <!-- Social Media Presets -->
       <div class="resize-presets">
-        <label>{{ $t('editor.resize.presets', 'Presets') }}</label>
-        <select
+        <UiSelect
           ref="presetSelect"
-          class="form-select form-select-sm"
+          :label="$t('editor.resize.presets', 'Presets')"
+          :options="presetOptions($t)"
           :disabled="disabled"
-          :value="selectedPreset"
-          @change="onPresetChange"
-        >
-          <option value="">
-            {{ $t('editor.resize.selectPreset', 'Preset wählen...') }}
-          </option>
-          <option value="none">
-            ↺ {{ $t('editor.resize.noPreset', 'Ohne Preset – Originalgröße')
-            }}{{ naturalSizeLabel }}
-          </option>
-          <option value="instagram">Instagram Post (1080×1080)</option>
-          <option value="instagramStory">Instagram Story (1080×1920)</option>
-          <option value="facebook">Facebook Post (1200×630)</option>
-          <option value="twitter">Twitter Post (1200×675)</option>
-          <option value="youtube">YouTube Thumbnail (1280×720)</option>
-          <option value="hd">Full HD (1920×1080)</option>
-          <option value="4k">4K UHD (3840×2160)</option>
-        </select>
+          :model-value="selectedPreset"
+          @update:model-value="onPresetChange"
+        />
       </div>
       <div class="resize-input resize-mode">
-        <label for="resize-mode-select">{{ $t('editor.resize.mode') }}</label>
-        <select
+        <UiSelect
           id="resize-mode-select"
-          class="form-select form-select-sm"
+          :label="$t('editor.resize.mode')"
+          :options="modeOptions($t)"
           :disabled="disabled"
-          :value="spec.mode"
-          @change="updateSpec('mode', $event.target.value)"
-        >
-          <option v-for="m in RESIZE_MODES" :key="m" :value="m">
-            {{ $t(`editor.resize.modes.${m}`) }}
-          </option>
-        </select>
+          :model-value="spec.mode"
+          @update:model-value="updateSpec('mode', $event)"
+        />
       </div>
 
       <template v-if="spec.mode === 'percent'">
@@ -100,15 +81,14 @@
         </div>
       </template>
 
-      <label v-if="spec.mode === 'longEdge' || spec.mode === 'fit'" class="checkbox-label">
-        <input
-          :checked="spec.noUpscale"
-          type="checkbox"
-          :disabled="disabled"
-          @change="updateSpec('noUpscale', $event.target.checked)"
-        />
-        {{ $t('editor.resize.noUpscale') }}
-      </label>
+      <UiSwitch
+        v-if="spec.mode === 'longEdge' || spec.mode === 'fit'"
+        class="resize-switch"
+        :model-value="spec.noUpscale"
+        :label="$t('editor.resize.noUpscale')"
+        :disabled="disabled"
+        @update:model-value="updateSpec('noUpscale', $event)"
+      />
 
       <p v-if="spec.mode !== 'exact' && baseWidth && baseHeight" class="resize-result">
         {{
@@ -145,14 +125,13 @@
           "
         />
       </div>
-      <label v-if="spec.mode === 'exact'" class="checkbox-label">
-        <input
-          :checked="maintainAspectRatio"
-          type="checkbox"
-          @change="$emit('update:maintainAspectRatio', $event.target.checked)"
-        />
-        {{ $t('editor.resize.maintainAspect') }}
-      </label>
+      <UiSwitch
+        v-if="spec.mode === 'exact'"
+        class="resize-switch"
+        :model-value="maintainAspectRatio"
+        :label="$t('editor.resize.maintainAspect')"
+        @update:model-value="$emit('update:maintainAspectRatio', $event)"
+      />
       <button class="btn btn-secondary" :disabled="disabled" @click="$emit('apply-resize')">
         {{ $t('editor.resize.apply') }}
       </button>
@@ -162,6 +141,8 @@
 
 <script setup>
 import { computed, nextTick, ref } from 'vue';
+import UiSelect from '@/components/ui/UiSelect.vue';
+import UiSwitch from '@/components/ui/UiSwitch.vue';
 import {
   RESIZE_MODES,
   RESIZE_PERCENT_MAX,
@@ -237,6 +218,16 @@ const emit = defineEmits([
 
 const presetSelect = ref(null);
 
+const SOCIAL_PRESET_OPTIONS = [
+  { value: 'instagram', label: 'Instagram Post (1080×1080)' },
+  { value: 'instagramStory', label: 'Instagram Story (1080×1920)' },
+  { value: 'facebook', label: 'Facebook Post (1200×630)' },
+  { value: 'twitter', label: 'Twitter Post (1200×675)' },
+  { value: 'youtube', label: 'YouTube Thumbnail (1280×720)' },
+  { value: 'hd', label: 'Full HD (1920×1080)' },
+  { value: '4k', label: '4K UHD (3840×2160)' },
+];
+
 const spec = computed(() => props.resizeSpec ?? defaultResizeSpec);
 
 const isChanged = computed(
@@ -252,6 +243,26 @@ const naturalSizeLabel = computed(() => {
   return ` (${props.naturalWidth} × ${props.naturalHeight})`;
 });
 
+// Optionen bekommen die Übersetzungsfunktion aus dem Template ($t) als t, damit das
+// Panel weiterhin ohne eigenes useI18n auskommt.
+function presetOptions(t) {
+  return [
+    { value: '', label: t('editor.resize.selectPreset', 'Preset wählen...') },
+    {
+      value: 'none',
+      label: `↺ ${t('editor.resize.noPreset', 'Ohne Preset – Originalgröße')}${naturalSizeLabel.value}`,
+    },
+    ...SOCIAL_PRESET_OPTIONS,
+  ];
+}
+
+function modeOptions(t) {
+  return RESIZE_MODES.map((mode) => ({
+    value: mode,
+    label: t(`editor.resize.modes.${mode}`),
+  }));
+}
+
 /**
  * Meldet die Auswahl an den Parent und gleicht die Anzeige anschließend wieder
  * mit dessen State ab.
@@ -260,12 +271,13 @@ const naturalSizeLabel = computed(() => {
  * kein Zustand, der Parent bleibt dabei auf ''. Ohne Prop-Änderung patcht Vue
  * das :value-Binding nicht erneut – die Auswahl bliebe sonst sichtbar hängen.
  */
-function onPresetChange(event) {
-  emit('apply-preset', event.target.value);
+function onPresetChange(value) {
+  emit('apply-preset', value);
 
   nextTick(() => {
-    if (presetSelect.value) {
-      presetSelect.value.value = props.selectedPreset;
+    const select = presetSelect.value?.$el?.querySelector('select');
+    if (select) {
+      select.value = props.selectedPreset;
     }
   });
 }
