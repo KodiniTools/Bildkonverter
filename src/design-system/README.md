@@ -1,9 +1,16 @@
 # Design-System v2 im Bildkonverter
 
 Der Bildkonverter nutzt pixelgleich das Design-System des Collage Makers
-(`KodiniTools/Collage-Maker`, `src/design-system/`, Stand `9dc4eca`), das dieser
+(`KodiniTools/Collage-Maker`, `src/design-system/`, Stand `fab1546`), das dieser
 mit dem Playlist Generator teilt. `tokens-v2.css` und `tokens-v2.json` sind
 unveränderte Kopien; Werte werden nur dort geändert und hierher kopiert.
+`tokens-v2.ts` bietet typisierten Zugriff (z. B. `themeColorsV2()` für Canvas-Zeichnung).
+
+- **Tests:** `tests/unit/design-system/tokens-v2.spec.ts` (JSON ↔ CSS, Light-Spiegel,
+  Kontrast WCAG AA) und `tests/unit/design-system/designTokens.spec.ts` (alle Styles:
+  Farbliterale, Schriftgrößen/-familien, Radien, Schatten, Verläufe, z-index ≤ 100,
+  undefinierte `--ds-*`, Token-Zyklen; Ausnahmen mit Begründung je Datei).
+  `tests/unit/designTokens.spec.js` prüft die Bildkonverter-eigenen Regeln (SSI, Icons, Overlays).
 
 - **Tokens:** `tokens-v2.css` (`--ds-*`). Dark liegt auf `:root`, Light auf
   `:root[data-theme='light']`. `index.html` setzt `data-theme` vor dem ersten Paint.
@@ -31,6 +38,7 @@ unveränderte Kopien; Werte werden nur dort geändert und hierher kopiert.
 | Ausgewählt / aktiv                                                        | Fläche `--ds-accent-soft` + 1-px-Rahmen `--ds-accent`, Text bleibt `--ds-text`            |
 | Link, Info                                                                | `--ds-link` (Hover `--ds-accent`)                                                         |
 | Status                                                                    | `--ds-success`, `--ds-warning`, `--ds-danger`, `--ds-info` – nur Icon, Linie, kurzer Text |
+| Text auf gefüllter Erfolgs-Fläche                                         | `--ds-on-success`                                                                         |
 
 - Keine festen Farbwerte (`#…`, `rgb()`, `rgba()`), keine Alpha-Tints außer
   `--ds-accent-soft`. Erlaubt bleiben: Backdrop `rgba(0, 0, 0, 0.5)`, Weiß (`#fff`)
