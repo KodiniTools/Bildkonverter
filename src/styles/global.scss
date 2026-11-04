@@ -85,6 +85,14 @@ body > #app {
 // ===== SSI-PARTIALS (Navigation, Footer außerhalb von #app) =====
 // 1:1 aus KodiniTools/Collage-Maker (src/style.css): Partials übernehmen
 // Seitenfläche und Textfarben aus den Tokens, Dropdowns surface-1.
+// Teleport-Ziel der Vue-Modals/-Toasts (wie #modal-portal im Collage Maker): ein eigener
+// Stacking-Context hebt alle Overlays gemeinsam über die globale Navigation
+// (.external-nav-wrapper, z-index 1100) und hält sie unter dem Cookie-Banner (10000).
+#overlay-root {
+  position: relative;
+  z-index: var(--ds-z-toast);
+}
+
 // #overlay-root ist das Teleport-Ziel der Vue-Modals/-Toasts und liegt ebenfalls
 // direkt im body; ohne Ausnahme würden diese Regeln ihre Flächen transparent machen.
 

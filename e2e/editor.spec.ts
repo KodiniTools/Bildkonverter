@@ -44,6 +44,36 @@ test.describe('Editor (Smoke)', () => {
   });
 });
 
+test.describe('Bestätigung und Toast', () => {
+  test('Bild löschen fragt nach; Abbrechen behält das Bild, Löschen meldet per Toast', async ({
+    page,
+  }) => {
+    const errors = collectPageErrors(page);
+    await prepare(page, 'de');
+    await page.goto('./editor');
+    await uploadImages(page, [imageFile('a.png')]);
+    await expect(page.getByText('120 × 80px')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Bild löschen' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole('button', { name: 'Abbrechen' }).click();
+    await expect(dialog).toBeHidden();
+    await expect(page.getByText('120 × 80px')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Bild löschen' }).click();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+
+    await page.getByRole('button', { name: 'Bild löschen' }).click();
+    await dialog.getByRole('button', { name: 'Löschen' }).click();
+    await expect(dialog).toBeHidden();
+    await expect(page.getByText('120 × 80px')).toBeHidden();
+    await expect(page.locator('#overlay-root').getByRole('status')).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+});
+
 test.describe('Batch (Smoke)', () => {
   test('zwei Bilder konvertieren und herunterladen', async ({ page }) => {
     const errors = collectPageErrors(page);

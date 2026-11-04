@@ -66,6 +66,15 @@ export default defineConfigWithVueTs(
     rules: { 'no-console': 'off' },
   },
   {
+    // UI-Bausteine (Kopie aus dem Collage Maker): optionale Props sind per
+    // TypeScript optional, ein explizites `undefined`-Default bringt nichts.
+    name: 'app/ui-components',
+    files: ['src/components/ui/**/*.vue'],
+    rules: {
+      'vue/require-default-prop': 'off',
+    },
+  },
+  {
     // CommonJS-Node-Skript (wird direkt mit node ausgeführt)
     name: 'app/commonjs-scripts',
     files: ['deploy-check.js'],

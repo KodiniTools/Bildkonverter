@@ -413,7 +413,7 @@ function importPresets() {
     } catch (error) {
       logger.error('Import-Fehler:', error);
       if (window.$toast) {
-        window.$toast.error(t('toast.presets.importError'), error.message);
+        window.$toast.error(t('toast.presets.importError') + ': ' + error.message);
       }
     }
   };

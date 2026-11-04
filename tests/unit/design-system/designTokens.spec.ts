@@ -72,13 +72,12 @@ const ALLOWED_SHADOWS = new Set([
   'styles/global.scss: text-shadow:',
 ]);
 const ALLOWED_Z_INDEX = new Set([
-  // Altlast: feste Ebenen statt --ds-z-*, gemeldet; Dialoge und Toasts folgen in Schritt 2b
+  // Altlast: feste Ebenen statt --ds-z-*, gemeldet; ConfirmDialog/Toasts laufen seit Schritt 2b über UiDialog/UiToast
   'components/dev/PerformanceMonitor.vue: z-index: 9998',
   'components/editor/PreviewModal.vue: z-index: 10000',
   'components/features/KeyboardShortcuts.vue: z-index: 10000',
   'components/layout/AppHeader.vue: z-index: 1000',
   'components/modals/TextEditModal.vue: z-index: 1000',
-  'components/ui/ConfirmDialog.vue: z-index: 10000',
   'styles/global.scss: z-index: 10000',
   'styles/global.scss: z-index: 1100',
   'views/BatchView.vue: z-index: 9999',

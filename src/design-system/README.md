@@ -98,4 +98,7 @@ unveränderte Kopien; Werte werden nur dort geändert und hierher kopiert.
 - Panels/Karten: `.card` (surface-1, 1-px-Rahmen, radius-lg, Padding 20).
 - Regler: `SliderField`, `NumberSpinner`; Schalter: `ToggleSwitch`;
   Verlauf: `HistoryActions` (`.btn-history`).
-- Benachrichtigung: `ToastContainer`; Bestätigung: `ConfirmDialog`.
+- UI-Bausteine aus dem Collage Maker in `src/components/ui/` (Export über `index.ts`):
+  `UiButton`, `UiIconButton`, `UiDialog` (Standard-Teleport `#overlay-root`), `UiToast`.
+- Benachrichtigung: `ToastContainer` (UiToast, `window.$toast`); Bestätigung: `ConfirmDialog`
+  (UiDialog + UiButton, `useConfirm`).
