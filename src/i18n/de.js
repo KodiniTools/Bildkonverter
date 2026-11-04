@@ -538,7 +538,6 @@ export default {
       title: 'Verzerren',
       hint: 'Eckpunkte im Bild einzeln ziehen, um das Bild frei zu verformen.',
       reset: 'Verzerrung zurücksetzen',
-      resetShort: 'Zurücksetzen',
       apply: 'Übernehmen',
       applyHint: 'Verzerrung ins Bild übernehmen – danach wirken Rahmen, Schatten und Ecken wieder',
     },

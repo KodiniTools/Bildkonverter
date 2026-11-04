@@ -158,20 +158,20 @@
           class="distort-btn"
           :disabled="!hasDistortion || isApplyingDistort"
           :title="$t('transform.distort.reset')"
+          :aria-label="$t('transform.distort.reset')"
           @click="$emit('reset-distort')"
         >
           <AppIcon name="undo" />
-          {{ $t('transform.distort.resetShort') }}
         </button>
         <button
           type="button"
           class="distort-btn primary"
           :disabled="!hasDistortion || isApplyingDistort"
           :title="$t('transform.distort.applyHint')"
+          :aria-label="$t('transform.distort.apply')"
           @click="$emit('apply-distort')"
         >
           <AppIcon :name="isApplyingDistort ? 'fas fa-spinner fa-spin' : 'fas fa-check'" />
-          {{ $t('transform.distort.apply') }}
         </button>
       </div>
     </div>

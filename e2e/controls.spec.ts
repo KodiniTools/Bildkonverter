@@ -71,3 +71,23 @@ test.describe('Schalter und Auswahllisten', () => {
     expect(errors).toEqual([]);
   });
 });
+
+// Verzerren: Zurücksetzen/Übernehmen als Symbol-Buttons, damit sie in die
+// Seitenleiste passen (Text lief bei 1280 px über den Rand)
+test('Verzerren: Buttons passen in die Seitenleiste und sind beschriftet', async ({ page }) => {
+  const errors = collectPageErrors(page);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await prepare(page, 'de');
+  await page.goto('./editor');
+  await uploadImages(page, [imageFile('a.png')]);
+  await expect(page.getByText('120 × 80px')).toBeVisible();
+
+  await page.getByRole('switch', { name: 'Verzerren' }).click();
+  for (const name of ['Verzerrung zurücksetzen', 'Übernehmen']) {
+    const button = page.getByRole('button', { name, exact: true });
+    await expect(button).toBeVisible();
+    const overflow = await button.evaluate((el) => el.scrollWidth - el.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
+  }
+  expect(errors).toEqual([]);
+});
