@@ -29,7 +29,7 @@ app.config.errorHandler = (err, instance, info) => {
 
 // Globale Warn-Handler (nur in Development)
 if (import.meta.env.DEV) {
-  app.config.warnHandler = (msg, instance, trace) => {
+  app.config.warnHandler = (msg, _instance, trace) => {
     logger.warn('⚠️ Vue Warning:', msg);
     logger.warn('Trace:', trace);
   };
