@@ -55,7 +55,7 @@ const ALLOWED_RADII = new Set([
   'styles/global.scss: border-radius: 50%',
   'views/AboutView.vue: border-radius: 50%',
   'views/BatchView.vue: border-radius: 50%',
-  'views/EditorView.scoped.scss: border-radius: 50%',
+  'components/editor/canvas/CropOverlay.vue: border-radius: 50%',
   'views/EditorView.styles.scss: border-radius: 50%',
   'views/FormatConversionView.vue: border-radius: 50%',
   'views/GalleryView.vue: border-radius: 50%',
@@ -63,7 +63,7 @@ const ALLOWED_RADII = new Set([
 ]);
 const ALLOWED_SHADOWS = new Set([
   // Zuschneiden: dunkelt alles außerhalb des Ausschnitts ab (Backdrop-Wert)
-  'views/EditorView.scoped.scss: box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5)',
+  'components/editor/canvas/CropOverlay.vue: box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5)',
   // Altlast: doppelter Auswahlring bzw. 2-px-Innenlinie, gemeldet
   'components/features/shapes/ColorField.vue: box-shadow: 0 0 0 2px var(--ds-surface-1), 0 0 0 3px var(--ds-accent)',
   'views/FaqView.vue: box-shadow: inset 0 0 0 2px var(--ds-accent)',
@@ -80,8 +80,8 @@ const ALLOWED_Z_INDEX = new Set([
   'styles/global.scss: z-index: 10000',
   'styles/global.scss: z-index: 1100',
   'views/BatchView.vue: z-index: 9999',
-  'views/EditorView.scoped.scss: z-index: 101',
-  'views/EditorView.scoped.scss: z-index: 102',
+  'components/editor/canvas/CropOverlay.vue: z-index: 101',
+  'components/editor/canvas/CropOverlay.vue: z-index: 102',
   'views/GalleryView.vue: z-index: 10000',
 ]);
 
