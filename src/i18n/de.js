@@ -1196,6 +1196,14 @@ export default {
       reset: 'Zurücksetzen',
     },
   },
+  color: {
+    pick: 'Farbe wählen',
+    hue: 'Farbton',
+    saturation: 'Sättigung',
+    lightness: 'Helligkeit',
+    hex: 'Hex-Wert',
+    invalidHex: 'Ungültiger Hex-Wert (z. B. #ff8800)',
+  },
   common: {
     cancel: 'Abbrechen',
     close: 'Schließen',

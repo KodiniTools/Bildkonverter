@@ -38,7 +38,12 @@
 
       <div class="form-group">
         <label>{{ $t('textModal.color') }}:</label>
-        <input v-model="localText.color" type="color" @change="saveToHistory" />
+        <ColorField
+          v-model="localText.color"
+          class="form-color"
+          :label="$t('textModal.color')"
+          @change="saveToHistory"
+        />
       </div>
 
       <div class="form-group">
@@ -69,6 +74,7 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
 import { availableFonts } from '@/assets/fonts/fontList.js';
+import ColorField from '@/components/ui/ColorField.vue';
 import HistoryActions from '@/components/ui/HistoryActions.vue';
 import SliderField from '@/components/ui/SliderField.vue';
 import UiSelect from '@/components/ui/UiSelect.vue';
@@ -315,10 +321,11 @@ function close() {
   box-shadow: var(--ds-focus-ring);
 }
 
-.form-group input[type='color'] {
+/* ColorField: Swatch in voller Feldbreite wie zuvor das native Farbfeld */
+.form-group .form-color {
+  width: 100%;
   height: var(--ds-control-lg);
-  padding: var(--ds-space-1);
-  cursor: pointer;
+  border-radius: var(--ds-radius-md);
 }
 
 .modal-actions {

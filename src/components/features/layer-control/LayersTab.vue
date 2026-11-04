@@ -106,11 +106,11 @@
         <div class="control-group">
           <label>{{ $t('layerPanel.background.color') }}</label>
           <div class="color-picker-row">
-            <input
-              type="color"
-              :value="imageStore.canvasBackgroundColor"
+            <ColorField
+              :model-value="imageStore.canvasBackgroundColor"
+              :label="$t('layerPanel.background.color')"
               class="color-input"
-              @input="updateBackgroundColor($event.target.value)"
+              @update:model-value="updateBackgroundColor($event)"
             />
             <input
               type="text"
@@ -351,11 +351,11 @@
         <div class="control-group">
           <label>{{ $t('layerPanel.border.color') }}</label>
           <div class="color-picker-row">
-            <input
-              type="color"
-              :value="layerBorder.color"
+            <ColorField
+              :model-value="layerBorder.color"
+              :label="$t('layerPanel.border.color')"
               class="color-input"
-              @input="updateBorder('color', $event.target.value)"
+              @update:model-value="updateBorder('color', $event)"
             />
             <input
               type="text"
@@ -426,11 +426,11 @@
           <div class="control-group">
             <label>{{ $t('layerPanel.shadow.color') }}</label>
             <div class="color-picker-row">
-              <input
-                type="color"
-                :value="layerShadow.color"
+              <ColorField
+                :model-value="layerShadow.color"
+                :label="$t('layerPanel.shadow.color')"
                 class="color-input"
-                @input="updateShadow('color', $event.target.value)"
+                @update:model-value="updateShadow('color', $event)"
               />
               <input
                 type="text"
@@ -469,6 +469,7 @@ import { inject } from 'vue';
 import { LAYER_PANEL_KEY } from '@/composables/useLayerPanel';
 import FilterSlider from '@/components/editor/sidebar/FilterSlider.vue';
 import AppIcon from '@/components/ui/AppIcon.vue';
+import ColorField from '@/components/ui/ColorField.vue';
 import UiSwitch from '@/components/ui/UiSwitch.vue';
 
 const {

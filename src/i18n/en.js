@@ -1192,6 +1192,14 @@ export default {
       reset: 'Reset',
     },
   },
+  color: {
+    pick: 'Pick color',
+    hue: 'Hue',
+    saturation: 'Saturation',
+    lightness: 'Lightness',
+    hex: 'Hex value',
+    invalidHex: 'Invalid hex value (e.g. #ff8800)',
+  },
   common: {
     cancel: 'Cancel',
     close: 'Close',

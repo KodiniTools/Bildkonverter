@@ -13,6 +13,7 @@ import FilterSlider from '@/components/editor/sidebar/FilterSlider.vue';
 import ResizePanel from '@/components/editor/sidebar/ResizePanel.vue';
 import ExportPanel from '@/components/editor/sidebar/ExportPanel.vue';
 import DetachPanel from '@/components/editor/sidebar/DetachPanel.vue';
+import ColorField from '@/components/ui/ColorField.vue';
 import { FORMAT_INFO } from '@/utils/formatInfo';
 import { createI18n } from 'vue-i18n';
 import de from '@/i18n/de';
@@ -99,9 +100,8 @@ describe('BackgroundPanel', () => {
 
   it('meldet Farbänderungen aus beiden Eingaben als update-background', async () => {
     const { wrapper, background } = setup();
-    const color = wrapper.find('input[type="color"]');
-    color.element.value = '#112233';
-    await color.trigger('input');
+    // ColorField statt <input type="color">: meldet den Hex-Wert als update:modelValue
+    await wrapper.findComponent(ColorField).vm.$emit('update:modelValue', '#112233');
     const text = wrapper.find('input[type="text"]');
     text.element.value = '#445566';
     await text.trigger('input');

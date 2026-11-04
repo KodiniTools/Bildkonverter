@@ -89,11 +89,11 @@
         <div class="control-group">
           <label>{{ $t('layerPanel.text.color') }}</label>
           <div class="color-picker-row">
-            <input
-              type="color"
-              :value="selectedText.color || '#000000'"
+            <ColorField
+              :model-value="selectedText.color || '#000000'"
+              :label="$t('layerPanel.text.color')"
               class="color-input"
-              @input="updateTextProperty('color', $event.target.value)"
+              @update:model-value="updateTextProperty('color', $event)"
             />
             <input
               type="text"
@@ -141,11 +141,11 @@
         <div v-if="(selectedText.strokeWidth || 0) > 0" class="control-group">
           <label>{{ $t('layerPanel.text.strokeColor') }}</label>
           <div class="color-picker-row">
-            <input
-              type="color"
-              :value="selectedText.strokeColor || '#ffffff'"
+            <ColorField
+              :model-value="selectedText.strokeColor || '#ffffff'"
+              :label="$t('layerPanel.text.strokeColor')"
               class="color-input"
-              @input="updateTextProperty('strokeColor', $event.target.value)"
+              @update:model-value="updateTextProperty('strokeColor', $event)"
             />
             <input
               type="text"
@@ -193,11 +193,11 @@
           <div class="control-group">
             <label>{{ $t('layerPanel.text.shadowColor') }}</label>
             <div class="color-picker-row">
-              <input
-                type="color"
-                :value="selectedText.shadowColor || '#000000'"
+              <ColorField
+                :model-value="selectedText.shadowColor || '#000000'"
+                :label="$t('layerPanel.text.shadowColor')"
                 class="color-input"
-                @input="updateTextProperty('shadowColor', $event.target.value)"
+                @update:model-value="updateTextProperty('shadowColor', $event)"
               />
               <input
                 type="text"
@@ -232,6 +232,7 @@ import { inject } from 'vue';
 import { LAYER_PANEL_KEY } from '@/composables/useLayerPanel';
 import FilterSlider from '@/components/editor/sidebar/FilterSlider.vue';
 import AppIcon from '@/components/ui/AppIcon.vue';
+import ColorField from '@/components/ui/ColorField.vue';
 import UiSelect from '@/components/ui/UiSelect.vue';
 import { fontOptions } from '@/utils/fontOptions';
 

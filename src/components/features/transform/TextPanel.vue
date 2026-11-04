@@ -147,12 +147,11 @@
         {{ $t('textPanel.color', 'Farbe') }}
       </label>
       <div class="color-picker-row">
-        <input
-          type="color"
-          :value="selectedText.color || '#000000'"
+        <ColorField
+          :model-value="selectedText.color || '#000000'"
+          :label="$t('textPanel.color', 'Farbe')"
           class="color-input"
-          :style="{ backgroundColor: selectedText.color || '#000000' }"
-          @input="$emit('update:text-color', $event.target.value)"
+          @update:model-value="$emit('update:text-color', $event)"
           @change="$emit('save-text-history')"
         />
         <input
@@ -180,12 +179,11 @@
         @commit="$emit('save-text-history')"
       />
       <div v-if="(selectedText.strokeWidth || 0) > 0" class="color-picker-row mt-2">
-        <input
-          type="color"
-          :value="selectedText.strokeColor || '#000000'"
+        <ColorField
+          :model-value="selectedText.strokeColor || '#000000'"
+          :label="$t('layerPanel.text.strokeColor')"
           class="color-input"
-          :style="{ backgroundColor: selectedText.strokeColor || '#000000' }"
-          @input="$emit('update:text-stroke-color', $event.target.value)"
+          @update:model-value="$emit('update:text-stroke-color', $event)"
           @change="$emit('save-text-history')"
         />
         <input
@@ -238,12 +236,11 @@
           </div>
         </div>
         <div class="color-picker-row mt-2">
-          <input
-            type="color"
-            :value="selectedText.shadowColor || '#000000'"
+          <ColorField
+            :model-value="selectedText.shadowColor || '#000000'"
+            :label="$t('layerPanel.text.shadowColor')"
             class="color-input"
-            :style="{ backgroundColor: selectedText.shadowColor || '#000000' }"
-            @input="$emit('update:text-shadow-color', $event.target.value)"
+            @update:model-value="$emit('update:text-shadow-color', $event)"
             @change="$emit('save-text-history')"
           />
           <input
@@ -342,6 +339,7 @@
 
 <script setup>
 import AppIcon from '@/components/ui/AppIcon.vue';
+import ColorField from '@/components/ui/ColorField.vue';
 import HistoryActions from '@/components/ui/HistoryActions.vue';
 import NumberSpinner from '@/components/ui/NumberSpinner.vue';
 import SliderField from '@/components/ui/SliderField.vue';

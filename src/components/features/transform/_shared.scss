@@ -129,29 +129,12 @@
   margin-top: var(--ds-space-2);
 }
 
+/* ColorField-Wurzel: nur Größe und Radius, Rahmen/Fokus bringt der Swatch mit */
 .color-input {
+  flex-shrink: 0;
   width: 40px;
   height: var(--ds-control-md);
-  padding: 2px;
-  border: var(--ds-border-width) solid var(--ds-border-strong);
   border-radius: var(--ds-radius-sm);
-  cursor: pointer;
-  background: var(--ds-surface-2);
-  transition: border-color var(--ds-duration) var(--ds-ease);
-
-  &:focus-visible {
-    outline: none;
-    box-shadow: var(--ds-focus-ring);
-  }
-
-  &::-webkit-color-swatch-wrapper {
-    padding: 2px;
-  }
-
-  &::-webkit-color-swatch {
-    border: none;
-    border-radius: calc(var(--ds-radius-sm) - 2px);
-  }
 }
 
 .color-label {
