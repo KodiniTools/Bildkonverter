@@ -2,17 +2,26 @@
   <div class="editor-view">
     <div class="editor-container">
       <!-- Toolbar -->
-      <div class="toolbar">
-        <!-- Links: Upload -->
-        <div class="toolbar-group">
-          <button
-            class="tb-btn tb-btn--primary"
-            :title="currentImage ? $t('editor.toolbar.replaceImageHint') : undefined"
-            @click="triggerFileInput"
-          >
-            <AppIcon :name="currentImage ? 'exchange-alt' : 'upload'" />
-            {{ currentImage ? $t('editor.toolbar.replaceImage') : $t('editor.toolbar.upload') }}
-          </button>
+      <EditorToolbar
+        :has-image="!!currentImage"
+        :is-collage-mode="isCollageMode"
+        :can-undo="canUndo"
+        :can-redo="canRedo"
+        :is-exporting="isExporting"
+        @upload="triggerFileInput"
+        @undo="undo"
+        @redo="redo"
+        @exit-collage="exitCollageMode"
+        @add-text="addText"
+        @preview="openPreview"
+        @print="printCurrentImage"
+        @copy="copyToClipboard"
+        @reset="resetFilters"
+        @clear="clearImage"
+        @share="shareImage"
+        @download="downloadImage"
+      >
+        <template #upload>
           <input
             ref="fileInput"
             type="file"
@@ -20,122 +29,8 @@
             style="display: none"
             @change="handleFileSelect"
           />
-        </div>
-
-        <!-- Mitte: Bearbeitungsaktionen -->
-        <div class="toolbar-center">
-          <!-- History -->
-          <HistoryActions
-            class="toolbar-history"
-            compact
-            :can-undo="canUndo"
-            :can-redo="canRedo"
-            :undo-title="$t('editor.toolbar.undo', 'Rückgängig (Ctrl+Z)')"
-            :redo-title="$t('editor.toolbar.redo', 'Wiederholen (Ctrl+Y)')"
-            @undo="undo"
-            @redo="redo"
-          />
-
-          <!-- Collage beenden -->
-          <div v-if="isCollageMode" class="toolbar-group">
-            <button
-              class="tb-btn"
-              :title="$t('editor.toolbar.exitCollage', 'Collage-Modus beenden')"
-              @click="exitCollageMode"
-            >
-              <AppIcon name="th" />
-              {{ $t('editor.toolbar.exitCollage', 'Collage beenden') }}
-            </button>
-          </div>
-
-          <!-- Werkzeuge -->
-          <div class="toolbar-group">
-            <button
-              class="tb-btn tb-btn--icon"
-              :disabled="!currentImage && !isCollageMode"
-              :title="$t('editor.toolbar.addText', 'Text hinzufügen (T)')"
-              :aria-label="$t('editor.toolbar.addText', 'Text hinzufügen (T)')"
-              @click="addText"
-            >
-              <AppIcon name="font" />
-            </button>
-            <button
-              class="tb-btn tb-btn--icon"
-              :disabled="!currentImage && !isCollageMode"
-              :title="$t('editor.toolbar.preview', 'Vorschau')"
-              :aria-label="$t('editor.toolbar.preview', 'Vorschau')"
-              @click="openPreview"
-            >
-              <AppIcon name="eye" />
-            </button>
-            <button
-              class="tb-btn tb-btn--icon"
-              :disabled="!currentImage && !isCollageMode"
-              :title="$t('editor.toolbar.print', 'Drucken')"
-              :aria-label="$t('editor.toolbar.print', 'Drucken')"
-              @click="printCurrentImage"
-            >
-              <AppIcon name="print" />
-            </button>
-            <button
-              class="tb-btn tb-btn--icon"
-              :disabled="(!currentImage && !isCollageMode) || isExporting"
-              :title="$t('editor.toolbar.copy')"
-              :aria-label="$t('editor.toolbar.copy')"
-              @click="copyToClipboard"
-            >
-              <AppIcon name="clipboard-copy" />
-            </button>
-            <button
-              class="tb-btn tb-btn--icon"
-              :disabled="!currentImage && !isCollageMode"
-              :title="$t('editor.toolbar.reset', 'Zurücksetzen')"
-              :aria-label="$t('editor.toolbar.reset', 'Zurücksetzen')"
-              @click="resetFilters"
-            >
-              <AppIcon name="sync-alt" />
-            </button>
-          </div>
-
-          <!-- Löschen -->
-          <div class="toolbar-group">
-            <button
-              class="tb-btn tb-btn--icon tb-btn--danger"
-              :disabled="!currentImage && !isCollageMode"
-              :title="$t('editor.toolbar.clearImage', 'Bild entfernen')"
-              :aria-label="$t('editor.toolbar.clearImage', 'Bild entfernen')"
-              @click="clearImage"
-            >
-              <AppIcon name="trash" />
-            </button>
-          </div>
-        </div>
-
-        <!-- Rechts: Teilen + Download -->
-        <div class="toolbar-group">
-          <button
-            class="tb-btn tb-btn--primary"
-            :disabled="(!currentImage && !isCollageMode) || isExporting"
-            :title="$t('editor.toolbar.shareHint')"
-            @click="shareImage"
-          >
-            <AppIcon name="share" />
-            {{ $t('editor.toolbar.share') }}
-          </button>
-          <button
-            class="tb-btn tb-btn--success"
-            :disabled="(!currentImage && !isCollageMode) || isExporting"
-            @click="downloadImage"
-          >
-            <AppIcon :name="isExporting ? 'spinner fa-spin' : 'download'" />
-            {{
-              isExporting
-                ? $t('toast.editor.exporting', 'Exportiere...')
-                : $t('editor.toolbar.download')
-            }}
-          </button>
-        </div>
-      </div>
+        </template>
+      </EditorToolbar>
 
       <!-- Hero-Leiste: Grösse ändern – nur sichtbar, wenn ein Bild geladen ist
            (hochgeladen oder aus der Galerie/Collage hinzugefügt) -->
@@ -311,38 +206,15 @@
               @touchend.prevent="onCanvasTouchEnd"
             ></canvas>
             <!-- Crop Overlay mit Resize-Handles -->
-            <div
+            <CropOverlay
               v-if="crop.cropping.value && scaledCropOverlayStyle"
-              class="crop-overlay"
-              :class="{ dragging: crop.isDragging.value, resizing: crop.isResizing.value }"
-              :style="scaledCropOverlayStyle"
-            >
-              <!-- Resize Handles -->
-              <div class="resize-handle handle-nw"></div>
-              <div class="resize-handle handle-n"></div>
-              <div class="resize-handle handle-ne"></div>
-              <div class="resize-handle handle-e"></div>
-              <div class="resize-handle handle-se"></div>
-              <div class="resize-handle handle-s"></div>
-              <div class="resize-handle handle-sw"></div>
-              <div class="resize-handle handle-w"></div>
-              <!-- Center Move Indicator -->
-              <div class="move-indicator">
-                <AppIcon name="arrows-alt" />
-              </div>
-              <!-- Live-Anzeige der Zuschnittabmessungen (Breite × Höhe in Pixel) -->
-              <div
-                class="crop-dimensions"
-                :class="{ 'crop-dimensions--inside': cropLabelInside }"
-                :title="$t('transform.crop.dimensionsTooltip')"
-              >
-                <AppIcon name="vector-square" />
-                <span
-                  >{{ crop.cropDimensions.value.width }} ×
-                  {{ crop.cropDimensions.value.height }} px</span
-                >
-              </div>
-            </div>
+              :overlay-style="scaledCropOverlayStyle"
+              :dragging="crop.isDragging.value"
+              :resizing="crop.isResizing.value"
+              :label-inside="cropLabelInside"
+              :width="crop.cropDimensions.value.width"
+              :height="crop.cropDimensions.value.height"
+            />
             <div class="canvas-info">
               <span
                 ><AppIcon name="expand-arrows-alt" /> {{ imageWidth }} × {{ imageHeight }}px</span
@@ -457,117 +329,24 @@
     />
 
     <!-- Export Dialog (Download oder Teilen) -->
-    <Teleport to="#overlay-root">
-      <div v-if="showExportDialog" class="export-dialog-overlay" @click.self="closeExportDialog">
-        <div class="export-dialog">
-          <h3 class="export-dialog__title">
-            {{
-              exportDialogMode === 'share'
-                ? $t('editor.toolbar.share')
-                : $t('editor.toolbar.download')
-            }}
-          </h3>
-          <template v-if="pendingShareFile">
-            <p class="export-dialog__text">{{ $t('editor.share.ready') }}</p>
-            <div class="export-dialog__actions">
-              <button
-                class="export-dialog__btn export-dialog__btn--cancel"
-                @click="closeExportDialog"
-              >
-                {{ $t('common.cancel', 'Abbrechen') }}
-              </button>
-              <button class="export-dialog__btn export-dialog__btn--confirm" @click="shareNow">
-                <AppIcon name="share" />
-                {{ $t('editor.share.now') }}
-              </button>
-            </div>
-          </template>
-          <template v-else>
-            <div class="export-dialog__input-row">
-              <input
-                v-model="exportDialogFilename"
-                class="export-dialog__input"
-                type="text"
-                :placeholder="$t('editor.toolbar.download')"
-                :disabled="isExporting"
-                autofocus
-                @keydown.enter="confirmExportDialog"
-                @keydown.escape="closeExportDialog"
-              />
-              <span class="export-dialog__ext">.{{ outputFormat }}</span>
-            </div>
-            <p v-if="exportDialogMode === 'share'" class="export-dialog__text">
-              {{ $t('editor.share.privacy') }}
-            </p>
-            <div class="export-dialog__actions">
-              <button
-                class="export-dialog__btn export-dialog__btn--cancel"
-                @click="closeExportDialog"
-              >
-                {{ $t('common.cancel', 'Abbrechen') }}
-              </button>
-              <button
-                class="export-dialog__btn export-dialog__btn--confirm"
-                :disabled="isExporting"
-                @click="confirmExportDialog"
-              >
-                <AppIcon
-                  :name="
-                    isExporting
-                      ? 'spinner fa-spin'
-                      : exportDialogMode === 'share'
-                        ? 'share'
-                        : 'download'
-                  "
-                />
-                {{
-                  exportDialogMode === 'share'
-                    ? $t('editor.toolbar.share')
-                    : $t('editor.toolbar.download')
-                }}
-              </button>
-            </div>
-          </template>
-        </div>
-      </div>
-    </Teleport>
+    <ExportDialog
+      v-model:filename="exportDialogFilename"
+      :open="showExportDialog"
+      :mode="exportDialogMode"
+      :has-share-file="!!pendingShareFile"
+      :extension="outputFormat"
+      :is-exporting="isExporting"
+      @close="closeExportDialog"
+      @confirm="confirmExportDialog"
+      @share-now="shareNow"
+    />
 
     <!-- Weiterleitungs-Angebot nach erfolgreichem Download -->
-    <Teleport to="#overlay-root">
-      <div v-if="showForwardOffer" class="forward-offer-overlay" @click.self="dismissForwardOffer">
-        <div class="forward-offer">
-          <div class="forward-offer__icon">
-            <AppIcon name="check-circle" :size="40" />
-          </div>
-          <h3 class="forward-offer__title">{{ $t('handoff.forwardTitle') }}</h3>
-          <p class="forward-offer__text">{{ $t('handoff.forwardText') }}</p>
-
-          <div class="forward-offer__options">
-            <button class="forward-offer__option" @click="forwardTo('color-extractor')">
-              <AppIcon name="palette" :size="20" />
-              <span class="forward-offer__option-label">
-                {{ $t('handoff.forwardColorExtractor') }}
-                <small>{{ $t('handoff.forwardColorExtractorHint') }}</small>
-              </span>
-              <AppIcon name="arrow-right" class="forward-offer__option-arrow" />
-            </button>
-
-            <button class="forward-offer__option" @click="forwardTo('visualizer')">
-              <AppIcon name="wave-square" :size="20" />
-              <span class="forward-offer__option-label">
-                {{ $t('handoff.forwardVisualizer') }}
-                <small>{{ $t('handoff.forwardVisualizerHint') }}</small>
-              </span>
-              <AppIcon name="arrow-right" class="forward-offer__option-arrow" />
-            </button>
-          </div>
-
-          <button class="forward-offer__dismiss" @click="dismissForwardOffer">
-            {{ $t('handoff.forwardDismiss') }}
-          </button>
-        </div>
-      </div>
-    </Teleport>
+    <ForwardOfferDialog
+      :open="showForwardOffer"
+      @dismiss="dismissForwardOffer"
+      @forward="forwardTo"
+    />
   </div>
 </template>
 
@@ -588,7 +367,10 @@ import { useImageLoader } from '@/composables/useImageLoader';
 import { FORMAT_INFO, SUPPORTED_FORMATS, getFormatInfo } from '@/utils/exportUtils';
 
 import TransformPanel from '@/components/features/TransformPanel.vue';
-import HistoryActions from '@/components/ui/HistoryActions.vue';
+import EditorToolbar from '@/components/editor/toolbar/EditorToolbar.vue';
+import CropOverlay from '@/components/editor/canvas/CropOverlay.vue';
+import ExportDialog from '@/components/editor/dialogs/ExportDialog.vue';
+import ForwardOfferDialog from '@/components/editor/dialogs/ForwardOfferDialog.vue';
 import AppIcon from '@/components/ui/AppIcon.vue';
 import LayerControlPanel from '@/components/features/LayerControlPanel.vue';
 import FilterPresets from '@/components/editor/FilterPresets.vue';
@@ -612,6 +394,7 @@ import { useEditorDetach } from '@/composables/editor/useEditorDetach';
 import { useEditorExport } from '@/composables/editor/useEditorExport';
 import { useEditorPreview } from '@/composables/editor/useEditorPreview';
 import { useShapeInteraction } from '@/composables/editor/useShapeInteraction';
+import { useCropOverlay } from '@/composables/editor/useCropOverlay';
 import { logger } from '@/utils/logger';
 import { onAdjustmentReady } from '@/utils/imageAdjustments';
 import { scaleTextsToCanvas } from '@/utils/textLayout';
@@ -891,57 +674,12 @@ const requiresBackend = computed(() => {
   return currentFormatInfo.value?.requiresBackend || false;
 });
 
-// Crop-Overlay-Rechteck: Konvertiere Canvas-Koordinaten zu Display-Koordinaten
-const cropOverlayRect = computed(() => {
-  if (!crop.cropOverlayStyle.value || !canvas.value) return null;
-
-  const canvasRect = canvas.value.getBoundingClientRect();
-  const containerRect = canvas.value.parentElement.getBoundingClientRect();
-
-  // Skalierungsfaktoren
-  const scaleX = canvasRect.width / canvas.value.width;
-  const scaleY = canvasRect.height / canvas.value.height;
-
-  // Offset vom Canvas innerhalb des Containers
-  const offsetX = canvasRect.left - containerRect.left;
-  const offsetY = canvasRect.top - containerRect.top;
-
-  const originalStyle = crop.cropOverlayStyle.value;
-
-  // Parse die Pixel-Werte und skaliere sie
-  const parsePixels = (str) => parseFloat(str) || 0;
-
-  return {
-    left: offsetX + parsePixels(originalStyle.left) * scaleX,
-    top: offsetY + parsePixels(originalStyle.top) * scaleY,
-    width: parsePixels(originalStyle.width) * scaleX,
-    height: parsePixels(originalStyle.height) * scaleY,
-  };
-});
-
-const scaledCropOverlayStyle = computed(() => {
-  const rect = cropOverlayRect.value;
-  if (!rect) return null;
-
-  return {
-    left: `${rect.left}px`,
-    top: `${rect.top}px`,
-    width: `${rect.width}px`,
-    height: `${rect.height}px`,
-  };
-});
-
-// Abmessungs-Label sitzt normalerweise über der Crop-Box.
-// Ist dort kein Platz (Box klebt am oberen Rand), klappt es nach innen.
-const cropLabelInside = computed(() => {
-  const rect = cropOverlayRect.value;
-  return rect ? rect.top < 34 : false;
-});
-
-// Abmessungen für das Crop-Panel – nur solange eine Auswahl existiert
-const panelCropDimensions = computed(() => {
-  if (!crop.cropping.value) return { width: 0, height: 0 };
-  return crop.cropDimensions.value;
+// Crop-Overlay in Anzeige-Koordinaten (Canvas wird per CSS skaliert)
+const { scaledCropOverlayStyle, cropLabelInside, panelCropDimensions } = useCropOverlay({
+  canvas,
+  cropOverlayStyle: crop.cropOverlayStyle,
+  cropping: crop.cropping,
+  cropDimensions: crop.cropDimensions,
 });
 
 // Image info (reactive refs statt computed für bessere Kontrolle)
