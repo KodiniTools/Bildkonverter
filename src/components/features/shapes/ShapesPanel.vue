@@ -557,12 +557,11 @@
           @commit="commit"
         />
         <div v-if="(selectedShape.shadowBlur || 0) > 0" class="color-picker-row mt-2">
-          <input
-            type="color"
+          <UiColorField
             class="color-input"
-            :value="selectedShape.shadowColor || '#000000'"
-            :aria-label="$t('shapes.edit.shadowColor')"
-            @input="update({ shadowColor: $event.target.value })"
+            :model-value="selectedShape.shadowColor || '#000000'"
+            :label="$t('shapes.edit.shadowColor')"
+            @update:model-value="update({ shadowColor: $event })"
             @change="commit"
           />
           <input
@@ -630,6 +629,7 @@ import { computed, getCurrentInstance, onBeforeUnmount, ref, watch } from 'vue';
 import { availableFonts } from '@/assets/fonts/fontList.js';
 import { useImageStore } from '@/stores/imageStore';
 import AppIcon from '@/components/ui/AppIcon.vue';
+import UiColorField from '@/components/ui/ColorField.vue';
 import SliderField from '@/components/ui/SliderField.vue';
 import UiSelect from '@/components/ui/UiSelect.vue';
 import UiSwitch from '@/components/ui/UiSwitch.vue';

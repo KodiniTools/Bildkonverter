@@ -99,6 +99,9 @@ unveränderte Kopien; Werte werden nur dort geändert und hierher kopiert.
 - Regler: `SliderField` (Spur/Daumen aus `src/components/ui/range.css` der Vorlage, scoped;
   Abweichungen: Label/Icon, NumberSpinner, `commit`, Farbton-/Wärme-Spur, größere Touch-Daumen),
   `NumberSpinner`; Verlauf: `HistoryActions` (`.btn-history`).
+- Farben: `ColorField` (Swatch + HSL/Hex-Panel, Teleport `#overlay-root`, `utils/color.ts`), keine
+  nativen `<input type="color">`. In den Formen-Werkzeugen umhüllt `features/shapes/ColorField.vue`
+  ihn mit Hex-Feld und zuletzt genutzten Farben.
 - UI-Bausteine aus dem Collage Maker in `src/components/ui/` (Export über `index.ts`):
   `UiButton`, `UiIconButton`, `UiDialog` (Standard-Teleport `#overlay-root`), `UiToast`,
   `UiSwitch` (alle An/Aus-Optionen, keine nativen Checkboxen), `UiSelect` (alle Auswahllisten;

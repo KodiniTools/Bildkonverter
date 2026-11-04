@@ -66,6 +66,12 @@ export default defineConfigWithVueTs(
     rules: { 'no-console': 'off' },
   },
   {
+    // Tests dürfen kleine Host-Komponenten inline definieren (z. B. ColorField.spec)
+    name: 'app/tests-inline-components',
+    files: ['tests/**/*.{js,ts}'],
+    rules: { 'vue/one-component-per-file': 'off' },
+  },
+  {
     // UI-Bausteine (Kopie aus dem Collage Maker): optionale Props sind per
     // TypeScript optional, ein explizites `undefined`-Default bringt nichts.
     name: 'app/ui-components',

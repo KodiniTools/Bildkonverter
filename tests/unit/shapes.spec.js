@@ -51,6 +51,7 @@ import {
 import ColorField from '@/components/features/shapes/ColorField.vue';
 import { useShapeInteraction } from '@/composables/editor/useShapeInteraction';
 import { useImageStore } from '@/stores/imageStore';
+import UiColorField from '@/components/ui/ColorField.vue';
 import ShapesPanel from '@/components/features/shapes/ShapesPanel.vue';
 import SliderField from '@/components/ui/SliderField.vue';
 
@@ -727,7 +728,11 @@ describe('Zuletzt verwendete Farben', () => {
   it('ColorField merkt sich die Farbe beim Abschließen; Klick auf ein Feld übernimmt sie', async () => {
     const w = mount(ColorField, { props: { modelValue: '#000000', label: 'Farbe' } });
     expect(w.findAll('.recent-color')).toHaveLength(0);
-    await w.find('input[type="color"]').setValue('#abcdef');
+    // UiColorField statt <input type="color">: live-Wert und Abschluss (change) melden
+    const picker = w.findComponent(UiColorField);
+    picker.vm.$emit('update:modelValue', '#abcdef');
+    picker.vm.$emit('change', '#abcdef');
+    await w.vm.$nextTick();
     expect(w.emitted('update:modelValue').at(-1)).toEqual(['#abcdef']);
     expect(w.emitted('commit').at(-1)).toEqual(['#abcdef']);
     addRecentColor('#112233');

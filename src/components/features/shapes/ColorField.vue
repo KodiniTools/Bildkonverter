@@ -1,13 +1,12 @@
 <template>
   <div class="color-field">
     <div class="color-picker-row">
-      <input
-        type="color"
+      <UiColorField
         class="color-input"
-        :value="modelValue"
-        :aria-label="label"
-        @input="emit('update:modelValue', $event.target.value)"
-        @change="commit($event.target.value)"
+        :model-value="modelValue"
+        :label="label"
+        @update:model-value="emit('update:modelValue', $event)"
+        @change="commit"
       />
       <input
         type="text"
@@ -38,12 +37,13 @@
 
 <script setup>
 /**
- * Farbfeld (Farbwähler + Hex-Eingabe) mit den zuletzt verwendeten Farben.
+ * Farbfeld (UiColorField aus der Vorlage + Hex-Eingabe) mit den zuletzt verwendeten Farben.
  * `update:modelValue` bei jeder Änderung (Live-Vorschau), `commit` einmal bei
  * abgeschlossener Auswahl; dabei wird die Farbe in die Verlaufsliste
  * aufgenommen. Ein Klick auf ein Farbfeld übernimmt und committet direkt.
  */
 import { computed } from 'vue';
+import UiColorField from '@/components/ui/ColorField.vue';
 import { useRecentColors } from '@/composables/useRecentColors';
 
 const props = defineProps({

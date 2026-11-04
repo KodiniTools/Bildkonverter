@@ -7,12 +7,12 @@
         <span class="filter-label">{{ $t('editor.background.color', 'Farbe') }}</span>
       </label>
       <div class="color-picker-row">
-        <input
-          :value="background.color"
-          type="color"
+        <ColorField
+          :model-value="background.color"
+          :label="$t('editor.background.color', 'Farbe')"
           class="color-input"
           :disabled="disabled"
-          @input="onColorInput"
+          @update:model-value="onColorValue"
           @change="$emit('save-history')"
         />
         <input
@@ -49,6 +49,7 @@
 
 <script setup>
 import AppIcon from '@/components/ui/AppIcon.vue';
+import ColorField from '@/components/ui/ColorField.vue';
 import FilterSlider from './FilterSlider.vue';
 
 defineProps({
@@ -65,8 +66,12 @@ defineProps({
 // Props werden nicht verändert: Wertänderungen gehen als Ereignisse an den Editor
 const emit = defineEmits(['update-background', 'render', 'save-history']);
 
-function onColorInput(event) {
-  emit('update-background', 'color', event.target.value);
+function onColorValue(value) {
+  emit('update-background', 'color', value);
   emit('render');
+}
+
+function onColorInput(event) {
+  onColorValue(event.target.value);
 }
 </script>

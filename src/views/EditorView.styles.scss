@@ -117,28 +117,12 @@
   gap: var(--ds-space-2);
   align-items: center;
 
+  // ColorField-Wurzel: nur Größe und Radius, Rahmen/Fokus bringt der Swatch mit
   .color-input {
+    flex-shrink: 0;
     width: var(--ds-control-lg);
     height: var(--ds-control-md);
-    padding: 2px;
-    border: var(--ds-border-width) solid var(--ds-border-strong);
     border-radius: var(--ds-radius-sm);
-    cursor: pointer;
-    background: var(--ds-surface-2);
-
-    &::-webkit-color-swatch-wrapper {
-      padding: 2px;
-    }
-
-    &::-webkit-color-swatch {
-      border-radius: var(--ds-radius-sm);
-      border: none;
-    }
-
-    &:focus-visible {
-      outline: none;
-      box-shadow: var(--ds-focus-ring);
-    }
   }
 
   // Hex-Wert: Feld aus global.scss, Mono-Schrift für den Wert

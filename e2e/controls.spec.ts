@@ -47,4 +47,27 @@ test.describe('Schalter und Auswahllisten', () => {
     await expect(aspect).toHaveAttribute('aria-checked', 'false');
     expect(errors).toEqual([]);
   });
+
+  // Schritt 5: ColorField (Swatch + Panel in #overlay-root) statt <input type="color">
+  test('Editor: Hintergrundfarbe über ColorField', async ({ page }) => {
+    const errors = collectPageErrors(page);
+    await prepare(page, 'de');
+    await page.goto('./editor');
+    await uploadImages(page, [imageFile('a.png')]);
+    await expect(page.getByText('120 × 80px')).toBeVisible();
+
+    const swatch = page.locator('.color-field__swatch').first();
+    await swatch.click();
+    const panel = page.locator('#overlay-root').getByRole('dialog', { name: 'Farbe' });
+    await expect(panel).toBeVisible();
+    const hex = panel.getByRole('textbox');
+    await hex.fill('#336699');
+    await hex.press('Enter');
+    await expect(page.locator('.color-text-input').first()).toHaveValue('#336699');
+
+    await page.keyboard.press('Escape');
+    await expect(panel).toBeHidden();
+    await expect(swatch).toBeFocused();
+    expect(errors).toEqual([]);
+  });
 });

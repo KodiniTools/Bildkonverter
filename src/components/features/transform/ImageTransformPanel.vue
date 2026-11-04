@@ -236,11 +236,11 @@
       />
 
       <div v-if="transforms.borderWidth > 0" class="color-picker-group">
-        <input
-          type="color"
-          :value="transforms.borderColor"
+        <ColorField
+          :model-value="transforms.borderColor"
+          :label="$t('transform.borderColor')"
           class="color-input"
-          @input="$emit('update:border-color', $event.target.value)"
+          @update:model-value="$emit('update:border-color', $event)"
           @change="$emit('commit-transform')"
         />
         <span class="color-label">{{ $t('transform.borderColor') }}</span>
@@ -330,12 +330,11 @@
             {{ $t('transform.shadow.color', 'Farbe') }}
           </label>
           <div class="color-picker-row">
-            <input
-              type="color"
-              :value="transforms.shadowColor"
+            <ColorField
+              :model-value="transforms.shadowColor"
+              :label="$t('transform.shadow.color', 'Farbe')"
               class="color-input"
-              :style="{ backgroundColor: transforms.shadowColor }"
-              @input="$emit('update:shadow-color', $event.target.value)"
+              @update:model-value="$emit('update:shadow-color', $event)"
               @change="$emit('commit-transform')"
             />
             <input
@@ -355,6 +354,7 @@
 
 <script setup>
 import AppIcon from '@/components/ui/AppIcon.vue';
+import ColorField from '@/components/ui/ColorField.vue';
 import HistoryActions from '@/components/ui/HistoryActions.vue';
 import SliderField from '@/components/ui/SliderField.vue';
 import UiSwitch from '@/components/ui/UiSwitch.vue';

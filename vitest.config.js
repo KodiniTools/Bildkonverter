@@ -44,6 +44,7 @@ export default defineConfig({
           name: 'unit',
           environment: 'happy-dom',
           include: ['tests/unit/**/*.spec.{js,ts}'],
+          setupFiles: ['tests/unit/setup.ts'],
         },
       },
       {

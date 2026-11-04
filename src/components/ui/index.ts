@@ -2,8 +2,9 @@
  * UI-Bausteine des gemeinsamen KodiniTools-Designs (Kopie aus
  * KodiniTools/Collage-Maker, src/components/ui). Alle Komponenten nutzen
  * ausschließlich --ds-* Tokens aus src/design-system/tokens-v2.css.
- * SliderField nutzt range.css der Vorlage (scoped). ColorField folgt in Schritt 5.
+ * SliderField nutzt range.css der Vorlage (scoped), ColorField utils/color.ts.
  */
+export { default as ColorField } from './ColorField.vue';
 export { default as UiButton } from './UiButton.vue';
 export { default as UiDialog } from './UiDialog.vue';
 export { default as UiIconButton } from './UiIconButton.vue';

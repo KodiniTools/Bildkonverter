@@ -335,20 +335,12 @@
   gap: var(--ds-space-2);
   align-items: center;
 
+  /* ColorField-Wurzel: nur Größe und Radius, Rahmen/Fokus bringt der Swatch mit */
   .color-input {
     width: var(--ds-control-md);
     height: var(--ds-control-md);
     flex-shrink: 0;
-    padding: 0;
-    border: var(--ds-border-width) solid var(--ds-border-strong);
     border-radius: var(--ds-radius-md);
-    background: var(--ds-surface-2);
-    cursor: pointer;
-
-    &:focus-visible {
-      outline: none;
-      box-shadow: var(--ds-focus-ring);
-    }
   }
 
   .color-text-input {
