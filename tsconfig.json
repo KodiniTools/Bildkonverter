@@ -14,6 +14,10 @@
     "noEmit": true,
     "jsx": "preserve",
 
+    /* JavaScript: schrittweise Migration nach TS, JS wird mitgebaut, aber nicht geprüft */
+    "allowJs": true,
+    "checkJs": false,
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
@@ -26,6 +30,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "src/**/*.js"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

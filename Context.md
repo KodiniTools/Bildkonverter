@@ -27,7 +27,9 @@
 | Utilities             | @vueuse/core            | ^10.9   |
 | Konfetti              | canvas-confetti         | ^1.9    |
 
-**Dev-Dependencies:** ESLint, Prettier, `@vitejs/plugin-vue`
+**Dev-Dependencies:** TypeScript + vue-tsc (schrittweise Migration, `allowJs`), ESLint 10 (Flat-Config `eslint.config.js` mit `@vue/eslint-config-typescript`), Prettier, Vitest, Playwright (E2E), `@vitejs/plugin-vue`
+
+**TypeScript:** `tsconfig.json` ist strict und schließt `src/**/*.js` mit `allowJs` ein, prüft JS aber nicht (`checkJs: false`). Dateien, die ein Umbau anfasst, werden nach `.ts` bzw. `<script setup lang="ts">` portiert.
 
 ---
 
@@ -128,7 +130,7 @@ src/
 │   ├── AboutView.vue             # Über KodiniTools (/about)
 │   └── NotFoundView.vue          # 404-Seite
 ├── App.vue                       # Root-Komponente (SSI-Integration)
-└── main.js                       # App-Einstiegspunkt (Pinia, Router, i18n, Fehlerhandler)
+└── main.ts                       # App-Einstiegspunkt (Pinia, Router, i18n, Fehlerhandler)
 ```
 
 ---
@@ -408,14 +410,18 @@ ValidationUtils.validateImageFile(file);
 
 ```bash
 npm run dev           # Entwicklungsserver starten (Port 5173)
-npm run build         # Produktions-Build → dist/
+npm run build         # Typprüfung (vue-tsc) + Produktions-Build → dist/
+npm run type-check    # vue-tsc (App) und tsc für e2e/
 npm run preview       # Produktions-Build lokal vorschauen
-npm run lint          # ESLint-Prüfung
+npm run lint          # ESLint-Prüfung (gleich lint:check)
+npm run lint:check    # ESLint-Prüfung (CI)
 npm run lint:fix      # ESLint-Fehler automatisch beheben
 npm run format        # Prettier-Formatierung anwenden
 npm run format:check  # Prettier-Formatierung prüfen
 npm test              # Unit- und Browser-Tests (Vitest)
-# Erwartung vor jedem Merge: lint und format:check ohne Meldung, test grün.
+npm run test:e2e      # Playwright-E2E (e2e/), lokal gegen den Dev-Server
+# Erwartung vor jedem Merge: lint:check, format:check, type-check, test, build und test:e2e grün.
+# Die CI (.github/workflows/ci.yml) prüft genau das; E2E dort gegen vite preview.
 # App-Code schreibt nicht direkt auf die Konsole (ESLint no-console = error),
 # sondern über src/utils/logger.js; Node-Skripte und Tests sind davon ausgenommen.
 npm run test:unit     # nur Unit-Tests (happy-dom)
@@ -432,6 +438,10 @@ Zwei Vitest-Projekte:
 | --------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `unit`    | happy-dom                                  | `fileUtils`, `conversionUtils` (Zielgröße, A4-Layout), i18n-Konsistenz (gleicher Schlüsselsatz de/en, jeder referenzierte Schlüssel existiert, kein Schlüssel verwaist), `GuideSectionHeader` und die Sidebar-Panels (`AdjustmentsPanel`, `LightColorPanel`, `EffectsPanel`, `BackgroundPanel`: Ereignisse statt Prop-Mutation) mit Vue Test Utils                                                                                                                                                                                                                                                                                                                                |
 | `browser` | Chromium (Vitest Browser Mode, Playwright) | `useCanvasRenderer` (Vorschau vs. Export pixelgenau, Auswahlrahmen, Vignette, Transparenz, Texte, Collage), `useBatchConversion` (JPG/WebP/PNG, Skalierung, PDF einzeln und gesamt, SVG-Fallback ohne Backend, Fehlerpfad, Reset/Entfernen/Leeren), `useEditorHistory` (Snapshot inkl. Ebenen-Modus, Undo/Redo mit vollständiger Wiederherstellung, Wechsel zwischen Einzelbild und Ebenen, Redo-Zweig, Reset, Store-Registrierung), `imageStore` (Delegation der Historie, Ebenen-Serialisierung), `useEditorResize` (Live-Vorschau mit Entprellung, Presets, Anwenden, Validierung), `useEditorDetach` (Ablösen als Ebene, Fehlerpfad, Verbinden, Umschalten, Hintergrund-Sync) |
+
+Dazu kommen Playwright-E2E-Tests in `e2e/` (`playwright.config.ts`): alle Routen in DE/EN und hell/dunkel
+(H1, `lang`, `data-theme`, keine Seitenfehler) sowie Smoke-Tests für Editor (Bild laden, Regler + Undo,
+Download) und Batch (konvertieren).
 
 Die Browser-Tests brauchen einen echten 2D-Canvas und laufen deshalb nicht in jsdom/happy-dom.
 `vitest.config.js` sucht Chromium über Playwright, ersatzweise unter `PLAYWRIGHT_BROWSERS_PATH`
