@@ -335,8 +335,8 @@ const {
 </script>
 
 <style scoped lang="scss">
-@import '../transform/shared';
-@import './shapes';
+@use '../transform/shared' as *;
+@use './shapes' as *;
 
 .swap-btn {
   width: 100%;

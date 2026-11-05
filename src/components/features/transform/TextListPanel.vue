@@ -55,7 +55,7 @@ defineEmits(['add-text', 'select-text-by-id', 'delete-text-by-id']);
 </script>
 
 <style scoped lang="scss">
-@import './shared';
+@use './shared' as *;
 
 .add-text-btn {
   margin-bottom: var(--ds-space-3);

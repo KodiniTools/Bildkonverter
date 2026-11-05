@@ -57,8 +57,8 @@ const { drawTool, drawStyle, drawWidth, setDrawTool, setDrawSetting } = useShape
 </script>
 
 <style scoped lang="scss">
-@import '../transform/shared';
-@import './shapes';
+@use '../transform/shared' as *;
+@use './shapes' as *;
 
 .draw-settings {
   margin-top: var(--ds-space-3);

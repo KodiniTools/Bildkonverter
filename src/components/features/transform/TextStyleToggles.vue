@@ -74,7 +74,7 @@ function toggleItalic() {
 </script>
 
 <style scoped lang="scss">
-@import './shared';
+@use './shared' as *;
 
 // Fett/Kursiv im UiSegmentedControl-Look
 .style-toggle-row {

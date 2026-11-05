@@ -147,5 +147,5 @@ const {
 </script>
 
 <style lang="scss" scoped>
-@import './shared';
+@use './shared' as *;
 </style>

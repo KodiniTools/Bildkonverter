@@ -83,7 +83,7 @@ const { activeCategory, shapes, selectedShape } = editor;
 </script>
 
 <style scoped lang="scss">
-@import '../transform/shared';
+@use '../transform/shared' as *;
 
 .shape-hint {
   margin: 0 0 var(--ds-space-4);

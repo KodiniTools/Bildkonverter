@@ -159,7 +159,7 @@ function getPresetLabel(preset) {
 </script>
 
 <style scoped lang="scss">
-@import './shared';
+@use './shared' as *;
 
 .aspect-ratio-section,
 .crop-size-section {

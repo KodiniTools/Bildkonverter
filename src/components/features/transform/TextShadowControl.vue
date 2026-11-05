@@ -78,7 +78,7 @@ defineEmits<{
 </script>
 
 <style scoped lang="scss">
-@import './shared';
+@use './shared' as *;
 
 .shadow-controls {
   margin-top: var(--ds-space-2);

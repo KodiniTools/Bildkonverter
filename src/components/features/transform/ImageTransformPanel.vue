@@ -210,5 +210,5 @@ const emit = defineEmits<{
 </script>
 
 <style scoped lang="scss">
-@import './shared';
+@use './shared' as *;
 </style>

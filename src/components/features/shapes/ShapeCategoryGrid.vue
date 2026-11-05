@@ -44,8 +44,8 @@ const { activeCategory, galleryItems, drawTool, disabled, onTileClick, stickerTe
 </script>
 
 <style scoped lang="scss">
-@import '../transform/shared';
-@import './shapes';
+@use '../transform/shared' as *;
+@use './shapes' as *;
 
 // Kategorien: bei Platzmangel in zwei Zeilen (3 + 2) statt abgeschnitten
 .segmented--wrap {
