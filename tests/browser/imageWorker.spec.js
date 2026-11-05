@@ -10,6 +10,7 @@ import {
   resetImageWorker,
 } from '@/lib/imageWorker';
 import { applyTonalAdjustments } from '@/utils/tonalKernel';
+import { applyDetailAdjustments } from '@/utils/detailKernel';
 import {
   getAdjustedImage,
   onAdjustmentReady,
@@ -61,6 +62,23 @@ describe('imageWorker', () => {
     expect(result).not.toBeNull();
     expect(result.width).toBe(main.width);
     expect(result.data).toEqual(main.data);
+  });
+
+  it('Schärfen, Klarheit und Körnung im Worker entsprechen exakt dem Hauptthread', async () => {
+    const detail = { ...FILTERS, sharpness: 70, clarity: -40, grain: 30 };
+    const main = pixelsOf(img);
+    applyTonalAdjustments(main.data, detail);
+    applyDetailAdjustments(main.data, main.width, main.height, detail);
+    const result = await adjustInWorker(pixelsOf(img), detail);
+    expect(result).not.toBeNull();
+    expect(result.data).toEqual(main.data);
+  });
+
+  it('nur Detail-Regler aktiv: getAdjustedImage rechnet pixelbasiert', () => {
+    const { el, cssFilter } = getAdjustedImage(img, { sharpness: 50 });
+    expect(el).toBeInstanceOf(HTMLCanvasElement);
+    expect(cssFilter).toBe('none');
+    expect(pixelsOf(el).data).not.toEqual(pixelsOf(img).data);
   });
 
   it.each(['image/png', 'image/jpeg', 'image/webp'])('kodiert %s im Worker', async (type) => {

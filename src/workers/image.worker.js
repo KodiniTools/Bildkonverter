@@ -2,17 +2,20 @@
  * Web Worker für die rechenintensiven Schritte des Editors:
  *
  * - tonal:  Tonwert-Anpassungen (Belichtung, Helligkeit, Kontrast, Lichter,
- *           Schatten, Sättigung) auf rohen RGBA-Pixeldaten
+ *           Schatten, Sättigung), danach Detail-Anpassungen (Schärfen,
+ *           Klarheit, Körnung) auf rohen RGBA-Pixeldaten
  * - encode: Bildkodierung (PNG/JPEG/WebP) über OffscreenCanvas.convertToBlob
  *
  * Läuft in einem eigenen Thread und blockiert die Oberfläche nicht. Pixel-
  * puffer und ImageBitmaps werden übertragen (Transferable, ohne Kopie).
  */
 import { applyTonalAdjustments } from '@/utils/tonalKernel';
+import { applyDetailAdjustments } from '@/utils/detailKernel';
 
 function tonal({ id, buffer, width, height, filters }) {
   const data = new Uint8ClampedArray(buffer);
   applyTonalAdjustments(data, filters);
+  applyDetailAdjustments(data, width, height, filters);
   self.postMessage({ id, buffer: data.buffer, width, height }, [data.buffer]);
 }
 

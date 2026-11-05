@@ -1,8 +1,9 @@
 import { logger } from '@/utils/logger';
 import { applyTonalAdjustments } from './tonalKernel';
+import { applyDetailAdjustments, hasDetailAdjustments } from './detailKernel';
 import { adjustInWorker, isImageWorkerAvailable } from '@/lib/imageWorker';
 
-export { applyTonalAdjustments };
+export { applyTonalAdjustments, applyDetailAdjustments, hasDetailAdjustments };
 /**
  * imageAdjustments.js
  *
@@ -20,6 +21,9 @@ export { applyTonalAdjustments };
  *   - highlights (Lichter)     – nur helle Tonwerte (Luminanz-Maske)
  *   - shadows    (Schatten)    – nur dunkle Tonwerte (Luminanz-Maske)
  *   - saturation (Sättigung)   – luminanzerhaltend
+ *
+ *  Detail-Anpassungen (echt, per Pixel, nach den Tonwerten; detailKernel.js):
+ *   - sharpness (Schärfen), clarity (Klarheit), grain (Körnung)
  *
  *  Effekt-Filter (weiterhin als CSS-Filter beim Zeichnen, da nativ
  *  schneller/qualitativ gleichwertig):
@@ -101,7 +105,21 @@ function tonalSignature(f) {
     f.highlights ?? 0,
     f.shadows ?? 0,
     f.saturation ?? 100,
+    f.sharpness ?? 0,
+    f.clarity ?? 0,
+    f.grain ?? 0,
   ].join(',');
+}
+
+/**
+ * Alle pixelbasierten Anpassungen in fester Reihenfolge: erst Tonwerte, dann
+ * Details. Gleiche Funktion im Hauptthread und (über die Kerne) im Worker.
+ * @param {ImageData} imgData - wird in-place verändert
+ * @param {Object} f - Filter-Objekt
+ */
+export function applyPixelAdjustments(imgData, f) {
+  if (hasTonalAdjustments(f)) applyTonalAdjustments(imgData.data, f);
+  applyDetailAdjustments(imgData.data, imgData.width, imgData.height, f);
 }
 
 // Zuletzt fertig berechnete Quelle je Bild (Quelle + Größe). Dient im
@@ -176,7 +194,7 @@ async function runWorkerJob(job) {
     if (!adjusted) {
       // Kein Worker (mehr): im Hauptthread rechnen, Ergebnis identisch
       adjusted = sourcePixels(job.image, job.w, job.h, job.imageKey);
-      applyTonalAdjustments(adjusted.data, job.filters);
+      applyPixelAdjustments(adjusted, job.filters);
     }
     const off = document.createElement('canvas');
     off.width = job.w;
@@ -224,7 +242,7 @@ let _generation = 0;
 export function getAdjustedImage(image, filters, { async = false } = {}) {
   const effect = buildEffectFilterString(filters);
 
-  if (!image || !hasTonalAdjustments(filters)) {
+  if (!image || (!hasTonalAdjustments(filters) && !hasDetailAdjustments(filters))) {
     return { el: image, cssFilter: effect };
   }
 
@@ -252,7 +270,7 @@ export function getAdjustedImage(image, filters, { async = false } = {}) {
 
   try {
     const { off, octx, imgData } = readPixels(image, w, h);
-    applyTonalAdjustments(imgData.data, filters);
+    applyPixelAdjustments(imgData, filters);
     octx.putImageData(imgData, 0, 0);
 
     store(key, imageKey, off);
@@ -277,9 +295,12 @@ export function clearAdjustmentCache() {
 
 export default {
   hasTonalAdjustments,
+  hasDetailAdjustments,
   buildEffectFilterString,
   buildApproxFilterString,
   applyTonalAdjustments,
+  applyDetailAdjustments,
+  applyPixelAdjustments,
   getAdjustedImage,
   clearAdjustmentCache,
   onAdjustmentReady,

@@ -18,6 +18,8 @@ export const DEFAULT_FILTERS = {
   highlights: 0,
   shadows: 0,
   sharpness: 0,
+  clarity: 0,
+  grain: 0,
   vignette: 0,
 };
 
