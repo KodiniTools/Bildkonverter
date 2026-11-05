@@ -1,11 +1,13 @@
 /**
- * Deutsche Übersetzungen (de)
+ * Deutsche Übersetzungen (de); Referenz für alle Schlüssel. Neue Schlüssel
+ * zuerst hier eintragen, `en.ts` meldet fehlende oder überzählige Schlüssel
+ * dann als Typfehler.
  *
  * Alle Schlüssel werden in der App referenziert – als Literal, über Datenarrays
  * (z.B. Guide-Features) oder über Template-Präfixe wie `guide.filters.${key}`.
  */
 
-export default {
+const de = {
   nav: {
     home: 'Startseite',
     menu: 'Menü',
@@ -1474,3 +1476,8 @@ export default {
     forwardDismiss: 'Nein danke',
   },
 };
+
+/** Struktur aller Übersetzungen; jede weitere Sprache muss sie exakt erfüllen. */
+export type LocaleMessages = typeof de;
+
+export default de;

@@ -5,7 +5,10 @@
  * (z.B. Guide-Features) oder über Template-Präfixe wie `guide.filters.${key}`.
  */
 
-export default {
+import type { LocaleMessages } from './de';
+
+// LocaleMessages macht fehlende oder überzählige EN-Schlüssel zum Compile-Fehler.
+const en: LocaleMessages = {
   nav: {
     home: 'Home',
     menu: 'Menu',
@@ -1468,3 +1471,5 @@ export default {
     forwardDismiss: 'No thanks',
   },
 };
+
+export default en;
