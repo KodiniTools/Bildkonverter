@@ -366,6 +366,12 @@ const de = {
       auto: 'Auto-Verbessern',
       autoHint: 'Belichtung, Kontrast, Lichter, Schatten und Sättigung automatisch anpassen',
     },
+    whiteBalance: {
+      pick: 'Graupunkt wählen',
+      pickActive: 'Auf eine graue oder weiße Stelle im Bild klicken',
+      pickHint:
+        'Pipette: Klick auf eine Stelle, die neutral grau oder weiß sein soll, entfernt den Farbstich',
+    },
     filters: {
       sharpness: 'Schärfen',
       clarity: 'Klarheit',
@@ -378,6 +384,8 @@ const de = {
       exposure: 'Belichtung',
       highlights: 'Lichter',
       shadows: 'Schatten',
+      temperature: 'Temperatur',
+      tint: 'Tönung',
       sepia: 'Wärme',
       grayscale: 'Graustufen',
       invert: 'Invertieren',
@@ -1237,6 +1245,9 @@ const de = {
       autoEnhanced: 'Automatisch verbessert. Die Regler zeigen die Werte.',
       autoEnhanceNeutral: 'Das Bild ist bereits ausgewogen.',
       autoEnhanceFailed: 'Auto-Verbessern ist für dieses Bild nicht möglich.',
+      whiteBalanceSet: 'Weißabgleich gesetzt. Temperatur und Tönung sind angepasst.',
+      whiteBalanceUnsuitable:
+        'Diese Stelle ist zu dunkel oder zu hell. Bitte eine helle, graue Stelle wählen.',
       shared: 'Bild geteilt',
       shareFailed: 'Teilen fehlgeschlagen',
       shareUnsupported:

@@ -59,6 +59,28 @@ export function imageFile(name: string, width = 120, height = 80, range?: [numbe
   return { name, mimeType: 'image/png', buffer: png(width, height, range) };
 }
 
+/** Einfarbiges PNG (z. B. eine Fläche mit Farbstich für den Weißabgleich). */
+export function solidImageFile(name: string, width: number, height: number, rgb: number[]) {
+  const rows: Buffer[] = [];
+  for (let y = 0; y < height; y++) {
+    const row = Buffer.alloc(1 + width * 3);
+    for (let x = 0; x < width; x++) row.set(rgb, 1 + x * 3);
+    rows.push(row);
+  }
+  const header = Buffer.alloc(13);
+  header.writeUInt32BE(width, 0);
+  header.writeUInt32BE(height, 4);
+  header[8] = 8;
+  header[9] = 2;
+  const buffer = Buffer.concat([
+    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+    chunk('IHDR', header),
+    chunk('IDAT', deflateSync(Buffer.concat(rows))),
+    chunk('IEND', Buffer.alloc(0)),
+  ]);
+  return { name, mimeType: 'image/png', buffer };
+}
+
 /** Lädt Bilder über das (versteckte) Datei-Input der Seite hoch. */
 export async function uploadImages(page: Page, files: ReturnType<typeof imageFile>[]) {
   await page.locator('input[type="file"]').first().setInputFiles(files);

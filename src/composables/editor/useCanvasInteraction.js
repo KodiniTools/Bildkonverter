@@ -27,6 +27,8 @@
  * @param {Function} [deps.getDistortHandlePoints] Eckpunkte des Bildes im Canvas-System (Renderer)
  * @param {Function} [deps.getDistortGeometry]     Matrix + Zeichen-Rechteck des Bildes (Renderer)
  * @param {object}   [deps.shapeInteraction]       useShapeInteraction()-Instanz (Formen)
+ * @param {{ active: import('vue').Ref<boolean>, pick: (pos: {x:number,y:number}) => void }} [deps.colorPicker]
+ *        Pipette (Weißabgleich): ist sie aktiv, geht der nächste Klick an pick()
  */
 import { buildTextFontString } from '@/utils/textRender';
 import { findCornerAt, offsetForLocalPoint } from '@/utils/warpImage';
@@ -56,6 +58,7 @@ export function useCanvasInteraction({
   getDistortHandlePoints = () => null,
   getDistortGeometry = () => null,
   shapeInteraction = null,
+  colorPicker = null,
 }) {
   // Formen sind optional (ältere Aufrufer ohne Formen funktionieren unverändert)
   const shapes = shapeInteraction ?? {
@@ -185,6 +188,13 @@ export function useCanvasInteraction({
   function onCanvasMouseDown(e) {
     const pos = getMousePos(e);
     const displayScale = getDisplayScale();
+
+    // Pipette hat Vorrang vor allen anderen Werkzeugen
+    if (colorPicker?.active.value && e.button === 0) {
+      e.preventDefault();
+      colorPicker.pick(pos);
+      return;
+    }
 
     // Pan mit mittlerer Maustaste oder Leertaste + Linksklick
     const isMiddleButton = e.button === 1;
@@ -457,6 +467,12 @@ export function useCanvasInteraction({
 
     const { clientX, clientY } = getTouchClientPos(e);
     const pos = getMousePos(e);
+
+    // Pipette für den Weißabgleich hat Vorrang
+    if (colorPicker?.active.value) {
+      colorPicker.pick(pos);
+      return;
+    }
 
     // Pan mit zwei Fingern – hier noch Ein-Finger: prüfe ob Leertaste (nicht möglich auf Mobil)
     // Crop-Handler

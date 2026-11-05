@@ -17,6 +17,8 @@ export const DEFAULT_FILTERS = {
   exposure: 0,
   highlights: 0,
   shadows: 0,
+  temperature: 0,
+  tint: 0,
   sharpness: 0,
   clarity: 0,
   grain: 0,

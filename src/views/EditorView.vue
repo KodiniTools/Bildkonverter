@@ -112,10 +112,12 @@
             :filters="filters"
             :sections-open="sectionsOpen"
             :disabled="!currentImage"
+            :picking-white="pickingWhite"
             @update-filter="setFilter"
             @toggle-section="toggleSection"
             @render="renderImage"
             @save-history="saveHistory"
+            @toggle-pick-white="togglePickWhite"
           />
           <EffectsPanel
             :filters="filters"
@@ -197,7 +199,7 @@
             <canvas
               ref="canvas"
               class="main-canvas"
-              :style="{ cursor: crop.cropMode.value ? 'crosshair' : 'default' }"
+              :style="{ cursor: crop.cropMode.value || pickingWhite ? 'crosshair' : 'default' }"
               @mousedown="onCanvasMouseDown"
               @mousemove="onCanvasMouseMove"
               @mouseup="onCanvasMouseUp"
@@ -380,6 +382,7 @@ import BackgroundPanel from '@/components/editor/sidebar/BackgroundPanel.vue';
 import DetachPanel from '@/components/editor/sidebar/DetachPanel.vue';
 import AdjustmentsPanel from '@/components/editor/sidebar/AdjustmentsPanel.vue';
 import { autoEnhanceFromImage, isNeutralEnhance } from '@/utils/autoEnhance';
+import { averageColor, whiteBalanceFromSample } from '@/utils/whiteBalance';
 import LightColorPanel from '@/components/editor/sidebar/LightColorPanel.vue';
 import EffectsPanel from '@/components/editor/sidebar/EffectsPanel.vue';
 import ResizePanel from '@/components/editor/sidebar/ResizePanel.vue';
@@ -906,6 +909,38 @@ async function clearImage() {
   }
 }
 
+// Weißabgleich per Pipette: nächster Klick auf die Leinwand setzt den Graupunkt.
+// Die Probe (5×5 px) stammt aus der gerenderten Leinwand; Temperatur und Tönung
+// werden als normale Reglerwerte gesetzt und landen im Verlauf.
+const pickingWhite = ref(false);
+
+function togglePickWhite() {
+  pickingWhite.value = !pickingWhite.value && Boolean(currentImage.value);
+  if (pickingWhite.value) window.$toast?.info(t('editor.whiteBalance.pickActive'));
+}
+
+function pickWhitePoint(pos) {
+  pickingWhite.value = false;
+  const ctx = canvas.value?.getContext('2d');
+  if (!ctx) return;
+  const x = Math.max(0, Math.round(pos.x) - 2);
+  const y = Math.max(0, Math.round(pos.y) - 2);
+  let sample = null;
+  try {
+    sample = averageColor(ctx.getImageData(x, y, 5, 5).data);
+  } catch (e) {
+    logger.warn('Pipette: Leinwand nicht lesbar', e);
+  }
+  const values = sample ? whiteBalanceFromSample(sample, filters.value) : null;
+  if (!values) {
+    window.$toast?.warning(t('toast.editor.whiteBalanceUnsuitable'));
+    return;
+  }
+  filterManagement.applyAdjustments(values);
+  saveHistory();
+  window.$toast?.success(t('toast.editor.whiteBalanceSet'));
+}
+
 // Auto-Verbessern: Werte aus dem Histogramm des (ungefilterten) Bildes, gesetzt
 // als normale Reglerwerte – sichtbar, nachjustierbar und rückgängig zu machen.
 function handleAutoEnhance() {
@@ -1123,6 +1158,7 @@ const {
   getDistortHandlePoints,
   getDistortGeometry,
   shapeInteraction,
+  colorPicker: { active: pickingWhite, pick: pickWhitePoint },
 });
 
 function handleFontsLoaded() {

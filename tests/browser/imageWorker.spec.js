@@ -74,6 +74,15 @@ describe('imageWorker', () => {
     expect(result.data).toEqual(main.data);
   });
 
+  it('Weißabgleich (Temperatur/Tönung) im Worker entspricht exakt dem Hauptthread', async () => {
+    const wb = { ...FILTERS, temperature: -35, tint: 20 };
+    const main = pixelsOf(img);
+    applyTonalAdjustments(main.data, wb);
+    const result = await adjustInWorker(pixelsOf(img), wb);
+    expect(result).not.toBeNull();
+    expect(result.data).toEqual(main.data);
+  });
+
   it('nur Detail-Regler aktiv: getAdjustedImage rechnet pixelbasiert', () => {
     const { el, cssFilter } = getAdjustedImage(img, { sharpness: 50 });
     expect(el).toBeInstanceOf(HTMLCanvasElement);
