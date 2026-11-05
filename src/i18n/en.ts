@@ -363,6 +363,10 @@ const en: LocaleMessages = {
       off: 'Detach image from background',
       layerName: 'Image',
     },
+    adjustments: {
+      auto: 'Auto Enhance',
+      autoHint: 'Automatically adjust exposure, contrast, highlights, shadows and saturation',
+    },
     filters: {
       brightness: 'Brightness',
       contrast: 'Contrast',
@@ -1224,6 +1228,9 @@ const en: LocaleMessages = {
       cancelled: 'Cropping cancelled',
     },
     editor: {
+      autoEnhanced: 'Enhanced automatically. The sliders show the values.',
+      autoEnhanceNeutral: 'The image is already well balanced.',
+      autoEnhanceFailed: 'Auto Enhance is not possible for this image.',
       shared: 'Image shared',
       shareFailed: 'Sharing failed',
       shareUnsupported: 'Sharing is not supported here – the image is downloaded instead.',

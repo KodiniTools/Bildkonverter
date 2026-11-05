@@ -28,12 +28,17 @@ function chunk(type: string, data: Buffer): Buffer {
  * Gültige RGB-PNG-Datei mit Farbmuster. Das Muster hält die Datei über 1 KB,
  * der Mindestgröße des Uploads (src/utils/validationUtils.js).
  */
-export function png(width: number, height: number): Buffer {
+export function png(width: number, height: number, range?: [number, number]): Buffer {
   const rows: Buffer[] = [];
   for (let y = 0; y < height; y++) {
     const row = Buffer.alloc(1 + width * 3);
     for (let x = 0; x < width; x++) {
-      row.set([(x * 7 + y * 13) % 256, (x * x + y * 3) % 256, (x * y) % 256], 1 + x * 3);
+      const rgb = [(x * 7 + y * 13) % 256, (x * x + y * 3) % 256, (x * y) % 256];
+      // optional in einen engeren Tonwertbereich stauchen (flaues Bild)
+      row.set(
+        range ? rgb.map((v) => Math.round(range[0] + (v * (range[1] - range[0])) / 255)) : rgb,
+        1 + x * 3
+      );
     }
     rows.push(row);
   }
@@ -50,8 +55,8 @@ export function png(width: number, height: number): Buffer {
   ]);
 }
 
-export function imageFile(name: string, width = 120, height = 80) {
-  return { name, mimeType: 'image/png', buffer: png(width, height) };
+export function imageFile(name: string, width = 120, height = 80, range?: [number, number]) {
+  return { name, mimeType: 'image/png', buffer: png(width, height, range) };
 }
 
 /** Lädt Bilder über das (versteckte) Datei-Input der Seite hoch. */

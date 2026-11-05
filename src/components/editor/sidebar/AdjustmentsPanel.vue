@@ -10,6 +10,19 @@
     </h3>
 
     <div v-show="sectionsOpen.adjustments" class="section-content">
+      <UiButton
+        class="auto-enhance-btn"
+        size="sm"
+        block
+        :disabled="disabled"
+        :title="$t('editor.adjustments.autoHint')"
+        data-testid="auto-enhance"
+        @click="$emit('auto-enhance')"
+      >
+        <template #icon><AppIcon name="magic" :size="16" /></template>
+        {{ $t('editor.adjustments.auto') }}
+      </UiButton>
+
       <FilterSlider
         :model-value="filters.brightness"
         :label="$t('editor.filters.brightness')"
@@ -67,6 +80,7 @@
 
 <script setup>
 import AppIcon from '@/components/ui/AppIcon.vue';
+import UiButton from '@/components/ui/UiButton.vue';
 import FilterSlider from './FilterSlider.vue';
 
 defineProps({
@@ -85,5 +99,13 @@ defineProps({
 });
 
 // Props werden nicht verändert: Wertänderungen gehen als Ereignisse an den Editor
-defineEmits(['update-filter', 'toggle-section', 'render', 'save-history']);
+// auto-enhance: Editor berechnet die Werte aus dem Bild (utils/autoEnhance)
+defineEmits(['update-filter', 'toggle-section', 'render', 'save-history', 'auto-enhance']);
 </script>
+
+<style scoped>
+/* Abstand zum ersten Regler wie zwischen den Reglern (FilterSlider) */
+.auto-enhance-btn {
+  margin-bottom: var(--ds-space-3);
+}
+</style>
