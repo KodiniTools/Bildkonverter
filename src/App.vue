@@ -50,6 +50,7 @@ import KeyboardShortcuts from '@/components/features/KeyboardShortcuts.vue';
 import PerformanceMonitor from '@/components/dev/PerformanceMonitor.vue';
 import TextEditModal from '@/components/modals/TextEditModal.vue';
 import { useI18n } from 'vue-i18n';
+import { ssiNavTranslations } from '@/i18n/nav';
 import { logger } from '@/utils/logger';
 
 // Stores & Composables
@@ -60,65 +61,6 @@ const { t } = useI18n({ useScope: 'global' });
 // Observer für externe Navigation
 let externalNavObserver = null;
 let domMutationObserver = null;
-
-// ─── Übersetzungen für die externe SSI-Navigation ───
-// Muss mit nav.html synchron gehalten werden
-const navTranslations = {
-  de: {
-    'nav.audioTools': 'Audiotools',
-    'nav.imageTools': 'Bildtools',
-    'nav.tools': 'Tools',
-    'nav.contact': 'Kontakt',
-    'nav.mp3Converter': 'MP3 Konverter',
-    'nav.audioEqualizer': 'Interaktiver Audio Equalizer',
-    'nav.modernPlayer': 'Moderner Musikplayer',
-    'nav.ultimatePlayer': 'Ultimativer Musikplayer',
-    'nav.playlistGenerator': 'Audioplaylist Generator',
-    'nav.playlistConverter': 'Playlist zu WebM Konverter',
-    'nav.alarmTool': 'Alarmtool',
-    'nav.audioNormalizer': 'Audio Normalizer',
-    'nav.visualizer': 'Visualizer',
-    'nav.equalizer19': '19-Band Equalizer',
-    'nav.audioConverter': 'Audio Konverter',
-    'nav.imageConverter': 'Bildkonverter',
-    'nav.batchImageEditor': 'Bildserie bearbeiten',
-    'nav.photoCollage': 'Fotocollage',
-    'nav.colorExtractor': 'Kodini Farbextraktor',
-    'nav.videoConverter': 'Videokonverter',
-    'aria.toggleTheme': 'Theme wechseln',
-    'aria.selectLanguage': 'Sprache wählen',
-    'aria.menuOpen': 'Menü öffnen',
-    'aria.menuClose': 'Menü schliessen',
-    'aria.mainNav': 'Hauptnavigation',
-  },
-  en: {
-    'nav.audioTools': 'Audio Tools',
-    'nav.imageTools': 'Image Tools',
-    'nav.tools': 'Tools',
-    'nav.contact': 'Contact',
-    'nav.mp3Converter': 'MP3 Converter',
-    'nav.audioEqualizer': 'Interactive Audio Equalizer',
-    'nav.modernPlayer': 'Modern Music Player',
-    'nav.ultimatePlayer': 'Ultimate Music Player',
-    'nav.playlistGenerator': 'Audio Playlist Generator',
-    'nav.playlistConverter': 'Playlist to WebM Converter',
-    'nav.alarmTool': 'Alarm Tool',
-    'nav.audioNormalizer': 'Audio Normalizer',
-    'nav.visualizer': 'Visualizer',
-    'nav.equalizer19': '19-Band Equalizer',
-    'nav.audioConverter': 'Audio Converter',
-    'nav.imageConverter': 'Image Converter',
-    'nav.batchImageEditor': 'Batch Image Editor',
-    'nav.photoCollage': 'Photo Collage',
-    'nav.colorExtractor': 'Kodini Color Extractor',
-    'nav.videoConverter': 'Video Converter',
-    'aria.toggleTheme': 'Toggle theme',
-    'aria.selectLanguage': 'Select language',
-    'aria.menuOpen': 'Open menu',
-    'aria.menuClose': 'Close menu',
-    'aria.mainNav': 'Main navigation',
-  },
-};
 
 /**
  * Dispatcht das 'language-changed' Event und aktualisiert SSI-Elemente
@@ -157,7 +99,7 @@ function dispatchLanguageChanged(lang) {
  * muss die Vue-App die Übersetzung der Nav-Elemente selbst übernehmen.
  */
 function translateExternalNav(lang) {
-  const t = navTranslations[lang] || navTranslations['de'];
+  const t = ssiNavTranslations[lang] || ssiNavTranslations['de'];
   const nav = document.querySelector('.global-nav');
   if (!nav) return;
 

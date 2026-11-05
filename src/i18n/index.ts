@@ -3,7 +3,7 @@ import de from './de';
 import en from './en';
 import { resolveInitialLocale } from '@/utils/localeSeo';
 
-function readStored(key) {
+function readStored(key: string): string | null {
   try {
     return localStorage.getItem(key);
   } catch {
@@ -15,7 +15,7 @@ function readStored(key) {
  * Startsprache: ?lang=de|en (hreflang-Ziel), dann 'locale' (globale Nav),
  * dann der alte App-Key, sonst Deutsch.
  */
-export function initialLocale() {
+export function initialLocale(): string {
   return resolveInitialLocale(
     globalThis.location?.search ?? '',
     readStored('locale') || readStored('bildkonverter-locale')
@@ -23,7 +23,8 @@ export function initialLocale() {
 }
 
 /**
- * i18n-Konfiguration – die Übersetzungen liegen je Sprache in de.js und en.js.
+ * i18n-Konfiguration – die Übersetzungen liegen je Sprache in de.ts und en.ts,
+ * die Texte der SSI-Navigation in nav.ts.
  */
 const startLocale = initialLocale();
 // Speichern, damit die globale Nav (liest 'locale' bei DOMContentLoaded) dieselbe Sprache zeigt
