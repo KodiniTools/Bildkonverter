@@ -74,7 +74,7 @@ function pick(color) {
 </script>
 
 <style scoped lang="scss">
-@import '../transform/shared';
+@use '../transform/shared' as *;
 
 .recent-colors {
   display: flex;

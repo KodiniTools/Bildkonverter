@@ -59,5 +59,5 @@ const { openSections, selectedLayer, layerBorder, toggleSection, updateBorder } 
 </script>
 
 <style lang="scss" scoped>
-@import './shared';
+@use './shared' as *;
 </style>

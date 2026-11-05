@@ -25,7 +25,7 @@ defineEmits<{
 </script>
 
 <style scoped lang="scss">
-@import './shared';
+@use './shared' as *;
 
 // Hinweis = UiCallout (surface-2, 1-px-Rahmen, radius-md)
 .pan-info {

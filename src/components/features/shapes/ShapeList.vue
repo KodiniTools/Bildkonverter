@@ -41,7 +41,7 @@ const { shapes, reversedShapes, selectedId, select, remove, galleryItemFor, know
 </script>
 
 <style scoped lang="scss">
-@import '../transform/shared';
+@use '../transform/shared' as *;
 
 // Liste der eingefügten Formen (wie die Textliste)
 .shape-list {

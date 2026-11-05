@@ -302,7 +302,7 @@ const { posX, posY, rangeX, rangeY, startPos } = useTextPosition({
 </script>
 
 <style scoped lang="scss">
-@import './shared';
+@use './shared' as *;
 
 // Eingaben nutzen die globalen Feldstile (UiTextField)
 .text-input {

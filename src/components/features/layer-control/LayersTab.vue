@@ -32,5 +32,5 @@ const { activeTab, selectedLayer } = useLayerPanelContext();
 </script>
 
 <style lang="scss" scoped>
-@import './shared';
+@use './shared' as *;
 </style>

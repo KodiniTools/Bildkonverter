@@ -48,7 +48,7 @@ const { selectedShape, isTop, isBottom, reorder, duplicate, remove, select } =
 </script>
 
 <style scoped lang="scss">
-@import '../transform/shared';
+@use '../transform/shared' as *;
 
 .action-grid {
   display: grid;

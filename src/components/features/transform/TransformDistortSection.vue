@@ -59,8 +59,8 @@ defineEmits<{
 </script>
 
 <style scoped lang="scss">
-@import './shared';
-@import './transform-sections';
+@use './shared' as *;
+@use './transform-sections' as *;
 
 .distort-actions {
   display: grid;
