@@ -367,6 +367,9 @@ const de = {
       autoHint: 'Belichtung, Kontrast, Lichter, Schatten und Sättigung automatisch anpassen',
     },
     filters: {
+      sharpness: 'Schärfen',
+      clarity: 'Klarheit',
+      grain: 'Körnung',
       brightness: 'Helligkeit',
       contrast: 'Kontrast',
       saturation: 'Sättigung',

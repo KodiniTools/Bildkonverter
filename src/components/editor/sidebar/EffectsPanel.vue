@@ -22,6 +22,45 @@
       />
 
       <FilterSlider
+        :model-value="filters.sharpness ?? 0"
+        :label="$t('editor.filters.sharpness')"
+        :min="0"
+        :max="100"
+        :default-value="0"
+        unit="%"
+        :disabled="disabled"
+        @update:model-value="$emit('update-filter', 'sharpness', $event)"
+        @render="$emit('render')"
+        @save-history="$emit('save-history')"
+      />
+
+      <FilterSlider
+        :model-value="filters.clarity ?? 0"
+        :label="$t('editor.filters.clarity')"
+        :min="-100"
+        :max="100"
+        :default-value="0"
+        center-zero
+        :disabled="disabled"
+        @update:model-value="$emit('update-filter', 'clarity', $event)"
+        @render="$emit('render')"
+        @save-history="$emit('save-history')"
+      />
+
+      <FilterSlider
+        :model-value="filters.grain ?? 0"
+        :label="$t('editor.filters.grain')"
+        :min="0"
+        :max="100"
+        :default-value="0"
+        unit="%"
+        :disabled="disabled"
+        @update:model-value="$emit('update-filter', 'grain', $event)"
+        @render="$emit('render')"
+        @save-history="$emit('save-history')"
+      />
+
+      <FilterSlider
         :model-value="filters.vignette"
         :label="$t('editor.filters.vignette', 'Vignette')"
         :min="0"

@@ -368,6 +368,9 @@ const en: LocaleMessages = {
       autoHint: 'Automatically adjust exposure, contrast, highlights, shadows and saturation',
     },
     filters: {
+      sharpness: 'Sharpen',
+      clarity: 'Clarity',
+      grain: 'Grain',
       brightness: 'Brightness',
       contrast: 'Contrast',
       saturation: 'Saturation',
