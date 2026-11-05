@@ -26,6 +26,7 @@
         :step="step"
         :unit="unit"
         :disabled="disabled"
+        :label="label"
         @update:model-value="emit('update:modelValue', $event)"
         @commit="emit('commit')"
       />
@@ -146,8 +147,14 @@ function reset() {
   gap: var(--ds-space-1);
   min-width: 0;
 
-  &--disabled {
+  /* Deaktiviert: nur die Bedienzeile wird blass; das Label bleibt lesbar
+     (--ds-text-3 erfüllt 4,5:1 auf surface-0 bis -2 beider Themes). */
+  &--disabled .slider-field {
     opacity: 0.45;
+  }
+
+  &--disabled .slider-control__label {
+    color: var(--ds-text-3);
   }
 }
 

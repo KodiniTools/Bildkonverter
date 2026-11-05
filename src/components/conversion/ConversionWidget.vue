@@ -20,7 +20,7 @@
           @change="handleFileSelect"
         />
         <AppIcon name="cloud-upload-alt" :size="32" />
-        <h3>{{ $t(`conversion.${pair}.cta`) }}</h3>
+        <h2>{{ $t(`conversion.${pair}.cta`) }}</h2>
         <p>{{ conversion.from }}-{{ $t('conversion.widget.dropHint') }}</p>
         <span class="upload-formats">{{ conversion.from }} → {{ conversion.to }}</span>
       </div>
@@ -214,7 +214,7 @@ function handleDrop(event: DragEvent) {
     background: var(--ds-surface-3);
   }
 
-  h3 {
+  h2 {
     font-size: var(--ds-text-lg);
     font-weight: var(--ds-weight-semibold);
     line-height: var(--ds-leading);

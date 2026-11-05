@@ -20,6 +20,7 @@
           type="text"
           class="color-text-input"
           maxlength="7"
+          :aria-label="$t('editor.background.color', 'Farbe')"
           :disabled="disabled"
           @input="onColorInput"
           @change="$emit('save-history')"

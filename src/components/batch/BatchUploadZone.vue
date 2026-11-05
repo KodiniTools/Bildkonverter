@@ -17,7 +17,7 @@
     />
 
     <AppIcon name="cloud-upload-alt" :size="32" />
-    <h3>{{ $t('batch.upload.title') }}</h3>
+    <h2>{{ $t('batch.upload.title') }}</h2>
     <p>{{ $t('batch.upload.description') }}</p>
     <span class="upload-hint">{{ $t('batch.upload.hint') }}</span>
   </div>
@@ -89,7 +89,7 @@ function handleDrop(event: DragEvent) {
     }
   }
 
-  h3 {
+  h2 {
     margin: 0;
     font-size: var(--ds-text-lg);
     font-weight: var(--ds-weight-semibold);

@@ -103,7 +103,7 @@
             <div class="filter-icon">
               <AppIcon :name="filter.icon" :size="20" />
             </div>
-            <h4>{{ $t(`guide.filters.${filter.key}.title`) }}</h4>
+            <h3>{{ $t(`guide.filters.${filter.key}.title`) }}</h3>
             <p>{{ $t(`guide.filters.${filter.key}.description`) }}</p>
           </div>
         </div>
@@ -181,7 +181,7 @@
             <div class="transform-icon">
               <AppIcon :name="transform.icon" :size="20" />
             </div>
-            <h4>{{ $t(`guide.transform.${transform.key}.title`) }}</h4>
+            <h3>{{ $t(`guide.transform.${transform.key}.title`) }}</h3>
             <p>{{ $t(`guide.transform.${transform.key}.description`) }}</p>
           </div>
         </div>
@@ -273,7 +273,7 @@
             </div>
           </div>
           <div class="export-formats">
-            <h4>{{ $t('guide.export.formatsTitle') }}</h4>
+            <h3>{{ $t('guide.export.formatsTitle') }}</h3>
             <div class="format-badges-row">
               <span
                 v-for="format in ['PNG', 'JPEG', 'WebP', 'GIF', 'TIFF', 'PDF']"
@@ -1007,7 +1007,7 @@ $transition-colors:
     margin: 0 auto var(--ds-space-4);
   }
 
-  h4 {
+  h3 {
     font-size: var(--ds-text-lg);
     font-weight: var(--ds-weight-semibold);
     margin-bottom: var(--ds-space-2);
@@ -1149,7 +1149,7 @@ $transition-colors:
     margin: 0 auto var(--ds-space-3);
   }
 
-  h4 {
+  h3 {
     font-size: var(--ds-text-lg);
     font-weight: var(--ds-weight-semibold);
     margin-bottom: var(--ds-space-2);
@@ -1384,7 +1384,7 @@ $transition-colors:
   @include content-card;
   padding: var(--ds-space-6);
 
-  h4 {
+  h3 {
     margin-bottom: var(--ds-space-4);
     color: var(--ds-text);
     font-size: var(--ds-text-lg);

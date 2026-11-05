@@ -90,6 +90,25 @@ describe('SliderField', () => {
   });
 });
 
+describe('SliderField – Barrierefreiheit', () => {
+  it('gibt das Label als zugänglichen Namen an das Zahlenfeld weiter', () => {
+    const w = mountField();
+    expect(w.find('.spinner-value').attributes('aria-label')).toBe('Helligkeit');
+  });
+
+  it('Zahlenfeld ohne Label bekommt kein leeres aria-label', () => {
+    const w = mount(NumberSpinner, { props: { modelValue: 1, min: 0, max: 5 }, global });
+    expect(w.find('.spinner-value').attributes('aria-label')).toBeUndefined();
+  });
+
+  it('deaktiviert: Modifier-Klasse am Wurzelelement, Felder gesperrt', () => {
+    const w = mountField({ disabled: true });
+    expect(w.classes()).toContain('slider-control--disabled');
+    expect(w.find('input[type="range"]').attributes('disabled')).toBeDefined();
+    expect(w.find('.spinner-value').attributes('disabled')).toBeDefined();
+  });
+});
+
 describe('NumberSpinner – Halten', () => {
   afterEach(() => vi.useRealTimers());
 

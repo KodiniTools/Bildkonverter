@@ -21,6 +21,7 @@
             :min="-50"
             :max="50"
             unit="px"
+            :label="$t('transform.shadow.offsetX')"
             @update:model-value="$emit('update:text-shadow-offset-x', $event)"
             @commit="$emit('save-text-history')"
           />
@@ -32,6 +33,7 @@
             :min="-50"
             :max="50"
             unit="px"
+            :label="$t('transform.shadow.offsetY')"
             @update:model-value="$emit('update:text-shadow-offset-y', $event)"
             @commit="$emit('save-text-history')"
           />
