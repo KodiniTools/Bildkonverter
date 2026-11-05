@@ -362,6 +362,10 @@ const de = {
       off: 'Bild vom Hintergrund lösen',
       layerName: 'Bild',
     },
+    adjustments: {
+      auto: 'Auto-Verbessern',
+      autoHint: 'Belichtung, Kontrast, Lichter, Schatten und Sättigung automatisch anpassen',
+    },
     filters: {
       brightness: 'Helligkeit',
       contrast: 'Kontrast',
@@ -1227,6 +1231,9 @@ const de = {
       cancelled: 'Zuschneiden abgebrochen',
     },
     editor: {
+      autoEnhanced: 'Automatisch verbessert. Die Regler zeigen die Werte.',
+      autoEnhanceNeutral: 'Das Bild ist bereits ausgewogen.',
+      autoEnhanceFailed: 'Auto-Verbessern ist für dieses Bild nicht möglich.',
       shared: 'Bild geteilt',
       shareFailed: 'Teilen fehlgeschlagen',
       shareUnsupported:

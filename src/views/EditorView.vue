@@ -106,6 +106,7 @@
             @toggle-section="toggleSection"
             @render="renderImage"
             @save-history="saveHistory"
+            @auto-enhance="handleAutoEnhance"
           />
           <LightColorPanel
             :filters="filters"
@@ -378,6 +379,7 @@ import ExportPanel from '@/components/editor/sidebar/ExportPanel.vue';
 import BackgroundPanel from '@/components/editor/sidebar/BackgroundPanel.vue';
 import DetachPanel from '@/components/editor/sidebar/DetachPanel.vue';
 import AdjustmentsPanel from '@/components/editor/sidebar/AdjustmentsPanel.vue';
+import { autoEnhanceFromImage, isNeutralEnhance } from '@/utils/autoEnhance';
 import LightColorPanel from '@/components/editor/sidebar/LightColorPanel.vue';
 import EffectsPanel from '@/components/editor/sidebar/EffectsPanel.vue';
 import ResizePanel from '@/components/editor/sidebar/ResizePanel.vue';
@@ -902,6 +904,27 @@ async function clearImage() {
   if (window.$toast) {
     window.$toast.success(t('toast.editor.imageDeleted'));
   }
+}
+
+// Auto-Verbessern: Werte aus dem Histogramm des (ungefilterten) Bildes, gesetzt
+// als normale Reglerwerte – sichtbar, nachjustierbar und rückgängig zu machen.
+function handleAutoEnhance() {
+  if (!currentImage.value) return;
+  let values;
+  try {
+    values = autoEnhanceFromImage(currentImage.value);
+  } catch (e) {
+    logger.warn('Auto-Verbessern nicht möglich:', e);
+    window.$toast?.error(t('toast.editor.autoEnhanceFailed'));
+    return;
+  }
+  if (isNeutralEnhance(values)) {
+    window.$toast?.info(t('toast.editor.autoEnhanceNeutral'));
+    return;
+  }
+  filterManagement.applyAdjustments(values);
+  saveHistory();
+  window.$toast?.success(t('toast.editor.autoEnhanced'));
 }
 
 function handlePresetApply(preset) {

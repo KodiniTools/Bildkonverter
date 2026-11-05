@@ -104,6 +104,24 @@ export function useFilterManagement(options = {}) {
   }
 
   /**
+   * Setzt mehrere Filter auf einmal (z. B. Auto-Verbessern); unbekannte
+   * Schlüssel werden ignoriert, die übrigen Filter bleiben erhalten.
+   * @param {Object} values - Teilmenge der Filterwerte
+   */
+  function applyAdjustments(values) {
+    const next = { ...filters.value };
+    for (const [key, value] of Object.entries(values)) {
+      if (key in DEFAULT_FILTERS) next[key] = value;
+    }
+    filters.value = next;
+    currentPreset.value = null;
+
+    if (onFilterChange) {
+      onFilterChange();
+    }
+  }
+
+  /**
    * Aktualisiert einen einzelnen Filter
    * @param {string} filterName - Name des Filters
    * @param {number} value - Neuer Wert
@@ -210,6 +228,7 @@ export function useFilterManagement(options = {}) {
     resetBackground,
     resetAll,
     applyPreset,
+    applyAdjustments,
     updateFilter,
     updateBackground,
     toggleSection,
