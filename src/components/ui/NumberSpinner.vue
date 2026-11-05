@@ -7,6 +7,7 @@
       :step="step"
       :value="modelValue"
       class="spinner-value"
+      :aria-label="label || undefined"
       :disabled="disabled"
       @input="onInput"
       @change="emit('commit')"
@@ -63,6 +64,8 @@ const props = defineProps({
   step: { type: Number, default: 1 },
   unit: { type: String, default: '' },
   disabled: { type: Boolean, default: false },
+  /** Zugänglicher Name des Zahlenfelds (z. B. das Label des Reglers) */
+  label: { type: String, default: '' },
 });
 
 // update:modelValue = fortlaufende Wertänderung (treibt die Live-Vorschau)

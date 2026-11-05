@@ -13,7 +13,7 @@
           class="faq-item"
           :class="{ active: activeFaq === index }"
         >
-          <h3 class="faq-heading">
+          <h2 class="faq-heading">
             <button
               :id="`faq-question-${index}`"
               type="button"
@@ -25,7 +25,7 @@
               <span class="faq-question__text">{{ $t(`faq.items.${faq.key}.question`) }}</span>
               <AppIcon :name="activeFaq === index ? 'chevron-up' : 'chevron-down'" :size="20" />
             </button>
-          </h3>
+          </h2>
           <div
             v-show="activeFaq === index"
             :id="`faq-answer-${index}`"

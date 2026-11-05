@@ -3,7 +3,7 @@
     <div class="empty-state__icon">
       <AppIcon name="images" :size="40" />
     </div>
-    <h3>{{ $t('gallery.empty.title') }}</h3>
+    <h2>{{ $t('gallery.empty.title') }}</h2>
     <p>{{ $t('gallery.empty.description') }}</p>
     <div class="empty-state__actions">
       <button class="btn btn-primary" @click="emit('upload')">
@@ -63,10 +63,11 @@ const emit = defineEmits<{ upload: [] }>();
     color: var(--ds-text-3);
   }
 
-  h3 {
+  h2 {
     margin: 0;
     font-size: var(--ds-text-lg);
     font-weight: var(--ds-weight-semibold);
+    line-height: var(--ds-leading);
     color: var(--ds-text);
   }
 
