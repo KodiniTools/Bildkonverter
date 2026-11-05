@@ -71,8 +71,7 @@
   </div>
 </template>
 
-<script setup>
-import { ref, watch, computed } from 'vue';
+<script setup lang="ts">
 import { availableFonts } from '@/assets/fonts/fontList.js';
 import ColorField from '@/components/ui/ColorField.vue';
 import HistoryActions from '@/components/ui/HistoryActions.vue';
@@ -80,149 +79,20 @@ import SliderField from '@/components/ui/SliderField.vue';
 import UiSelect from '@/components/ui/UiSelect.vue';
 import { fontOptions } from '@/utils/fontOptions';
 import { useTextModal } from '@/composables/useTextModal';
+import { useTextEditForm, type EditingText } from '@/composables/text/useTextEditForm';
+import type { Ref } from 'vue';
 
 const { editingText, modalMode, saveText, deleteText, closeModal } = useTextModal();
 
-// Maximum history steps
-const MAX_HISTORY_SIZE = 50;
 const FONT_OPTIONS = fontOptions(availableFonts);
 
-// History state
-const history = ref([]);
-const historyIndex = ref(-1);
-const isUndoRedoAction = ref(false);
-
-// Local text state
-const localText = ref({
-  content: '',
-  fontSize: 32,
-  color: '#000000',
-  fontFamily: 'Arial',
-  x: 50,
-  y: 50,
-});
-
-// Computed properties for undo/redo availability
-const canUndo = computed(() => historyIndex.value > 0);
-const canRedo = computed(() => historyIndex.value < history.value.length - 1);
-
-// Create a snapshot of current text state
-function createSnapshot() {
-  return {
-    content: localText.value.content,
-    fontSize: localText.value.fontSize,
-    color: localText.value.color,
-    fontFamily: localText.value.fontFamily,
-  };
-}
-
-// Save current state to history
-function saveToHistory() {
-  if (isUndoRedoAction.value) return;
-
-  const snapshot = createSnapshot();
-
-  // Remove any redo states if we're not at the end
-  if (historyIndex.value < history.value.length - 1) {
-    history.value = history.value.slice(0, historyIndex.value + 1);
-  }
-
-  // Add new state
-  history.value.push(snapshot);
-
-  // Limit history size
-  if (history.value.length > MAX_HISTORY_SIZE) {
-    history.value.shift();
-  } else {
-    historyIndex.value++;
-  }
-}
-
-// Initialize history with current state
-function initHistory() {
-  history.value = [createSnapshot()];
-  historyIndex.value = 0;
-}
-
-// Undo action
-function undo() {
-  if (!canUndo.value) return;
-
-  isUndoRedoAction.value = true;
-  historyIndex.value--;
-
-  const snapshot = history.value[historyIndex.value];
-  localText.value.content = snapshot.content;
-  localText.value.fontSize = snapshot.fontSize;
-  localText.value.color = snapshot.color;
-  localText.value.fontFamily = snapshot.fontFamily;
-
-  // Use nextTick to reset flag after Vue updates
-  setTimeout(() => {
-    isUndoRedoAction.value = false;
-  }, 0);
-}
-
-// Redo action
-function redo() {
-  if (!canRedo.value) return;
-
-  isUndoRedoAction.value = true;
-  historyIndex.value++;
-
-  const snapshot = history.value[historyIndex.value];
-  localText.value.content = snapshot.content;
-  localText.value.fontSize = snapshot.fontSize;
-  localText.value.color = snapshot.color;
-  localText.value.fontFamily = snapshot.fontFamily;
-
-  // Use nextTick to reset flag after Vue updates
-  setTimeout(() => {
-    isUndoRedoAction.value = false;
-  }, 0);
-}
-
-watch(
-  editingText,
-  (newText) => {
-    if (newText) {
-      localText.value = {
-        content: newText.content || '',
-        fontSize: newText.fontSize || 32,
-        color: newText.color || '#000000',
-        fontFamily: newText.fontFamily || 'Arial',
-        x: newText.x || 50,
-        y: newText.y || 50,
-        id: newText.id,
-      };
-    } else {
-      localText.value = {
-        content: '',
-        fontSize: 32,
-        color: '#000000',
-        fontFamily: 'Arial',
-        x: 50,
-        y: 50,
-      };
-    }
-    // Initialize history when modal opens
-    initHistory();
-  },
-  { immediate: true }
+const { localText, canUndo, canRedo, saveToHistory, undo, redo, savePayload } = useTextEditForm(
+  editingText as Readonly<Ref<EditingText>>
 );
 
 function save() {
-  const dataToSave = {
-    content: localText.value.content,
-    fontSize: localText.value.fontSize,
-    color: localText.value.color,
-    fontFamily: localText.value.fontFamily,
-    x: localText.value.x,
-    y: localText.value.y,
-  };
-
   // Direkt useTextModal.saveText() verwenden - KEIN Event emittieren!
-  saveText(dataToSave);
+  saveText(savePayload());
 }
 
 function handleDelete() {

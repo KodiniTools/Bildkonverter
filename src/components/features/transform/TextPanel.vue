@@ -13,8 +13,8 @@
       :can-redo="canRedoText"
       :undo-title="$t('textPanel.undo', 'Rückgängig')"
       :redo-title="$t('textPanel.redo', 'Wiederherstellen')"
-      @undo="$emit('undo-text')"
-      @redo="$emit('redo-text')"
+      @undo="emit('undo-text')"
+      @redo="emit('redo-text')"
     />
 
     <!-- Text Inhalt -->
@@ -28,8 +28,8 @@
         :value="selectedText.content || selectedText.txt"
         class="text-input"
         :placeholder="$t('textPanel.placeholder', 'Text eingeben...')"
-        @input="$emit('update:text-content', $event.target.value)"
-        @change="$emit('save-text-history')"
+        @input="emit('update:text-content', ($event.target as HTMLInputElement).value)"
+        @change="emit('save-text-history')"
       />
     </div>
 
@@ -44,8 +44,8 @@
         :label="$t('textPanel.positionX', 'Position X')"
         icon="fas fa-arrows-alt-h"
         input-id="text-position-x"
-        @update:model-value="$emit('update:text-position-x', $event)"
-        @commit="$emit('save-text-history')"
+        @update:model-value="emit('update:text-position-x', $event)"
+        @commit="emit('save-text-history')"
       />
     </div>
     <div class="control-group">
@@ -58,8 +58,8 @@
         :label="$t('textPanel.positionY', 'Position Y')"
         icon="fas fa-arrows-alt-v"
         input-id="text-position-y"
-        @update:model-value="$emit('update:text-position-y', $event)"
-        @commit="$emit('save-text-history')"
+        @update:model-value="emit('update:text-position-y', $event)"
+        @commit="emit('save-text-history')"
       />
     </div>
 
@@ -73,8 +73,8 @@
         :default-value="32"
         :label="$t('textPanel.fontSize', 'Schriftgröße')"
         icon="fas fa-text-height"
-        @update:model-value="$emit('update:text-font-size', $event)"
-        @commit="$emit('save-text-history')"
+        @update:model-value="emit('update:text-font-size', $event)"
+        @commit="emit('save-text-history')"
       />
     </div>
 
@@ -96,49 +96,16 @@
           ...fontOptions(systemFonts, $t('textPanel.systemFonts', 'System-Schriften')),
         ]"
         :model-value="selectedText.fontFamily || 'Satoshi Regular'"
-        @update:model-value="$emit('update:text-font-family', $event)"
+        @update:model-value="emit('update:text-font-family', $event)"
       />
     </div>
 
-    <!-- Textstil: Fett / Kursiv -->
-    <div class="control-group">
-      <label>
-        <AppIcon name="bold" :size="14" />
-        {{ $t('textPanel.style', 'Stil') }}
-      </label>
-      <div class="style-toggle-row">
-        <button
-          type="button"
-          class="style-toggle"
-          :class="{ active: isBoldActive }"
-          :disabled="fontIsBold"
-          :title="
-            fontIsBold
-              ? $t('textPanel.boldInherent', 'Schriftart ist bereits fett')
-              : $t('textPanel.bold', 'Fett')
-          "
-          @click="toggleBold"
-        >
-          <AppIcon name="bold" />
-          <span>{{ $t('textPanel.bold', 'Fett') }}</span>
-        </button>
-        <button
-          type="button"
-          class="style-toggle"
-          :class="{ active: isItalicActive }"
-          :disabled="fontIsItalic"
-          :title="
-            fontIsItalic
-              ? $t('textPanel.italicInherent', 'Schriftart ist bereits kursiv')
-              : $t('textPanel.italic', 'Kursiv')
-          "
-          @click="toggleItalic"
-        >
-          <AppIcon name="italic" />
-          <span>{{ $t('textPanel.italic', 'Kursiv') }}</span>
-        </button>
-      </div>
-    </div>
+    <TextStyleToggles
+      :selected-text="selectedText"
+      @update:text-bold="emit('update:text-bold', $event)"
+      @update:text-italic="emit('update:text-italic', $event)"
+      @save-text-history="emit('save-text-history')"
+    />
 
     <!-- Textfarbe -->
     <div class="control-group">
@@ -151,109 +118,35 @@
           :model-value="selectedText.color || '#000000'"
           :label="$t('textPanel.color', 'Farbe')"
           class="color-input"
-          @update:model-value="$emit('update:text-color', $event)"
-          @change="$emit('save-text-history')"
+          @update:model-value="emit('update:text-color', $event)"
+          @change="emit('save-text-history')"
         />
         <input
           type="text"
           :value="selectedText.color || '#000000'"
           class="color-text"
           maxlength="7"
-          @input="$emit('update:text-color', $event.target.value)"
-          @change="$emit('save-text-history')"
+          @input="emit('update:text-color', ($event.target as HTMLInputElement).value)"
+          @change="emit('save-text-history')"
         />
       </div>
     </div>
 
-    <!-- Text-Umrandung (Stroke) -->
-    <div class="control-group">
-      <SliderField
-        :model-value="selectedText.strokeWidth || 0"
-        :min="0"
-        :max="50"
-        unit="px"
-        :default-value="0"
-        :label="$t('textPanel.strokeWidth', 'Umrandung')"
-        icon="fas fa-border-style"
-        @update:model-value="$emit('update:text-stroke-width', $event)"
-        @commit="$emit('save-text-history')"
-      />
-      <div v-if="(selectedText.strokeWidth || 0) > 0" class="color-picker-row mt-2">
-        <ColorField
-          :model-value="selectedText.strokeColor || '#000000'"
-          :label="$t('layerPanel.text.strokeColor')"
-          class="color-input"
-          @update:model-value="$emit('update:text-stroke-color', $event)"
-          @change="$emit('save-text-history')"
-        />
-        <input
-          type="text"
-          :value="selectedText.strokeColor || '#000000'"
-          class="color-text"
-          maxlength="7"
-          @input="$emit('update:text-stroke-color', $event.target.value)"
-          @change="$emit('save-text-history')"
-        />
-      </div>
-    </div>
+    <TextStrokeControl
+      :selected-text="selectedText"
+      @update:text-stroke-width="emit('update:text-stroke-width', $event)"
+      @update:text-stroke-color="emit('update:text-stroke-color', $event)"
+      @save-text-history="emit('save-text-history')"
+    />
 
-    <!-- Text-Schatten -->
-    <div class="control-group">
-      <SliderField
-        :model-value="selectedText.shadowBlur || 0"
-        :min="0"
-        :max="20"
-        unit="px"
-        :default-value="0"
-        :label="$t('textPanel.shadow', 'Schatten')"
-        icon="fas fa-clone"
-        @update:model-value="$emit('update:text-shadow-blur', $event)"
-        @commit="$emit('save-text-history')"
-      />
-      <div v-if="(selectedText.shadowBlur || 0) > 0" class="shadow-controls">
-        <div class="shadow-offset-row">
-          <div class="mini-control">
-            <label>X</label>
-            <NumberSpinner
-              :model-value="selectedText.shadowOffsetX ?? 2"
-              :min="-50"
-              :max="50"
-              unit="px"
-              @update:model-value="$emit('update:text-shadow-offset-x', $event)"
-              @commit="$emit('save-text-history')"
-            />
-          </div>
-          <div class="mini-control">
-            <label>Y</label>
-            <NumberSpinner
-              :model-value="selectedText.shadowOffsetY ?? 2"
-              :min="-50"
-              :max="50"
-              unit="px"
-              @update:model-value="$emit('update:text-shadow-offset-y', $event)"
-              @commit="$emit('save-text-history')"
-            />
-          </div>
-        </div>
-        <div class="color-picker-row mt-2">
-          <ColorField
-            :model-value="selectedText.shadowColor || '#000000'"
-            :label="$t('layerPanel.text.shadowColor')"
-            class="color-input"
-            @update:model-value="$emit('update:text-shadow-color', $event)"
-            @change="$emit('save-text-history')"
-          />
-          <input
-            type="text"
-            :value="selectedText.shadowColor || '#000000'"
-            class="color-text"
-            maxlength="7"
-            @input="$emit('update:text-shadow-color', $event.target.value)"
-            @change="$emit('save-text-history')"
-          />
-        </div>
-      </div>
-    </div>
+    <TextShadowControl
+      :selected-text="selectedText"
+      @update:text-shadow-blur="emit('update:text-shadow-blur', $event)"
+      @update:text-shadow-offset-x="emit('update:text-shadow-offset-x', $event)"
+      @update:text-shadow-offset-y="emit('update:text-shadow-offset-y', $event)"
+      @update:text-shadow-color="emit('update:text-shadow-color', $event)"
+      @save-text-history="emit('save-text-history')"
+    />
 
     <!-- Text-Rotation -->
     <div class="control-group">
@@ -265,8 +158,8 @@
         :default-value="0"
         :label="$t('textPanel.rotation', 'Rotation')"
         icon="fas fa-redo"
-        @update:model-value="$emit('update:text-rotation', $event)"
-        @commit="$emit('save-text-history')"
+        @update:model-value="emit('update:text-rotation', $event)"
+        @commit="emit('save-text-history')"
       />
     </div>
 
@@ -280,8 +173,8 @@
         :default-value="0"
         :label="$t('textPanel.skewX', 'Neigung horizontal')"
         icon="fas fa-arrows-alt-h"
-        @update:model-value="$emit('update:text-skew-x', $event)"
-        @commit="$emit('save-text-history')"
+        @update:model-value="emit('update:text-skew-x', $event)"
+        @commit="emit('save-text-history')"
       />
     </div>
 
@@ -295,8 +188,8 @@
         :default-value="0"
         :label="$t('textPanel.skewY', 'Neigung vertikal')"
         icon="fas fa-arrows-alt-v"
-        @update:model-value="$emit('update:text-skew-y', $event)"
-        @commit="$emit('save-text-history')"
+        @update:model-value="emit('update:text-skew-y', $event)"
+        @commit="emit('save-text-history')"
       />
     </div>
 
@@ -310,19 +203,19 @@
         :default-value="100"
         :label="$t('textPanel.opacity', 'Opacity')"
         icon="fas fa-adjust"
-        @update:model-value="$emit('update:text-opacity', $event)"
-        @commit="$emit('save-text-history')"
+        @update:model-value="emit('update:text-opacity', $event)"
+        @commit="emit('save-text-history')"
       />
     </div>
 
     <!-- Text löschen -->
-    <button class="transform-btn delete-btn" @click="$emit('delete-text')">
+    <button class="transform-btn delete-btn" @click="emit('delete-text')">
       <AppIcon name="trash" />
       <span>{{ $t('textPanel.delete', 'Text löschen') }}</span>
     </button>
 
     <!-- Auswahl aufheben -->
-    <button class="transform-btn" @click="$emit('deselect-text')">
+    <button class="transform-btn" @click="emit('deselect-text')">
       <AppIcon name="times" />
       <span>{{ $t('textPanel.deselect', 'Auswahl aufheben') }}</span>
     </button>
@@ -337,102 +230,75 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { toRef } from 'vue';
 import AppIcon from '@/components/ui/AppIcon.vue';
 import ColorField from '@/components/ui/ColorField.vue';
 import HistoryActions from '@/components/ui/HistoryActions.vue';
-import NumberSpinner from '@/components/ui/NumberSpinner.vue';
 import SliderField from '@/components/ui/SliderField.vue';
 import UiSelect from '@/components/ui/UiSelect.vue';
-import { computed, ref, watch } from 'vue';
+import TextStyleToggles from './TextStyleToggles.vue';
+import TextStrokeControl from './TextStrokeControl.vue';
+import TextShadowControl from './TextShadowControl.vue';
 import { availableFonts } from '@/assets/fonts/fontList.js';
-import { isFontBold, isFontItalic } from '@/utils/textRender';
 import { fontOptions } from '@/utils/fontOptions';
+import { useTextPosition } from '@/composables/text/useTextPosition';
+import type { EditorText } from '@/composables/text/types';
 
 const systemFonts = ['Arial', 'Helvetica', 'Times New Roman', 'Georgia', 'Verdana', 'Courier New'];
 
-const props = defineProps({
-  selectedText: { type: Object, default: null },
-  hasTexts: { type: Boolean, default: false },
-  canUndoText: { type: Boolean, default: false },
-  canRedoText: { type: Boolean, default: false },
-  /** Canvas-Breite in px – Obergrenze des X-Reglers */
-  canvasWidth: { type: Number, default: 0 },
-  /** Canvas-Höhe in px – Obergrenze des Y-Reglers */
-  canvasHeight: { type: Number, default: 0 },
-});
-
-const emit = defineEmits([
-  'update:text-content',
-  'update:text-font-size',
-  'update:text-font-family',
-  'update:text-color',
-  'update:text-rotation',
-  'update:text-opacity',
-  'update:text-bold',
-  'update:text-italic',
-  'update:text-skew-x',
-  'update:text-skew-y',
-  'update:text-stroke-width',
-  'update:text-stroke-color',
-  'update:text-shadow-blur',
-  'update:text-shadow-offset-x',
-  'update:text-shadow-offset-y',
-  'update:text-shadow-color',
-  'update:text-position-x',
-  'update:text-position-y',
-  'save-text-history',
-  'undo-text',
-  'redo-text',
-  'delete-text',
-  'deselect-text',
-]);
-
-// Position: Werte aus dem Canvas-Drag können gebrochen sein → gerundet anzeigen
-const posX = computed(() => Math.round(Number(props.selectedText?.x) || 0));
-const posY = computed(() => Math.round(Number(props.selectedText?.y) || 0));
-
-// Reglerbereich = Canvas; liegt der Text (per Drag) außerhalb, wird der
-// Bereich erweitert, damit der aktuelle Wert nicht abgeschnitten wird.
-const rangeX = computed(() => ({
-  min: Math.min(0, posX.value),
-  max: Math.max(1, props.canvasWidth, posX.value),
-}));
-const rangeY = computed(() => ({
-  min: Math.min(0, posY.value),
-  max: Math.max(1, props.canvasHeight, posY.value),
-}));
-
-// Position beim Auswählen des Textes merken – Ziel des Rückgängig-Buttons (↺)
-const startPos = ref({ x: 0, y: 0 });
-watch(
-  () => props.selectedText?.id,
-  () => {
-    startPos.value = { x: posX.value, y: posY.value };
-  },
-  { immediate: true }
+const props = withDefaults(
+  defineProps<{
+    selectedText?: EditorText | null;
+    hasTexts?: boolean;
+    canUndoText?: boolean;
+    canRedoText?: boolean;
+    /** Canvas-Breite in px – Obergrenze des X-Reglers */
+    canvasWidth?: number;
+    /** Canvas-Höhe in px – Obergrenze des Y-Reglers */
+    canvasHeight?: number;
+  }>(),
+  {
+    selectedText: null,
+    hasTexts: false,
+    canUndoText: false,
+    canRedoText: false,
+    canvasWidth: 0,
+    canvasHeight: 0,
+  }
 );
 
-// Bringt die aktuelle Schriftart Fett/Kursiv bereits von Haus aus mit?
-// Dann werden die entsprechenden Umschalter deaktiviert (Ausnahme laut Vorgabe).
-const fontIsBold = computed(() => isFontBold(props.selectedText?.fontFamily || ''));
-const fontIsItalic = computed(() => isFontItalic(props.selectedText?.fontFamily || ''));
+const emit = defineEmits<{
+  'update:text-content': [value: string];
+  'update:text-font-size': [value: number];
+  'update:text-font-family': [value: string];
+  'update:text-color': [value: string];
+  'update:text-rotation': [value: number];
+  'update:text-opacity': [value: number];
+  'update:text-bold': [value: boolean];
+  'update:text-italic': [value: boolean];
+  'update:text-skew-x': [value: number];
+  'update:text-skew-y': [value: number];
+  'update:text-stroke-width': [value: number];
+  'update:text-stroke-color': [value: string];
+  'update:text-shadow-blur': [value: number];
+  'update:text-shadow-offset-x': [value: number];
+  'update:text-shadow-offset-y': [value: number];
+  'update:text-shadow-color': [value: string];
+  'update:text-position-x': [value: number];
+  'update:text-position-y': [value: number];
+  'save-text-history': [];
+  'undo-text': [];
+  'redo-text': [];
+  'delete-text': [];
+  'deselect-text': [];
+}>();
 
-// Aktiv-Zustand der Umschalter: durch die Schriftart bedingt ODER manuell gesetzt
-const isBoldActive = computed(() => fontIsBold.value || !!props.selectedText?.bold);
-const isItalicActive = computed(() => fontIsItalic.value || !!props.selectedText?.italic);
-
-function toggleBold() {
-  if (fontIsBold.value) return;
-  emit('update:text-bold', !props.selectedText?.bold);
-  emit('save-text-history');
-}
-
-function toggleItalic() {
-  if (fontIsItalic.value) return;
-  emit('update:text-italic', !props.selectedText?.italic);
-  emit('save-text-history');
-}
+const { posX, posY, rangeX, rangeY, startPos } = useTextPosition({
+  selectedText: toRef(props, 'selectedText'),
+  canvasWidth: toRef(props, 'canvasWidth'),
+  canvasHeight: toRef(props, 'canvasHeight'),
+});
 </script>
 
 <style scoped lang="scss">
@@ -441,87 +307,6 @@ function toggleItalic() {
 // Eingaben nutzen die globalen Feldstile (UiTextField)
 .text-input {
   width: 100%;
-}
-
-// Fett/Kursiv im UiSegmentedControl-Look
-.style-toggle-row {
-  display: flex;
-  gap: 2px;
-  padding: 2px;
-  height: var(--ds-control-md);
-  border: var(--ds-border-width) solid var(--ds-border);
-  border-radius: var(--ds-radius-md);
-  background: var(--ds-surface-0);
-}
-
-.style-toggle {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--ds-space-2);
-  padding: 0 var(--ds-space-3);
-  border: var(--ds-border-width) solid transparent;
-  border-radius: var(--ds-radius-sm);
-  background: transparent;
-  color: var(--ds-text-2);
-  font: inherit;
-  font-size: var(--ds-text-sm);
-  font-weight: var(--ds-weight-medium);
-  line-height: 1;
-  white-space: nowrap;
-  cursor: pointer;
-  transition:
-    background-color var(--ds-duration) var(--ds-ease),
-    border-color var(--ds-duration) var(--ds-ease),
-    color var(--ds-duration) var(--ds-ease);
-
-  &:hover:not(:disabled) {
-    color: var(--ds-text);
-  }
-
-  &:focus-visible {
-    outline: none;
-    box-shadow: var(--ds-focus-ring);
-  }
-
-  &.active {
-    background: var(--ds-surface-1);
-    border-color: var(--ds-border-strong);
-    color: var(--ds-text);
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.45;
-  }
-}
-
-.shadow-controls {
-  margin-top: var(--ds-space-2);
-}
-
-.shadow-offset-row {
-  display: flex;
-  gap: var(--ds-space-3);
-  margin-bottom: var(--ds-space-2);
-}
-
-.mini-control {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: var(--ds-space-2);
-
-  label {
-    margin-bottom: 0;
-    font-size: var(--ds-text-xs);
-    font-weight: var(--ds-weight-medium);
-    color: var(--ds-text-2);
-    min-width: 12px;
-  }
 }
 
 // Destruktiv = UiButton danger: Text in --ds-danger auf flacher Fläche
