@@ -24,41 +24,8 @@ import {
   supportsShapeText,
 } from '@/utils/shapes';
 
-/** Felder einer Form, die das Panel liest oder schreibt (siehe utils/shapes createShape) */
-export interface Shape {
-  id: string;
-  type: string;
-  galleryId?: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotation?: number;
-  opacity?: number;
-  flipX?: boolean;
-  flipY?: boolean;
-  filled?: boolean;
-  fillType?: string;
-  fillColor?: string;
-  fillColor2?: string;
-  gradientAngle?: number;
-  strokeWidth?: number;
-  strokeColor?: string;
-  dash?: string;
-  shadowBlur?: number;
-  shadowColor?: string;
-  number?: number | string;
-  markerStyle?: string;
-  textColor?: string;
-  emoji?: string;
-  text?: string;
-  fontFamily?: string;
-  textAlign?: string;
-  textScale?: number;
-  effect?: string;
-  region?: string;
-  intensity?: number;
-}
+export type { Shape } from '@/stores/image/types';
+import type { Shape } from '@/stores/image/types';
 
 export type ShapePatch = Partial<Omit<Shape, 'id'>>;
 

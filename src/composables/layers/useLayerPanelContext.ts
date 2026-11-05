@@ -1,24 +1,25 @@
 import { inject, type ComputedRef } from 'vue';
 import { LAYER_PANEL_KEY, type useLayerPanel } from '@/composables/useLayerPanel';
+import type { ImageLayer as StoreImageLayer } from '@/stores/image/types';
 
-/** Bild-Ebene im imageStore (siehe addImageLayer), soweit die Ebenen-Ansicht sie liest */
-export interface ImageLayer {
-  id: string | number;
-  url: string;
-  thumbnail?: string;
-  name: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotation: number;
-  opacity: number;
-  visible: boolean;
-  flipX: boolean;
-  flipY: boolean;
-  filters: Record<'brightness' | 'contrast' | 'saturation' | 'grayscale', number> &
-    Record<string, number>;
-}
+/** Felder einer Bild-Ebene (stores/image/types), die die Ebenen-Ansicht liest */
+export type ImageLayer = Pick<
+  StoreImageLayer,
+  | 'id'
+  | 'url'
+  | 'thumbnail'
+  | 'name'
+  | 'x'
+  | 'y'
+  | 'width'
+  | 'height'
+  | 'rotation'
+  | 'opacity'
+  | 'visible'
+  | 'flipX'
+  | 'flipY'
+  | 'filters'
+>;
 
 /**
  * Rückgabe von useLayerPanel; die Ebenen-Listen typisiert, weil der JS-Store

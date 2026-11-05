@@ -1,0 +1,134 @@
+import type { Ref, ShallowRef } from 'vue';
+
+/** Text-Ebene; content/txt und fontSize/size werden synchron gehalten (alte Felder) */
+export interface StoreText {
+  id: string | number;
+  content?: string;
+  txt?: string;
+  x?: number;
+  y?: number;
+  fontSize?: number;
+  size?: number;
+  fontFamily?: string;
+  color?: string;
+  [key: string]: unknown;
+}
+
+/** Felder einer Form, die das Panel liest oder schreibt (siehe utils/shapes createShape) */
+export interface Shape {
+  id: string;
+  type: string;
+  galleryId?: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation?: number;
+  opacity?: number;
+  flipX?: boolean;
+  flipY?: boolean;
+  filled?: boolean;
+  fillType?: string;
+  fillColor?: string;
+  fillColor2?: string;
+  gradientAngle?: number;
+  strokeWidth?: number;
+  strokeColor?: string;
+  dash?: string;
+  shadowBlur?: number;
+  shadowColor?: string;
+  number?: number | string;
+  markerStyle?: string;
+  textColor?: string;
+  emoji?: string;
+  text?: string;
+  fontFamily?: string;
+  textAlign?: string;
+  textScale?: number;
+  effect?: string;
+  region?: string;
+  intensity?: number;
+  /** Freihand-Striche: Punkte relativ zur Box */
+  points?: { x: number; y: number }[];
+  [key: string]: unknown;
+}
+
+/** Zeichenwerkzeuge (utils/shapes DRAW_TOOLS) */
+export type DrawTool = 'pen' | 'highlighter';
+
+export interface DrawSetting {
+  color: string;
+  width: number | null;
+  opacity: number;
+}
+
+/** Bild-Ebene im Collage-/Ebenen-Modus */
+export interface ImageLayer {
+  id: string | number;
+  image: HTMLImageElement | null;
+  url: string;
+  thumbnail?: string;
+  name: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  originalWidth: number;
+  originalHeight: number;
+  rotation: number;
+  opacity: number;
+  visible: boolean;
+  locked: boolean;
+  filters: Record<'brightness' | 'contrast' | 'saturation' | 'grayscale', number> &
+    Record<string, number>;
+  border: { width: number; color: string; radius: number };
+  shadow: {
+    enabled: boolean;
+    offsetX: number;
+    offsetY: number;
+    blur: number;
+    color: string;
+    opacity: number;
+  };
+  flipX: boolean;
+  flipY: boolean;
+}
+
+/** Bild aus Galerie oder Handoff, aus dem eine Ebene entsteht */
+export interface LayerSource {
+  url: string;
+  name?: string;
+}
+
+/** Von useEditorHistory registrierte Historie */
+export interface HistoryHandlers {
+  saveHistory: (description?: string) => void;
+  undo: () => void;
+  redo: () => void;
+  canUndo: Ref<boolean>;
+  canRedo: Ref<boolean>;
+  historyIndex: Ref<number>;
+  history: Ref<unknown[]>;
+}
+
+/** Gemeinsamer Zustand des Image-Stores, den die Teilmodule unter stores/image/ nutzen */
+export interface ImageStoreContext {
+  originalImage: Ref<HTMLImageElement | null>;
+  workingUrl: Ref<string | null>;
+  canvas: Ref<HTMLCanvasElement | null>;
+  ctx: Ref<CanvasRenderingContext2D | null>;
+  imageWidth: Ref<number>;
+  imageHeight: Ref<number>;
+  isImageLoaded: Ref<boolean>;
+  texts: Ref<StoreText[]>;
+  selectedTextId: Ref<string | number | null>;
+  shapes: Ref<Shape[]>;
+  selectedShapeId: Ref<string | null>;
+  drawTool: Ref<DrawTool | null>;
+  drawSettings: Ref<Record<DrawTool, DrawSetting>>;
+  imageLayers: Ref<ImageLayer[]>;
+  selectedLayerId: Ref<string | number | null>;
+  historyHandlers: ShallowRef<HistoryHandlers | null>;
+  /** Schnelle Zwischenansicht nach Store-Aktionen */
+  draw: () => void;
+}
