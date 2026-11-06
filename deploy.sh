@@ -6,8 +6,8 @@
 # in einem separaten Build-Verzeichnis und veröffentlicht nur das fertige
 # dist/ im Webroot.
 #
-#   sudo ./deploy.sh              # interaktiv, mit Rückfrage vor dem Löschen
-#   sudo ./deploy.sh --yes        # ohne Rückfrage (für Cronjobs / CI)
+#   sudo ./deploy.sh              # ohne Rückfrage (Löschliste wird nur angezeigt)
+#   sudo ./deploy.sh --ask        # mit Rückfrage vor dem Löschen
 #   sudo ./deploy.sh --dry-run    # zeigt nur, was passieren würde
 #   sudo BRANCH=develop ./deploy.sh
 #
@@ -39,7 +39,9 @@ RELOAD_NGINX="${RELOAD_NGINX:-1}"
 # Mehrere Einträge mit Leerzeichen trennen: RSYNC_EXCLUDES="api/ uploads/"
 RSYNC_EXCLUDES="${RSYNC_EXCLUDES:-api/}"
 
-ASSUME_YES=0
+# Standard: ohne Rückfrage. Vor jedem Deploy wird ohnehin ein Backup angelegt.
+# Mit --ask oder ASSUME_YES=0 kommt die Rückfrage vor dem Löschen zurück.
+ASSUME_YES="${ASSUME_YES:-1}"
 DRY_RUN=0
 
 # ---------------------------------------------------------------------------
@@ -47,7 +49,8 @@ DRY_RUN=0
 # ---------------------------------------------------------------------------
 while [ $# -gt 0 ]; do
   case "$1" in
-    -y|--yes)     ASSUME_YES=1 ;;
+    -y|--yes)     ASSUME_YES=1 ;;  # Standard, bleibt für bestehende Aufrufe gültig
+    -a|--ask)     ASSUME_YES=0 ;;
     -n|--dry-run) DRY_RUN=1 ;;
     -b|--branch)  BRANCH="${2:?--branch benötigt einen Wert}"; shift ;;
     -h|--help)
