@@ -535,6 +535,16 @@
   }
 }
 
+.canvas-info__autosave {
+  padding-left: var(--ds-space-4);
+  border-left: var(--ds-border-width) solid var(--ds-border);
+
+  &--error,
+  &--error .app-icon {
+    color: var(--ds-danger);
+  }
+}
+
 @media (max-width: 768px) {
   .editor-main {
     flex-direction: column;
