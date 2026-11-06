@@ -50,6 +50,10 @@ export default defineConfig({
       {
         // Alles, was einen echten 2D-Canvas braucht (Renderer, Konvertierung)
         ...shared,
+        // Vorab bündeln: Sonst entdeckt Vite die Abhängigkeit (aus dem Worker
+        // für „Hintergrund entfernen“) erst während des Laufs, lädt die Seite
+        // neu und die Browser-Verbindung bricht ab (kalter Cache in CI).
+        optimizeDeps: { include: ['onnxruntime-web/webgpu'] },
         test: {
           name: 'browser',
           include: ['tests/browser/**/*.spec.js'],
