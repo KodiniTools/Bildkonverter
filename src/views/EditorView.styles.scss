@@ -502,6 +502,12 @@
   border-radius: var(--ds-radius-sm);
 }
 
+/* Ohne Hintergrundfarbe: Schachbrett zeigt transparente Bereiche (z. B. nach „Hintergrund entfernen“) */
+.main-canvas--transparent {
+  background: repeating-conic-gradient(var(--ds-border-strong) 0% 25%, var(--ds-surface-1) 0% 50%) 0
+    0 / 16px 16px;
+}
+
 /* Bild-Infos als flache Pille unter der Leinwand */
 .canvas-info {
   margin-top: var(--ds-space-4);

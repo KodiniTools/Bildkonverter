@@ -102,11 +102,13 @@
             :filters="filters"
             :sections-open="sectionsOpen"
             :disabled="!currentImage"
+            :bg-removal="bgRemovalState"
             @update-filter="setFilter"
             @toggle-section="toggleSection"
             @render="renderImage"
             @save-history="saveHistory"
             @auto-enhance="handleAutoEnhance"
+            @remove-background="removeImageBackground"
           />
           <LightColorPanel
             :filters="filters"
@@ -208,6 +210,7 @@
             <canvas
               ref="canvas"
               class="main-canvas"
+              :class="{ 'main-canvas--transparent': background.opacity === 0 }"
               :style="{ cursor: crop.cropMode.value || pickingWhite ? 'crosshair' : 'default' }"
               @mousedown="onCanvasMouseDown"
               @mousemove="onCanvasMouseMove"
@@ -392,6 +395,7 @@ import DetachPanel from '@/components/editor/sidebar/DetachPanel.vue';
 import AdjustmentsPanel from '@/components/editor/sidebar/AdjustmentsPanel.vue';
 import { autoEnhanceFromImage, isNeutralEnhance } from '@/utils/autoEnhance';
 import { averageColor, whiteBalanceFromSample } from '@/utils/whiteBalance';
+import { useBackgroundRemoval } from '@/composables/editor/useBackgroundRemoval';
 import LightColorPanel from '@/components/editor/sidebar/LightColorPanel.vue';
 import CurvesPanel from '@/components/editor/sidebar/CurvesPanel.vue';
 import EffectsPanel from '@/components/editor/sidebar/EffectsPanel.vue';
@@ -1094,6 +1098,19 @@ const { isApplyingDistort, applyDistortion } = useEditorDistort({
   currentImage,
   transform,
   resizeManager,
+  renderImage,
+  updateImageSize,
+  saveHistory,
+  t,
+});
+
+// Hintergrund entfernen (KI im Browser, Modell in public/models)
+const { bgRemovalState, removeImageBackground } = useBackgroundRemoval({
+  currentImage,
+  isCollageMode,
+  background,
+  outputFormat,
+  exportTransparent,
   renderImage,
   updateImageSize,
   saveHistory,

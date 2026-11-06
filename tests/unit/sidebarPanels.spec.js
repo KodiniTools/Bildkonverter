@@ -91,6 +91,55 @@ describe.each(filterPanels)('%s', (_, component, section, firstFilter) => {
   });
 });
 
+describe('AdjustmentsPanel – Hintergrund entfernen', () => {
+  const sectionsOpen = { adjustments: true, lightColor: true, effects: true };
+  // $t mit Platzhaltern: der Schlüssel genügt
+  const mountPanel = (component, props) =>
+    mount(component, { props, global: { mocks: { $t: (key) => key } } });
+  const state = (extra) => ({
+    available: true,
+    busy: false,
+    phase: null,
+    fraction: null,
+    modelSizeMb: 90,
+    ...extra,
+  });
+
+  it('meldet den Klick als remove-background', async () => {
+    const wrapper = mountPanel(AdjustmentsPanel, {
+      filters: { ...DEFAULT_FILTERS },
+      sectionsOpen,
+      bgRemoval: state(),
+    });
+    const button = wrapper.find('[data-testid="remove-background"]');
+    expect(button.text()).toContain('editor.removeBg.remove');
+    await button.trigger('click');
+    expect(wrapper.emitted('remove-background')).toHaveLength(1);
+  });
+
+  it('zeigt Download-Fortschritt und sperrt den Button, solange es läuft', () => {
+    const wrapper = mountPanel(AdjustmentsPanel, {
+      filters: { ...DEFAULT_FILTERS },
+      sectionsOpen,
+      bgRemoval: state({ busy: true, phase: 'download', fraction: 0.42 }),
+    });
+    const button = wrapper.find('[data-testid="remove-background"]');
+    expect(button.text()).toContain('editor.removeBg.downloading');
+    expect(button.attributes('disabled')).toBeDefined();
+    expect(wrapper.find('progress').attributes('value')).toBe('42');
+  });
+
+  it('ist ohne Browser-Unterstützung deaktiviert und sagt warum', () => {
+    const wrapper = mountPanel(AdjustmentsPanel, {
+      filters: { ...DEFAULT_FILTERS },
+      sectionsOpen,
+      bgRemoval: state({ available: false }),
+    });
+    expect(wrapper.find('[data-testid="remove-background"]').attributes('disabled')).toBeDefined();
+    expect(wrapper.text()).toContain('editor.removeBg.unsupported');
+  });
+});
+
 describe('LightColorPanel – Weißabgleich', () => {
   const sectionsOpen = { adjustments: true, lightColor: true, effects: true };
 
