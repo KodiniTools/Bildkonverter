@@ -367,6 +367,12 @@ const en: LocaleMessages = {
       auto: 'Auto Enhance',
       autoHint: 'Automatically adjust exposure, contrast, highlights, shadows and saturation',
     },
+    whiteBalance: {
+      pick: 'Pick gray point',
+      pickActive: 'Click a gray or white spot in the image',
+      pickHint:
+        'Eyedropper: click a spot that should be neutral gray or white to remove the color cast',
+    },
     filters: {
       sharpness: 'Sharpen',
       clarity: 'Clarity',
@@ -379,6 +385,8 @@ const en: LocaleMessages = {
       exposure: 'Exposure',
       highlights: 'Highlights',
       shadows: 'Shadows',
+      temperature: 'Temperature',
+      tint: 'Tint',
       sepia: 'Warmth',
       grayscale: 'Grayscale',
       invert: 'Invert',
@@ -1234,6 +1242,8 @@ const en: LocaleMessages = {
       autoEnhanced: 'Enhanced automatically. The sliders show the values.',
       autoEnhanceNeutral: 'The image is already well balanced.',
       autoEnhanceFailed: 'Auto Enhance is not possible for this image.',
+      whiteBalanceSet: 'White balance set. Temperature and tint have been adjusted.',
+      whiteBalanceUnsuitable: 'This spot is too dark or too bright. Please pick a light gray spot.',
       shared: 'Image shared',
       shareFailed: 'Sharing failed',
       shareUnsupported: 'Sharing is not supported here – the image is downloaded instead.',

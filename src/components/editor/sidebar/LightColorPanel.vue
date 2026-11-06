@@ -63,12 +63,54 @@
         @render="$emit('render')"
         @save-history="$emit('save-history')"
       />
+
+      <!-- Weißabgleich: Temperatur/Tönung als Kanal-Gains, Pipette setzt beide -->
+      <FilterSlider
+        :model-value="filters.temperature ?? 0"
+        :label="$t('editor.filters.temperature')"
+        :min="-100"
+        :max="100"
+        :default-value="0"
+        track-class="warm-slider"
+        :disabled="disabled"
+        @update:model-value="$emit('update-filter', 'temperature', $event)"
+        @render="$emit('render')"
+        @save-history="$emit('save-history')"
+      />
+
+      <FilterSlider
+        :model-value="filters.tint ?? 0"
+        :label="$t('editor.filters.tint')"
+        :min="-100"
+        :max="100"
+        :default-value="0"
+        center-zero
+        :disabled="disabled"
+        @update:model-value="$emit('update-filter', 'tint', $event)"
+        @render="$emit('render')"
+        @save-history="$emit('save-history')"
+      />
+
+      <UiButton
+        size="sm"
+        block
+        :variant="pickingWhite ? 'primary' : 'secondary'"
+        :disabled="disabled"
+        :aria-pressed="pickingWhite ? 'true' : 'false'"
+        :title="$t('editor.whiteBalance.pickHint')"
+        data-testid="pick-white"
+        @click="$emit('toggle-pick-white')"
+      >
+        <template #icon><AppIcon name="eye-dropper" :size="16" /></template>
+        {{ pickingWhite ? $t('editor.whiteBalance.pickActive') : $t('editor.whiteBalance.pick') }}
+      </UiButton>
     </div>
   </div>
 </template>
 
 <script setup>
 import AppIcon from '@/components/ui/AppIcon.vue';
+import UiButton from '@/components/ui/UiButton.vue';
 import FilterSlider from './FilterSlider.vue';
 
 defineProps({
@@ -84,8 +126,13 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  /** Pipette aktiv: der nächste Klick auf die Leinwand setzt den Graupunkt */
+  pickingWhite: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 // Props werden nicht verändert: Wertänderungen gehen als Ereignisse an den Editor
-defineEmits(['update-filter', 'toggle-section', 'render', 'save-history']);
+defineEmits(['update-filter', 'toggle-section', 'render', 'save-history', 'toggle-pick-white']);
 </script>

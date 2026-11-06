@@ -91,6 +91,30 @@ describe.each(filterPanels)('%s', (_, component, section, firstFilter) => {
   });
 });
 
+describe('LightColorPanel – Weißabgleich', () => {
+  const sectionsOpen = { adjustments: true, lightColor: true, effects: true };
+
+  it('zeigt Temperatur und Tönung mit den Werten aus den Props', () => {
+    const filters = { ...DEFAULT_FILTERS, temperature: 30, tint: -12 };
+    const wrapper = mountPanel(LightColorPanel, { filters, sectionsOpen });
+    const labels = wrapper.findAllComponents(FilterSlider).map((s) => s.props('label'));
+    const sliders = wrapper.findAllComponents(FilterSlider);
+    expect(sliders[labels.indexOf('editor.filters.temperature')].props('modelValue')).toBe(30);
+    expect(sliders[labels.indexOf('editor.filters.tint')].props('modelValue')).toBe(-12);
+  });
+
+  it('meldet die Pipette als toggle-pick-white und zeigt den aktiven Zustand', async () => {
+    const wrapper = mountPanel(LightColorPanel, { filters: { ...DEFAULT_FILTERS }, sectionsOpen });
+    const button = wrapper.find('[data-testid="pick-white"]');
+    expect(button.attributes('aria-pressed')).toBe('false');
+    await button.trigger('click');
+    expect(wrapper.emitted('toggle-pick-white')).toHaveLength(1);
+
+    await wrapper.setProps({ pickingWhite: true });
+    expect(wrapper.find('[data-testid="pick-white"]').attributes('aria-pressed')).toBe('true');
+  });
+});
+
 describe('BackgroundPanel', () => {
   function setup() {
     const background = Object.freeze({ ...DEFAULT_BACKGROUND });

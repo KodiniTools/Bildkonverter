@@ -21,6 +21,7 @@ export { applyTonalAdjustments, applyDetailAdjustments, hasDetailAdjustments };
  *   - highlights (Lichter)     – nur helle Tonwerte (Luminanz-Maske)
  *   - shadows    (Schatten)    – nur dunkle Tonwerte (Luminanz-Maske)
  *   - saturation (Sättigung)   – luminanzerhaltend
+ *   - temperature / tint (Weißabgleich) – Kanal-Gains im linearen Licht
  *
  *  Detail-Anpassungen (echt, per Pixel, nach den Tonwerten; detailKernel.js):
  *   - sharpness (Schärfen), clarity (Klarheit), grain (Körnung)
@@ -38,6 +39,8 @@ const TONAL_DEFAULTS = {
   highlights: 0,
   shadows: 0,
   saturation: 100,
+  temperature: 0,
+  tint: 0,
 };
 
 // Einfacher Ein-Eintrag-Cache, damit renderImage() und
@@ -56,7 +59,9 @@ export function hasTonalAdjustments(f) {
     (f.contrast ?? 100) !== TONAL_DEFAULTS.contrast ||
     (f.highlights ?? 0) !== TONAL_DEFAULTS.highlights ||
     (f.shadows ?? 0) !== TONAL_DEFAULTS.shadows ||
-    (f.saturation ?? 100) !== TONAL_DEFAULTS.saturation
+    (f.saturation ?? 100) !== TONAL_DEFAULTS.saturation ||
+    (f.temperature ?? 0) !== TONAL_DEFAULTS.temperature ||
+    (f.tint ?? 0) !== TONAL_DEFAULTS.tint
   );
 }
 
@@ -105,6 +110,8 @@ function tonalSignature(f) {
     f.highlights ?? 0,
     f.shadows ?? 0,
     f.saturation ?? 100,
+    f.temperature ?? 0,
+    f.tint ?? 0,
     f.sharpness ?? 0,
     f.clarity ?? 0,
     f.grain ?? 0,

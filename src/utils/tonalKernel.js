@@ -1,8 +1,8 @@
 /**
  * tonalKernel.js
  *
- * Reine Pixel-Berechnung der Tonwert-Anpassungen (Belichtung, Helligkeit,
- * Kontrast, Lichter, Schatten, Sättigung). Ohne Imports und DOM-Zugriff,
+ * Reine Pixel-Berechnung der Tonwert-Anpassungen (Weißabgleich, Belichtung,
+ * Helligkeit, Kontrast, Lichter, Schatten, Sättigung). Ohne Imports und DOM-Zugriff,
  * damit sie identisch im Hauptthread und im Web Worker laufen kann.
  */
 
@@ -23,14 +23,35 @@ function clamp01(v) {
   return v < 0 ? 0 : v > 1 ? 1 : v;
 }
 
+/** Stärke des Weißabgleichs: bei ±100 ändern sich die Kanal-Gains um ±50 %. */
+export const WHITE_BALANCE_STRENGTH = 0.5;
+
 /**
- * Erzeugt eine Lookup-Tabelle (0..255 -> 0..1) für die
- * kanalunabhängigen Tonwert-Operationen: Belichtung -> Helligkeit
+ * Kanal-Gains des Weißabgleichs (im linearen Licht).
+ * temperature −100 (kühl, blau) … 100 (warm, gelb): Rot hoch, Blau runter
+ * tint        −100 (grün)       … 100 (magenta):    Grün runter
+ * @param {Object} f
+ * @returns {{ r: number, g: number, b: number }}
+ */
+export function whiteBalanceGains(f) {
+  const t = (f.temperature ?? 0) / 100;
+  const m = (f.tint ?? 0) / 100;
+  return {
+    r: 1 + WHITE_BALANCE_STRENGTH * t,
+    g: 1 - WHITE_BALANCE_STRENGTH * m,
+    b: 1 - WHITE_BALANCE_STRENGTH * t,
+  };
+}
+
+/**
+ * Erzeugt eine Lookup-Tabelle (0..255 -> 0..1) für die Tonwert-Operationen
+ * je Kanal: Weißabgleich-Gain und Belichtung (linear) -> Helligkeit
  * -> Kontrast. Das spart teure Berechnungen im Pixel-Loop.
  * @param {Object} f
+ * @param {number} [channelGain=1] Weißabgleich-Gain dieses Kanals
  * @returns {Float32Array} Länge 256, Werte 0..1
  */
-function buildToneLUT(f) {
+function buildToneLUT(f, channelGain = 1) {
   const exposure = f.exposure ?? 0;
   const brightness = (f.brightness ?? 100) / 100;
   const contrast = (f.contrast ?? 100) / 100;
@@ -41,9 +62,9 @@ function buildToneLUT(f) {
   for (let i = 0; i < 256; i++) {
     let v = i / 255;
 
-    // Belichtung im linearen Lichtraum (echte Belichtung)
-    if (exposure !== 0) {
-      let lin = srgbToLinear(v) * gain;
+    // Weißabgleich und Belichtung im linearen Lichtraum (echte Belichtung)
+    if (exposure !== 0 || channelGain !== 1) {
+      let lin = srgbToLinear(v) * channelGain * gain;
       lin = clamp01(lin);
       v = linearToSrgb(lin);
     }
@@ -69,7 +90,11 @@ function buildToneLUT(f) {
  * @param {Object} f - Filter-Objekt
  */
 export function applyTonalAdjustments(data, f) {
-  const lut = buildToneLUT(f);
+  // Ohne Weißabgleich teilen sich alle Kanäle eine Tabelle
+  const wb = whiteBalanceGains(f);
+  const lutR = buildToneLUT(f, wb.r);
+  const lutG = wb.g === wb.r ? lutR : buildToneLUT(f, wb.g);
+  const lutB = wb.b === wb.r ? lutR : buildToneLUT(f, wb.b);
   const hi = (f.highlights ?? 0) / 100; // -1..1
   const sh = (f.shadows ?? 0) / 100; // -1..1
   const sat = (f.saturation ?? 100) / 100;
@@ -79,9 +104,9 @@ export function applyTonalAdjustments(data, f) {
   const doSaturation = sat !== 1;
 
   for (let i = 0; i < data.length; i += 4) {
-    let r = lut[data[i]];
-    let g = lut[data[i + 1]];
-    let b = lut[data[i + 2]];
+    let r = lutR[data[i]];
+    let g = lutG[data[i + 1]];
+    let b = lutB[data[i + 2]];
 
     // Lichter / Schatten: nur den jeweiligen Tonwertbereich anheben/absenken
     if (doToneRange) {
