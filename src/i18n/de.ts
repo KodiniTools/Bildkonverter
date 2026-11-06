@@ -372,7 +372,6 @@ const de = {
       downloading: 'KI-Modell wird geladen … {percent} %',
       preparing: 'KI-Modell wird vorbereitet …',
       running: 'Hintergrund wird entfernt …',
-      hint: 'Läuft komplett im Browser, das Bild verlässt dein Gerät nicht. Beim ersten Mal wird das KI-Modell (ca. {size} MB) geladen.',
       unsupported: 'Dein Browser unterstützt das Entfernen des Hintergrunds nicht.',
     },
     curves: {
