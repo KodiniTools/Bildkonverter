@@ -26,7 +26,9 @@
  * @param {Function} deps.renderImage
  * @param {Function} deps.updateImageInfo
  */
+import { nextTick } from 'vue';
 import { useImageHistory } from '@/composables/useImageHistory';
+import { logger } from '@/utils/logger';
 
 export function useEditorHistory({
   canvas,
@@ -119,6 +121,10 @@ export function useEditorHistory({
 
   /** Gemeinsamer Teil der Wiederherstellung (Canvas, Filter, Transform, Texte, Crop) */
   function applyEditorState(state) {
+    if (!canvas.value) {
+      logger.warn('Historie: Canvas fehlt, Zustand nicht angewendet');
+      return;
+    }
     canvas.value.width = state.width;
     canvas.value.height = state.height;
     resizeManager.initFromDimensions(state.width, state.height, { natural: false });
@@ -161,10 +167,37 @@ export function useEditorHistory({
     renderImage();
   }
 
+  function loadSnapshotImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Bild aus der Historie nicht ladbar'));
+      img.src = src;
+    });
+  }
+
+  /**
+   * Beim Fortsetzen eines gespeicherten Projekts gibt es noch keinen Canvas
+   * (Leerzustand): erst Bild/Modus setzen, dann auf das Rendern warten.
+   */
+  async function ensureCanvas() {
+    if (!canvas.value) await nextTick();
+  }
+
   async function restoreState(state) {
     if (state.isCollageMode) {
       // Ebenen samt Bildern neu laden; das Basisbild bleibt unverändert
       await imageStore.restoreImageLayers(state.imageLayers || [], state.selectedLayerId ?? null);
+      // Ohne Basisbild (gespeichertes Projekt im abgelösten Modus): mitladen
+      if (currentImage && !currentImage.value && state.rawImageSrc) {
+        try {
+          currentImage.value = await loadSnapshotImage(state.rawImageSrc);
+        } catch (e) {
+          logger.warn(e);
+        }
+      }
+      if (isCollageMode) isCollageMode.value = true;
+      await ensureCanvas();
       applyEditorState(state);
       return;
     }
@@ -180,12 +213,27 @@ export function useEditorHistory({
       applyEditorState(state);
       return;
     }
-    const img = new Image();
-    img.onload = () => {
-      currentImage.value = img;
-      applyEditorState(state);
-    };
-    img.src = srcToLoad;
+    let img;
+    try {
+      img = await loadSnapshotImage(srcToLoad);
+    } catch (e) {
+      logger.warn(e);
+      return;
+    }
+    currentImage.value = img;
+    await ensureCanvas();
+    applyEditorState(state);
+  }
+
+  /**
+   * Gespeichertes Projekt fortsetzen: Zustand wiederherstellen und als neuen
+   * Startpunkt der (leeren) Historie setzen.
+   * @param {object} state  History-Eintrag (z. B. aus projectSnapshot.unpackSnapshot)
+   */
+  async function restoreSnapshot(state) {
+    imageHistory.clearHistory();
+    await restoreState(state);
+    saveHistory(state.description || 'Projekt fortgesetzt');
   }
 
   const api = {
@@ -197,6 +245,7 @@ export function useEditorHistory({
     undo,
     redo,
     resetHistory,
+    restoreSnapshot,
   };
 
   // Beim Store registrieren, damit Ebenen-Panel, Text-Dialog und

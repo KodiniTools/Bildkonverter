@@ -352,3 +352,59 @@ describe('useEditorHistory – Formen', () => {
     expect(s.imageStore.selectedShapeId).toBe('f1');
   });
 });
+
+describe('useEditorHistory.restoreSnapshot (Projekt fortsetzen)', () => {
+  it('stellt einen gespeicherten Zustand her und beginnt die Historie neu', async () => {
+    const source = setup();
+    source.filterManagement.filters.value.brightness = 140;
+    source.imageStore.texts.push({ id: 't1', content: 'Hallo' });
+    source.imageStore.shapes = [{ id: 's1', type: 'rect', x: 1, y: 2, width: 3, height: 4 }];
+    source.history.saveHistory('Bearbeitung');
+    const saved = JSON.parse(JSON.stringify(source.history.history.value[0]));
+
+    const target = setup();
+    target.currentImage.value = null;
+    target.history.saveHistory('alt');
+    target.history.saveHistory('alt 2');
+    await target.history.restoreSnapshot(saved);
+
+    expect(target.history.history.value).toHaveLength(1);
+    expect(target.history.canUndo.value).toBe(false);
+    expect(target.currentImage.value).toBeInstanceOf(HTMLImageElement);
+    expect(target.filterManagement.filters.value.brightness).toBe(140);
+    expect(target.imageStore.texts).toEqual([{ id: 't1', content: 'Hallo' }]);
+    expect(target.imageStore.shapes[0].id).toBe('s1');
+    expect(target.canvasEl.width).toBe(200);
+    expect(target.renderImage).toHaveBeenCalled();
+  });
+
+  it('Ebenen-Modus: lädt Ebenen und fehlendes Basisbild, setzt den Modus', async () => {
+    const s = setup();
+    s.currentImage.value = null;
+    const state = {
+      isCollageMode: true,
+      detachedFromBackground: true,
+      rawImageSrc: dataUrlImage.src,
+      imageLayers: [{ id: 'l1', url: dataUrlImage.src, name: 'A' }],
+      selectedLayerId: 'l1',
+      canvasBackgroundColor: '#123456',
+      width: 300,
+      height: 150,
+      filters: { ...s.filterManagement.filters.value },
+      background: { ...s.filterManagement.background.value },
+      transforms: { ...s.transform.transforms.value },
+      texts: [],
+      shapes: [],
+      hasCropped: false,
+    };
+    await s.history.restoreSnapshot(state);
+
+    expect(s.imageStore.restoreImageLayers).toHaveBeenCalledWith(state.imageLayers, 'l1');
+    expect(s.isCollageMode.value).toBe(true);
+    expect(s.detachedFromBackground.value).toBe(true);
+    expect(s.currentImage.value).toBeInstanceOf(HTMLImageElement);
+    expect(s.imageStore.canvasBackgroundColor).toBe('#123456');
+    expect(s.canvasEl.width).toBe(300);
+    expect(s.history.history.value).toHaveLength(1);
+  });
+});

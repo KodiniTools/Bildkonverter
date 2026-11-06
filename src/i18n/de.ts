@@ -454,6 +454,21 @@ const de = {
         clipboardTitle: 'Aus Zwischenablage',
       },
     },
+    project: {
+      resumeTitle: 'Letzte Bearbeitung fortsetzen',
+      savedAt: 'Gesichert am {date}',
+      unnamed: 'Unbenanntes Bild',
+      unnamedCollage: 'Collage',
+      layers: '{n} Ebene | {n} Ebenen',
+      texts: '{n} Text | {n} Texte',
+      shapes: '{n} Form | {n} Formen',
+      localHint: 'Nur in diesem Browser gespeichert. Ein neues Bild ersetzt die Sicherung.',
+      resume: 'Fortsetzen',
+      discard: 'Verwerfen',
+      statusSaved: 'Lokal gesichert',
+      statusError: 'Nicht gesichert',
+      statusTooltip: 'Die Bearbeitung wird automatisch in diesem Browser gesichert.',
+    },
     preview: {
       before: 'Vorher',
       compare: 'Vergleich',
@@ -1271,6 +1286,11 @@ const de = {
       cancelled: 'Zuschneiden abgebrochen',
     },
     editor: {
+      projectSaveFailed:
+        'Die Bearbeitung konnte nicht lokal gesichert werden (Speicher voll oder gesperrt).',
+      projectResumed: 'Letzte Bearbeitung fortgesetzt',
+      projectResumeFailed: 'Die gesicherte Bearbeitung konnte nicht geladen werden.',
+      projectDiscarded: 'Gesicherte Bearbeitung verworfen',
       autoEnhanced: 'Automatisch verbessert. Die Regler zeigen die Werte.',
       autoEnhanceNeutral: 'Das Bild ist bereits ausgewogen.',
       autoEnhanceFailed: 'Auto-Verbessern ist für dieses Bild nicht möglich.',

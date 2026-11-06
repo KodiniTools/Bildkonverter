@@ -164,6 +164,15 @@
               <p>{{ $t('editor.canvas.empty.description') }}</p>
             </div>
 
+            <!-- Zuletzt lokal gesicherte Bearbeitung fortsetzen -->
+            <ResumeProjectCard
+              v-if="savedProject"
+              :project="savedProject"
+              :busy="isRestoringProject"
+              @resume="handleResumeProject"
+              @discard="handleDiscardProject"
+            />
+
             <div class="upload-cards">
               <!-- Datei wählen -->
               <div
@@ -236,6 +245,20 @@
               >
               <span><AppIcon name="file" /> {{ formatSize(imageSize) }}</span>
               <span><AppIcon name="image" /> {{ currentImageFormat.toUpperCase() }}</span>
+              <span
+                v-if="autosaveEnabled && autosaveStatus !== 'idle'"
+                class="canvas-info__autosave"
+                :class="{ 'canvas-info__autosave--error': autosaveStatus === 'error' }"
+                :title="$t('editor.project.statusTooltip')"
+                role="status"
+              >
+                <AppIcon :name="autosaveStatus === 'error' ? 'exclamation-circle' : 'save'" />
+                {{
+                  autosaveStatus === 'error'
+                    ? $t('editor.project.statusError')
+                    : $t('editor.project.statusSaved')
+                }}
+              </span>
             </div>
           </div>
         </div>
@@ -366,7 +389,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount, onUnmounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useImageStore } from '@/stores/imageStore';
@@ -414,6 +437,8 @@ import { useEditorExport } from '@/composables/editor/useEditorExport';
 import { useEditorPreview } from '@/composables/editor/useEditorPreview';
 import { useShapeInteraction } from '@/composables/editor/useShapeInteraction';
 import { useCropOverlay } from '@/composables/editor/useCropOverlay';
+import { useProjectAutosave } from '@/composables/editor/useProjectAutosave';
+import ResumeProjectCard from '@/components/editor/canvas/ResumeProjectCard.vue';
 import { logger } from '@/utils/logger';
 import { onAdjustmentReady } from '@/utils/imageAdjustments';
 import { scaleTextsToCanvas } from '@/utils/textLayout';
@@ -544,23 +569,95 @@ const offAdjustmentReady = onAdjustmentReady(() => renderImage());
 
 // Die einzige Undo/Redo-Historie (Bild, Filter, Transform, Texte, Crop, Ebenen);
 // wird im imageStore registriert, damit Ebenen-Panel und Text-Dialog sie nutzen
-const { canUndo, canRedo, saveHistory, undo, redo, resetHistory, unregisterHistory } =
-  useEditorHistory({
-    canvas,
-    currentImage,
-    isCollageMode,
-    detachedFromBackground,
-    selectedTextId,
-    filters,
-    background,
-    imageStore,
-    filterManagement,
-    transform,
-    resizeManager,
-    crop,
-    renderImage,
-    updateImageInfo,
-  });
+const {
+  canUndo,
+  canRedo,
+  saveHistory,
+  undo,
+  redo,
+  resetHistory,
+  unregisterHistory,
+  history,
+  historyIndex,
+  restoreSnapshot,
+} = useEditorHistory({
+  canvas,
+  currentImage,
+  isCollageMode,
+  detachedFromBackground,
+  selectedTextId,
+  filters,
+  background,
+  imageStore,
+  filterManagement,
+  transform,
+  resizeManager,
+  crop,
+  renderImage,
+  updateImageInfo,
+});
+
+// Projekt speichern: Bearbeitung automatisch lokal sichern (IndexedDB) und
+// beim nächsten Besuch zum Fortsetzen anbieten
+const projectAutosave = useProjectAutosave({
+  canvas,
+  history,
+  historyIndex,
+  currentFileName,
+  currentImageFormat,
+  originalImageDataUrl,
+  originalImage,
+  sourceFile,
+  restoreSnapshot,
+  onError: () => window.$toast?.warning(t('toast.editor.projectSaveFailed')),
+});
+const {
+  enabled: autosaveEnabled,
+  status: autosaveStatus,
+  savedProject,
+  isRestoring: isRestoringProject,
+} = projectAutosave;
+
+async function handleResumeProject() {
+  let resumed = false;
+  try {
+    resumed = await projectAutosave.resumeProject();
+  } catch (error) {
+    logger.error('Projekt fortsetzen fehlgeschlagen:', error);
+  }
+  if (!resumed || (!currentImage.value && !isCollageMode.value)) {
+    window.$toast?.error(t('toast.editor.projectResumeFailed'));
+    return;
+  }
+  // Ebenen-Modus: Store-Canvas für Ebenen-Interaktion anbinden
+  if (isCollageMode.value && canvas.value) imageStore.initCanvas(canvas.value);
+  renderImage();
+  updateImageInfo();
+  window.$toast?.success(t('toast.editor.projectResumed'));
+}
+
+async function handleDiscardProject() {
+  await projectAutosave.discardProject();
+  window.$toast?.info(t('toast.editor.projectDiscarded'));
+}
+
+// Ein anderes Bild wurde geöffnet: Angebot ausblenden (die Sicherung wird überschrieben)
+watch(
+  () => history.value.length,
+  (length) => {
+    if (length > 0 && savedProject.value && !isRestoringProject.value) {
+      projectAutosave.dismissOffer();
+    }
+  }
+);
+
+// Seite wird verlassen/verborgen: ausstehende Sicherung sofort schreiben
+function flushAutosave() {
+  void projectAutosave.flush();
+}
+function handleVisibilityChange() {
+  if (document.visibilityState === 'hidden') flushAutosave();
+}
 
 // Größe ändern: Live-Vorschau, Presets, Anwenden
 const { selectedPreset, resizeSpec, onResizeChange, applySocialPreset, applyResize } =
@@ -1264,6 +1361,8 @@ onMounted(async () => {
   window.addEventListener('mouseup', handleGlobalMouseUp);
   // Nachgeladene Schriften (z. B. Text in Formen) erst danach korrekt zeichnen
   document.fonts?.addEventListener?.('loadingdone', handleFontsLoaded);
+  window.addEventListener('pagehide', flushAutosave);
+  document.addEventListener('visibilitychange', handleVisibilityChange);
 
   await nextTick();
 
@@ -1312,6 +1411,11 @@ onMounted(async () => {
       loadImage(imageStore.originalImage);
     }
   }
+
+  // Leerer Editor: zuletzt gesicherte Bearbeitung zum Fortsetzen anbieten
+  if (!loaded && !currentImage.value && !isCollageMode.value) {
+    await projectAutosave.checkForSavedProject();
+  }
 });
 
 // Watch für Galerie-Navigation: Lädt Bild neu wenn galleryImageId sich ändert
@@ -1326,6 +1430,9 @@ watch(
   }
 );
 
+// Vor dem Abbau sichern, solange der Canvas (Vorschaubild) noch da ist
+onBeforeUnmount(flushAutosave);
+
 onUnmounted(() => {
   offAdjustmentReady();
   window.removeEventListener('keydown', handleKeydown);
@@ -1334,6 +1441,8 @@ onUnmounted(() => {
   window.removeEventListener('mousemove', handleGlobalMouseMove);
   window.removeEventListener('mouseup', handleGlobalMouseUp);
   document.fonts?.removeEventListener?.('loadingdone', handleFontsLoaded);
+  window.removeEventListener('pagehide', flushAutosave);
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
   imageStore.setDrawTool?.(null);
   // Layer-Interaktion Listener entfernen
   if (isCollageMode.value) {
