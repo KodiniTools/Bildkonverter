@@ -4,7 +4,7 @@
  * Läuft komplett im Browser; das Bild verlässt das Gerät nicht.
  *
  * Nachrichten an den Worker:
- *   { type: 'run', id, modelUrl, pixels: ArrayBuffer (RGBA, MODEL_SIZE²) }
+ *   { type: 'run', id, modelUrl, pixels: ArrayBuffer (RGBA, MODEL_SIZE²), wasmOnly? }
  * Antworten:
  *   { type: 'progress', id, phase: 'download' | 'init' | 'run', loaded?, total? }
  *   { type: 'result', id, mask: ArrayBuffer (MODEL_SIZE², 0..255), backend }
@@ -12,6 +12,7 @@
  */
 import * as ort from 'onnxruntime-web/webgpu';
 import { MODEL_SIZE, toAlphaMask, toModelInput } from '@/lib/backgroundRemoval/segmentation';
+import { logger } from '@/utils/logger';
 // WebAssembly-Datei der Laufzeit ausdrücklich als Asset einbinden: Die
 // automatische Auflösung über import.meta.url scheitert im Vite-Dev-Server.
 import ortWasmUrl from 'onnxruntime-web/ort-wasm-simd-threaded.asyncify.wasm?url';
@@ -22,8 +23,10 @@ ort.env.wasm.wasmPaths = { wasm: ortWasmUrl };
 const CACHE_NAME = 'bildkonverter-models-v1';
 
 let sessionPromise = null;
-let sessionUrl = null;
+let sessionKey = null;
 let backend = 'wasm';
+/** Laufender Auftrag, damit auch unerwartete Fehler zugeordnet werden */
+let activeId = null;
 
 /** Lädt das Modell (aus dem Cache oder per Download mit Fortschritt). */
 async function loadModel(url, report) {
@@ -82,14 +85,14 @@ async function loadModel(url, report) {
   return bytes;
 }
 
-async function createSession(url, report) {
+async function createSession(url, wasmOnly, report) {
   const model = await loadModel(url, report);
   report({ phase: 'init' });
   // Ohne Cross-Origin-Isolation sind keine Threads möglich
   ort.env.wasm.numThreads = self.crossOriginIsolated
     ? Math.min(4, self.navigator?.hardwareConcurrency || 1)
     : 1;
-  const providers = self.navigator?.gpu ? ['webgpu', 'wasm'] : ['wasm'];
+  const providers = !wasmOnly && self.navigator?.gpu ? ['webgpu', 'wasm'] : ['wasm'];
   for (const provider of providers) {
     try {
       const session = await ort.InferenceSession.create(model, {
@@ -105,10 +108,11 @@ async function createSession(url, report) {
   throw new Error('Kein Backend verfügbar');
 }
 
-function getSession(url, report) {
-  if (!sessionPromise || sessionUrl !== url) {
-    sessionUrl = url;
-    sessionPromise = createSession(url, report).catch((error) => {
+function getSession(url, wasmOnly, report) {
+  const key = `${wasmOnly ? 'wasm' : 'auto'}|${url}`;
+  if (!sessionPromise || sessionKey !== key) {
+    sessionKey = key;
+    sessionPromise = createSession(url, wasmOnly, report).catch((error) => {
       sessionPromise = null;
       throw error;
     });
@@ -116,28 +120,60 @@ function getSession(url, report) {
   return sessionPromise;
 }
 
-async function run({ id, modelUrl, pixels }) {
-  const report = (data) => self.postMessage({ type: 'progress', id, ...data });
-  const session = await getSession(modelUrl, report);
-  report({ phase: 'run' });
+async function infer(session, pixels) {
   const input = new ort.Tensor('float32', toModelInput(new Uint8ClampedArray(pixels)), [
     1,
     3,
     MODEL_SIZE,
     MODEL_SIZE,
   ]);
-  const outputs = await session.run({ [session.inputNames[0]]: input });
-  const output = outputs[session.outputNames[0]];
-  const mask = toAlphaMask(output.data);
-  input.dispose?.();
-  output.dispose?.();
+  try {
+    const outputs = await session.run({ [session.inputNames[0]]: input });
+    const output = outputs[session.outputNames[0]];
+    const mask = toAlphaMask(output.data);
+    output.dispose?.();
+    return mask;
+  } finally {
+    input.dispose?.();
+  }
+}
+
+async function run({ id, modelUrl, pixels, wasmOnly = false }) {
+  const report = (data) => self.postMessage({ type: 'progress', id, ...data });
+  let session = await getSession(modelUrl, wasmOnly, report);
+  report({ phase: 'run' });
+  let mask;
+  try {
+    mask = await infer(session, pixels);
+  } catch (error) {
+    // WebGPU kann erst beim Rechnen scheitern (Treiber, Speicher): einmal mit
+    // WebAssembly wiederholen und künftig dabei bleiben.
+    if (backend !== 'webgpu') throw error;
+    logger.warn('[Hintergrund entfernen] WebGPU fehlgeschlagen, nutze WebAssembly:', error);
+    sessionPromise = null;
+    session = await getSession(modelUrl, true, report);
+    report({ phase: 'run' });
+    mask = await infer(session, pixels);
+  }
   self.postMessage({ type: 'result', id, mask: mask.buffer, backend }, [mask.buffer]);
 }
+
+/** Unerwartete Fehler (z. B. aus GPU-Callbacks) dem laufenden Auftrag melden */
+function reportUnexpected(error) {
+  if (activeId === null) return;
+  self.postMessage({ type: 'error', id: activeId, message: String(error?.message || error) });
+}
+self.addEventListener('unhandledrejection', (event) => reportUnexpected(event.reason));
 
 self.onmessage = (event) => {
   const msg = event.data;
   if (msg?.type !== 'run') return;
-  run(msg).catch((error) => {
-    self.postMessage({ type: 'error', id: msg.id, message: String(error?.message || error) });
-  });
+  activeId = msg.id;
+  run(msg)
+    .catch((error) => {
+      self.postMessage({ type: 'error', id: msg.id, message: String(error?.message || error) });
+    })
+    .finally(() => {
+      if (activeId === msg.id) activeId = null;
+    });
 };
