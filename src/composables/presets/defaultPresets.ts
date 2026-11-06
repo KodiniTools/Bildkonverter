@@ -1,5 +1,6 @@
 /** Filterwerte eines Presets (Teilmenge der Editor-Filter) */
-export type PresetFilters = Record<string, number>;
+/** Reglerwerte (Zahlen) und Kurven (Zeichenketten, siehe utils/curveKernel.js) */
+export type PresetFilters = Record<string, number | string>;
 
 export interface FilterPreset {
   id: string;
