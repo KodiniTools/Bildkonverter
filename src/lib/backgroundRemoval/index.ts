@@ -38,19 +38,35 @@ export function isBackgroundRemovalSupported(): boolean {
   return typeof Worker !== 'undefined' && typeof WebAssembly !== 'undefined';
 }
 
-function getWorker(): Worker {
-  if (!worker) {
-    worker = new Worker(new URL('../../workers/backgroundRemoval.worker.js', import.meta.url), {
-      type: 'module',
-    });
+/**
+ * Der Worker wird eingebettet und per Blob-URL gestartet (wie der Bild-Worker):
+ * Die Seite ist per Cross-Origin-Embedder-Policy isoliert, eine separate
+ * Worker-Datei ohne eigenen COEP-Header würde der Browser blockieren.
+ * Blob-Worker erben die Policy der Seite. Der Code (~120 KB) wird erst beim
+ * ersten Aufruf nachgeladen.
+ */
+let workerPromise: Promise<Worker> | null = null;
+
+function getWorker(): Promise<Worker> {
+  if (!workerPromise) {
+    workerPromise = import('@/workers/backgroundRemoval.worker.js?worker&inline')
+      .then(({ default: BackgroundRemovalWorker }) => {
+        worker = new BackgroundRemovalWorker();
+        return worker;
+      })
+      .catch((error) => {
+        workerPromise = null;
+        throw error;
+      });
   }
-  return worker;
+  return workerPromise;
 }
 
 /** Beendet den Worker (gibt Modell und Speicher frei). */
 export function disposeBackgroundRemoval(): void {
   worker?.terminate();
   worker = null;
+  workerPromise = null;
 }
 
 function sourceSize(image: CanvasImageSource): { width: number; height: number } {
@@ -89,13 +105,15 @@ function crashMessage(event: Event): string {
   return `Worker abgestürzt: ${e.message || event.type || 'unbekannter Fehler'}${where}`;
 }
 
-function runInWorker(
+async function runInWorker(
   pixels: ArrayBuffer,
   onProgress: ((p: RemovalProgress) => void) | undefined,
   modelUrl: string
 ): Promise<{ mask: Uint8ClampedArray; backend: string }> {
   const id = ++nextId;
-  const target = getWorker();
+  const target = await getWorker();
+  // Absolut, weil relative Adressen in einem Blob-Worker nicht auflösbar sind
+  const absoluteModelUrl = new URL(modelUrl, self.location.href).href;
   return new Promise((resolve, reject) => {
     const cleanup = () => {
       target.removeEventListener('message', onMessage);
@@ -128,7 +146,7 @@ function runInWorker(
     target.addEventListener('message', onMessage);
     target.addEventListener('error', onError);
     target.addEventListener('messageerror', onError);
-    target.postMessage({ type: 'run', id, modelUrl, pixels, wasmOnly }, [pixels]);
+    target.postMessage({ type: 'run', id, modelUrl: absoluteModelUrl, pixels, wasmOnly }, [pixels]);
   });
 }
 

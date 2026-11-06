@@ -17,7 +17,9 @@ import { logger } from '@/utils/logger';
 // automatische Auflösung über import.meta.url scheitert im Vite-Dev-Server.
 import ortWasmUrl from 'onnxruntime-web/ort-wasm-simd-threaded.asyncify.wasm?url';
 
-ort.env.wasm.wasmPaths = { wasm: ortWasmUrl };
+// Absolut machen: Der Worker läuft als Blob-URL, relativ dazu lässt sich
+// nichts auflösen. Der Ursprung einer Blob-URL ist der der Seite.
+ort.env.wasm.wasmPaths = { wasm: new URL(ortWasmUrl, self.location.origin).href };
 
 /** Cache Storage: das Modell wird nur einmal heruntergeladen. */
 const CACHE_NAME = 'bildkonverter-models-v1';
@@ -88,10 +90,9 @@ async function loadModel(url, report) {
 async function createSession(url, wasmOnly, report) {
   const model = await loadModel(url, report);
   report({ phase: 'init' });
-  // Ohne Cross-Origin-Isolation sind keine Threads möglich
-  ort.env.wasm.numThreads = self.crossOriginIsolated
-    ? Math.min(4, self.navigator?.hardwareConcurrency || 1)
-    : 1;
+  // Ein Thread: Als Blob-Worker kann die Laufzeit keine eigenen Thread-Worker
+  // starten (sie bliebe auf isolierten Seiten hängen). WebGPU ist ohnehin schneller.
+  ort.env.wasm.numThreads = 1;
   const providers = !wasmOnly && self.navigator?.gpu ? ['webgpu', 'wasm'] : ['wasm'];
   for (const provider of providers) {
     try {

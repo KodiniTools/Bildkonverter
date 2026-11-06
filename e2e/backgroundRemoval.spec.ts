@@ -43,3 +43,35 @@ test('Hintergrund entfernen: transparentes Ergebnis, PNG-Export und Rückgängig
   await expect.poll(() => alphaLeftRight(page)).toEqual([255, 255]);
   expect(errors).toEqual([]);
 });
+
+test('Hintergrund entfernen läuft auf einer per COEP isolierten Seite (wie live)', async ({
+  page,
+}) => {
+  const errors = collectPageErrors(page);
+  // Live liefert der Server die Seite mit COOP/COEP aus. Eine separate
+  // Worker-Datei ohne eigenen COEP-Header würde dann blockiert.
+  await page.route('**/bildkonverter/editor', async (route) => {
+    const response = await route.fetch();
+    await route.fulfill({
+      response,
+      headers: {
+        ...response.headers(),
+        'cross-origin-opener-policy': 'same-origin',
+        'cross-origin-embedder-policy': 'require-corp',
+      },
+    });
+  });
+  await page.route('**/models/isnet-general-use-fp16.onnx', (route) =>
+    route.fulfill({ body: MASK_MODEL, contentType: 'application/octet-stream' })
+  );
+  await prepare(page, 'de');
+  await page.goto('./editor');
+  expect(await page.evaluate(() => self.crossOriginIsolated)).toBe(true);
+  await uploadImages(page, [splitImageFile('halb.png', 200, 120, [255, 255, 255], [0, 0, 0])]);
+  await expect(page.getByText('200 × 120px')).toBeVisible();
+
+  await page.getByTestId('remove-background').click();
+  await expect(page.getByText('Hintergrund entfernt')).toBeVisible({ timeout: 30000 });
+  await expect.poll(() => alphaLeftRight(page)).toEqual([255, 0]);
+  expect(errors).toEqual([]);
+});
