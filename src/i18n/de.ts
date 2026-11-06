@@ -367,6 +367,14 @@ const de = {
       auto: 'Auto-Verbessern',
       autoHint: 'Belichtung, Kontrast, Lichter, Schatten und Sättigung automatisch anpassen',
     },
+    removeBg: {
+      remove: 'Hintergrund entfernen',
+      downloading: 'KI-Modell wird geladen … {percent} %',
+      preparing: 'KI-Modell wird vorbereitet …',
+      running: 'Hintergrund wird entfernt …',
+      hint: 'Läuft komplett im Browser, das Bild verlässt dein Gerät nicht. Beim ersten Mal wird das KI-Modell (ca. {size} MB) geladen.',
+      unsupported: 'Dein Browser unterstützt das Entfernen des Hintergrunds nicht.',
+    },
     curves: {
       channel: 'Kanal',
       channels: { rgb: 'Gesamt', r: 'Rot', g: 'Grün', b: 'Blau' },
@@ -1270,6 +1278,9 @@ const de = {
       whiteBalanceSet: 'Weißabgleich gesetzt. Temperatur und Tönung sind angepasst.',
       whiteBalanceUnsuitable:
         'Diese Stelle ist zu dunkel oder zu hell. Bitte eine helle, graue Stelle wählen.',
+      backgroundRemoved: 'Hintergrund entfernt. Der Export ist auf PNG mit Transparenz gestellt.',
+      backgroundRemoveFailed: 'Der Hintergrund konnte nicht entfernt werden.',
+      backgroundCollage: 'Hintergrund entfernen geht nur im Einzelbild, nicht in der Collage.',
       shared: 'Bild geteilt',
       shareFailed: 'Teilen fehlgeschlagen',
       shareUnsupported:

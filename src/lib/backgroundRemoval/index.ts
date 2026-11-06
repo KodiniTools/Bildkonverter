@@ -1,0 +1,146 @@
+/**
+ * Hintergrund entfernen, komplett im Browser: Das Bild wird auf 1024 × 1024
+ * verkleinert, im Worker segmentiert (ISNet über ONNX Runtime Web), und die
+ * Maske wird geglättet auf die Originalgröße hochskaliert und als Alpha
+ * angewendet. Bild und Modell verlassen das Gerät nicht.
+ */
+import { MODEL_SIZE, maskToRgba } from './segmentation';
+
+/** Modell im Ordner public/models (wird mit der App ausgeliefert). */
+export const MODEL_URL = `${import.meta.env.BASE_URL}models/isnet-general-use-fp16.onnx`;
+/** Ungefähre Downloadgröße für Hinweise in der Oberfläche. */
+export const MODEL_SIZE_MB = 90;
+
+export type RemovalPhase = 'download' | 'init' | 'run';
+export interface RemovalProgress {
+  phase: RemovalPhase;
+  /** 0..1 beim Download, sonst undefined */
+  fraction?: number;
+}
+
+interface WorkerReply {
+  type: 'progress' | 'result' | 'error';
+  id: number;
+  phase?: RemovalPhase;
+  loaded?: number;
+  total?: number;
+  mask?: ArrayBuffer;
+  backend?: string;
+  message?: string;
+}
+
+let worker: Worker | null = null;
+let nextId = 0;
+
+/** Läuft das im Browser (Worker und WebAssembly vorhanden)? */
+export function isBackgroundRemovalSupported(): boolean {
+  return typeof Worker !== 'undefined' && typeof WebAssembly !== 'undefined';
+}
+
+function getWorker(): Worker {
+  if (!worker) {
+    worker = new Worker(new URL('../../workers/backgroundRemoval.worker.js', import.meta.url), {
+      type: 'module',
+    });
+  }
+  return worker;
+}
+
+/** Beendet den Worker (gibt Modell und Speicher frei). */
+export function disposeBackgroundRemoval(): void {
+  worker?.terminate();
+  worker = null;
+}
+
+function sourceSize(image: CanvasImageSource): { width: number; height: number } {
+  const img = image as HTMLImageElement;
+  const width = img.naturalWidth || (image as HTMLCanvasElement).width;
+  const height = img.naturalHeight || (image as HTMLCanvasElement).height;
+  return { width, height };
+}
+
+/** Maske (MODEL_SIZE²) für ein Bild aus dem Worker. */
+export function segment(
+  image: CanvasImageSource,
+  onProgress?: (p: RemovalProgress) => void,
+  modelUrl: string = MODEL_URL
+): Promise<{ mask: Uint8ClampedArray; backend: string }> {
+  const input = document.createElement('canvas');
+  input.width = MODEL_SIZE;
+  input.height = MODEL_SIZE;
+  const ctx = input.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return Promise.reject(new Error('Canvas nicht verfügbar'));
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(image, 0, 0, MODEL_SIZE, MODEL_SIZE);
+  const pixels = ctx.getImageData(0, 0, MODEL_SIZE, MODEL_SIZE).data.buffer;
+
+  const id = ++nextId;
+  const target = getWorker();
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      target.removeEventListener('message', onMessage);
+      target.removeEventListener('error', onError);
+    };
+    const onMessage = (event: MessageEvent<WorkerReply>) => {
+      const msg = event.data;
+      if (msg.id !== id) return;
+      if (msg.type === 'progress' && msg.phase) {
+        onProgress?.({
+          phase: msg.phase,
+          fraction:
+            msg.phase === 'download' && msg.total ? (msg.loaded ?? 0) / msg.total : undefined,
+        });
+      } else if (msg.type === 'result' && msg.mask) {
+        cleanup();
+        resolve({ mask: new Uint8ClampedArray(msg.mask), backend: msg.backend ?? 'wasm' });
+      } else if (msg.type === 'error') {
+        cleanup();
+        reject(new Error(msg.message || 'Hintergrund entfernen fehlgeschlagen'));
+      }
+    };
+    const onError = (event: ErrorEvent) => {
+      cleanup();
+      disposeBackgroundRemoval();
+      reject(new Error(event.message || 'Worker-Fehler'));
+    };
+    target.addEventListener('message', onMessage);
+    target.addEventListener('error', onError);
+    target.postMessage({ type: 'run', id, modelUrl, pixels }, [pixels]);
+  });
+}
+
+/**
+ * Wendet eine Maske (MODEL_SIZE²) als Alpha auf das Bild in Originalgröße an.
+ * Vorhandene Transparenz bleibt erhalten (Alpha wird multipliziert).
+ */
+export function applyMask(image: CanvasImageSource, mask: Uint8ClampedArray): HTMLCanvasElement {
+  const { width, height } = sourceSize(image);
+  const maskCanvas = document.createElement('canvas');
+  maskCanvas.width = MODEL_SIZE;
+  maskCanvas.height = MODEL_SIZE;
+  maskCanvas
+    .getContext('2d')!
+    .putImageData(new ImageData(maskToRgba(mask), MODEL_SIZE, MODEL_SIZE), 0, 0);
+
+  const out = document.createElement('canvas');
+  out.width = width;
+  out.height = height;
+  const ctx = out.getContext('2d')!;
+  ctx.drawImage(image, 0, 0, width, height);
+  ctx.globalCompositeOperation = 'destination-in';
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(maskCanvas, 0, 0, width, height);
+  ctx.globalCompositeOperation = 'source-over';
+  return out;
+}
+
+/** Entfernt den Hintergrund und liefert ein Canvas in Originalgröße mit Transparenz. */
+export async function removeBackground(
+  image: CanvasImageSource,
+  onProgress?: (p: RemovalProgress) => void,
+  modelUrl: string = MODEL_URL
+): Promise<HTMLCanvasElement> {
+  const { mask } = await segment(image, onProgress, modelUrl);
+  return applyMask(image, mask);
+}

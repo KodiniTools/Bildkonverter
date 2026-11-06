@@ -35,6 +35,8 @@ const ALLOWED_GRADIENTS = new Set([
   'components/ui/SliderField.vue: linear-gradient( 90deg, var(--ds-info) 0%, var(--ds-border-strong) 50%, var(--ds',
   // Schachbrett für Transparenz in Ebenen-Vorschauen
   'components/features/layer-control/_shared.scss: repeating-conic-gradient(var(--ds-border-strong) 0% 25%, var(--ds-surface-1) 0% ',
+  // Schachbrett hinter der Leinwand ohne Hintergrundfarbe (z. B. nach „Hintergrund entfernen“)
+  'views/EditorView.styles.scss: repeating-conic-gradient(var(--ds-border-strong) 0% 25%, var(--ds-surface-1) 0% ',
 ]);
 const ALLOWED_FONT_SIZES = new Set([
   // Emoji-Sticker und Symbol-Vorschau: Bildgröße, keine Textstufe
