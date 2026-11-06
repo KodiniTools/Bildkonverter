@@ -119,6 +119,15 @@
             @save-history="saveHistory"
             @toggle-pick-white="togglePickWhite"
           />
+          <CurvesPanel
+            :filters="filters"
+            :sections-open="sectionsOpen"
+            :disabled="!currentImage"
+            @update-filter="setFilter"
+            @toggle-section="toggleSection"
+            @render="renderImage"
+            @save-history="saveHistory"
+          />
           <EffectsPanel
             :filters="filters"
             :sections-open="sectionsOpen"
@@ -384,6 +393,7 @@ import AdjustmentsPanel from '@/components/editor/sidebar/AdjustmentsPanel.vue';
 import { autoEnhanceFromImage, isNeutralEnhance } from '@/utils/autoEnhance';
 import { averageColor, whiteBalanceFromSample } from '@/utils/whiteBalance';
 import LightColorPanel from '@/components/editor/sidebar/LightColorPanel.vue';
+import CurvesPanel from '@/components/editor/sidebar/CurvesPanel.vue';
 import EffectsPanel from '@/components/editor/sidebar/EffectsPanel.vue';
 import ResizePanel from '@/components/editor/sidebar/ResizePanel.vue';
 import PreviewModal from '@/components/editor/PreviewModal.vue';

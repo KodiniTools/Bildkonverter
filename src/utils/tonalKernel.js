@@ -2,9 +2,11 @@
  * tonalKernel.js
  *
  * Reine Pixel-Berechnung der Tonwert-Anpassungen (Weißabgleich, Belichtung,
- * Helligkeit, Kontrast, Lichter, Schatten, Sättigung). Ohne Imports und DOM-Zugriff,
- * damit sie identisch im Hauptthread und im Web Worker laufen kann.
+ * Helligkeit, Kontrast, Lichter, Schatten, Sättigung, zuletzt Kurven). Ohne
+ * DOM-Zugriff und nur mit ebenso reinen Kernen als Import, damit sie identisch
+ * im Hauptthread und im Web Worker laufen kann.
  */
+import { curveLUTs } from './curveKernel';
 
 // Luminanz-Gewichte (Rec. 709)
 const LUM_R = 0.2126;
@@ -100,6 +102,9 @@ export function applyTonalAdjustments(data, f) {
   const sat = (f.saturation ?? 100) / 100;
   const STRENGTH = 0.5; // maximale Verschiebung für Lichter/Schatten
 
+  // Kurven zuletzt, als Tabelle je Kanal (null ohne aktive Kurve)
+  const curves = curveLUTs(f);
+
   const doToneRange = hi !== 0 || sh !== 0;
   const doSaturation = sat !== 1;
 
@@ -127,9 +132,15 @@ export function applyTonalAdjustments(data, f) {
       b = clamp01(lum + (b - lum) * sat);
     }
 
-    data[i] = Math.round(r * 255);
-    data[i + 1] = Math.round(g * 255);
-    data[i + 2] = Math.round(b * 255);
+    if (curves) {
+      data[i] = curves.r[Math.round(r * 255)];
+      data[i + 1] = curves.g[Math.round(g * 255)];
+      data[i + 2] = curves.b[Math.round(b * 255)];
+    } else {
+      data[i] = Math.round(r * 255);
+      data[i + 1] = Math.round(g * 255);
+      data[i + 2] = Math.round(b * 255);
+    }
     // Alpha (data[i + 3]) bleibt unverändert
   }
 }

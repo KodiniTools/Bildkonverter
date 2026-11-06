@@ -19,6 +19,11 @@ export const DEFAULT_FILTERS = {
   shadows: 0,
   temperature: 0,
   tint: 0,
+  // Kurven als "x,y x,y …" (0..255); leer = linear (utils/curveKernel.js)
+  curveRgb: '',
+  curveR: '',
+  curveG: '',
+  curveB: '',
   sharpness: 0,
   clarity: 0,
   grain: 0,
@@ -49,6 +54,7 @@ export function useFilterManagement(options = {}) {
   const sectionsOpen = ref({
     adjustments: true,
     lightColor: false,
+    curves: false,
     effects: false,
   });
 

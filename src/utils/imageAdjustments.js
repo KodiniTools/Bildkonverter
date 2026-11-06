@@ -1,6 +1,7 @@
 import { logger } from '@/utils/logger';
 import { applyTonalAdjustments } from './tonalKernel';
 import { applyDetailAdjustments, hasDetailAdjustments } from './detailKernel';
+import { hasCurveAdjustments } from './curveKernel';
 import { adjustInWorker, isImageWorkerAvailable } from '@/lib/imageWorker';
 
 export { applyTonalAdjustments, applyDetailAdjustments, hasDetailAdjustments };
@@ -22,6 +23,7 @@ export { applyTonalAdjustments, applyDetailAdjustments, hasDetailAdjustments };
  *   - shadows    (Schatten)    – nur dunkle Tonwerte (Luminanz-Maske)
  *   - saturation (Sättigung)   – luminanzerhaltend
  *   - temperature / tint (Weißabgleich) – Kanal-Gains im linearen Licht
+ *   - curveRgb / curveR / curveG / curveB (Kurven) – zuletzt, je Kanal (curveKernel.js)
  *
  *  Detail-Anpassungen (echt, per Pixel, nach den Tonwerten; detailKernel.js):
  *   - sharpness (Schärfen), clarity (Klarheit), grain (Körnung)
@@ -61,7 +63,8 @@ export function hasTonalAdjustments(f) {
     (f.shadows ?? 0) !== TONAL_DEFAULTS.shadows ||
     (f.saturation ?? 100) !== TONAL_DEFAULTS.saturation ||
     (f.temperature ?? 0) !== TONAL_DEFAULTS.temperature ||
-    (f.tint ?? 0) !== TONAL_DEFAULTS.tint
+    (f.tint ?? 0) !== TONAL_DEFAULTS.tint ||
+    hasCurveAdjustments(f)
   );
 }
 
@@ -112,6 +115,10 @@ function tonalSignature(f) {
     f.saturation ?? 100,
     f.temperature ?? 0,
     f.tint ?? 0,
+    f.curveRgb ?? '',
+    f.curveR ?? '',
+    f.curveG ?? '',
+    f.curveB ?? '',
     f.sharpness ?? 0,
     f.clarity ?? 0,
     f.grain ?? 0,

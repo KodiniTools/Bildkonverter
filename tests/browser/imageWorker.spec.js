@@ -83,6 +83,19 @@ describe('imageWorker', () => {
     expect(result.data).toEqual(main.data);
   });
 
+  it('Kurven im Worker entsprechen exakt dem Hauptthread', async () => {
+    const curves = {
+      ...FILTERS,
+      curveRgb: '0,0 64,52 192,204 255,255',
+      curveB: '0,20 128,110 255,240',
+    };
+    const main = pixelsOf(img);
+    applyTonalAdjustments(main.data, curves);
+    const result = await adjustInWorker(pixelsOf(img), curves);
+    expect(result).not.toBeNull();
+    expect(result.data).toEqual(main.data);
+  });
+
   it('nur Detail-Regler aktiv: getAdjustedImage rechnet pixelbasiert', () => {
     const { el, cssFilter } = getAdjustedImage(img, { sharpness: 50 });
     expect(el).toBeInstanceOf(HTMLCanvasElement);
