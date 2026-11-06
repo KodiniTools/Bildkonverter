@@ -373,7 +373,6 @@ const en: LocaleMessages = {
       downloading: 'Loading AI model … {percent} %',
       preparing: 'Preparing AI model …',
       running: 'Removing background …',
-      hint: 'Runs entirely in your browser, the image never leaves your device. The AI model (about {size} MB) is downloaded the first time.',
       unsupported: 'Your browser does not support background removal.',
     },
     curves: {

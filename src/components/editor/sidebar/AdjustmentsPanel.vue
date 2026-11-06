@@ -43,12 +43,8 @@
           :value="downloadPercent"
           :aria-label="$t('editor.removeBg.downloading', { percent: downloadPercent })"
         />
-        <p class="remove-bg__hint">
-          {{
-            bgRemoval.available
-              ? $t('editor.removeBg.hint', { size: bgRemoval.modelSizeMb })
-              : $t('editor.removeBg.unsupported')
-          }}
+        <p v-if="!bgRemoval.available" class="remove-bg__hint">
+          {{ $t('editor.removeBg.unsupported') }}
         </p>
       </div>
 

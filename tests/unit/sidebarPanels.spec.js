@@ -113,6 +113,8 @@ describe('AdjustmentsPanel – Hintergrund entfernen', () => {
     });
     const button = wrapper.find('[data-testid="remove-background"]');
     expect(button.text()).toContain('editor.removeBg.remove');
+    // Kein Hinweistext unter dem Button (Kodini-Wunsch 2026-11-06)
+    expect(wrapper.find('.remove-bg__hint').exists()).toBe(false);
     await button.trigger('click');
     expect(wrapper.emitted('remove-background')).toHaveLength(1);
   });
