@@ -5,6 +5,7 @@
  * angewendet. Bild und Modell verlassen das Gerät nicht.
  */
 import { MODEL_SIZE, maskToRgba } from './segmentation';
+import { logger } from '@/utils/logger';
 
 /** Modell im Ordner public/models (wird mit der App ausgeliefert). */
 export const MODEL_URL = `${import.meta.env.BASE_URL}models/isnet-general-use-fp16.onnx`;
@@ -59,27 +60,47 @@ function sourceSize(image: CanvasImageSource): { width: number; height: number }
   return { width, height };
 }
 
-/** Maske (MODEL_SIZE²) für ein Bild aus dem Worker. */
-export function segment(
-  image: CanvasImageSource,
-  onProgress?: (p: RemovalProgress) => void,
-  modelUrl: string = MODEL_URL
-): Promise<{ mask: Uint8ClampedArray; backend: string }> {
+/** Bild auf MODEL_SIZE² verkleinert als RGBA-Puffer (wird an den Worker übertragen). */
+function modelPixels(image: CanvasImageSource): ArrayBuffer {
   const input = document.createElement('canvas');
   input.width = MODEL_SIZE;
   input.height = MODEL_SIZE;
   const ctx = input.getContext('2d', { willReadFrequently: true });
-  if (!ctx) return Promise.reject(new Error('Canvas nicht verfügbar'));
+  if (!ctx) throw new Error('Canvas nicht verfügbar');
   ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(image, 0, 0, MODEL_SIZE, MODEL_SIZE);
-  const pixels = ctx.getImageData(0, 0, MODEL_SIZE, MODEL_SIZE).data.buffer;
+  return ctx.getImageData(0, 0, MODEL_SIZE, MODEL_SIZE).data.buffer;
+}
 
+/** Der Worker selbst ist abgestürzt (kein Fehler, den er noch melden konnte). */
+export class WorkerCrashError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'WorkerCrashError';
+  }
+}
+
+/** Nach einem Absturz nur noch WebAssembly verwenden (bis zum Neuladen). */
+let wasmOnly = false;
+
+function crashMessage(event: Event): string {
+  const e = event as ErrorEvent;
+  const where = e.filename ? ` (${e.filename}:${e.lineno ?? 0})` : '';
+  return `Worker abgestürzt: ${e.message || event.type || 'unbekannter Fehler'}${where}`;
+}
+
+function runInWorker(
+  pixels: ArrayBuffer,
+  onProgress: ((p: RemovalProgress) => void) | undefined,
+  modelUrl: string
+): Promise<{ mask: Uint8ClampedArray; backend: string }> {
   const id = ++nextId;
   const target = getWorker();
   return new Promise((resolve, reject) => {
     const cleanup = () => {
       target.removeEventListener('message', onMessage);
       target.removeEventListener('error', onError);
+      target.removeEventListener('messageerror', onError);
     };
     const onMessage = (event: MessageEvent<WorkerReply>) => {
       const msg = event.data;
@@ -98,15 +119,42 @@ export function segment(
         reject(new Error(msg.message || 'Hintergrund entfernen fehlgeschlagen'));
       }
     };
-    const onError = (event: ErrorEvent) => {
+    const onError = (event: Event) => {
+      event.preventDefault();
       cleanup();
       disposeBackgroundRemoval();
-      reject(new Error(event.message || 'Worker-Fehler'));
+      reject(new WorkerCrashError(crashMessage(event)));
     };
     target.addEventListener('message', onMessage);
     target.addEventListener('error', onError);
-    target.postMessage({ type: 'run', id, modelUrl, pixels }, [pixels]);
+    target.addEventListener('messageerror', onError);
+    target.postMessage({ type: 'run', id, modelUrl, pixels, wasmOnly }, [pixels]);
   });
+}
+
+/**
+ * Maske (MODEL_SIZE²) für ein Bild aus dem Worker. Stürzt der Worker ab
+ * (etwa im GPU-Treiber), wird einmal ohne WebGPU neu gerechnet.
+ */
+export async function segment(
+  image: CanvasImageSource,
+  onProgress?: (p: RemovalProgress) => void,
+  modelUrl: string = MODEL_URL
+): Promise<{ mask: Uint8ClampedArray; backend: string }> {
+  try {
+    return await runInWorker(modelPixels(image), onProgress, modelUrl);
+  } catch (error) {
+    if (!(error instanceof WorkerCrashError) || wasmOnly) throw error;
+    logger.warn('[Hintergrund entfernen] Worker abgestürzt, neuer Versuch ohne WebGPU:', error);
+    wasmOnly = true;
+    return runInWorker(modelPixels(image), onProgress, modelUrl);
+  }
+}
+
+/** Nur für Tests: Zustand nach einem Absturz zurücksetzen. */
+export function resetBackgroundRemovalForTests(): void {
+  wasmOnly = false;
+  disposeBackgroundRemoval();
 }
 
 /**

@@ -3,8 +3,14 @@
  * Maskenanwendung. Statt des großen Modells läuft ein Mini-Modell, das als
  * Maske den Mittelwert der Farbkanäle liefert (hell = behalten, dunkel = weg).
  */
-import { describe, it, expect, afterAll } from 'vitest';
-import { applyMask, disposeBackgroundRemoval, removeBackground } from '@/lib/backgroundRemoval';
+import { describe, it, expect, afterAll, vi } from 'vitest';
+import {
+  applyMask,
+  disposeBackgroundRemoval,
+  removeBackground,
+  resetBackgroundRemovalForTests,
+  segment,
+} from '@/lib/backgroundRemoval';
 import { MODEL_SIZE } from '@/lib/backgroundRemoval/segmentation';
 import maskModelUrl from '../fixtures/mask-mean.onnx?url';
 
@@ -51,4 +57,59 @@ describe('Hintergrund entfernen', () => {
     expect(alphaAt(out, 280, 80)).toBe(0);
     expect(phases.has('run')).toBe(true);
   }, 60000);
+
+  it('stürzt der Worker ab, wird einmal ohne WebGPU neu gerechnet', async () => {
+    resetBackgroundRemovalForTests();
+    const runs = [];
+    class FakeWorker extends EventTarget {
+      postMessage(msg) {
+        runs.push(msg.wasmOnly);
+        setTimeout(() => {
+          if (!msg.wasmOnly) {
+            this.dispatchEvent(new ErrorEvent('error', { message: '' }));
+          } else {
+            const mask = new Uint8ClampedArray(MODEL_SIZE * MODEL_SIZE).fill(255);
+            const reply = { type: 'result', id: msg.id, mask: mask.buffer, backend: 'wasm' };
+            this.dispatchEvent(new MessageEvent('message', { data: reply }));
+          }
+        });
+      }
+      terminate() {}
+    }
+    vi.stubGlobal('Worker', FakeWorker);
+    try {
+      const img = await halfImage(64, 64);
+      const { backend, mask } = await segment(img, undefined, maskModelUrl);
+      expect(runs).toEqual([false, true]);
+      expect(backend).toBe('wasm');
+      expect(mask[0]).toBe(255);
+    } finally {
+      vi.unstubAllGlobals();
+      resetBackgroundRemovalForTests();
+    }
+  });
+
+  it('meldet einen zweiten Absturz mit lesbarer Ursache', async () => {
+    resetBackgroundRemovalForTests();
+    class CrashWorker extends EventTarget {
+      postMessage() {
+        setTimeout(() =>
+          this.dispatchEvent(
+            new ErrorEvent('error', { message: 'Out of memory', filename: 'w.js', lineno: 3 })
+          )
+        );
+      }
+      terminate() {}
+    }
+    vi.stubGlobal('Worker', CrashWorker);
+    try {
+      const img = await halfImage(64, 64);
+      await expect(segment(img, undefined, maskModelUrl)).rejects.toThrow(
+        'Worker abgestürzt: Out of memory (w.js:3)'
+      );
+    } finally {
+      vi.unstubAllGlobals();
+      resetBackgroundRemovalForTests();
+    }
+  });
 });
