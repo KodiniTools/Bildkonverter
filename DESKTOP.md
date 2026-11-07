@@ -31,8 +31,10 @@ npm run tauri build   # Installer nach src-tauri/target/release/bundle/{nsis,msi
 - Alles aus `public/` landet im Paket, auch das ONNX-Modell für „Hintergrund entfernen“ (~90 MB).
   Es funktioniert offline.
 - Sonderformate (TIFF, GIF, HEIC) laufen wie im Web über die Live-API
-  (`.env.desktop`: `VITE_API_BASE_URL`). Dafür braucht der Rechner Internet, und der Server muss
-  CORS für den Ursprung `http://tauri.localhost` erlauben.
+  (`.env.desktop`: `VITE_API_BASE_URL`), dafür braucht der Rechner Internet. Die Anfragen gehen
+  über den HTTP-Client der App (`@tauri-apps/plugin-http`), nicht über den WebView, damit CORS sie
+  nicht blockiert. Erlaubt ist nur `https://kodinitools.com/bildkonverter/api/*`
+  (`src-tauri/capabilities/default.json`).
 - Links nach außen (kodinitools.com, Blog) öffnen im Standardbrowser.
 - Die Weiterleitung an andere Kodini-Tools (Collage Maker …) ist in der Desktop-App ausgeblendet
   (`IS_DESKTOP` in `src/lib/core/desktop.ts`).

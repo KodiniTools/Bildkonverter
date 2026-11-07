@@ -35,6 +35,8 @@ fn open_external(app: &AppHandle, url: &Url) {
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        // API-Aufrufe (TIFF, GIF, HEIC) ohne CORS-Sperre des WebView, siehe src/api/api.js
+        .plugin(tauri_plugin_http::init())
         .setup(|app| {
             let nav_handle = app.handle().clone();
             let popup_handle = app.handle().clone();

@@ -25,6 +25,23 @@ export const getBaseURL = (env = import.meta.env) => {
 export const API_BASE_URL = getBaseURL();
 
 /**
+ * fetch für API-Aufrufe. In der Desktop-App (Tauri) läuft die Anfrage über den
+ * HTTP-Client der App (Rust) statt über den WebView: Der WebView würde die
+ * Antwort der Live-API wegen CORS blockieren (Ursprung http://tauri.localhost).
+ * Im Web-Build bleibt es das normale fetch; das Modul wird dort nie geladen.
+ * @param {string} url
+ * @param {RequestInit} [init]
+ * @returns {Promise<Response>}
+ */
+const apiFetch = async (url, init) => {
+  if (import.meta.env.MODE === 'desktop') {
+    const { fetch: desktopFetch } = await import('@tauri-apps/plugin-http');
+    return desktopFetch(url, init);
+  }
+  return fetch(url, init);
+};
+
+/**
  * API Endpoints
  */
 export const API_ENDPOINTS = {
@@ -62,7 +79,7 @@ export class ApiClient {
     }
 
     try {
-      const response = await fetch(API_ENDPOINTS.convertImage, {
+      const response = await apiFetch(API_ENDPOINTS.convertImage, {
         method: 'POST',
         body: formData,
       });
@@ -84,7 +101,7 @@ export class ApiClient {
    */
   static async checkBackendAvailability() {
     try {
-      const response = await fetch(API_ENDPOINTS.getFormats, {
+      const response = await apiFetch(API_ENDPOINTS.getFormats, {
         method: 'GET',
         signal: AbortSignal.timeout(5000), // 5 Sekunden Timeout
       });

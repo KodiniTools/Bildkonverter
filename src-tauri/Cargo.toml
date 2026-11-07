@@ -13,6 +13,8 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
+# native-tls: Windows-eigene TLS (Schannel, System-Zertifikate), kein C-Build für rustls/ring
+tauri-plugin-http = { version = "2", default-features = false, features = ["native-tls", "http2", "charset", "system-proxy", "gzip"] }
 
 [profile.release]
 codegen-units = 1
