@@ -52,6 +52,16 @@ const de = {
         description:
           'Schneiden Sie Ihre Bilder präzise zu und fokussieren Sie auf das Wesentliche. Perfekt für Social Media und Webseiten.',
       },
+      removeBg: {
+        title: 'Hintergrund entfernen',
+        description:
+          'Entfernen Sie den Hintergrund per KI mit einem Klick. Das Modell läuft komplett in Ihrem Browser, Ihre Bilder bleiben auf Ihrem Gerät.',
+      },
+      text: {
+        title: 'Text hinzufügen und bearbeiten',
+        description:
+          'Fügen Sie Überschriften und Beschriftungen ein. Schrift, Größe, Farbe und Position lassen sich jederzeit anpassen.',
+      },
     },
     batchLink: 'mehrere Bilder konvertieren',
     conversions: {
