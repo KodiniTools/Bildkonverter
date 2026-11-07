@@ -18,6 +18,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { exportImage, getFormatInfo } from '@/utils/exportUtils';
 import { saveFile } from '@/utils/saveFile';
+import { IS_DESKTOP } from '@/lib/core/desktop';
 import { canvasToBlob } from '@/utils/conversionUtils';
 import {
   TARGET_KB_DEFAULT,
@@ -258,16 +259,19 @@ export function useEditorExport({
 
       // Snapshot des exportierten Canvas sichern, solange der Export-Render aktiv ist.
       // Wird für die optionale Weiterleitung an ein anderes Kodini-Tool genutzt.
-      try {
-        const snap = document.createElement('canvas');
-        snap.width = canvas.value.width;
-        snap.height = canvas.value.height;
-        snap.getContext('2d').drawImage(canvas.value, 0, 0);
-        forwardCanvasSnapshot.value = snap;
-        forwardFilename.value = filename;
-        showForwardOffer.value = true;
-      } catch (snapErr) {
-        logger.warn('[Handoff] Snapshot für Weiterleitung fehlgeschlagen:', snapErr);
+      // Nicht in der Desktop-App: Die anderen Tools liegen nur auf kodinitools.com.
+      if (!IS_DESKTOP) {
+        try {
+          const snap = document.createElement('canvas');
+          snap.width = canvas.value.width;
+          snap.height = canvas.value.height;
+          snap.getContext('2d').drawImage(canvas.value, 0, 0);
+          forwardCanvasSnapshot.value = snap;
+          forwardFilename.value = filename;
+          showForwardOffer.value = true;
+        } catch (snapErr) {
+          logger.warn('[Handoff] Snapshot für Weiterleitung fehlgeschlagen:', snapErr);
+        }
       }
 
       if (window.$toast) {

@@ -4,9 +4,17 @@ import { logger } from '@/utils/logger';
  * Pfad: /src/api/api.js
  */
 
-// Base URL - wird automatisch gesetzt basierend auf der Umgebung
-const getBaseURL = () => {
-  if (import.meta.env.PROD) {
+/**
+ * Base URL der Backend-API, abhängig von der Umgebung.
+ * VITE_API_BASE_URL hat Vorrang (Desktop-Build: .env.desktop), denn dort
+ * liegt die App nicht auf kodinitools.com und ein relativer Pfad liefe ins Leere.
+ * @param {{ PROD?: boolean, VITE_API_BASE_URL?: string }} [env]
+ * @returns {string}
+ */
+export const getBaseURL = (env = import.meta.env) => {
+  const override = env.VITE_API_BASE_URL;
+  if (override) return override.replace(/\/+$/, '');
+  if (env.PROD) {
     // Production: Verwendet den /bildkonverter Pfad
     return '/bildkonverter/api';
   }

@@ -8,6 +8,9 @@
     "build": "vue-tsc && vite build",
     "type-check": "vue-tsc --noEmit && tsc -p e2e/tsconfig.json",
     "preview": "vite preview",
+    "dev:desktop": "vite --mode desktop --strictPort",
+    "build:desktop": "vite build --mode desktop",
+    "tauri": "tauri",
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
     "test:browser": "vitest run --project browser",
@@ -34,6 +37,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "~1.63.0",
+    "@tauri-apps/cli": "^2.12.4",
     "@types/node": "^20.19.43",
     "@vitejs/plugin-vue": "^5.0.4",
     "@vitest/browser": "^3.2.7",

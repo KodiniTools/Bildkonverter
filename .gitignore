@@ -49,3 +49,8 @@ dist
 # Playwright
 playwright-report/
 test-results/
+
+# Desktop-App (Tauri)
+dist-desktop
+src-tauri/target
+src-tauri/gen
