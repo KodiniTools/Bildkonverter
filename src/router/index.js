@@ -156,6 +156,24 @@ const router = createRouter({
         },
       },
     },
+    {
+      path: '/download',
+      name: 'download',
+      component: () => import('@/views/DownloadView.vue'),
+      meta: {
+        title: 'Bildkonverter für Windows herunterladen',
+        description:
+          'Bildkonverter Pro als kostenlose Windows-App: Installer (.exe) oder MSI-Paket für Windows 10 und 11. Bilder bearbeiten, konvertieren und Hintergründe entfernen – lokal auf dem PC.',
+        keywords:
+          'Bildkonverter Windows, Bildkonverter Download, Bildkonverter App, Bildbearbeitung offline, MSI, EXE',
+        path: '/download',
+        en: {
+          title: 'Download Image Converter for Windows',
+          description:
+            'Image Converter Pro as a free Windows app: installer (.exe) or MSI package for Windows 10 and 11. Edit and convert images and remove backgrounds – locally on your PC.',
+        },
+      },
+    },
     // Format-spezifische Konvertierungs-Landingpages
     {
       path: '/konvertieren/:pair',
