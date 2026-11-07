@@ -17,6 +17,58 @@ const de = {
     about: 'Über uns',
     faq: 'FAQ',
     blog: 'Blog',
+    download: 'Download',
+  },
+  download: {
+    eyebrow: 'Windows-App',
+    title: 'Bildkonverter Pro für Windows',
+    subtitle:
+      'Alle Funktionen des Bildkonverters als App auf Ihrem PC – mit eigenem Fenster, Startmenü-Eintrag und „Hintergrund entfernen“ auch ohne Internet.',
+    requirements: 'Windows 10 oder 11 · 64-Bit · ca. 100 MB Speicherplatz',
+    filesLabel: 'Download-Dateien',
+    recommended: 'Empfohlen',
+    button: '{ext} herunterladen',
+    sizeNote:
+      'Jede Datei ist rund 90 MB groß, vor allem wegen des KI-Modells für „Hintergrund entfernen“. Sie brauchen nur eine davon.',
+    allReleases: 'Alle Versionen und Änderungen auf GitHub',
+    files: {
+      exe: {
+        title: 'Installer (.exe)',
+        description:
+          'Für die meisten Nutzer: Installation ohne Administratorrechte, Sprache Deutsch oder Englisch wählbar.',
+      },
+      msiDe: {
+        title: 'MSI-Paket Deutsch',
+        description: 'Für IT-Abteilungen und Softwareverteilung, Installationsdialog auf Deutsch.',
+      },
+      msiEn: {
+        title: 'MSI-Paket Englisch',
+        description: 'Für IT-Abteilungen und Softwareverteilung, Installationsdialog auf Englisch.',
+      },
+    },
+    notes: {
+      title: 'Gut zu wissen',
+      smartscreen: {
+        title: 'Windows-SmartScreen-Hinweis',
+        description:
+          'Die App ist noch nicht digital signiert. Beim ersten Start zeigt Windows „Der Computer wurde durch Windows geschützt“: Klicken Sie auf „Weitere Informationen“ und dann auf „Trotzdem ausführen“. Blockiert der Browser den Download, wählen Sie in der Download-Liste „Behalten“.',
+      },
+      offline: {
+        title: 'Lokal und ohne Internet',
+        description:
+          'Bearbeiten, Konvertieren nach JPG, PNG, WebP und PDF sowie „Hintergrund entfernen“ laufen komplett auf Ihrem Rechner.',
+      },
+      internet: {
+        title: 'Sonderformate brauchen Internet',
+        description:
+          'TIFF, GIF und HEIC werden wie in der Web-Version SSL-verschlüsselt auf unserem Server in Deutschland umgewandelt und sofort gelöscht.',
+      },
+      webview: {
+        title: 'Microsoft Edge WebView2',
+        description:
+          'Die App nutzt die in Windows 10 und 11 enthaltene WebView2-Laufzeit. Fehlt sie, lädt der Installer sie automatisch nach.',
+      },
+    },
   },
   locale: 'de-DE',
   home: {

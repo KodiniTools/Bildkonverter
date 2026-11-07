@@ -14,6 +14,10 @@ const PAGES: ReadonlyArray<{ path: string; heading: Record<Locale, string> | nul
   { path: './faq', heading: { de: 'Häufig gestellte Fragen', en: 'Frequently Asked Questions' } },
   { path: './about', heading: { de: 'Über Bildkonverter Pro', en: 'About Image Converter Pro' } },
   {
+    path: './download',
+    heading: { de: 'Bildkonverter Pro für Windows', en: 'Image Converter Pro for Windows' },
+  },
+  {
     path: './konvertieren/png-zu-webp',
     heading: {
       de: 'PNG in WebP umwandeln – Für schnellere Websites',

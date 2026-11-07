@@ -66,11 +66,21 @@ jobs:
         with:
           name: bildkonverter-windows
           path: installer
+      # Feste Dateinamen: Die Download-Seite (/download) verlinkt
+      # releases/latest/download/<Name>, siehe src/lib/core/desktopDownloads.ts
+      - name: Dateien umbenennen
+        run: |
+          mkdir dl
+          cp installer/nsis/*-setup.exe dl/Bildkonverter-Pro-Setup-x64.exe
+          cp installer/msi/*_de-DE.msi dl/Bildkonverter-Pro-x64-de-DE.msi
+          cp installer/msi/*_en-US.msi dl/Bildkonverter-Pro-x64-en-US.msi
+          ls -la dl
       - name: Release mit Installern
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" installer/nsis/*.exe installer/msi/*.msi \
+          gh release create "$GITHUB_REF_NAME" dl/* \
             --repo "$GITHUB_REPOSITORY" \
+            --latest \
             --title "Bildkonverter Pro (Windows) $GITHUB_REF_NAME" \
-            --notes "Windows-Installer (.exe) und MSI-Pakete. Nicht signiert: Windows SmartScreen zeigt beim ersten Start eine Warnung (Weitere Informationen → Trotzdem ausführen)."
+            --notes "Windows-Installer (.exe) und MSI-Pakete (Deutsch, Englisch). Nicht signiert: Windows SmartScreen zeigt beim ersten Start eine Warnung (Weitere Informationen → Trotzdem ausführen)."

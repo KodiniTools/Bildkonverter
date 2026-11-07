@@ -18,6 +18,58 @@ const en: LocaleMessages = {
     about: 'About',
     faq: 'FAQ',
     blog: 'Blog',
+    download: 'Download',
+  },
+  download: {
+    eyebrow: 'Windows app',
+    title: 'Image Converter Pro for Windows',
+    subtitle:
+      'Every feature of the image converter as an app on your PC – with its own window, a Start menu entry and “Remove background” even without internet.',
+    requirements: 'Windows 10 or 11 · 64-bit · about 100 MB of disk space',
+    filesLabel: 'Download files',
+    recommended: 'Recommended',
+    button: 'Download {ext}',
+    sizeNote:
+      'Each file is about 90 MB, mostly because of the AI model for “Remove background”. You only need one of them.',
+    allReleases: 'All versions and changes on GitHub',
+    files: {
+      exe: {
+        title: 'Installer (.exe)',
+        description:
+          'For most users: installs without administrator rights, choose German or English.',
+      },
+      msiDe: {
+        title: 'MSI package German',
+        description: 'For IT departments and software deployment, setup dialog in German.',
+      },
+      msiEn: {
+        title: 'MSI package English',
+        description: 'For IT departments and software deployment, setup dialog in English.',
+      },
+    },
+    notes: {
+      title: 'Good to know',
+      smartscreen: {
+        title: 'Windows SmartScreen notice',
+        description:
+          'The app is not digitally signed yet. On first launch Windows shows “Windows protected your PC”: click “More info”, then “Run anyway”. If your browser blocks the download, choose “Keep” in its download list.',
+      },
+      offline: {
+        title: 'Local and offline',
+        description:
+          'Editing, converting to JPG, PNG, WebP and PDF and “Remove background” run entirely on your computer.',
+      },
+      internet: {
+        title: 'Special formats need internet',
+        description:
+          'As in the web version, TIFF, GIF and HEIC are converted SSL-encrypted on our server in Germany and deleted immediately.',
+      },
+      webview: {
+        title: 'Microsoft Edge WebView2',
+        description:
+          'The app uses the WebView2 runtime built into Windows 10 and 11. If it is missing, the installer downloads it automatically.',
+      },
+    },
   },
   locale: 'en-US',
   home: {

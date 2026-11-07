@@ -71,6 +71,7 @@
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
 import AppIcon from '@/components/ui/AppIcon.vue';
+import { IS_DESKTOP } from '@/lib/core/desktop';
 
 const route = useRoute();
 
@@ -91,6 +92,8 @@ const routes = [
     label: 'nav.blog',
     external: true,
   },
+  // Windows-App herunterladen; in der App selbst ausgeblendet
+  ...(IS_DESKTOP ? [] : [{ path: '/download', label: 'nav.download' }]),
 ];
 
 // Methods
