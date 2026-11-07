@@ -53,6 +53,16 @@ const en: LocaleMessages = {
         description:
           'Crop your images precisely and focus on what matters. Perfect for social media and websites.',
       },
+      removeBg: {
+        title: 'Remove Background',
+        description:
+          'Remove the background with AI in one click. The model runs entirely in your browser, so your images stay on your device.',
+      },
+      text: {
+        title: 'Add and Edit Text',
+        description:
+          'Add headlines and captions. Adjust font, size, color and position at any time.',
+      },
     },
     batchLink: 'convert multiple images',
     conversions: {

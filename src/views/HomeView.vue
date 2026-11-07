@@ -129,6 +129,8 @@ const features = [
   { key: 'privacy', icon: 'fas fa-shield-alt' },
   { key: 'fast', icon: 'fas fa-bolt' },
   { key: 'crop', icon: 'fas fa-crop' },
+  { key: 'removeBg', icon: 'eraser' },
+  { key: 'text', icon: 'font' },
 ];
 
 // Beliebte Konvertierungs-Paare (Long-Tail SEO), in Anzeige-Reihenfolge;
