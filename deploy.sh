@@ -37,7 +37,8 @@ RELOAD_NGINX="${RELOAD_NGINX:-1}"
 # Pfade im Zielverzeichnis, die NICHT gelöscht werden dürfen (relativ zu TARGET_DIR).
 # Wichtig, falls dort z. B. ein Backend oder Uploads liegen.
 # Mehrere Einträge mit Leerzeichen trennen: RSYNC_EXCLUDES="api/ uploads/"
-RSYNC_EXCLUDES="${RSYNC_EXCLUDES:-api/}"
+# downloads/ = Windows-Installer (.exe/.msi), abgelegt von deploy-downloads.sh
+RSYNC_EXCLUDES="${RSYNC_EXCLUDES:-api/ downloads/}"
 
 # Standard: ohne Rückfrage. Vor jedem Deploy wird ohnehin ein Backup angelegt.
 # Mit --ask oder ASSUME_YES=0 kommt die Rückfrage vor dem Löschen zurück.
@@ -157,7 +158,10 @@ if [ -d "$TARGET_DIR" ] && [ -n "$(ls -A "$TARGET_DIR" 2>/dev/null)" ]; then
     warn "übersprungen (dry-run)"
   else
     mkdir -p "$BACKUP_DIR"
-    tar -czf "$BACKUP_DIR/bildkonverter_$STAMP.tar.gz" -C "$TARGET_DIR" . 2>/dev/null
+    # Installer (~270 MB) nicht mitsichern: Sie liegen ohnehin im GitHub-Release
+    # und werden von deploy.sh nicht angefasst.
+    tar -czf "$BACKUP_DIR/bildkonverter_$STAMP.tar.gz" --exclude=./downloads \
+      -C "$TARGET_DIR" . 2>/dev/null
     ok "Backup: $BACKUP_DIR/bildkonverter_$STAMP.tar.gz"
     # Nur die letzten N Backups behalten
     ls -1t "$BACKUP_DIR"/bildkonverter_*.tar.gz 2>/dev/null |

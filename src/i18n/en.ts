@@ -31,7 +31,6 @@ const en: LocaleMessages = {
     button: 'Download {ext}',
     sizeNote:
       'Each file is about 90 MB, mostly because of the AI model for “Remove background”. You only need one of them.',
-    allReleases: 'All versions and changes on GitHub',
     files: {
       exe: {
         title: 'Installer (.exe)',

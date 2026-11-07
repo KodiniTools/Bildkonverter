@@ -13,8 +13,21 @@ Gebaut wird auf GitHub Actions (Windows-Runner), Workflow `.github/workflows/des
   Der Workflow legt Tag und Release auf dem gebauten Commit an.
 - **Release per Tag:** Tag `desktop-vX.Y.Z` pushen (z. B. `git tag desktop-v3.0.0 && git push origin desktop-v3.0.0`).
   Der Workflow legt ein GitHub-Release mit `.exe` und `.msi` an (als „latest“) und benennt die Dateien
-  auf feste Namen um (`src/lib/core/desktopDownloads.ts`). Die Seite `/download` verlinkt
-  `releases/latest/download/<Name>` und zeigt damit immer die neueste Version.
+  auf feste Namen um (`src/lib/core/desktopDownloads.ts`).
+
+## Dateien auf den eigenen Server legen
+
+Die Seite `/bildkonverter/download` verlinkt `/bildkonverter/downloads/<Datei>` auf dem VPS.
+Nach jedem neuen Release auf dem VPS (aus `/opt/bildkonverter`):
+
+```bash
+sudo ./deploy-downloads.sh                   # neuestes GitHub-Release holen
+sudo ./deploy-downloads.sh desktop-v3.0.1    # oder ein bestimmtes
+sudo ./deploy-downloads.sh --from-dir ~/bildkonverter-windows   # oder entpacktes Artefakt-ZIP
+```
+
+Das Skript ersetzt die Dateien erst, wenn alle drei vollständig und plausibel groß sind.
+`deploy.sh` lässt `downloads/` beim Veröffentlichen stehen und nimmt den Ordner nicht ins Backup.
 
 Die Versionsnummer kommt aus `package.json` (`version`, für MSI nur `X.Y.Z`).
 

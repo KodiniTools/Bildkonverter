@@ -6,12 +6,12 @@ import { createI18n } from 'vue-i18n';
 import de from '@/i18n/de';
 import en from '@/i18n/en';
 import DownloadView from '@/views/DownloadView.vue';
-import { DESKTOP_DOWNLOADS, RELEASE_DOWNLOAD_BASE, downloadUrl } from '@/lib/core/desktopDownloads';
+import { DESKTOP_DOWNLOADS, downloadUrl } from '@/lib/core/desktopDownloads';
 
-const workflow = readFileSync(
-  resolve(__dirname, '../../../.github/workflows/desktop-windows.yml'),
-  'utf8'
-);
+const root = resolve(__dirname, '../../..');
+const workflow = readFileSync(resolve(root, '.github/workflows/desktop-windows.yml'), 'utf8');
+const serverScript = readFileSync(resolve(root, 'deploy-downloads.sh'), 'utf8');
+const deployScript = readFileSync(resolve(root, 'deploy.sh'), 'utf8');
 
 describe('Download-Dateien der Windows-App', () => {
   it('der Release-Workflow erzeugt genau die verlinkten Dateinamen', () => {
@@ -21,12 +21,19 @@ describe('Download-Dateien der Windows-App', () => {
     expect(workflow).toContain('--latest');
   });
 
-  it('verlinkt auf den neuesten Release', () => {
+  it('das Server-Skript legt genau die verlinkten Dateien ab', () => {
+    for (const { file } of DESKTOP_DOWNLOADS) {
+      expect(serverScript).toContain(`  ${file}\n`);
+    }
+  });
+
+  it('deploy.sh löscht den Ordner downloads/ nicht', () => {
+    expect(deployScript).toMatch(/RSYNC_EXCLUDES="\$\{RSYNC_EXCLUDES:-[^}]*\bdownloads\/[^}]*\}"/);
+  });
+
+  it('verlinkt auf den eigenen Server (<Basis>/downloads/, live /bildkonverter/downloads/)', () => {
     expect(downloadUrl('Bildkonverter-Pro-Setup-x64.exe')).toBe(
-      `${RELEASE_DOWNLOAD_BASE}/Bildkonverter-Pro-Setup-x64.exe`
-    );
-    expect(RELEASE_DOWNLOAD_BASE).toBe(
-      'https://github.com/KodiniTools/Bildkonverter/releases/latest/download'
+      `${import.meta.env.BASE_URL}downloads/Bildkonverter-Pro-Setup-x64.exe`
     );
   });
 
