@@ -9,7 +9,9 @@ Gebaut wird auf GitHub Actions (Windows-Runner), Workflow `.github/workflows/des
 
 - **Manuell:** GitHub → Actions → „Windows-Desktop-App“ → „Run workflow“. Die Dateien liegen danach
   im Lauf unter „Artifacts“ → `bildkonverter-windows` (ZIP mit `nsis/*.exe` und `msi/*.msi`).
-- **Release:** Tag `desktop-vX.Y.Z` pushen (z. B. `git tag desktop-v3.0.0 && git push origin desktop-v3.0.0`).
+- **Release per Klick:** „Run workflow“ mit ausgefülltem Feld „Release-Tag“ (z. B. `desktop-v3.0.1`).
+  Der Workflow legt Tag und Release auf dem gebauten Commit an.
+- **Release per Tag:** Tag `desktop-vX.Y.Z` pushen (z. B. `git tag desktop-v3.0.0 && git push origin desktop-v3.0.0`).
   Der Workflow legt ein GitHub-Release mit `.exe` und `.msi` an (als „latest“) und benennt die Dateien
   auf feste Namen um (`src/lib/core/desktopDownloads.ts`). Die Seite `/download` verlinkt
   `releases/latest/download/<Name>` und zeigt damit immer die neueste Version.

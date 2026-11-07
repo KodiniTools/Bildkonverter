@@ -6,12 +6,19 @@ name: Windows-Desktop-App
 # unabhängig (eigener Build-Modus, Ausgabe nach dist-desktop/).
 #
 # Auslöser:
-#   - manuell (Actions → Windows-Desktop-App → Run workflow): Dateien als Artefakt
+#   - manuell (Actions → Windows-Desktop-App → Run workflow): Dateien als Artefakt;
+#     mit ausgefülltem Feld „Release-Tag“ (z. B. desktop-v3.0.1) zusätzlich ein
+#     GitHub-Release, der Tag wird dabei auf dem gebauten Commit angelegt
 #   - Tag desktop-v* (z. B. desktop-v3.0.0): zusätzlich GitHub-Release mit den Dateien
 #   - Pull Requests, die die Desktop-Hülle ändern: Probe-Build
 
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release-Tag (z. B. desktop-v3.0.1). Leer = nur bauen, kein Release.'
+        required: false
+        default: ''
   push:
     tags: ['desktop-v*']
   pull_request:
@@ -56,7 +63,7 @@ jobs:
 
   release:
     name: GitHub-Release anlegen
-    if: startsWith(github.ref, 'refs/tags/desktop-v')
+    if: startsWith(github.ref, 'refs/tags/desktop-v') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -78,9 +85,16 @@ jobs:
       - name: Release mit Installern
         env:
           GH_TOKEN: ${{ github.token }}
+          # Tag-Push: Name des Tags; manuell: Eingabe (als Umgebungsvariable, nicht im Skript)
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
         run: |
-          gh release create "$GITHUB_REF_NAME" dl/* \
+          if [[ ! "$RELEASE_TAG" =~ ^desktop-v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release-Tag muss wie desktop-v3.0.1 aussehen, war: $RELEASE_TAG"
+            exit 1
+          fi
+          gh release create "$RELEASE_TAG" dl/* \
             --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
             --latest \
-            --title "Bildkonverter Pro (Windows) $GITHUB_REF_NAME" \
+            --title "Bildkonverter Pro (Windows) $RELEASE_TAG" \
             --notes "Windows-Installer (.exe) und MSI-Pakete (Deutsch, Englisch). Nicht signiert: Windows SmartScreen zeigt beim ersten Start eine Warnung (Weitere Informationen → Trotzdem ausführen)."
