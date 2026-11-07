@@ -1,14 +1,10 @@
 /**
- * Download-Dateien der Windows-App. Sie liegen als Assets am neuesten
- * GitHub-Release; der Workflow .github/workflows/desktop-windows.yml benennt
- * sie beim Release auf genau diese festen Namen um, damit die Links über
- * „releases/latest/download“ bei jeder neuen Version gültig bleiben.
+ * Download-Dateien der Windows-App. Sie liegen auf dem eigenen Server unter
+ * /bildkonverter/downloads/ (abgelegt von deploy-downloads.sh, das sie aus dem
+ * GitHub-Release holt). Der Release-Workflow und das Skript verwenden genau
+ * diese festen Namen, damit die Links bei jeder neuen Version gültig bleiben.
  */
-export const RELEASE_DOWNLOAD_BASE =
-  'https://github.com/KodiniTools/Bildkonverter/releases/latest/download';
-
-/** Alle Releases (ältere Versionen, Änderungen) */
-export const RELEASES_PAGE = 'https://github.com/KodiniTools/Bildkonverter/releases';
+export const DOWNLOAD_BASE = `${import.meta.env.BASE_URL}downloads`;
 
 export type DesktopDownloadKey = 'exe' | 'msiDe' | 'msiEn';
 
@@ -27,7 +23,7 @@ export const DESKTOP_DOWNLOADS: readonly DesktopDownload[] = [
   { key: 'msiEn', file: 'Bildkonverter-Pro-x64-en-US.msi', recommended: false },
 ];
 
-/** Direkter Download-Link zur Datei im neuesten Release */
+/** Download-Link zur Datei auf dem eigenen Server */
 export function downloadUrl(file: string): string {
-  return `${RELEASE_DOWNLOAD_BASE}/${encodeURIComponent(file)}`;
+  return `${DOWNLOAD_BASE}/${encodeURIComponent(file)}`;
 }

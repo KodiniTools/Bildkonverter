@@ -49,11 +49,6 @@
           </div>
         </div>
       </div>
-      <p class="releases-link">
-        <a :href="RELEASES_PAGE" target="_blank" rel="noopener noreferrer">
-          {{ $t('download.allReleases') }}
-        </a>
-      </p>
     </section>
   </div>
 </template>
@@ -61,7 +56,7 @@
 <script setup lang="ts">
 import AppIcon from '@/components/ui/AppIcon.vue';
 import UiButton from '@/components/ui/UiButton.vue';
-import { DESKTOP_DOWNLOADS, RELEASES_PAGE, downloadUrl } from '@/lib/core/desktopDownloads';
+import { DESKTOP_DOWNLOADS, downloadUrl } from '@/lib/core/desktopDownloads';
 
 /** Hinweise unter download.notes.<key> */
 const notes = [
@@ -279,20 +274,6 @@ function extension(file: string): string {
     color: var(--ds-text-2);
     line-height: var(--ds-leading);
     margin: 0;
-  }
-}
-
-.releases-link {
-  text-align: center;
-  margin-top: var(--ds-space-8);
-
-  a {
-    color: var(--ds-text-2);
-    text-decoration: underline;
-
-    &:hover {
-      color: var(--ds-text);
-    }
   }
 }
 </style>

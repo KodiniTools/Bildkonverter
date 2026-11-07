@@ -30,7 +30,6 @@ const de = {
     button: '{ext} herunterladen',
     sizeNote:
       'Jede Datei ist rund 90 MB groß, vor allem wegen des KI-Modells für „Hintergrund entfernen“. Sie brauchen nur eine davon.',
-    allReleases: 'Alle Versionen und Änderungen auf GitHub',
     files: {
       exe: {
         title: 'Installer (.exe)',
