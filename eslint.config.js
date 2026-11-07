@@ -20,6 +20,8 @@ export default defineConfigWithVueTs(
     name: 'app/files-to-ignore',
     ignores: [
       '**/dist/**',
+      '**/dist-desktop/**',
+      'src-tauri/**',
       '**/node_modules/**',
       'public/**',
       '**/*.min.js',

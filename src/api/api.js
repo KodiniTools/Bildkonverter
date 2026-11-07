@@ -4,9 +4,17 @@ import { logger } from '@/utils/logger';
  * Pfad: /src/api/api.js
  */
 
-// Base URL - wird automatisch gesetzt basierend auf der Umgebung
-const getBaseURL = () => {
-  if (import.meta.env.PROD) {
+/**
+ * Base URL der Backend-API, abhängig von der Umgebung.
+ * VITE_API_BASE_URL hat Vorrang (Desktop-Build: .env.desktop), denn dort
+ * liegt die App nicht auf kodinitools.com und ein relativer Pfad liefe ins Leere.
+ * @param {{ PROD?: boolean, VITE_API_BASE_URL?: string }} [env]
+ * @returns {string}
+ */
+export const getBaseURL = (env = import.meta.env) => {
+  const override = env.VITE_API_BASE_URL;
+  if (override) return override.replace(/\/+$/, '');
+  if (env.PROD) {
     // Production: Verwendet den /bildkonverter Pfad
     return '/bildkonverter/api';
   }
@@ -15,6 +23,23 @@ const getBaseURL = () => {
 };
 
 export const API_BASE_URL = getBaseURL();
+
+/**
+ * fetch für API-Aufrufe. In der Desktop-App (Tauri) läuft die Anfrage über den
+ * HTTP-Client der App (Rust) statt über den WebView: Der WebView würde die
+ * Antwort der Live-API wegen CORS blockieren (Ursprung http://tauri.localhost).
+ * Im Web-Build bleibt es das normale fetch; das Modul wird dort nie geladen.
+ * @param {string} url
+ * @param {RequestInit} [init]
+ * @returns {Promise<Response>}
+ */
+const apiFetch = async (url, init) => {
+  if (import.meta.env.MODE === 'desktop') {
+    const { fetch: desktopFetch } = await import('@tauri-apps/plugin-http');
+    return desktopFetch(url, init);
+  }
+  return fetch(url, init);
+};
 
 /**
  * API Endpoints
@@ -54,7 +79,7 @@ export class ApiClient {
     }
 
     try {
-      const response = await fetch(API_ENDPOINTS.convertImage, {
+      const response = await apiFetch(API_ENDPOINTS.convertImage, {
         method: 'POST',
         body: formData,
       });
@@ -76,7 +101,7 @@ export class ApiClient {
    */
   static async checkBackendAvailability() {
     try {
-      const response = await fetch(API_ENDPOINTS.getFormats, {
+      const response = await apiFetch(API_ENDPOINTS.getFormats, {
         method: 'GET',
         signal: AbortSignal.timeout(5000), // 5 Sekunden Timeout
       });

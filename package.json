@@ -8,6 +8,9 @@
     "build": "vue-tsc && vite build",
     "type-check": "vue-tsc --noEmit && tsc -p e2e/tsconfig.json",
     "preview": "vite preview",
+    "dev:desktop": "vite --mode desktop --strictPort",
+    "build:desktop": "vite build --mode desktop",
+    "tauri": "tauri",
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
     "test:browser": "vitest run --project browser",
@@ -20,6 +23,7 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@tauri-apps/plugin-http": "^2.8.3",
     "@vueuse/core": "^10.9.0",
     "canvas-confetti": "^1.9.2",
     "jspdf": "^2.5.2",
@@ -34,6 +38,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "~1.63.0",
+    "@tauri-apps/cli": "^2.12.4",
     "@types/node": "^20.19.43",
     "@vitejs/plugin-vue": "^5.0.4",
     "@vitest/browser": "^3.2.7",

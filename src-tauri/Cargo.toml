@@ -1,0 +1,24 @@
+[package]
+name = "bildkonverter-desktop"
+version = "3.0.0"
+description = "Bildkonverter Pro als Windows-Desktop-App"
+authors = ["KodiniTools"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.77.2"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+# native-tls: Windows-eigene TLS (Schannel, System-Zertifikate), kein C-Build für rustls/ring
+tauri-plugin-http = { version = "2", default-features = false, features = ["native-tls", "http2", "charset", "system-proxy", "gzip"] }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true
