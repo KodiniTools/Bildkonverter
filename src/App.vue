@@ -20,6 +20,9 @@
     <!-- Confirm Dialog -->
     <ConfirmDialog />
 
+    <!-- Dateiname vor dem Download (Browser ohne Speichern-unter-Dialog) -->
+    <SaveAsDialog />
+
     <!-- Keyboard Shortcuts Listener -->
     <KeyboardShortcuts v-if="settings.shortcutsEnabled" />
 
@@ -46,6 +49,7 @@ import { i18n } from '@/i18n';
 import AppHeader from '@/components/layout/AppHeader.vue';
 import ToastContainer from '@/components/ui/ToastContainer.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import SaveAsDialog from '@/components/ui/SaveAsDialog.vue';
 import KeyboardShortcuts from '@/components/features/KeyboardShortcuts.vue';
 import PerformanceMonitor from '@/components/dev/PerformanceMonitor.vue';
 import TextEditModal from '@/components/modals/TextEditModal.vue';

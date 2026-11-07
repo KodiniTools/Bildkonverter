@@ -16,7 +16,8 @@
  * @param {Function} deps.t
  */
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
-import { exportImage } from '@/utils/exportUtils';
+import { exportImage, getFormatInfo } from '@/utils/exportUtils';
+import { saveFile } from '@/utils/saveFile';
 import { canvasToBlob } from '@/utils/conversionUtils';
 import {
   TARGET_KB_DEFAULT,
@@ -232,11 +233,26 @@ export function useEditorExport({
   async function confirmExport() {
     showExportDialog.value = false;
     const filename = dialogFilename();
+    const info = getFormatInfo(outputFormat.value);
 
     isExporting.value = true;
 
     try {
-      const result = await renderAndExport(filename, { download: true });
+      let result = null;
+      // Systemdialog für Speicherort/Dateiname öffnet synchron in der Klick-Geste;
+      // kodiert wird erst danach und nur, wenn nicht abgebrochen wurde
+      const saved = await saveFile({
+        suggestedName: `${filename}.${info?.extension || outputFormat.value}`,
+        mimeType: info?.mimeType,
+        // Der Name kam schon aus dem Export-Dialog
+        askName: false,
+        getBlob: async () => {
+          result = await renderAndExport(filename, { download: false });
+          return result.blob;
+        },
+      });
+
+      if (saved.outcome === 'cancelled' || !result) return;
 
       logger.log('✅ Export erfolgreich:', result);
 

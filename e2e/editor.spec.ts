@@ -1,5 +1,12 @@
 import { expect, test } from '@playwright/test';
-import { collectPageErrors, imageFile, prepare, uploadImages } from './helpers';
+import {
+  collectPageErrors,
+  imageFile,
+  prepare,
+  savedFiles,
+  stubSavePickers,
+  uploadImages,
+} from './helpers';
 
 test.describe('Editor (Smoke)', () => {
   let errors: string[] = [];
@@ -7,6 +14,7 @@ test.describe('Editor (Smoke)', () => {
   test.beforeEach(async ({ page }) => {
     errors = collectPageErrors(page);
     await prepare(page, 'de');
+    await stubSavePickers(page, 'fake');
     await page.goto('./editor');
     await uploadImages(page, [imageFile('a.png')]);
     await expect(page.getByText('120 × 80px')).toBeVisible();
@@ -33,14 +41,39 @@ test.describe('Editor (Smoke)', () => {
     await expect(slider).toHaveValue('100');
   });
 
-  test('Download fragt den Dateinamen ab und lädt die Datei herunter', async ({ page }) => {
+  test('Download: Dateiname im Export-Dialog, dann Speichern-unter-Dialog des Systems', async ({
+    page,
+  }) => {
     await page.getByRole('button', { name: 'Download' }).click();
     const overlay = page.locator('#overlay-root');
-    await expect(overlay.getByRole('button', { name: 'Abbrechen' })).toBeVisible();
+    await expect(overlay.getByText('Im nächsten Schritt wählst du Speicherort')).toBeVisible();
+    await overlay.locator('input[type="text"]').fill('mein-bild');
+    await overlay.getByRole('button', { name: 'Download' }).click();
+
+    await expect
+      .poll(() => savedFiles(page))
+      .toEqual([expect.objectContaining({ name: 'mein-bild.png', type: 'image/png' })]);
+  });
+});
+
+test.describe('Editor ohne Speichern-Dialog (Firefox/Safari)', () => {
+  test('Download lädt die Datei mit dem Namen aus dem Export-Dialog herunter', async ({ page }) => {
+    const errors = collectPageErrors(page);
+    await prepare(page, 'de');
+    await stubSavePickers(page, 'none');
+    await page.goto('./editor');
+    await uploadImages(page, [imageFile('a.png')]);
+    await expect(page.getByText('120 × 80px')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Download' }).click();
+    const overlay = page.locator('#overlay-root');
+    await expect(overlay.getByText('Den Speicherort legt dein Browser fest')).toBeVisible();
+    await overlay.locator('input[type="text"]').fill('mein-bild');
 
     const download = page.waitForEvent('download');
     await overlay.getByRole('button', { name: 'Download' }).click();
-    expect((await download).suggestedFilename()).toMatch(/\.png$/);
+    expect((await download).suggestedFilename()).toBe('mein-bild.png');
+    expect(errors).toEqual([]);
   });
 });
 
@@ -78,6 +111,7 @@ test.describe('Batch (Smoke)', () => {
   test('zwei Bilder konvertieren und herunterladen', async ({ page }) => {
     const errors = collectPageErrors(page);
     await prepare(page, 'de');
+    await stubSavePickers(page, 'fake');
     await page.goto('./batch');
     await uploadImages(page, [imageFile('a.png'), imageFile('b.png', 80, 60)]);
 
@@ -88,6 +122,12 @@ test.describe('Batch (Smoke)', () => {
 
     await page.getByRole('button', { name: 'Konvertierung starten' }).click();
     await expect(downloadAll).toBeEnabled({ timeout: 15000 });
+
+    // Ein Ordnerdialog für alle Dateien
+    await downloadAll.click();
+    await expect
+      .poll(async () => (await savedFiles(page)).map((f) => f.name).sort())
+      .toEqual(['a.jpg', 'b.jpg']);
     expect(errors).toEqual([]);
   });
 });
@@ -96,6 +136,7 @@ test.describe('Formatseite (Smoke)', () => {
   test('PNG in WebP umwandeln, herunterladen und zurücksetzen', async ({ page }) => {
     const errors = collectPageErrors(page);
     await prepare(page, 'de');
+    await stubSavePickers(page, 'none');
     await page.goto('./konvertieren/png-zu-webp');
     await uploadImages(page, [imageFile('bild.png')]);
 
@@ -103,8 +144,16 @@ test.describe('Formatseite (Smoke)', () => {
     await expect(download).toBeVisible({ timeout: 15000 });
     await expect(page.locator('.result-state img')).toHaveCount(2);
 
-    const [file] = await Promise.all([page.waitForEvent('download'), download.click()]);
-    expect(file.suggestedFilename()).toBe('bild.webp');
+    // Ohne Speichern-Dialog (Firefox/Safari): Dateiname in der App, dann Download
+    await download.click();
+    const dialog = page.getByRole('dialog', { name: 'Speichern unter' });
+    await expect(dialog.getByLabel('Dateiname')).toHaveValue('bild');
+    await dialog.getByLabel('Dateiname').fill('urlaub');
+    const [file] = await Promise.all([
+      page.waitForEvent('download'),
+      dialog.getByRole('button', { name: 'Speichern' }).click(),
+    ]);
+    expect(file.suggestedFilename()).toBe('urlaub.webp');
 
     await page.getByRole('button', { name: 'Weiteres Bild konvertieren' }).click();
     await expect(page.locator('.upload-zone')).toBeVisible();

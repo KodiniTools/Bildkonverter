@@ -22,6 +22,7 @@ import {
 } from '@/composables/conversion/useFormatConverter';
 import { convertCanvasToFormat, drawImageToCanvas } from '@/utils/conversionUtils';
 import { ApiClient } from '@/api/api';
+import { useSavePrompt } from '@/composables/useSavePrompt';
 
 const t = (key: string) => key;
 
@@ -105,17 +106,64 @@ describe('useFormatConverter', () => {
     expect(c.outputFilename.value).toBe('');
   });
 
-  it('lädt das Ergebnis über einen temporären Link herunter', async () => {
+  it('fragt ohne Speichern-Dialog den Dateinamen ab und lädt dann über einen Link herunter', async () => {
     const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const prompt = useSavePrompt();
     const c = useFormatConverter({ conversion: ref({ from: 'PNG', to: 'WebP' }), t });
-    c.downloadResult();
+    await c.downloadResult();
     expect(click).not.toHaveBeenCalled();
+    expect(prompt.state.value.visible).toBe(false);
 
     await c.startConversion(new File(['abc'], 'bild.png', { type: 'image/png' }));
-    c.downloadResult();
+    const done = c.downloadResult();
+    expect(prompt.state.value.visible).toBe(true);
+    expect(prompt.state.value.filename).toBe('bild.webp');
+    prompt.respond('urlaub.webp');
+    await done;
+
     expect(click).toHaveBeenCalledTimes(1);
+    expect(click.mock.contexts[0]).toMatchObject({ download: 'urlaub.webp' });
     expect(document.querySelector('a[download]')).toBeNull();
     expect(toast.success).toHaveBeenLastCalledWith('toast.conversion.downloadStarted');
     click.mockRestore();
+  });
+
+  it('Abbrechen der Dateinamen-Abfrage lädt nichts herunter', async () => {
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const prompt = useSavePrompt();
+    const c = useFormatConverter({ conversion: ref({ from: 'PNG', to: 'WebP' }), t });
+    await c.startConversion(new File(['abc'], 'bild.png', { type: 'image/png' }));
+    toast.success.mockClear();
+
+    const done = c.downloadResult();
+    prompt.respond(null);
+    await done;
+
+    expect(click).not.toHaveBeenCalled();
+    expect(toast.success).not.toHaveBeenCalled();
+    click.mockRestore();
+  });
+
+  it('speichert mit Systemdialog direkt in die gewählte Datei', async () => {
+    const write = vi.fn(async () => {});
+    const close = vi.fn(async () => {});
+    const picker = vi.fn(async () => ({
+      name: 'gewählt.webp',
+      createWritable: async () => ({ write, close, abort: vi.fn(async () => {}) }),
+    }));
+    vi.stubGlobal('showSaveFilePicker', picker);
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const c = useFormatConverter({ conversion: ref({ from: 'PNG', to: 'WebP' }), t });
+    await c.startConversion(new File(['abc'], 'bild.png', { type: 'image/png' }));
+
+    await c.downloadResult();
+
+    expect(picker).toHaveBeenCalledWith(expect.objectContaining({ suggestedName: 'bild.webp' }));
+    expect(write).toHaveBeenCalledWith(expect.objectContaining({ type: 'image/webp' }));
+    expect(close).toHaveBeenCalled();
+    expect(click).not.toHaveBeenCalled();
+    expect(toast.success).toHaveBeenLastCalledWith('save.saved');
+    click.mockRestore();
+    vi.unstubAllGlobals();
   });
 });

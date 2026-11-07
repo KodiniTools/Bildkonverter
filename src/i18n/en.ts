@@ -1270,6 +1270,17 @@ const en: LocaleMessages = {
     undo: 'Undo',
     redo: 'Redo',
   },
+  save: {
+    title: 'Save as',
+    label: 'File name',
+    confirm: 'Save',
+    hintPicker: 'Next, you choose the location and file name.',
+    hintFallback:
+      'Your browser decides where the file is saved (usually the Downloads folder). In the browser settings you can have it ask every time.',
+    saved: '{filename} saved',
+    folderSaved: '{count} file(s) saved to the chosen folder',
+    failed: 'Saving failed: {error}',
+  },
   toast: {
     crop: {
       modeActivated: 'Drag an area to crop',
