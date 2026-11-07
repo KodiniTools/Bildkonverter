@@ -1,5 +1,6 @@
 import { computed, onMounted, ref } from 'vue';
 import { logger } from '@/utils/logger';
+import { saveFile } from '@/utils/saveFile';
 import { DEFAULT_PRESETS, type FilterPreset, type PresetFilters } from './defaultPresets';
 
 /** localStorage-Schlüssel der eigenen Presets */
@@ -87,7 +88,7 @@ export function useFilterPresets({ getFilters, onApply, confirm, t }: FilterPres
     }
   }
 
-  function exportPresets() {
+  async function exportPresets() {
     if (customPresets.value.length === 0) {
       if (window.$toast) {
         window.$toast.warning(t('toast.presets.noCustomPresets'));
@@ -95,19 +96,21 @@ export function useFilterPresets({ getFilters, onApply, confirm, t }: FilterPres
       return;
     }
 
+    const count = customPresets.value.length;
     const json = JSON.stringify(customPresets.value, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'filter-presets.json';
-    a.click();
-
-    URL.revokeObjectURL(url);
-
-    if (window.$toast) {
-      window.$toast.success(t('toast.presets.exported', { count: customPresets.value.length }));
+    try {
+      const saved = await saveFile({
+        suggestedName: 'filter-presets.json',
+        mimeType: 'application/json',
+        getBlob: () => new Blob([json], { type: 'application/json' }),
+      });
+      if (saved.outcome === 'cancelled') return;
+      window.$toast?.success(t('toast.presets.exported', { count }));
+    } catch (error) {
+      logger.error('Preset-Export fehlgeschlagen:', error);
+      window.$toast?.error(
+        t('save.failed', { error: (error as Error | undefined)?.message || String(error) })
+      );
     }
   }
 

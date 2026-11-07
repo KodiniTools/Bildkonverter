@@ -22,6 +22,7 @@ import {
 import { logger } from '@/utils/logger';
 import { encodeForExport } from './targetSize';
 import { withExif } from './exif';
+import { downloadBlob as downloadBlobViaLink } from './saveFile';
 
 export { FORMAT_INFO, SUPPORTED_FORMATS, CLIENT_FORMATS, BACKEND_FORMATS };
 
@@ -454,18 +455,7 @@ export class ExportManager {
    * Download von Blob
    */
   downloadBlob(blob, filename) {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-
-    link.download = filename;
-    link.href = url;
-    link.style.display = 'none';
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    downloadBlobViaLink(blob, filename);
   }
 
   /**

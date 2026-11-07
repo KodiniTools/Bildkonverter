@@ -1,5 +1,6 @@
 import { computed, ref, type Ref } from 'vue';
 import { FORMAT_INFO } from '@/utils/exportUtils';
+import { saveFile } from '@/utils/saveFile';
 import { ApiClient } from '@/api/api';
 import { needsBackendPreview, readFileAsDataURL, loadImage } from '@/utils/fileUtils';
 import { drawImageToCanvas, convertCanvasToFormat } from '@/utils/conversionUtils';
@@ -133,21 +134,30 @@ export function useFormatConverter({ conversion, t }: FormatConverterOptions) {
     }
   }
 
-  function downloadResult() {
-    if (!convertedBlob.value) return;
-    const url = URL.createObjectURL(convertedBlob.value);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = outputFilename.value;
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-    window.$toast?.success(
-      t('toast.conversion.downloadStarted', { filename: outputFilename.value })
-    );
+  /**
+   * Speichern mit Systemdialog (Speicherort + Dateiname), ohne diesen Dialog
+   * Dateinamen-Abfrage und Download. Synchron aus dem Klick aufrufen.
+   */
+  async function downloadResult() {
+    const blob = convertedBlob.value;
+    if (!blob) return;
+    try {
+      const saved = await saveFile({
+        suggestedName: outputFilename.value,
+        mimeType: blob.type || undefined,
+        getBlob: () => blob,
+      });
+      if (saved.outcome === 'cancelled') return;
+      window.$toast?.success(
+        saved.outcome === 'saved'
+          ? t('save.saved', { filename: saved.filename })
+          : t('toast.conversion.downloadStarted', { filename: saved.filename })
+      );
+    } catch (error) {
+      window.$toast?.error(
+        t('save.failed', { error: (error as Error | undefined)?.message || String(error) })
+      );
+    }
   }
 
   function resetConverter() {

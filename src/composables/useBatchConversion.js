@@ -29,6 +29,8 @@ import {
   convertCanvasToFormat,
 } from '@/utils/conversionUtils';
 import { readSourceExif, supportsExif, withExif } from '@/utils/exif';
+import { downloadBlob, pickSaveFolder, saveFile, writeFileToFolder } from '@/utils/saveFile';
+import { logger } from '@/utils/logger';
 
 export function useBatchConversion({ settings, t, confirm }) {
   const files = ref([]);
@@ -284,59 +286,105 @@ export function useBatchConversion({ settings, t, confirm }) {
     return `${prefix}${baseName}.${ext}`;
   }
 
-  function triggerDownload(blob, filename) {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  /** Fehler beim Speichern melden (Abbruch durch den Nutzer ist kein Fehler) */
+  function reportSaveError(error) {
+    logger.error('Speichern fehlgeschlagen:', error);
+    window.$toast?.error(t('save.failed', { error: error?.message || String(error) }));
   }
 
-  function downloadFile(file, showToast = true) {
+  /**
+   * Einzelne Datei speichern: Systemdialog für Speicherort und Dateinamen,
+   * ohne diesen Dialog (Firefox/Safari) Dateinamen-Abfrage und Download.
+   * Synchron aus dem Klick heraus aufrufen (Nutzergeste).
+   */
+  async function downloadFile(file) {
     if (!file.processedBlob) return;
-    triggerDownload(file.processedBlob, getOutputFilename(file));
-    downloadReady.value = false;
-    if (showToast) {
-      window.$toast?.success(t('toast.batch.downloadStarted'));
+    try {
+      const saved = await saveFile({
+        suggestedName: getOutputFilename(file),
+        mimeType: file.processedBlob.type || undefined,
+        getBlob: () => file.processedBlob,
+      });
+      if (saved.outcome === 'cancelled') return;
+      downloadReady.value = false;
+      window.$toast?.success(
+        saved.outcome === 'saved'
+          ? t('save.saved', { filename: saved.filename })
+          : t('toast.batch.downloadStarted')
+      );
+    } catch (error) {
+      reportSaveError(error);
     }
   }
 
-  function downloadAll() {
+  /**
+   * Alle Dateien speichern: ein Ordnerdialog statt eines Dialogs pro Datei.
+   * Vorhandene Dateien im Ordner werden nicht überschrieben („name (1).png“).
+   * Ohne Ordnerdialog: klassische Downloads wie bisher.
+   */
+  async function downloadAll() {
     if (isMergedPdf() && processedFiles.value.length === 1 && processedFiles.value[0].isMerged) {
-      downloadFile(processedFiles.value[0]);
+      return downloadFile(processedFiles.value[0]);
+    }
+
+    const ready = processedFiles.value.filter((file) => file.processedBlob);
+    if (ready.length === 0) return;
+
+    // Synchron in der Geste öffnen
+    const folder = await pickSaveFolder();
+    if (folder === null) return;
+
+    if (folder) {
+      const taken = new Set();
+      let count = 0;
+      try {
+        for (const file of ready) {
+          await writeFileToFolder(folder, getOutputFilename(file), file.processedBlob, taken);
+          count++;
+        }
+        window.$toast?.success(t('save.folderSaved', { count }));
+      } catch (error) {
+        reportSaveError(error);
+      } finally {
+        if (count > 0) downloadReady.value = false;
+      }
       return;
     }
 
-    window.$toast?.info(
-      t('toast.batch.downloadAllStarted', { count: processedFiles.value.length })
-    );
-    processedFiles.value.forEach((file, index) => {
-      setTimeout(() => downloadFile(file, false), index * 200);
+    window.$toast?.info(t('toast.batch.downloadAllStarted', { count: ready.length }));
+    ready.forEach((file, index) => {
+      setTimeout(() => downloadBlob(file.processedBlob, getOutputFilename(file)), index * 200);
     });
     downloadReady.value = false;
   }
 
   async function downloadAsZip() {
-    const JSZip = (await import('jszip')).default;
-    const zip = new JSZip();
-
-    for (const file of processedFiles.value) {
-      if (file.processedBlob) {
-        zip.file(getOutputFilename(file), file.processedBlob);
-      }
+    try {
+      const saved = await saveFile({
+        suggestedName: (settings.value.prefix || 'batch_') + 'images.zip',
+        mimeType: 'application/zip',
+        getBlob: async () => {
+          const JSZip = (await import('jszip')).default;
+          const zip = new JSZip();
+          for (const file of processedFiles.value) {
+            if (file.processedBlob) {
+              zip.file(getOutputFilename(file), file.processedBlob);
+            }
+          }
+          window.$toast?.info(t('toast.batch.zipCreating'));
+          return zip.generateAsync({ type: 'blob' });
+        },
+      });
+      if (saved.outcome === 'cancelled') return;
+      downloadReady.value = false;
+      window.$toast?.success(
+        saved.outcome === 'saved'
+          ? t('save.saved', { filename: saved.filename })
+          : t('toast.batch.zipDownloaded')
+      );
+    } catch (error) {
+      reportSaveError(error);
     }
-
-    window.$toast?.info(t('toast.batch.zipCreating'));
-
-    const zipBlob = await zip.generateAsync({ type: 'blob' });
-    triggerDownload(zipBlob, (settings.value.prefix || 'batch_') + 'images.zip');
-    downloadReady.value = false;
-
-    window.$toast?.success(t('toast.batch.zipDownloaded'));
   }
 
   return {

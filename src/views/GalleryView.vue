@@ -122,6 +122,7 @@ import GalleryEmptyState from '@/components/gallery/GalleryEmptyState.vue';
 import GalleryPreviewDialog from '@/components/gallery/GalleryPreviewDialog.vue';
 import GalleryToolbar from '@/components/gallery/GalleryToolbar.vue';
 import { logger } from '@/utils/logger';
+import { saveFile } from '@/utils/saveFile';
 
 const { t } = useI18n({ useScope: 'global' });
 const router = useRouter();
@@ -213,11 +214,23 @@ async function deleteAllImages() {
   images.value.map((img) => img.id).forEach((id) => galleryStore.removeImage(id));
 }
 
-function downloadImage(image: GalleryImage) {
-  const link = document.createElement('a');
-  link.href = image.url;
-  link.download = image.name;
-  link.click();
+/** Speichern mit Systemdialog, sonst Dateinamen-Abfrage + Download */
+async function downloadImage(image: GalleryImage) {
+  if (!image?.url) return;
+  try {
+    const saved = await saveFile({
+      suggestedName: image.name || 'bild.png',
+      getBlob: async () => (await fetch(image.url)).blob(),
+    });
+    if (saved.outcome === 'saved') {
+      window.$toast?.success(t('save.saved', { filename: saved.filename }));
+    }
+  } catch (error) {
+    logger.error('Speichern fehlgeschlagen:', error);
+    window.$toast?.error(
+      t('save.failed', { error: (error as Error | undefined)?.message || String(error) })
+    );
+  }
 }
 
 // ===== AUSWAHL =====

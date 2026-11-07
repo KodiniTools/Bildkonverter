@@ -37,6 +37,9 @@
           <p v-if="mode === 'share'" class="export-dialog__text">
             {{ $t('editor.share.privacy') }}
           </p>
+          <p v-else class="export-dialog__text">
+            {{ savePickerAvailable ? $t('save.hintPicker') : $t('save.hintFallback') }}
+          </p>
           <div class="export-dialog__actions">
             <button class="export-dialog__btn export-dialog__btn--cancel" @click="emit('close')">
               {{ $t('common.cancel', 'Abbrechen') }}
@@ -63,6 +66,7 @@
  */
 import { computed } from 'vue';
 import AppIcon from '@/components/ui/AppIcon.vue';
+import { supportsSavePicker } from '@/utils/saveFile';
 
 export type ExportDialogMode = 'download' | 'share';
 
@@ -83,6 +87,9 @@ const emit = defineEmits<{
   confirm: [];
   'share-now': [];
 }>();
+
+// Chrome/Edge: Speicherort und Name folgen im Systemdialog, sonst legt der Browser den Ort fest
+const savePickerAvailable = supportsSavePicker();
 
 const confirmIcon = computed(() => {
   if (props.isExporting) return 'spinner fa-spin';

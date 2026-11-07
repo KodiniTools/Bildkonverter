@@ -1273,6 +1273,17 @@ const de = {
     undo: 'Rückgängig',
     redo: 'Wiederholen',
   },
+  save: {
+    title: 'Speichern unter',
+    label: 'Dateiname',
+    confirm: 'Speichern',
+    hintPicker: 'Im nächsten Schritt wählst du Speicherort und Dateinamen.',
+    hintFallback:
+      'Den Speicherort legt dein Browser fest (meist der Download-Ordner). In den Browser-Einstellungen kannst du einstellen, dass er jedes Mal nachfragt.',
+    saved: '{filename} gespeichert',
+    folderSaved: '{count} Datei(en) im gewählten Ordner gespeichert',
+    failed: 'Speichern fehlgeschlagen: {error}',
+  },
   toast: {
     crop: {
       modeActivated: 'Ziehen Sie einen Bereich zum Zuschneiden auf',

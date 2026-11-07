@@ -120,3 +120,48 @@ export function collectPageErrors(page: Page): string[] {
   page.on('pageerror', (error) => errors.push(error.message));
   return errors;
 }
+
+/**
+ * Speichern-Dialoge der File System Access API für E2E steuern (Playwright
+ * kann die Systemdialoge nicht bedienen):
+ * - 'none': API entfernen, wie in Firefox/Safari (Dateinamen-Abfrage + Download)
+ * - 'fake': Dialoge durch Attrappen ersetzen; gespeicherte Dateien landen als
+ *   { name, size, type } in window.__savedFiles
+ */
+export async function stubSavePickers(page: Page, mode: 'none' | 'fake'): Promise<void> {
+  await page.addInitScript((m) => {
+    const w = window as unknown as Record<string, unknown>;
+    if (m === 'none') {
+      delete w.showSaveFilePicker;
+      delete w.showDirectoryPicker;
+      return;
+    }
+    const saved: { name: string; size: number; type: string }[] = [];
+    w.__savedFiles = saved;
+    const handle = (name: string) => ({
+      name,
+      createWritable: async () => ({
+        write: async (blob: Blob) => {
+          saved.push({ name, size: blob.size, type: blob.type });
+        },
+        close: async () => {},
+        abort: async () => {},
+      }),
+    });
+    w.showSaveFilePicker = async (opts?: { suggestedName?: string }) =>
+      handle(opts?.suggestedName || 'datei');
+    w.showDirectoryPicker = async () => ({
+      getFileHandle: async (name: string, opts?: { create?: boolean }) => {
+        if (!opts?.create) throw Object.assign(new Error('nf'), { name: 'NotFoundError' });
+        return handle(name);
+      },
+    });
+  }, mode);
+}
+
+/** Von stubSavePickers('fake') gespeicherte Dateien */
+export function savedFiles(page: Page): Promise<{ name: string; size: number; type: string }[]> {
+  return page.evaluate(
+    () => (window as unknown as { __savedFiles?: [] }).__savedFiles ?? []
+  ) as Promise<{ name: string; size: number; type: string }[]>;
+}

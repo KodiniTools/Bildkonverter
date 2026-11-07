@@ -2,7 +2,7 @@
  * useBatchConversion: kompletter Ablauf ohne Backend – Client-Formate, PDF
  * (einzeln und gesamt), SVG-Fallback, Fehlerpfad, Verwaltung.
  */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ref } from 'vue';
 import { useBatchConversion } from '@/composables/useBatchConversion';
 import { loadImage } from '@/utils/fileUtils';
@@ -130,5 +130,84 @@ describe('useBatchConversion', () => {
     await batch.clearAll();
     expect(batch.files.value).toHaveLength(0);
     expect(batch.referenceAspectRatio.value).toBeNull();
+  });
+});
+
+describe('useBatchConversion: Speichern mit Dialog', () => {
+  const realSavePicker = window.showSaveFilePicker;
+  const realDirPicker = window.showDirectoryPicker;
+
+  function fakeFolder(existing = []) {
+    const written = new Map();
+    const names = new Set(existing);
+    return {
+      written,
+      async getFileHandle(name, opts) {
+        if (!names.has(name) && !opts?.create) {
+          throw Object.assign(new Error('nf'), { name: 'NotFoundError' });
+        }
+        names.add(name);
+        return {
+          name,
+          createWritable: async () => ({
+            write: async (blob) => written.set(name, blob),
+            close: async () => {},
+            abort: async () => {},
+          }),
+        };
+      },
+    };
+  }
+
+  afterEach(() => {
+    window.showSaveFilePicker = realSavePicker;
+    window.showDirectoryPicker = realDirPicker;
+  });
+
+  it('„Alle herunterladen“ schreibt alle Dateien in den gewählten Ordner, ohne zu überschreiben', async () => {
+    await run('png');
+    const folder = fakeFolder(['x_a.png']);
+    window.showDirectoryPicker = async () => folder;
+
+    await batch.downloadAll();
+
+    expect([...folder.written.keys()]).toEqual(['x_a (1).png', 'x_b.png']);
+    expect(folder.written.get('x_b.png').type).toBe('image/png');
+    expect(toasts).toContain('success:save.folderSaved{"count":2}');
+    expect(batch.downloadReady.value).toBe(false);
+  });
+
+  it('Abbruch im Ordnerdialog speichert nichts', async () => {
+    await run('png');
+    window.showDirectoryPicker = async () => {
+      throw Object.assign(new Error('abort'), { name: 'AbortError' });
+    };
+
+    await batch.downloadAll();
+
+    expect(batch.downloadReady.value).toBe(true);
+    expect(toasts.some((m) => m.includes('folderSaved'))).toBe(false);
+  });
+
+  it('einzelne Datei und ZIP gehen über den Speichern-unter-Dialog', async () => {
+    await run('png');
+    const saved = [];
+    window.showSaveFilePicker = async ({ suggestedName }) => ({
+      name: suggestedName,
+      createWritable: async () => ({
+        write: async (blob) => saved.push([suggestedName, blob.type]),
+        close: async () => {},
+        abort: async () => {},
+      }),
+    });
+
+    await batch.downloadFile(batch.processedFiles.value[0]);
+    await batch.downloadAsZip();
+
+    expect(saved).toEqual([
+      ['x_a.png', 'image/png'],
+      ['x_images.zip', 'application/zip'],
+    ]);
+    expect(toasts).toContain('success:save.saved{"filename":"x_a.png"}');
   });
 });
