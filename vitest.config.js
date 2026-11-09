@@ -56,7 +56,7 @@ export default defineConfig({
         optimizeDeps: { include: ['onnxruntime-web/webgpu'] },
         test: {
           name: 'browser',
-          include: ['tests/browser/**/*.spec.js'],
+          include: ['tests/browser/**/*.spec.{js,ts}'],
           browser: {
             enabled: true,
             headless: true,

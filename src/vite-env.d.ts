@@ -7,3 +7,15 @@ declare module '*.vue' {
   const component: DefineComponent<{}, {}, any>;
   export default component;
 }
+
+/** Eigene Umgebungsvariablen (`.env*`). Alle optional: Web-Build setzt keine davon. */
+interface ImportMetaEnv {
+  /** Basis-URL der Backend-API; gesetzt im Desktop-Build (`.env.desktop`). */
+  readonly VITE_API_BASE_URL?: string;
+  /** Angezeigte App-Version im Entwicklungs-Log. */
+  readonly VITE_APP_VERSION?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
