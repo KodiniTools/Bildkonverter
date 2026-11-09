@@ -240,7 +240,7 @@ import UiSelect from '@/components/ui/UiSelect.vue';
 import TextStyleToggles from './TextStyleToggles.vue';
 import TextStrokeControl from './TextStrokeControl.vue';
 import TextShadowControl from './TextShadowControl.vue';
-import { availableFonts } from '@/assets/fonts/fontList.js';
+import { availableFonts } from '@/assets/fonts/fontList';
 import { fontOptions } from '@/utils/fontOptions';
 import { useTextPosition } from '@/composables/text/useTextPosition';
 import type { EditorText } from '@/composables/text/types';

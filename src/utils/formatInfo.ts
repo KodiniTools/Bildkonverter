@@ -3,6 +3,20 @@
  * (Anzeige, MIME-Typ, Endung, Client- oder Backend-Konvertierung)
  */
 
+export interface FormatInfo {
+  name: string;
+  description: string;
+  extension: string;
+  mimeType: string;
+  supportsQuality: boolean;
+  requiresBackend: boolean;
+  maxSize: string;
+  recommended: string;
+  icon: string;
+  /** Clientseitiger Rückfall, wenn das Backend fehlt (SVG) */
+  clientFallback?: boolean;
+}
+
 /**
  * Format-Informationen
  */
@@ -129,12 +143,14 @@ export const FORMAT_INFO = {
     recommended: 'Logos, Icons, Web Graphics',
     icon: '✏️',
   },
-};
+} satisfies Record<string, FormatInfo>;
+
+export type FormatKey = keyof typeof FORMAT_INFO;
 
 /**
  * Alle unterstützten Formate
  */
-export const SUPPORTED_FORMATS = Object.keys(FORMAT_INFO);
+export const SUPPORTED_FORMATS = Object.keys(FORMAT_INFO) as FormatKey[];
 
 /**
  * Client-side Formate (ohne Backend)

@@ -29,7 +29,7 @@ describe('scaleTextsToCanvas', () => {
     const texts = [{ x: 100, y: 50, fontSize: 32 }];
     scaleTextsToCanvas(texts, from, { width: 1600, height: 1200 });
     expect(texts[0]).toMatchObject({ x: 200, y: 100, fontSize: 64 });
-    expect(texts[0].size).toBeUndefined();
+    expect(texts[0]).not.toHaveProperty('size');
   });
 
   it('ändert nichts bei gleicher Größe, leeren Texten oder ungültigen Maßen', () => {

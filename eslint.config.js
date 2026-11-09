@@ -52,7 +52,7 @@ export default defineConfigWithVueTs(
         'warn',
         { argsIgnorePattern: '^_', caughtErrors: 'none' },
       ],
-      // App-Code nutzt den Logger (src/utils/logger.js), keine direkte Konsole
+      // App-Code nutzt den Logger (src/utils/logger.ts), keine direkte Konsole
       'no-console': 'error',
       // Neu mit ESLint 10 / typescript-eslint. Bestehende Treffer sind Altlasten und
       // werden gemeldet, nicht im Tooling-Schritt geändert; deshalb vorerst Warnung.

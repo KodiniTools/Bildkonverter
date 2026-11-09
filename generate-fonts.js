@@ -3,7 +3,7 @@
  *
  * Script zum automatischen Generieren von:
  * 1. fonts.css mit @font-face Deklarationen
- * 2. fontList.js mit Array aller Schriftarten
+ * 2. fontList.ts mit Array aller Schriftarten
  *
  * Verwendung:
  * 1. Kopiere alle .woff2 Dateien nach src/assets/fonts/
@@ -21,7 +21,7 @@ const __dirname = path.dirname(__filename);
 // Pfade
 const fontsDir = path.join(__dirname, 'src', 'assets', 'fonts');
 const outputCssFile = path.join(__dirname, 'src', 'assets', 'fonts', 'fonts.css');
-const outputJsFile = path.join(__dirname, 'src', 'assets', 'fonts', 'fontList.js');
+const outputJsFile = path.join(__dirname, 'src', 'assets', 'fonts', 'fontList.ts');
 
 /**
  * Extrahiert den Font-Namen aus dem Dateinamen
@@ -101,7 +101,7 @@ function generateFontFiles() {
     const fontNames = [...new Set(woff2Files.map(getFontName))].sort();
 
     const jsContent = `/**
- * fontList.js - Auto-generierte Liste aller verfügbaren Schriftarten
+ * fontList.ts - Auto-generierte Liste aller verfügbaren Schriftarten
  * Generiert am: ${new Date().toLocaleString('de-DE')}
  * Anzahl Fonts: ${fontNames.length}
  */
@@ -111,9 +111,9 @@ export const availableFonts = ${JSON.stringify(fontNames, null, 2)}
 export default availableFonts
 `;
 
-    // Schreibe JS-Datei
+    // Schreibe TS-Datei
     fs.writeFileSync(outputJsFile, jsContent);
-    console.log('✅ fontList.js erstellt:', outputJsFile);
+    console.log('✅ fontList.ts erstellt:', outputJsFile);
 
     console.log('\n📊 Zusammenfassung:');
     console.log(`   - ${woff2Files.length} Font-Dateien verarbeitet`);
@@ -121,7 +121,7 @@ export default availableFonts
     console.log('\n🎉 Fertig! Die Fonts können jetzt verwendet werden.');
     console.log('\n📝 Nächste Schritte:');
     console.log('   1. Importiere in main.js: import "@/assets/fonts/fonts.css"');
-    console.log('   2. Verwende fontList.js in deiner Komponente');
+    console.log('   2. Verwende fontList.ts in deiner Komponente');
   } catch (error) {
     console.error('❌ Fehler:', error.message);
   }

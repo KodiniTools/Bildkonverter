@@ -8,12 +8,13 @@ import {
   isResizeSpecValid,
   RESIZE_PX_MAX,
 } from '@/utils/resizeModes';
+import type { ResizeSpec } from '@/utils/resizeModes';
 
 const landscape = { width: 4000, height: 3000 };
 const portrait = { width: 3000, height: 4000 };
 const small = { width: 800, height: 600 };
 
-const spec = (patch) => ({ ...defaultResizeSpec, ...patch });
+const spec = (patch: Partial<ResizeSpec>): ResizeSpec => ({ ...defaultResizeSpec, ...patch });
 
 describe('computeResizeTarget', () => {
   it('exakt lässt die Größe unverändert (rechnet der ResizeManager)', () => {

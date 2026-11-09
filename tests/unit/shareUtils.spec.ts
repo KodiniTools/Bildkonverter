@@ -8,14 +8,15 @@ import {
   shareFile,
 } from '@/utils/shareUtils';
 
-const domError = (name) => Object.assign(new Error(name), { name });
+const domError = (name: string) => Object.assign(new Error(name), { name });
 
 function shareNav({ canShare = true, share = vi.fn().mockResolvedValue(undefined) } = {}) {
-  return { share, canShare: vi.fn(() => canShare) };
+  return { share, canShare: vi.fn((_data?: ShareData) => canShare) };
 }
 
 class FakeClipboardItem {
-  constructor(items) {
+  items: Record<string, Promise<Blob>>;
+  constructor(items: Record<string, Promise<Blob>>) {
     this.items = items;
   }
 }
@@ -44,9 +45,9 @@ describe('canShareFileType', () => {
   it('fragt navigator.canShare mit einer Datei des Typs', () => {
     const nav = shareNav();
     expect(canShareFileType('image/png', nav)).toBe(true);
-    const [{ files }] = nav.canShare.mock.calls[0];
-    expect(files[0].type).toBe('image/png');
-    expect(files[0].name).toBe('probe.png');
+    const files = nav.canShare.mock.calls[0]![0]!.files!;
+    expect(files[0]!.type).toBe('image/png');
+    expect(files[0]!.name).toBe('probe.png');
   });
 
   it('ist false ohne Web Share API, bei Ablehnung oder Ausnahme', () => {
@@ -112,7 +113,7 @@ describe('copyImageToClipboard', () => {
     const write = vi.fn().mockResolvedValue(undefined);
     const blob = new Blob([new Uint8Array(2)], { type: 'image/png' });
     await copyImageToClipboard(Promise.resolve(blob), { clipboard: { write } });
-    const [[item]] = write.mock.calls[0];
+    const [[item]] = write.mock.calls[0] as [[FakeClipboardItem]];
     await expect(item.items['image/png']).resolves.toBe(blob);
   });
 

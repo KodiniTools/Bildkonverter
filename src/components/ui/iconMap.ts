@@ -249,10 +249,8 @@ export const iconMap = {
 /**
  * Normalisiert 'fas fa-crop', 'fa-crop' oder 'crop' auf den Schlüssel 'crop'.
  * Modifikatoren wie 'fa-spin' oder 'fa-fw' werden ignoriert.
- * @param {string} raw
- * @returns {{ key: string, spin: boolean }}
  */
-export function parseIconName(raw) {
+export function parseIconName(raw: unknown): { key: string; spin: boolean } {
   const parts = String(raw || '')
     .split(/\s+/)
     .filter(Boolean);

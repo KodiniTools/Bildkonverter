@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { availableFonts } from '@/assets/fonts/fontList.js';
+import { availableFonts } from '@/assets/fonts/fontList';
 import ColorField from '@/components/ui/ColorField.vue';
 import HistoryActions from '@/components/ui/HistoryActions.vue';
 import SliderField from '@/components/ui/SliderField.vue';

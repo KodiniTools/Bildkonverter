@@ -1,15 +1,59 @@
 import { currentThemeColorsV2 } from '@/design-system/tokens-v2';
 /**
- * textUtils.js - Text Utility Funktionen
+ * textUtils - Text Utility Funktionen
  *
  * Reine Funktionen für Text-Berechnungen, Messungen und Rendering.
  * Keine DOM-Manipulationen, nur Canvas-Operationen.
  */
 
+/** Text-Felder, die diese Helfer lesen (kompatibel zu StoreText; alte Felder txt/size) */
+export interface CanvasText {
+  content?: string;
+  txt?: string;
+  x?: number;
+  y?: number;
+  fontSize?: number;
+  size?: number;
+  fontFamily?: string;
+  color?: string;
+  align?: CanvasTextAlign;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  stroke?: boolean;
+  strokeWidth?: number;
+  strokeColor?: string;
+  shadow?: boolean;
+  shadowBlur?: number;
+  shadowColor?: string;
+  opacity?: number;
+  rotation?: number;
+}
+
+export interface TextHandle {
+  x: number;
+  y: number;
+  size: number;
+  type: 'resize' | 'delete';
+}
+
+/**
+ * Inhalt und Position wie bisher bei impliziter Umwandlung: fehlender Text wird
+ * zu 'undefined', fehlende Koordinaten zu NaN (validateText verhindert leere Texte).
+ */
+const textContent = (text: CanvasText): string => String(text.content || text.txt);
+const textX = (text: CanvasText): number => Number(text.x);
+const textY = (text: CanvasText): number => Number(text.y);
+
 /**
  * Misst die Dimensionen eines Textes
  */
-export function measureText(ctx, text, fontSize, fontFamily = 'Roboto, sans-serif') {
+export function measureText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  fontSize: number | undefined,
+  fontFamily = 'Roboto, sans-serif'
+): { width: number; height: number } {
   ctx.save();
   ctx.font = `${fontSize}px ${fontFamily}`;
   ctx.textBaseline = 'top';
@@ -17,7 +61,7 @@ export function measureText(ctx, text, fontSize, fontFamily = 'Roboto, sans-seri
 
   const metrics = ctx.measureText(text);
   const width = metrics.width;
-  const height = fontSize; // Approximation
+  const height = Number(fontSize); // Approximation
 
   ctx.restore();
 
@@ -27,39 +71,44 @@ export function measureText(ctx, text, fontSize, fontFamily = 'Roboto, sans-seri
 /**
  * Berechnet Positionen für Text-Handles
  */
-export function getTextHandles(text, ctx) {
+export function getTextHandles(
+  text: CanvasText,
+  ctx: CanvasRenderingContext2D
+): Record<'nw' | 'ne' | 'sw' | 'se', TextHandle> {
   const { width, height } = measureText(
     ctx,
-    text.content || text.txt,
+    textContent(text),
     text.fontSize || text.size,
     text.fontFamily
   );
+  const x = textX(text);
+  const y = textY(text);
 
   const handleSize = 20;
   const deleteSize = 24;
 
   return {
     nw: {
-      x: text.x - handleSize / 2,
-      y: text.y - handleSize / 2,
+      x: x - handleSize / 2,
+      y: y - handleSize / 2,
       size: handleSize,
       type: 'resize',
     },
     ne: {
-      x: text.x + width - deleteSize / 2,
-      y: text.y - deleteSize / 2,
+      x: x + width - deleteSize / 2,
+      y: y - deleteSize / 2,
       size: deleteSize,
       type: 'delete',
     },
     sw: {
-      x: text.x - handleSize / 2,
-      y: text.y + height - handleSize / 2,
+      x: x - handleSize / 2,
+      y: y + height - handleSize / 2,
       size: handleSize,
       type: 'resize',
     },
     se: {
-      x: text.x + width - handleSize / 2,
-      y: text.y + height - handleSize / 2,
+      x: x + width - handleSize / 2,
+      y: y + height - handleSize / 2,
       size: handleSize,
       type: 'resize',
     },
@@ -69,7 +118,7 @@ export function getTextHandles(text, ctx) {
 /**
  * Zeichnet einen einzelnen Text
  */
-export function drawText(ctx, text) {
+export function drawText(ctx: CanvasRenderingContext2D, text: CanvasText): void {
   ctx.save();
 
   // Text-Styling
@@ -85,10 +134,12 @@ export function drawText(ctx, text) {
   ctx.globalAlpha = (text.opacity || 100) / 100;
 
   // Position und Rotation
+  const x = textX(text);
+  const y = textY(text);
   if (text.rotation) {
-    ctx.translate(text.x, text.y);
+    ctx.translate(x, y);
     ctx.rotate((text.rotation * Math.PI) / 180);
-    ctx.translate(-text.x, -text.y);
+    ctx.translate(-x, -y);
   }
 
   // Schatten
@@ -103,11 +154,11 @@ export function drawText(ctx, text) {
   if (text.stroke) {
     ctx.strokeStyle = text.strokeColor || '#000000';
     ctx.lineWidth = text.strokeWidth || 2;
-    ctx.strokeText(text.content || text.txt, text.x, text.y);
+    ctx.strokeText(textContent(text), x, y);
   }
 
   // Text
-  ctx.fillText(text.content || text.txt, text.x, text.y);
+  ctx.fillText(textContent(text), x, y);
 
   ctx.restore();
 }
@@ -115,12 +166,16 @@ export function drawText(ctx, text) {
 /**
  * Zeichnet die Auswahl eines Textes mit Handles
  */
-export function drawTextSelection(ctx, text, showHandles = true) {
+export function drawTextSelection(
+  ctx: CanvasRenderingContext2D,
+  text: CanvasText,
+  showHandles = true
+): void {
   ctx.save();
 
   const { width, height } = measureText(
     ctx,
-    text.content || text.txt,
+    textContent(text),
     text.fontSize || text.size,
     text.fontFamily
   );
@@ -134,7 +189,12 @@ export function drawTextSelection(ctx, text, showHandles = true) {
   ctx.setLineDash([8, 4]);
 
   const padding = 8;
-  ctx.strokeRect(text.x - padding, text.y - padding, width + padding * 2, height + padding * 2);
+  ctx.strokeRect(
+    textX(text) - padding,
+    textY(text) - padding,
+    width + padding * 2,
+    height + padding * 2
+  );
 
   ctx.setLineDash([]);
 
@@ -234,8 +294,8 @@ export function createDefaultText(content = 'Neuer Text', x = 100, y = 100) {
 /**
  * Validiert Text-Eigenschaften
  */
-export function validateText(text) {
-  const errors = [];
+export function validateText(text: CanvasText): { isValid: boolean; errors: string[] } {
+  const errors: string[] = [];
 
   if (!text.content && !text.txt) {
     errors.push('Text darf nicht leer sein');
@@ -263,7 +323,7 @@ export function validateText(text) {
 /**
  * Konvertiert zwischen altem und neuem Text-Format
  */
-export function normalizeText(text) {
+export function normalizeText<T extends CanvasText>(text: T) {
   return {
     ...text,
     content: text.content || text.txt,

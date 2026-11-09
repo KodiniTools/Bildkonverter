@@ -26,7 +26,7 @@ function chunk(type: string, data: Buffer): Buffer {
 
 /**
  * Gültige RGB-PNG-Datei mit Farbmuster. Das Muster hält die Datei über 1 KB,
- * der Mindestgröße des Uploads (src/utils/validationUtils.js).
+ * der Mindestgröße des Uploads (src/utils/validationUtils.ts).
  */
 export function png(width: number, height: number, range?: [number, number]): Buffer {
   const rows: Buffer[] = [];

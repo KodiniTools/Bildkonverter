@@ -1,5 +1,5 @@
 /**
- * validationUtils.js - Validierung hochgeladener Bilddateien
+ * validationUtils - Validierung hochgeladener Bilddateien
  *
  * Wird vom imageStore beim Laden einer Datei genutzt. Die Endungslisten
  * kommen aus fileUtils (einzige Quelle für unterstützte Formate).
@@ -7,12 +7,17 @@
 
 import { RAW_EXTENSIONS, IMAGE_EXTENSIONS } from '@/utils/fileUtils';
 
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+}
+
 export class ValidationUtils {
   /**
    * Validiert eine hochgeladene Bild-Datei
    */
-  static validateImageFile(file) {
-    const errors = [];
+  static validateImageFile(file: File | null | undefined): ValidationResult {
+    const errors: string[] = [];
 
     // Datei vorhanden?
     if (!file) {

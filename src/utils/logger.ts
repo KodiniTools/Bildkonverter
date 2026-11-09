@@ -8,18 +8,20 @@
  */
 const isDev = import.meta.env.DEV;
 
+type LogArgs = unknown[];
+
 export const logger = {
-  debug: (...args) => {
+  debug: (...args: LogArgs): void => {
     if (isDev) console.debug(...args);
   },
-  log: (...args) => {
+  log: (...args: LogArgs): void => {
     if (isDev) console.log(...args);
   },
-  info: (...args) => {
+  info: (...args: LogArgs): void => {
     if (isDev) console.info(...args);
   },
-  warn: (...args) => console.warn(...args),
-  error: (...args) => console.error(...args),
+  warn: (...args: LogArgs): void => console.warn(...args),
+  error: (...args: LogArgs): void => console.error(...args),
 };
 
 export default logger;

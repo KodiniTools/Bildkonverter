@@ -184,7 +184,7 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
-  // Resize-Modus und seine Eingaben (siehe utils/resizeModes.js). Ohne Angabe
+  // Resize-Modus und seine Eingaben (siehe utils/resizeModes.ts). Ohne Angabe
   // bleibt es beim Modus "Exakt" (nur Breite/Höhe).
   resizeSpec: {
     type: Object,

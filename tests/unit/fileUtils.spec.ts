@@ -7,7 +7,7 @@ import {
   formatSize,
 } from '@/utils/fileUtils';
 
-const file = (name, type = '') => new File([''], name, { type });
+const file = (name: string, type = '') => new File([''], name, { type });
 
 describe('fileUtils', () => {
   it('führt alle RAW-Endungen in der Bildliste', () => {
