@@ -9,27 +9,30 @@
  * longEdge und fit können Vergrößern verhindern („nicht vergrößern“).
  */
 
-export const RESIZE_MODES = Object.freeze(['exact', 'percent', 'longEdge', 'fit']);
+export const RESIZE_MODES = Object.freeze(['exact', 'percent', 'longEdge', 'fit'] as const);
+
+export type ResizeMode = (typeof RESIZE_MODES)[number];
+
+export interface ResizeSpec {
+  mode: ResizeMode;
+  percent: number;
+  longEdge: number;
+  fitWidth: number;
+  fitHeight: number;
+  noUpscale: boolean;
+}
+
+export interface Size {
+  width: number;
+  height: number;
+}
 
 /** Maximale Kantenlänge, identisch zu MAX_RESIZE_DIMENSION in useEditorResize */
 export const RESIZE_PX_MAX = 10000;
 export const RESIZE_PERCENT_MIN = 1;
 export const RESIZE_PERCENT_MAX = 1000;
 
-/**
- * @typedef {'exact'|'percent'|'longEdge'|'fit'} ResizeMode
- * @typedef {{
- *   mode: ResizeMode,
- *   percent: number,
- *   longEdge: number,
- *   fitWidth: number,
- *   fitHeight: number,
- *   noUpscale: boolean,
- * }} ResizeSpec
- */
-
-/** @type {ResizeSpec} */
-export const defaultResizeSpec = Object.freeze({
+export const defaultResizeSpec: Readonly<ResizeSpec> = Object.freeze({
   mode: 'exact',
   percent: 50,
   longEdge: 1920,
@@ -38,15 +41,14 @@ export const defaultResizeSpec = Object.freeze({
   noUpscale: true,
 });
 
-function isPositive(value) {
+function isPositive(value: number): boolean {
   return Number.isFinite(value) && value >= 1;
 }
 
 /**
  * Sind die Eingaben des gewählten Modus gültig?
- * @param {ResizeSpec} spec
  */
-export function isResizeSpecValid(spec) {
+export function isResizeSpecValid(spec: ResizeSpec): boolean {
   switch (spec.mode) {
     case 'percent':
       return (
@@ -69,7 +71,7 @@ export function isResizeSpecValid(spec) {
   }
 }
 
-function clampPx(value) {
+function clampPx(value: number): number {
   return Math.min(RESIZE_PX_MAX, Math.max(1, Math.round(value)));
 }
 
@@ -77,16 +79,12 @@ function clampPx(value) {
  * Zielgröße eines Bildes der Größe `src` in den relativen Modi.
  * Liefert die unveränderte Größe für „exact“, ungültige Eingaben und wenn
  * „nicht vergrößern“ greift.
- *
- * @param {{width:number,height:number}} src
- * @param {ResizeSpec} spec
- * @returns {{width:number,height:number}}
  */
-export function computeResizeTarget(src, spec) {
+export function computeResizeTarget(src: Size, spec: ResizeSpec): Size {
   const unchanged = { width: src.width, height: src.height };
   if (!(src.width > 0 && src.height > 0) || !isResizeSpecValid(spec)) return unchanged;
 
-  let factor;
+  let factor: number;
   switch (spec.mode) {
     case 'percent':
       factor = spec.percent / 100;

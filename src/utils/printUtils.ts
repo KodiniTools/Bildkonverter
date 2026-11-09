@@ -10,10 +10,8 @@ const CLEANUP_FALLBACK_MS = 60_000;
 
 /**
  * Escaped HTML-Sonderzeichen für die sichere Einbettung in ein Attribut.
- * @param {string} value
- * @returns {string}
  */
-function escapeHtml(value) {
+function escapeHtml(value: unknown): string {
   return String(value)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -25,12 +23,12 @@ function escapeHtml(value) {
 /**
  * Druckt ein Bild (Data-URL oder Blob-URL) über den Browser-Druckdialog.
  *
- * @param {string} imageUrl - Data-URL oder Blob-URL des Bildes
- * @param {string} [title='image'] - Dokumenttitel (erscheint u. a. in der Kopfzeile/als PDF-Name)
- * @returns {Promise<void>} Resolved, sobald der Druckdialog geöffnet wurde
+ * @param imageUrl - Data-URL oder Blob-URL des Bildes
+ * @param title - Dokumenttitel (erscheint u. a. in der Kopfzeile/als PDF-Name)
+ * @returns Resolved, sobald der Druckdialog geöffnet wurde
  */
-export function printImage(imageUrl, title = 'image') {
-  return new Promise((resolve, reject) => {
+export function printImage(imageUrl: string, title = 'image'): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
     if (typeof imageUrl !== 'string' || !imageUrl) {
       reject(new Error('Kein Bild zum Drucken vorhanden'));
       return;
@@ -83,7 +81,8 @@ export function printImage(imageUrl, title = 'image') {
 </html>`);
     doc.close();
 
-    const img = doc.getElementById('print-target');
+    // Das <img> steht im oben geschriebenen HTML; instanceof scheitert am fremden Frame-Realm
+    const img = doc.getElementById('print-target') as HTMLImageElement;
 
     img.onerror = () => {
       cleanup();

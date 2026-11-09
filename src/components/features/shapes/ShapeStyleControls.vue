@@ -288,7 +288,7 @@
  * Art-spezifische Einstellungen der ausgewählten Form: Marker, Emoji, Text,
  * Zensur-Effekt, Füllung und Kontur (Teil von ShapesPanel).
  */
-import { availableFonts } from '@/assets/fonts/fontList.js';
+import { availableFonts } from '@/assets/fonts/fontList';
 import AppIcon from '@/components/ui/AppIcon.vue';
 import SliderField from '@/components/ui/SliderField.vue';
 import UiSelect from '@/components/ui/UiSelect.vue';

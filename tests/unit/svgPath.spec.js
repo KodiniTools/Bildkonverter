@@ -1,5 +1,5 @@
 /**
- * SVG-Pfad-Parser/-Skalierer (src/utils/svgPath.js) und die Social-Media-Symbole.
+ * SVG-Pfad-Parser/-Skalierer (src/utils/svgPath.ts) und die Social-Media-Symbole.
  */
 import { describe, it, expect } from 'vitest';
 import { parseSvgPath, scaleSvgPath } from '@/utils/svgPath';

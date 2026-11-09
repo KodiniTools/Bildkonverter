@@ -1,5 +1,5 @@
 /**
- * fontList.js - Auto-generierte Liste aller verfügbaren Schriftarten
+ * fontList.ts - Auto-generierte Liste aller verfügbaren Schriftarten
  * Generiert am: 20.10.2025, 17:18:45
  * Anzahl Fonts: 132
  */

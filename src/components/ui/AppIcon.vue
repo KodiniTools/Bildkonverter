@@ -19,7 +19,7 @@
  * 'fas fa-crop', optional mit 'fa-spin').
  */
 import { computed } from 'vue';
-import { iconMap, parseIconName } from './iconMap.js';
+import { iconMap, parseIconName } from './iconMap';
 import { logger } from '@/utils/logger';
 
 const props = defineProps({

@@ -1,3 +1,10 @@
+import type { EditorText } from '@/composables/text/types';
+
+interface Size {
+  width: number;
+  height: number;
+}
+
 /**
  * Skaliert Text-Ebenen proportional auf eine neue Canvas-Größe, damit sie
  * beim Ersetzen des Bildes an derselben relativen Stelle und in derselben
@@ -7,14 +14,19 @@
  *
  * Mutiert die übergebenen Text-Objekte (reaktive Store-Einträge).
  *
- * @param {Array<object>} texts
- * @param {{width:number,height:number}} from  bisherige Canvas-Größe
- * @param {{width:number,height:number}} to    neue Canvas-Größe
- * @returns {boolean} true, wenn skaliert wurde
+ * @param from bisherige Canvas-Größe
+ * @param to   neue Canvas-Größe
+ * @returns true, wenn skaliert wurde
  */
-export function scaleTextsToCanvas(texts, from, to) {
+export function scaleTextsToCanvas(
+  texts: EditorText[] | null | undefined,
+  from: Size | null | undefined,
+  to: Size | null | undefined
+): boolean {
   if (!Array.isArray(texts) || texts.length === 0) return false;
-  if (!(from?.width > 0 && from?.height > 0 && to?.width > 0 && to?.height > 0)) return false;
+  if (!from || !to || !(from.width > 0 && from.height > 0 && to.width > 0 && to.height > 0)) {
+    return false;
+  }
 
   const sx = to.width / from.width;
   const sy = to.height / from.height;

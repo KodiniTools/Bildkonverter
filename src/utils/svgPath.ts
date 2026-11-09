@@ -7,15 +7,32 @@
  * Bögen ohne Drehung bzw. bei gleichmäßiger Skalierung.
  */
 
-const ARITY = { M: 2, L: 2, H: 1, V: 1, C: 6, S: 4, Q: 4, T: 2, A: 7, Z: 0 };
+const ARITY: Readonly<Record<string, number>> = {
+  M: 2,
+  L: 2,
+  H: 1,
+  V: 1,
+  C: 6,
+  S: 4,
+  Q: 4,
+  T: 2,
+  A: 7,
+  Z: 0,
+};
 const NUMBER = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?/i;
 
+/** Ein Pfadbefehl mit seinen Zahlen (Buchstabe in Original-Schreibweise) */
+export interface SvgPathCommand {
+  cmd: string;
+  args: number[];
+}
+
 /** Zerlegt Pfaddaten in Befehle: [{ cmd: 'm', args: [..] }, ...] */
-export function parseSvgPath(d) {
-  const out = [];
+export function parseSvgPath(d: unknown): SvgPathCommand[] {
+  const out: SvgPathCommand[] = [];
   const s = String(d ?? '');
   let i = 0;
-  let current = null;
+  let current: string | null = null;
   const skip = () => {
     while (i < s.length && /[\s,]/.test(s[i])) i++;
   };
@@ -71,35 +88,35 @@ export function parseSvgPath(d) {
   return out;
 }
 
-const fmt = (n) => String(Math.round(n * 100) / 100);
+const fmt = (n: number): string => String(Math.round(n * 100) / 100);
 
 /**
- * @param {string} d   Pfaddaten
- * @param {number} sx  Skalierung x
- * @param {number} sy  Skalierung y
- * @param {number} [tx] Verschiebung x (nach dem Skalieren)
- * @param {number} [ty] Verschiebung y
- * @returns {string} absoluter, transformierter Pfad
+ * @param d   Pfaddaten
+ * @param sx  Skalierung x
+ * @param sy  Skalierung y
+ * @param tx  Verschiebung x (nach dem Skalieren)
+ * @param ty  Verschiebung y
+ * @returns absoluter, transformierter Pfad
  */
-export function scaleSvgPath(d, sx, sy, tx = 0, ty = 0) {
-  const X = (x) => fmt(x * sx + tx);
-  const Y = (y) => fmt(y * sy + ty);
-  const parts = [];
+export function scaleSvgPath(d: unknown, sx: number, sy: number, tx = 0, ty = 0): string {
+  const X = (x: number) => fmt(x * sx + tx);
+  const Y = (y: number) => fmt(y * sy + ty);
+  const parts: string[] = [];
   let cx = 0;
   let cy = 0;
   let startX = 0;
   let startY = 0;
   // letzter Kontrollpunkt für S/T (Spiegelung)
-  let lastCubic = null;
-  let lastQuad = null;
+  let lastCubic: [number, number] | null = null;
+  let lastQuad: [number, number] | null = null;
 
   for (const { cmd, args } of parseSvgPath(d)) {
     const rel = cmd === cmd.toLowerCase();
     const upper = cmd.toUpperCase();
-    const ax = (v) => (rel ? cx + v : v);
-    const ay = (v) => (rel ? cy + v : v);
-    let nextCubic = null;
-    let nextQuad = null;
+    const ax = (v: number) => (rel ? cx + v : v);
+    const ay = (v: number) => (rel ? cy + v : v);
+    let nextCubic: [number, number] | null = null;
+    let nextQuad: [number, number] | null = null;
 
     switch (upper) {
       case 'M':
@@ -156,8 +173,8 @@ export function scaleSvgPath(d, sx, sy, tx = 0, ty = 0) {
         break;
       }
       case 'T': {
-        const x1 = lastQuad ? 2 * cx - lastQuad[0] : cx;
-        const y1 = lastQuad ? 2 * cy - lastQuad[1] : cy;
+        const x1: number = lastQuad ? 2 * cx - lastQuad[0] : cx;
+        const y1: number = lastQuad ? 2 * cy - lastQuad[1] : cy;
         const x = ax(args[0]);
         const y = ay(args[1]);
         parts.push(`Q ${X(x1)} ${Y(y1)} ${X(x)} ${Y(y)}`);

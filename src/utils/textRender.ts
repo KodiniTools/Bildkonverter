@@ -1,5 +1,5 @@
 /**
- * textRender.js
+ * textRender
  *
  * Gemeinsame Helfer für das Zeichnen von Text-Ebenen auf dem Canvas.
  * Kapselt den Aufbau des Font-Strings (inkl. Fett/Kursiv) sowie die
@@ -7,15 +7,17 @@
  * Render-Pfade identisch arbeiten.
  */
 
+import type { EditorText } from '@/composables/text/types';
+
 // Erkennt, ob eine Schriftart bereits fett ist (z. B. "Author Bold",
 // "GeneralSans Semibold", "Supreme Extrabold", "… Black/Heavy").
-export function isFontBold(fontFamily = '') {
+export function isFontBold(fontFamily = ''): boolean {
   return /bold|black|heavy/i.test(fontFamily);
 }
 
 // Erkennt, ob eine Schriftart bereits kursiv/schräg ist
 // (z. B. "Author Italic", "GeneralSans BoldItalic").
-export function isFontItalic(fontFamily = '') {
+export function isFontItalic(fontFamily = ''): boolean {
   return /italic|oblique/i.test(fontFamily);
 }
 
@@ -24,7 +26,7 @@ export function isFontItalic(fontFamily = '') {
  * Fett/Kursiv wird nur ergänzt, wenn die Schriftart die Eigenschaft nicht
  * bereits selbst mitbringt (verhindert doppeltes „Faux-Bold/Italic").
  */
-export function buildTextFontString(text = {}) {
+export function buildTextFontString(text: EditorText = {}): string {
   const fontSize = text.fontSize || text.size || 32;
   const family = text.fontFamily || 'Arial';
   const bold = text.bold && !isFontBold(family);
@@ -39,7 +41,7 @@ export function buildTextFontString(text = {}) {
  * Kontext an – jeweils um den Textmittelpunkt. Setzt voraus, dass ctx.font
  * bereits gesetzt ist (für measureText). Ohne Rotation/Neigung passiert nichts.
  */
-export function applyTextTransform(ctx, text = {}) {
+export function applyTextTransform(ctx: CanvasRenderingContext2D, text: EditorText = {}): void {
   const fontSize = text.fontSize || text.size || 32;
   const rotation = text.rotation || 0;
   const skewX = text.skewX || 0;

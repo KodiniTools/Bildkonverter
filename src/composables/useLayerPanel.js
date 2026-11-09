@@ -2,7 +2,7 @@ import { ref, computed, reactive, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useImageStore } from '@/stores/imageStore';
 import { useConfirm } from '@/composables/useConfirm';
-import { availableFonts } from '@/assets/fonts/fontList.js';
+import { availableFonts } from '@/assets/fonts/fontList';
 
 /**
  * useLayerPanel

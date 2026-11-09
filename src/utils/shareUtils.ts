@@ -10,7 +10,7 @@
  */
 
 /** MIME-Typen der Export-Formate (Editor-Format-Schlüssel) */
-const MIME_BY_FORMAT = {
+const MIME_BY_FORMAT: Readonly<Record<string, string>> = {
   png: 'image/png',
   jpeg: 'image/jpeg',
   jpg: 'image/jpeg',
@@ -24,19 +24,27 @@ const MIME_BY_FORMAT = {
   svg: 'image/svg+xml',
 };
 
-/** @param {string} format @returns {string} */
-export function mimeForFormat(format) {
+export type ShareStrategy = 'share' | 'clipboard' | 'download';
+
+/** Der Teil von `navigator`, den diese Helfer nutzen (in Tests durch Attrappen ersetzbar) */
+export interface ShareNavigator {
+  share?: (data: ShareData) => Promise<void>;
+  canShare?: (data?: ShareData) => boolean;
+  clipboard?: { write?: (items: ClipboardItem[]) => Promise<void> };
+}
+
+export function mimeForFormat(format: string | null | undefined): string {
   return MIME_BY_FORMAT[String(format || '').toLowerCase()] || 'application/octet-stream';
 }
 
 /**
  * Kann der Browser eine Datei dieses Typs über den Systemdialog teilen?
  * Synchron, damit die Entscheidung noch innerhalb der Nutzergeste fällt.
- *
- * @param {string} mimeType
- * @param {Navigator} [nav]
  */
-export function canShareFileType(mimeType, nav = globalThis.navigator) {
+export function canShareFileType(
+  mimeType: string,
+  nav: ShareNavigator | undefined = globalThis.navigator
+): boolean {
   if (!nav || typeof nav.share !== 'function' || typeof nav.canShare !== 'function') return false;
   if (typeof File !== 'function') return false;
   try {
@@ -50,10 +58,8 @@ export function canShareFileType(mimeType, nav = globalThis.navigator) {
 
 /**
  * Kann der Browser ein Bild in die Zwischenablage schreiben?
- *
- * @param {Navigator} [nav]
  */
-export function canCopyImage(nav = globalThis.navigator) {
+export function canCopyImage(nav: ShareNavigator | undefined = globalThis.navigator): boolean {
   return (
     !!nav &&
     typeof nav.clipboard?.write === 'function' &&
@@ -63,12 +69,11 @@ export function canCopyImage(nav = globalThis.navigator) {
 
 /**
  * Wählt die beste verfügbare Art zu teilen.
- *
- * @param {string} mimeType
- * @param {Navigator} [nav]
- * @returns {'share' | 'clipboard' | 'download'}
  */
-export function pickShareStrategy(mimeType, nav = globalThis.navigator) {
+export function pickShareStrategy(
+  mimeType: string,
+  nav: ShareNavigator | undefined = globalThis.navigator
+): ShareStrategy {
   if (canShareFileType(mimeType, nav)) return 'share';
   if (canCopyImage(nav)) return 'clipboard';
   return 'download';
@@ -77,19 +82,19 @@ export function pickShareStrategy(mimeType, nav = globalThis.navigator) {
 /**
  * Öffnet den Systemdialog zum Teilen.
  *
- * @param {File} file
- * @param {{ title?: string }} [options]
- * @param {Navigator} [nav]
- * @returns {Promise<'shared' | 'cancelled'>}
- * @throws {DOMException} NotAllowedError, wenn die Nutzergeste abgelaufen ist
+ * @throws DOMException NotAllowedError, wenn die Nutzergeste abgelaufen ist
  *   (Aufrufer bieten dann einen zweiten Klick an), sonst andere Fehler.
  */
-export async function shareFile(file, { title } = {}, nav = globalThis.navigator) {
+export async function shareFile(
+  file: File,
+  { title }: { title?: string } = {},
+  nav: Pick<Required<ShareNavigator>, 'share'> = globalThis.navigator
+): Promise<'shared' | 'cancelled'> {
   try {
     await nav.share({ files: [file], ...(title ? { title } : {}) });
     return 'shared';
   } catch (error) {
-    if (error?.name === 'AbortError') return 'cancelled';
+    if ((error as { name?: unknown } | null)?.name === 'AbortError') return 'cancelled';
     throw error;
   }
 }
@@ -98,12 +103,13 @@ export async function shareFile(file, { title } = {}, nav = globalThis.navigator
  * Schreibt ein PNG in die Zwischenablage. Ein Promise als Inhalt ist erlaubt:
  * Safari verlangt, dass clipboard.write synchron in der Nutzergeste startet,
  * das Kodieren darf danach fertig werden.
- *
- * @param {Blob | Promise<Blob>} pngBlob
- * @param {Navigator} [nav]
  */
-export async function copyImageToClipboard(pngBlob, nav = globalThis.navigator) {
+export async function copyImageToClipboard(
+  pngBlob: Blob | Promise<Blob>,
+  nav: ShareNavigator = globalThis.navigator
+): Promise<void> {
   if (!canCopyImage(nav)) throw new Error('Clipboard API nicht verfügbar');
   const item = new globalThis.ClipboardItem({ 'image/png': Promise.resolve(pngBlob) });
-  await nav.clipboard.write([item]);
+  // canCopyImage hat clipboard.write geprüft; Aufruf am Objekt erhält `this`
+  await nav.clipboard!.write!([item]);
 }
