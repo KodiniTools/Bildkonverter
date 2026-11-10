@@ -1,4 +1,5 @@
 import { logger } from '@/utils/logger';
+import { context2d } from '@/utils/canvas2d';
 /**
  * KodiniTools Cross-Tool Handoff Protocol
  *
@@ -24,25 +25,28 @@ const MAX_DIMENSION = 1200;
 const JPEG_QUALITY = 0.7;
 const EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 
-/**
- * @typedef {Object} HandoffImage
- * @property {string} name
- * @property {string} dataUrl
- * @property {number} width
- * @property {number} height
- */
+export interface HandoffImage {
+  name: string;
+  dataUrl: string;
+  /** Beim Empfang nicht geprüft (nur name und dataUrl werden validiert) */
+  width: number;
+  height: number;
+}
 
-/**
- * @typedef {Object} HandoffPayload
- * @property {string} id
- * @property {string} source
- * @property {string} target
- * @property {number} timestamp
- * @property {HandoffImage[]} images
- */
+export interface HandoffPayload {
+  id: string;
+  source: string;
+  target: string;
+  timestamp: number;
+  images: HandoffImage[];
+}
 
-/** @type {Record<string, string>} */
-const TARGET_URLS = {
+export interface HandoffSource {
+  name: string;
+  canvas: HTMLCanvasElement;
+}
+
+const TARGET_URLS: Readonly<Record<string, string>> = {
   bildkonverter: '/bildkonverter/gallery',
   collagemaker: '/collagemaker/editor',
   'color-extractor': '/kodini-color-extractor/app',
@@ -51,10 +55,8 @@ const TARGET_URLS = {
 
 /**
  * Downscale a canvas to fit within MAX_DIMENSION and return a compressed dataUrl.
- * @param {HTMLCanvasElement} canvas
- * @returns {{ dataUrl: string, width: number, height: number }}
  */
-function compressCanvas(canvas) {
+function compressCanvas(canvas: HTMLCanvasElement): Omit<HandoffImage, 'name'> {
   let { width, height } = canvas;
 
   if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
@@ -66,7 +68,7 @@ function compressCanvas(canvas) {
   const tmp = document.createElement('canvas');
   tmp.width = width;
   tmp.height = height;
-  const ctx = tmp.getContext('2d');
+  const ctx = context2d(tmp);
   ctx.drawImage(canvas, 0, 0, width, height);
 
   return {
@@ -79,20 +81,23 @@ function compressCanvas(canvas) {
 /**
  * SENDER: Prepare and store a handoff payload, then return the target URL.
  *
- * @param {Array<{ name: string, canvas: HTMLCanvasElement }>} canvases
- * @param {string} target - Target tool key (e.g. 'bildkonverter', 'collagemaker')
- * @param {string} [source='unknown'] - Source tool identifier
- * @returns {string|null} The full URL to navigate to, or null if handoff failed
+ * @param target - Target tool key (e.g. 'bildkonverter', 'collagemaker')
+ * @param source - Source tool identifier
+ * @returns The full URL to navigate to, or null if handoff failed
  */
-export function prepareHandoff(canvases, target, source = 'unknown') {
+export function prepareHandoff(
+  canvases: readonly HandoffSource[],
+  target: string,
+  source = 'unknown'
+): string | null {
   const limited = canvases.slice(0, MAX_IMAGES);
 
-  const images = limited.map(({ name, canvas }) => {
+  const images: HandoffImage[] = limited.map(({ name, canvas }) => {
     const { dataUrl, width, height } = compressCanvas(canvas);
     return { name, dataUrl, width, height };
   });
 
-  const payload = {
+  const payload: HandoffPayload = {
     id: `hoff_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     source,
     target,
@@ -133,19 +138,19 @@ const DATA_URL_PATTERN = /^data:image\/(jpeg|png|webp|gif);base64,/;
 
 /**
  * Filtert die Bilder eines Payloads auf gültige Einträge mit Bild-Data-URL.
- * @param {unknown} payload
- * @returns {HandoffImage[]}
  */
-function validImages(payload) {
-  const images = payload && Array.isArray(payload.images) ? payload.images : [];
-  return images.filter(
-    (img) =>
-      !!img &&
-      typeof img === 'object' &&
-      typeof img.name === 'string' &&
-      typeof img.dataUrl === 'string' &&
-      DATA_URL_PATTERN.test(img.dataUrl)
-  );
+function validImages(payload: unknown): HandoffImage[] {
+  const raw = (payload as { images?: unknown } | null | undefined)?.images;
+  const images: unknown[] = payload && Array.isArray(raw) ? raw : [];
+  return images.filter((img): img is HandoffImage => {
+    if (!img || typeof img !== 'object') return false;
+    const candidate = img as { name?: unknown; dataUrl?: unknown };
+    return (
+      typeof candidate.name === 'string' &&
+      typeof candidate.dataUrl === 'string' &&
+      DATA_URL_PATTERN.test(candidate.dataUrl)
+    );
+  });
 }
 
 /**
@@ -153,9 +158,9 @@ function validImages(payload) {
  * Checks localStorage directly — no URL query param required.
  * This makes the receiver robust regardless of how the sender navigates.
  *
- * @returns {HandoffPayload|null} The handoff payload if valid and not expired, otherwise null
+ * @returns The handoff payload if valid and not expired, otherwise null
  */
-export function checkHandoff() {
+export function checkHandoff(): HandoffPayload | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
@@ -184,9 +189,9 @@ export function checkHandoff() {
 
 /**
  * RECEIVER: Consume (accept) the handoff and clean up.
- * @returns {HandoffImage[]|null} The images ready for import, or null on failure
+ * @returns The images ready for import, or null on failure
  */
-export function consumeHandoff() {
+export function consumeHandoff(): HandoffImage[] | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
@@ -207,7 +212,7 @@ export function consumeHandoff() {
 /**
  * RECEIVER: Dismiss the handoff without importing.
  */
-export function dismissHandoff() {
+export function dismissHandoff(): void {
   localStorage.removeItem(STORAGE_KEY);
   cleanHandoffUrl();
 }
@@ -215,7 +220,7 @@ export function dismissHandoff() {
 /**
  * Remove the handoff query param from the URL if present.
  */
-function cleanHandoffUrl() {
+function cleanHandoffUrl(): void {
   try {
     const url = new URL(window.location.href);
     if (url.searchParams.has('handoff')) {
@@ -229,10 +234,10 @@ function cleanHandoffUrl() {
 
 /**
  * Convert a HandoffImage dataUrl back to a canvas element.
- * @param {HandoffImage} img
- * @returns {Promise<HTMLCanvasElement>}
  */
-export function handoffImageToCanvas(img) {
+export function handoffImageToCanvas(
+  img: Pick<HandoffImage, 'name' | 'dataUrl'>
+): Promise<HTMLCanvasElement> {
   return new Promise((resolve, reject) => {
     const image = new Image();
     image.onload = () => {

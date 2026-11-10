@@ -5,14 +5,14 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { createI18n } from 'vue-i18n';
 import HandoffReceiver from '@/components/features/HandoffReceiver.vue';
-import { checkHandoff, consumeHandoff } from '@/lib/core/handoff';
+import { checkHandoff, consumeHandoff, type HandoffImage } from '@/lib/core/handoff';
 import de from '@/i18n/de';
 import en from '@/i18n/en';
 
 const KEY = 'kodinitools-handoff';
 const JPEG = 'data:image/jpeg;base64,AAAA';
 
-function payload(count = 2, overrides = {}) {
+function payload(count = 2, overrides: Record<string, unknown> = {}) {
   return {
     source: 'bildergalerie',
     timestamp: Date.now(),
@@ -26,7 +26,7 @@ function payload(count = 2, overrides = {}) {
   };
 }
 
-function store(value) {
+function store(value: unknown) {
   localStorage.setItem(KEY, JSON.stringify(value));
 }
 
@@ -40,7 +40,7 @@ beforeEach(() => localStorage.clear());
 describe('Handoff-Protokoll (Empfänger)', () => {
   it('nimmt eine frische Übergabe an und verbraucht sie genau einmal', () => {
     store(payload());
-    expect(checkHandoff().images).toHaveLength(2);
+    expect(checkHandoff()!.images).toHaveLength(2);
     expect(consumeHandoff()).toHaveLength(2);
     expect(localStorage.getItem(KEY)).toBeNull();
     expect(consumeHandoff()).toBeNull();
@@ -67,8 +67,8 @@ describe('Handoff-Protokoll (Empfänger)', () => {
         ],
       })
     );
-    expect(checkHandoff().images.map((img) => img.name)).toEqual(['ok']);
-    expect(consumeHandoff().map((img) => img.name)).toEqual(['ok']);
+    expect(checkHandoff()!.images.map((img) => img.name)).toEqual(['ok']);
+    expect(consumeHandoff()!.map((img) => img.name)).toEqual(['ok']);
 
     store(payload(1, { images: [{ name: 'x', dataUrl: 'nope' }] }));
     expect(checkHandoff()).toBeNull();
@@ -106,7 +106,7 @@ describe('HandoffReceiver', () => {
     await w.vm.$nextTick();
     await w.find('.btn-success').trigger('click');
 
-    const [[images]] = w.emitted('accept');
+    const [[images]] = w.emitted<[HandoffImage[]]>('accept')!;
     expect(images.map((img) => img.name)).toEqual(['Bild 1', 'Bild 2']);
     expect(localStorage.getItem(KEY)).toBeNull();
     expect(w.find('.handoff-banner').exists()).toBe(false);

@@ -1,17 +1,27 @@
 import { logger } from '@/utils/logger';
+
+/** Ausschnitt aus import.meta.env, den getBaseURL braucht */
+export interface ApiEnv {
+  PROD?: boolean;
+  VITE_API_BASE_URL?: string;
+}
+
+export interface ConvertImageOptions {
+  /** 0-1; nur gesendet, wenn gesetzt und > 0 */
+  quality?: number;
+  [key: string]: unknown;
+}
 /**
  * API Configuration
- * Pfad: /src/api/api.js
+ * Pfad: /src/api/api.ts
  */
 
 /**
  * Base URL der Backend-API, abhängig von der Umgebung.
  * VITE_API_BASE_URL hat Vorrang (Desktop-Build: .env.desktop), denn dort
  * liegt die App nicht auf kodinitools.com und ein relativer Pfad liefe ins Leere.
- * @param {{ PROD?: boolean, VITE_API_BASE_URL?: string }} [env]
- * @returns {string}
  */
-export const getBaseURL = (env = import.meta.env) => {
+export const getBaseURL = (env: ApiEnv = import.meta.env): string => {
   const override = env.VITE_API_BASE_URL;
   if (override) return override.replace(/\/+$/, '');
   if (env.PROD) {
@@ -29,11 +39,8 @@ export const API_BASE_URL = getBaseURL();
  * HTTP-Client der App (Rust) statt über den WebView: Der WebView würde die
  * Antwort der Live-API wegen CORS blockieren (Ursprung http://tauri.localhost).
  * Im Web-Build bleibt es das normale fetch; das Modul wird dort nie geladen.
- * @param {string} url
- * @param {RequestInit} [init]
- * @returns {Promise<Response>}
  */
-const apiFetch = async (url, init) => {
+const apiFetch = async (url: string, init?: RequestInit): Promise<Response> => {
   if (import.meta.env.MODE === 'desktop') {
     const { fetch: desktopFetch } = await import('@tauri-apps/plugin-http');
     return desktopFetch(url, init);
@@ -44,7 +51,9 @@ const apiFetch = async (url, init) => {
 /**
  * API Endpoints
  */
-export const API_ENDPOINTS = {
+export const API_ENDPOINTS: Readonly<
+  Record<'convertImage' | 'uploadImage' | 'getFormats', string>
+> = {
   // Bildkonvertierung
   convertImage: `${API_BASE_URL}/convert-image`,
 
@@ -59,12 +68,17 @@ export const API_ENDPOINTS = {
 export class ApiClient {
   /**
    * Konvertiert ein Bild über das Backend
-   * @param {Blob} imageBlob - Das Bild als Blob
-   * @param {string} format - Zielformat (tiff, heif, gif)
-   * @param {string} filename - Dateiname
-   * @param {Object} options - Zusätzliche Optionen
+   * @param imageBlob - Das Bild als Blob
+   * @param format - Zielformat (tiff, heif, gif)
+   * @param filename - Dateiname
+   * @param options - Zusätzliche Optionen
    */
-  static async convertImage(imageBlob, format, filename, options = {}) {
+  static async convertImage(
+    imageBlob: Blob,
+    format: string,
+    filename: string,
+    options: ConvertImageOptions = {}
+  ): Promise<Blob> {
     const formData = new FormData();
     // Preserve original filename so the backend can detect the format correctly
     const uploadName =
@@ -75,7 +89,7 @@ export class ApiClient {
 
     // Optionale Parameter
     if (options.quality) {
-      formData.append('quality', options.quality);
+      formData.append('quality', String(options.quality));
     }
 
     try {
@@ -85,7 +99,7 @@ export class ApiClient {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData: { message?: string } = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `Server-Fehler: ${response.status}`);
       }
 
@@ -99,7 +113,7 @@ export class ApiClient {
   /**
    * Prüft die Verfügbarkeit des Backends
    */
-  static async checkBackendAvailability() {
+  static async checkBackendAvailability(): Promise<boolean> {
     try {
       const response = await apiFetch(API_ENDPOINTS.getFormats, {
         method: 'GET',

@@ -38,5 +38,7 @@
     "src/**/*.js",
     "tests/**/*.ts"
   ],
+  /* Worker: eigene Prüfung mit der WebWorker-Lib (tsconfig.worker.json) */
+  "exclude": ["src/workers/**"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

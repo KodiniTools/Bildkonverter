@@ -11,24 +11,38 @@
  */
 import { applyTonalAdjustments } from '@/utils/tonalKernel';
 import { applyDetailAdjustments } from '@/utils/detailKernel';
+import type {
+  EncodeRequest,
+  ImageWorkerReply,
+  ImageWorkerRequest,
+  TonalRequest,
+} from '@/types/workerMessages';
 
-function tonal({ id, buffer, width, height, filters }) {
+/** Worker-Kontext (läuft mit der WebWorker-Lib, siehe tsconfig.worker.json) */
+declare const self: DedicatedWorkerGlobalScope;
+
+function reply(message: ImageWorkerReply, transfer: Transferable[] = []): void {
+  self.postMessage(message, transfer);
+}
+
+function tonal({ id, buffer, width, height, filters }: TonalRequest): void {
   const data = new Uint8ClampedArray(buffer);
   applyTonalAdjustments(data, filters);
   applyDetailAdjustments(data, width, height, filters);
-  self.postMessage({ id, buffer: data.buffer, width, height }, [data.buffer]);
+  reply({ id, buffer: data.buffer, width, height }, [data.buffer]);
 }
 
-async function encode({ id, bitmap, type, quality }) {
+async function encode({ id, bitmap, type, quality }: EncodeRequest): Promise<void> {
   const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
   const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('OffscreenCanvas-2D-Kontext nicht verfügbar');
   ctx.drawImage(bitmap, 0, 0);
   bitmap.close();
   const blob = await canvas.convertToBlob({ type, quality });
-  self.postMessage({ id, blob });
+  reply({ id, blob });
 }
 
-self.onmessage = async (event) => {
+self.onmessage = async (event: MessageEvent<ImageWorkerRequest>) => {
   const request = event.data;
   try {
     switch (request.operation) {
@@ -39,9 +53,9 @@ self.onmessage = async (event) => {
         await encode(request);
         break;
       default:
-        throw new Error(`Unbekannte Operation: ${request.operation}`);
+        throw new Error(`Unbekannte Operation: ${(request as { operation?: unknown }).operation}`);
     }
   } catch (error) {
-    self.postMessage({ id: request.id, error: error?.message || String(error) });
+    reply({ id: request.id, error: (error as Error | undefined)?.message || String(error) });
   }
 };

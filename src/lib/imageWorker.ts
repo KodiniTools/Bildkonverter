@@ -1,5 +1,5 @@
 /**
- * Client für den Bild-Worker (src/workers/image.worker.js).
+ * Client für den Bild-Worker (src/workers/image.worker.ts).
  *
  * Ein einzelner Worker reicht: Der Editor bearbeitet ein Bild, die Aufträge
  * laufen nacheinander. Jeder Auftrag hat ein Timeout. Lässt sich der Worker
@@ -10,26 +10,39 @@ import { logger } from '@/utils/logger';
 // Eingebettet und per Blob-URL gestartet: Eine separate Worker-Datei würde
 // unter Cross-Origin-Embedder-Policy einen eigenen Header brauchen;
 // Blob-Worker erben die Policy der Seite (wie in Bilder-Batchbearbeitung).
-import InlineImageWorker from '@/workers/image.worker.js?worker&inline';
+import InlineImageWorker from '@/workers/image.worker.ts?worker&inline';
+import type { FilterValues } from '@/types/filters';
+import type {
+  EncodeReply,
+  ImageWorkerJob,
+  ImageWorkerReply,
+  TonalReply,
+} from '@/types/workerMessages';
+
+interface PendingEntry {
+  resolve: (reply: ImageWorkerReply) => void;
+  reject: (error: Error) => void;
+  timer: ReturnType<typeof setTimeout>;
+}
 
 export const WORKER_TIMEOUT_MS = 20000;
 
-let worker = null;
+let worker: Worker | null = null;
 let failed = false;
 let nextId = 0;
-const pending = new Map();
+const pending = new Map<number, PendingEntry>();
 
 /** Unterstützt der Browser Worker mit OffscreenCanvas? */
-export function isImageWorkerSupported() {
+export function isImageWorkerSupported(): boolean {
   return typeof Worker !== 'undefined' && typeof OffscreenCanvas !== 'undefined';
 }
 
 /** Ist der Worker nutzbar (unterstützt und nicht ausgefallen)? */
-export function isImageWorkerAvailable() {
+export function isImageWorkerAvailable(): boolean {
   return isImageWorkerSupported() && !failed;
 }
 
-function rejectAll(reason) {
+function rejectAll(reason: string): void {
   for (const [id, entry] of pending) {
     clearTimeout(entry.timer);
     pending.delete(id);
@@ -37,7 +50,7 @@ function rejectAll(reason) {
   }
 }
 
-function markFailed(reason) {
+function markFailed(reason: string): void {
   if (!failed) logger.warn(`[ImageWorker] ${reason} – Bildverarbeitung im Hauptthread.`);
   failed = true;
   worker?.terminate();
@@ -45,35 +58,39 @@ function markFailed(reason) {
   rejectAll(reason);
 }
 
-function getWorker() {
+function getWorker(): Worker | null {
   if (worker || failed) return worker;
   try {
     worker = new InlineImageWorker();
   } catch (error) {
-    markFailed(`Worker nicht startbar: ${error?.message || error}`);
+    markFailed(`Worker nicht startbar: ${(error as Error | undefined)?.message || error}`);
     return null;
   }
-  worker.onmessage = (event) => {
+  worker.onmessage = (event: MessageEvent<ImageWorkerReply>) => {
     const { id } = event.data;
     const entry = pending.get(id);
     if (!entry) return;
     clearTimeout(entry.timer);
     pending.delete(id);
-    if (event.data.error) entry.reject(new Error(event.data.error));
+    if ('error' in event.data && event.data.error) entry.reject(new Error(event.data.error));
     else entry.resolve(event.data);
   };
-  worker.onerror = (event) => {
+  worker.onerror = (event: ErrorEvent) => {
     event.preventDefault?.();
     markFailed(`Worker-Fehler: ${event.message || 'nicht ladbar'}`);
   };
   return worker;
 }
 
-function dispatch(message, transfer) {
+/** Sendet einen Auftrag; R ist die erwartete Antwort der Operation */
+function dispatch<R extends ImageWorkerReply>(
+  message: ImageWorkerJob,
+  transfer: Transferable[]
+): Promise<R> {
   const target = getWorker();
   if (!target) return Promise.reject(new Error('Worker nicht verfügbar'));
   const id = ++nextId;
-  return new Promise((resolve, reject) => {
+  return new Promise<R>((resolve, reject) => {
     // Ein hängender Worker würde alle folgenden Aufträge blockieren:
     // nach einem Timeout endgültig auf den Hauptthread wechseln
     const timer = setTimeout(() => {
@@ -81,7 +98,7 @@ function dispatch(message, transfer) {
       reject(new Error(`Worker-Timeout nach ${WORKER_TIMEOUT_MS} ms`));
       markFailed(`Worker-Timeout nach ${WORKER_TIMEOUT_MS} ms`);
     }, WORKER_TIMEOUT_MS);
-    pending.set(id, { resolve, reject, timer });
+    pending.set(id, { resolve: (reply) => resolve(reply as R), reject, timer });
     target.postMessage({ ...message, id }, transfer);
   });
 }
@@ -89,16 +106,17 @@ function dispatch(message, transfer) {
 /**
  * Tonwert-Anpassungen im Worker. Der Puffer von `imageData` wird übertragen
  * und ist danach im Hauptthread leer.
- * @param {ImageData} imageData
- * @param {object} filters
- * @returns {Promise<ImageData|null>} null = kein Worker, Aufrufer rechnet selbst
+ * @returns null = kein Worker, Aufrufer rechnet selbst
  */
-export async function adjustInWorker(imageData, filters) {
+export async function adjustInWorker(
+  imageData: ImageData,
+  filters: FilterValues
+): Promise<ImageData | null> {
   if (!isImageWorkerAvailable()) return null;
   const { width, height } = imageData;
   const buffer = imageData.data.buffer;
   try {
-    const result = await dispatch(
+    const result = await dispatch<TonalReply>(
       { operation: 'tonal', buffer, width, height, filters: { ...filters } },
       [buffer]
     );
@@ -112,16 +130,21 @@ export async function adjustInWorker(imageData, filters) {
 /**
  * Kodiert einen Canvas im Worker. Der Inhalt wird beim Aufruf als ImageBitmap
  * erfasst; spätere Änderungen am Canvas wirken sich nicht mehr aus.
- * @param {HTMLCanvasElement} canvas
- * @param {string} type z. B. image/jpeg
- * @param {number} [quality] 0-1
- * @returns {Promise<Blob|null>} null = kein Worker oder Fehler
+ * @param type z. B. image/jpeg
+ * @param quality 0-1
+ * @returns null = kein Worker oder Fehler
  */
-export async function encodeInWorker(canvas, type, quality) {
+export async function encodeInWorker(
+  canvas: HTMLCanvasElement,
+  type: string,
+  quality?: number
+): Promise<Blob | null> {
   if (!isImageWorkerAvailable() || !canvas.width || !canvas.height) return null;
   try {
     const bitmap = await createImageBitmap(canvas);
-    const result = await dispatch({ operation: 'encode', bitmap, type, quality }, [bitmap]);
+    const result = await dispatch<EncodeReply>({ operation: 'encode', bitmap, type, quality }, [
+      bitmap,
+    ]);
     return result.blob;
   } catch (error) {
     logger.warn('[ImageWorker] Kodierung fehlgeschlagen:', error);
@@ -130,7 +153,7 @@ export async function encodeInWorker(canvas, type, quality) {
 }
 
 /** Nur für Tests: Worker beenden und Zustand zurücksetzen */
-export function resetImageWorker() {
+export function resetImageWorker(): void {
   rejectAll('Worker zurückgesetzt');
   worker?.terminate();
   worker = null;
