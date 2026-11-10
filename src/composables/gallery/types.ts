@@ -1,4 +1,4 @@
-/** Bild in der Galerie (siehe galleryStore.addImage) */
+/** Bild in der Galerie (stores/galleryStore.ts) */
 export interface GalleryImage {
   id: number;
   name: string;

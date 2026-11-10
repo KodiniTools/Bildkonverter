@@ -2,6 +2,31 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { i18n, initialLocale } from '@/i18n';
 import { logger } from '@/utils/logger';
+import { isLocale, type Locale } from '@/utils/localeSeo';
+
+/** Zahlen kommen aus Formularen teils als String; parseInt wie bisher */
+type NumericInput = number | string;
+
+/** Ergebnis von exportSettings, Eingabe von importSettings (dort alles optional) */
+export interface SettingsSnapshot {
+  theme: string;
+  locale: Locale;
+  performanceMode: string;
+  defaultExportQuality: number;
+  defaultExportFormat: string;
+  showGrid: boolean;
+  snapToGrid: boolean;
+  gridSize: number;
+  autoSave: boolean;
+  autoSaveInterval: number;
+  shortcutsEnabled: boolean;
+  toastDuration: number;
+  toastPosition: string;
+}
+
+function toInt(value: NumericInput): number {
+  return parseInt(String(value));
+}
 
 /**
  * Settings Store - Verwaltet App-Einstellungen
@@ -17,22 +42,26 @@ export const useSettingsStore = defineStore('settings', () => {
 
   // Theme - globale Nav nutzt 'theme', Vue App nutzte bisher 'bildkonverter-theme'
   // Priorität: globale Nav Key > alter App Key > Fallback 'light'
-  const theme = ref(
+  const theme = ref<string>(
     localStorage.getItem('theme') || localStorage.getItem('bildkonverter-theme') || 'light'
   );
 
   // Sprache - globale Nav nutzt 'locale', Vue App nutzte bisher 'bildkonverter-locale'
   // Priorität: ?lang=de|en (hreflang-Ziel) > globale Nav Key > alter App Key > Fallback 'de'
-  const locale = ref(initialLocale());
+  const locale = ref<Locale>(initialLocale());
 
   // Performance
-  const performanceMode = ref(localStorage.getItem('bildkonverter-performance') || 'balanced');
+  const performanceMode = ref<string>(
+    localStorage.getItem('bildkonverter-performance') || 'balanced'
+  );
 
   // Quality Settings
   const defaultExportQuality = ref(
     parseInt(localStorage.getItem('bildkonverter-export-quality') || '95')
   );
-  const defaultExportFormat = ref(localStorage.getItem('bildkonverter-export-format') || 'png');
+  const defaultExportFormat = ref<string>(
+    localStorage.getItem('bildkonverter-export-format') || 'png'
+  );
 
   // UI Preferences
   const showGrid = ref(localStorage.getItem('bildkonverter-show-grid') === 'true');
@@ -52,7 +81,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
   // Toast Einstellungen
   const toastDuration = ref(3000);
-  const toastPosition = ref('top-right');
+  const toastPosition = ref<string>('top-right');
 
   // ===== COMPUTED =====
 
@@ -60,20 +89,20 @@ export const useSettingsStore = defineStore('settings', () => {
 
   const isGerman = computed(() => locale.value === 'de');
 
-  const availableThemes = computed(() => ['light', 'dark', 'auto']);
+  const availableThemes = computed<string[]>(() => ['light', 'dark', 'auto']);
 
-  const availableLocales = computed(() => ['de', 'en']);
+  const availableLocales = computed<Locale[]>(() => ['de', 'en']);
 
-  const performanceModes = computed(() => ['low', 'balanced', 'high']);
+  const performanceModes = computed<string[]>(() => ['low', 'balanced', 'high']);
 
-  const exportFormats = computed(() => ['png', 'jpg', 'jpeg', 'webp', 'gif']);
+  const exportFormats = computed<string[]>(() => ['png', 'jpg', 'jpeg', 'webp', 'gif']);
 
   // ===== ACTIONS =====
 
   /**
    * Setzt das Theme
    */
-  function setTheme(newTheme) {
+  function setTheme(newTheme: string): void {
     if (!availableThemes.value.includes(newTheme)) {
       logger.warn(`Ungültiges Theme: ${newTheme}`);
       return;
@@ -99,7 +128,7 @@ export const useSettingsStore = defineStore('settings', () => {
   /**
    * Wechselt zwischen Light und Dark Theme
    */
-  function toggleTheme() {
+  function toggleTheme(): void {
     const newTheme = isDarkMode.value ? 'light' : 'dark';
     setTheme(newTheme);
   }
@@ -107,8 +136,9 @@ export const useSettingsStore = defineStore('settings', () => {
   /**
    * Setzt die Sprache
    */
-  function setLocale(newLocale) {
-    if (!availableLocales.value.includes(newLocale)) {
+  function setLocale(newLocale: string): void {
+    // gleichbedeutend mit availableLocales.includes, engt aber den Typ ein
+    if (!isLocale(newLocale)) {
       logger.warn(`Ungültige Sprache: ${newLocale}`);
       return;
     }
@@ -131,7 +161,7 @@ export const useSettingsStore = defineStore('settings', () => {
   /**
    * Wechselt die Sprache
    */
-  function toggleLocale() {
+  function toggleLocale(): void {
     const newLocale = isGerman.value ? 'en' : 'de';
     setLocale(newLocale);
   }
@@ -139,7 +169,7 @@ export const useSettingsStore = defineStore('settings', () => {
   /**
    * Setzt den Performance-Modus
    */
-  function setPerformanceMode(mode) {
+  function setPerformanceMode(mode: string): void {
     if (!performanceModes.value.includes(mode)) {
       logger.warn(`Ungültiger Performance-Modus: ${mode}`);
       return;
@@ -154,8 +184,8 @@ export const useSettingsStore = defineStore('settings', () => {
   /**
    * Setzt die Export-Qualität
    */
-  function setDefaultExportQuality(quality) {
-    const numQuality = parseInt(quality);
+  function setDefaultExportQuality(quality: NumericInput): void {
+    const numQuality = toInt(quality);
     if (numQuality < 1 || numQuality > 100) {
       logger.warn(`Ungültige Qualität: ${quality}`);
       return;
@@ -168,7 +198,7 @@ export const useSettingsStore = defineStore('settings', () => {
   /**
    * Setzt das Export-Format
    */
-  function setDefaultExportFormat(format) {
+  function setDefaultExportFormat(format: string): void {
     if (!exportFormats.value.includes(format)) {
       logger.warn(`Ungültiges Format: ${format}`);
       return;
@@ -181,18 +211,18 @@ export const useSettingsStore = defineStore('settings', () => {
   /**
    * Grid-Einstellungen
    */
-  function setShowGrid(show) {
+  function setShowGrid(show: boolean): void {
     showGrid.value = show;
     localStorage.setItem('bildkonverter-show-grid', show.toString());
   }
 
-  function setSnapToGrid(snap) {
+  function setSnapToGrid(snap: boolean): void {
     snapToGrid.value = snap;
     localStorage.setItem('bildkonverter-snap-to-grid', snap.toString());
   }
 
-  function setGridSize(size) {
-    const numSize = parseInt(size);
+  function setGridSize(size: NumericInput): void {
+    const numSize = toInt(size);
     if (numSize < 5 || numSize > 100) {
       logger.warn(`Ungültige Grid-Größe: ${size}`);
       return;
@@ -205,13 +235,13 @@ export const useSettingsStore = defineStore('settings', () => {
   /**
    * Auto-Save Einstellungen
    */
-  function setAutoSave(enabled) {
+  function setAutoSave(enabled: boolean): void {
     autoSave.value = enabled;
     localStorage.setItem('bildkonverter-auto-save', enabled.toString());
   }
 
-  function setAutoSaveInterval(interval) {
-    const numInterval = parseInt(interval);
+  function setAutoSaveInterval(interval: NumericInput): void {
+    const numInterval = toInt(interval);
     if (numInterval < 5000 || numInterval > 300000) {
       logger.warn(`Ungültiges Auto-Save-Intervall: ${interval}`);
       return;
@@ -224,7 +254,7 @@ export const useSettingsStore = defineStore('settings', () => {
   /**
    * Keyboard Shortcuts
    */
-  function setShortcutsEnabled(enabled) {
+  function setShortcutsEnabled(enabled: boolean): void {
     shortcutsEnabled.value = enabled;
     localStorage.setItem('bildkonverter-shortcuts-enabled', enabled.toString());
   }
@@ -232,32 +262,32 @@ export const useSettingsStore = defineStore('settings', () => {
   /**
    * Debug-Modus
    */
-  function setDebugMode(enabled) {
+  function setDebugMode(enabled: boolean): void {
     debugMode.value = enabled;
     document.body.classList.toggle('debug-mode', enabled);
     logger.log(`🐛 Debug-Modus: ${enabled ? 'aktiviert' : 'deaktiviert'}`);
   }
 
-  function toggleDebugMode() {
+  function toggleDebugMode(): void {
     setDebugMode(!debugMode.value);
   }
 
   /**
    * Performance-Metriken
    */
-  function setShowPerformanceMetrics(show) {
+  function setShowPerformanceMetrics(show: boolean): void {
     showPerformanceMetrics.value = show;
   }
 
-  function togglePerformanceMetrics() {
+  function togglePerformanceMetrics(): void {
     setShowPerformanceMetrics(!showPerformanceMetrics.value);
   }
 
   /**
    * Toast-Einstellungen
    */
-  function setToastDuration(duration) {
-    const numDuration = parseInt(duration);
+  function setToastDuration(duration: NumericInput): void {
+    const numDuration = toInt(duration);
     if (numDuration < 1000 || numDuration > 10000) {
       logger.warn(`Ungültige Toast-Dauer: ${duration}`);
       return;
@@ -266,7 +296,7 @@ export const useSettingsStore = defineStore('settings', () => {
     toastDuration.value = numDuration;
   }
 
-  function setToastPosition(position) {
+  function setToastPosition(position: string): void {
     const validPositions = [
       'top-left',
       'top-center',
@@ -286,7 +316,7 @@ export const useSettingsStore = defineStore('settings', () => {
   /**
    * Setzt alle Einstellungen zurück
    */
-  function resetAllSettings() {
+  function resetAllSettings(): void {
     // Theme
     setTheme('light');
 
@@ -324,7 +354,7 @@ export const useSettingsStore = defineStore('settings', () => {
   /**
    * Exportiert alle Einstellungen als JSON
    */
-  function exportSettings() {
+  function exportSettings(): SettingsSnapshot {
     return {
       theme: theme.value,
       locale: locale.value,
@@ -345,7 +375,9 @@ export const useSettingsStore = defineStore('settings', () => {
   /**
    * Importiert Einstellungen aus JSON
    */
-  function importSettings(settings) {
+  function importSettings(
+    settings: Partial<Omit<SettingsSnapshot, 'locale'> & { locale: string }>
+  ): void {
     try {
       if (settings.theme) setTheme(settings.theme);
       if (settings.locale) setLocale(settings.locale);

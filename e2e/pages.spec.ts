@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { collectPageErrors, prepare, type Locale, type Theme } from './helpers';
 
-/** Alle Routen aus src/router/index.js mit ihrer H1 je Sprache. Der Editor hat keine H1. */
+/** Alle Routen aus src/router/index.ts mit ihrer H1 je Sprache. Der Editor hat keine H1. */
 const PAGES: ReadonlyArray<{ path: string; heading: Record<Locale, string> | null }> = [
   {
     path: './',

@@ -116,7 +116,7 @@
 
 <script setup>
 import AppIcon from '@/components/ui/AppIcon.vue';
-import { formatConversions } from '@/router/index.js';
+import { formatConversions } from '@/router';
 
 // Hero-Bild liegt in public/ und wird daher über BASE_URL (/bildkonverter/) adressiert
 const heroImage = `${import.meta.env.BASE_URL}landingpage-bildkonverter-bild.webp`;

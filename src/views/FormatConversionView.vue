@@ -15,7 +15,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { formatConversions } from '@/router/index.js';
+import { formatConversions } from '@/router';
 import ConversionWidget from '@/components/conversion/ConversionWidget.vue';
 import ConversionBenefits from '@/components/conversion/ConversionBenefits.vue';
 import ConversionFormatDetails from '@/components/conversion/ConversionFormatDetails.vue';
@@ -27,7 +27,7 @@ const props = defineProps<{
   pair: string;
 }>();
 
-const conversions = formatConversions as ConversionPair[];
+const conversions: readonly ConversionPair[] = formatConversions;
 
 const conversionData = computed<ConversionPair>(() => {
   return conversions.find((f) => f.pair === props.pair) || { from: '', to: '' };

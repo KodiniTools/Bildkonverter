@@ -1,5 +1,5 @@
 /**
- * Typen für `route.meta` (src/router/index.js).
+ * Typen für `route.meta` (src/router/index.ts).
  * Die Felder steuern SEO-Texte (useSeoMeta) und `noindex`; alle sind optional,
  * weil `format-conversion` sie erst im beforeEach-Guard setzt.
  */

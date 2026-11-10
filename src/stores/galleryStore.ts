@@ -1,18 +1,21 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { logger } from '@/utils/logger';
+import type { GalleryImage } from '@/composables/gallery/types';
+
+type ImageId = GalleryImage['id'];
 
 /**
  * Gallery Store - Verwaltet die Galerie-Bilder persistent
  */
 export const useGalleryStore = defineStore('gallery', () => {
   // State
-  const images = ref([]);
-  const selectedImageId = ref(null);
-  const selectedImageIds = ref([]); // Multi-Select für Collage
+  const images = ref<GalleryImage[]>([]);
+  const selectedImageId = ref<ImageId | null>(null);
+  const selectedImageIds = ref<ImageId[]>([]); // Multi-Select für Collage
 
   // Computed
-  const selectedImage = () => {
+  const selectedImage = (): GalleryImage | null | undefined => {
     if (!selectedImageId.value) return null;
     return images.value.find((img) => img.id === selectedImageId.value);
   };
@@ -27,12 +30,12 @@ export const useGalleryStore = defineStore('gallery', () => {
   });
 
   // Actions
-  function addImage(imageData) {
+  function addImage(imageData: GalleryImage): void {
     images.value.push(imageData);
     logger.log(`✅ Bild zur Galerie hinzugefügt: ${imageData.name}`);
   }
 
-  function removeImage(imageId) {
+  function removeImage(imageId: ImageId): void {
     const index = images.value.findIndex((img) => img.id === imageId);
     if (index !== -1) {
       images.value.splice(index, 1);
@@ -48,7 +51,7 @@ export const useGalleryStore = defineStore('gallery', () => {
     }
   }
 
-  function selectImage(imageId) {
+  function selectImage(imageId: ImageId): void {
     if (selectedImageId.value === imageId) {
       selectedImageId.value = null;
     } else {
@@ -57,7 +60,7 @@ export const useGalleryStore = defineStore('gallery', () => {
   }
 
   // Multi-Select Funktionen
-  function toggleImageSelection(imageId) {
+  function toggleImageSelection(imageId: ImageId): void {
     const index = selectedImageIds.value.indexOf(imageId);
     if (index === -1) {
       selectedImageIds.value.push(imageId);
@@ -66,29 +69,29 @@ export const useGalleryStore = defineStore('gallery', () => {
     }
   }
 
-  function selectAllImages() {
+  function selectAllImages(): void {
     selectedImageIds.value = images.value.map((img) => img.id);
   }
 
-  function deselectAllImages() {
+  function deselectAllImages(): void {
     selectedImageIds.value = [];
   }
 
-  function isImageSelected(imageId) {
+  function isImageSelected(imageId: ImageId): boolean {
     return selectedImageIds.value.includes(imageId);
   }
 
-  function clearGallery() {
+  function clearGallery(): void {
     images.value = [];
     selectedImageId.value = null;
     selectedImageIds.value = [];
   }
 
-  function getImage(imageId) {
+  function getImage(imageId: ImageId): GalleryImage | undefined {
     return images.value.find((img) => img.id === imageId);
   }
 
-  function renameImage(imageId, newName) {
+  function renameImage(imageId: ImageId, newName: string): void {
     const image = images.value.find((img) => img.id === imageId);
     if (image && newName.trim()) {
       image.name = newName.trim();
