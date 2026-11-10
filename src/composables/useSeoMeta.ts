@@ -10,6 +10,15 @@
  */
 
 import { localeUrls } from '@/utils/localeSeo';
+import type { RouteSeoTexts } from '@/types/router';
+
+/** SEO-Felder einer Route (Ausschnitt aus route.meta) */
+export interface SeoMeta extends RouteSeoTexts {
+  /** URL-Pfad der Route (z. B. '/editor') */
+  path?: string;
+  /** Englische Texte */
+  en?: RouteSeoTexts;
+}
 
 const BASE_URL = 'https://kodinitools.com/bildkonverter';
 const SITE_NAME = 'KodiniTools';
@@ -18,7 +27,7 @@ const DEFAULT_TITLE_SUFFIX = 'Bildkonverter Pro';
 /**
  * Setzt oder aktualisiert ein <meta>-Tag im <head>
  */
-function setMetaTag(attribute, key, content) {
+function setMetaTag(attribute: string, key: string, content: string | undefined): void {
   if (!content) return;
   let element = document.querySelector(`meta[${attribute}="${key}"]`);
   if (!element) {
@@ -32,7 +41,7 @@ function setMetaTag(attribute, key, content) {
 /**
  * Setzt oder aktualisiert <link rel="canonical">
  */
-function setCanonical(url) {
+function setCanonical(url: string): void {
   let link = document.querySelector('link[rel="canonical"]');
   if (!link) {
     link = document.createElement('link');
@@ -45,7 +54,7 @@ function setCanonical(url) {
 /**
  * Setzt oder aktualisiert <link rel="alternate" hreflang="...">
  */
-function setAlternate(hreflang, url) {
+function setAlternate(hreflang: string, url: string): void {
   let link = document.querySelector(`link[rel="alternate"][hreflang="${hreflang}"]`);
   if (!link) {
     link = document.createElement('link');
@@ -58,15 +67,11 @@ function setAlternate(hreflang, url) {
 
 /**
  * Aktualisiert alle SEO-relevanten Meta-Tags für die aktuelle Route
+ * (title wird mit Suffix kombiniert).
  *
- * @param {object} meta - Route-Meta-Objekt mit SEO-Feldern
- * @param {string} [meta.title] - Seitentitel (wird mit Suffix kombiniert)
- * @param {string} [meta.description] - Meta-Description
- * @param {string} meta.path - URL-Pfad der Route (z.B. '/editor')
- * @param {{ title?: string, description?: string }} [meta.en] - englische Texte
- * @param {'de' | 'en'} [locale] - aktive Sprache
+ * @param locale - aktive Sprache ('de' | 'en'; alles andere gilt als Deutsch)
  */
-export function updateSeoMeta(meta, locale = 'de') {
+export function updateSeoMeta(meta: SeoMeta, locale: string = 'de'): void {
   const lang = locale === 'en' ? 'en' : 'de';
   const texts = lang === 'en' && meta.en ? meta.en : meta;
   const { title, description } = texts;
@@ -105,7 +110,7 @@ export function updateSeoMeta(meta, locale = 'de') {
 /**
  * Setzt die hreflang-Tags basierend auf der aktuellen Sprache
  */
-export function updateHreflang(locale) {
+export function updateHreflang(locale: string): void {
   setMetaTag('property', 'og:locale', locale === 'en' ? 'en_US' : 'de_DE');
   document.documentElement.setAttribute('lang', locale);
 }

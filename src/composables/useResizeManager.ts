@@ -4,14 +4,26 @@
  */
 import { ref, computed } from 'vue';
 
+export interface Dimensions {
+  width: number;
+  height: number;
+}
+
+export interface ResizePresetSize extends Dimensions {
+  name: string;
+}
+
+export interface ResizeManagerOptions {
+  /** Liefert die aktuellen Dimensionen */
+  getCurrentDimensions?: () => Dimensions;
+  /** Callback bei Größenänderung */
+  onResize?: (dimensions: Dimensions) => void;
+}
+
 /**
  * Composable für Resize-Management
- * @param {Object} options - Optionen
- * @param {Function} options.getCurrentDimensions - Funktion die aktuelle Dimensionen zurückgibt
- * @param {Function} options.onResize - Callback bei Größenänderung
- * @returns {Object} Resize-State und Methoden
  */
-export function useResizeManager(options = {}) {
+export function useResizeManager(options: ResizeManagerOptions = {}) {
   const { getCurrentDimensions, onResize } = options;
 
   // Reaktive State
@@ -48,14 +60,15 @@ export function useResizeManager(options = {}) {
 
   /**
    * Initialisiert die Resize-Werte mit aktuellen Dimensionen
-   * @param {number} width - Aktuelle Breite
-   * @param {number} height - Aktuelle Höhe
-   * @param {Object} [options] - Optionen
-   * @param {boolean} [options.natural=true] - Auch die Originalgröße des Bildes
+   * @param options.natural - Auch die Originalgröße des Bildes
    *   mitsetzen. `false` bei reinen Größenänderungen, damit "Ohne Preset"
    *   weiterhin die ursprüngliche Bildgröße wiederherstellen kann.
    */
-  function initFromDimensions(width, height, { natural = true } = {}) {
+  function initFromDimensions(
+    width: number,
+    height: number,
+    { natural = true }: { natural?: boolean } = {}
+  ): void {
     originalWidth.value = width;
     originalHeight.value = height;
     resizeWidth.value = width;
@@ -70,10 +83,8 @@ export function useResizeManager(options = {}) {
   /**
    * Setzt die Originalgröße des Bildes explizit (z. B. beim Wiederherstellen
    * eines History-Eintrags).
-   * @param {number} width - Originalbreite
-   * @param {number} height - Originalhöhe
    */
-  function setNaturalSize(width, height) {
+  function setNaturalSize(width: number, height: number): void {
     naturalWidth.value = width;
     naturalHeight.value = height;
   }
@@ -82,7 +93,7 @@ export function useResizeManager(options = {}) {
    * Aktualisiert bei Dimensionsänderung
    * Verwendet getCurrentDimensions wenn verfügbar
    */
-  function syncWithCurrent() {
+  function syncWithCurrent(): void {
     if (getCurrentDimensions) {
       const { width, height } = getCurrentDimensions();
       initFromDimensions(width, height);
@@ -91,9 +102,8 @@ export function useResizeManager(options = {}) {
 
   /**
    * Behandelt Änderung der Breite
-   * @param {number} newWidth - Neue Breite
    */
-  function onWidthChange(newWidth) {
+  function onWidthChange(newWidth: number): void {
     // Rohwert übernehmen, damit das Feld während des Tippens frei editierbar
     // bleibt (Leeren/Teil­eingaben werden nicht auf 1 gezwungen). Die
     // Validierung erfolgt in der Live-Vorschau bzw. beim "Anwenden".
@@ -106,9 +116,8 @@ export function useResizeManager(options = {}) {
 
   /**
    * Behandelt Änderung der Höhe
-   * @param {number} newHeight - Neue Höhe
    */
-  function onHeightChange(newHeight) {
+  function onHeightChange(newHeight: number): void {
     // Rohwert übernehmen, damit das Feld während des Tippens frei editierbar
     // bleibt (Leeren/Teil­eingaben werden nicht auf 1 gezwungen). Die
     // Validierung erfolgt in der Live-Vorschau bzw. beim "Anwenden".
@@ -121,9 +130,8 @@ export function useResizeManager(options = {}) {
 
   /**
    * Behandelt Änderung einer Dimension
-   * @param {'width'|'height'} dimension - Geänderte Dimension
    */
-  function onDimensionChange(dimension) {
+  function onDimensionChange(dimension: 'width' | 'height'): void {
     if (dimension === 'width') {
       onWidthChange(resizeWidth.value);
     } else {
@@ -133,9 +141,9 @@ export function useResizeManager(options = {}) {
 
   /**
    * Skaliert prozentual
-   * @param {number} percent - Prozentsatz (z.B. 50 für 50%)
+   * @param percent - Prozentsatz (z.B. 50 für 50%)
    */
-  function scaleByPercent(percent) {
+  function scaleByPercent(percent: number): void {
     const factor = percent / 100;
     resizeWidth.value = Math.max(1, Math.round(originalWidth.value * factor));
     resizeHeight.value = Math.max(1, Math.round(originalHeight.value * factor));
@@ -144,16 +152,16 @@ export function useResizeManager(options = {}) {
   /**
    * Setzt auf Originalgrößen zurück
    */
-  function resetToOriginal() {
+  function resetToOriginal(): void {
     resizeWidth.value = originalWidth.value;
     resizeHeight.value = originalHeight.value;
   }
 
   /**
    * Wendet Resize an
-   * @returns {Object|null} Neue Dimensionen oder null bei Fehler
+   * @returns Neue Dimensionen oder null bei Fehler
    */
-  function applyResize() {
+  function applyResize(): Dimensions | null {
     if (!isValidSize.value) {
       return null;
     }
@@ -176,11 +184,8 @@ export function useResizeManager(options = {}) {
 
   /**
    * Berechnet Dimensionen für maximale Größe (Bounding Box)
-   * @param {number} maxWidth - Maximale Breite
-   * @param {number} maxHeight - Maximale Höhe
-   * @returns {Object} Berechnete Dimensionen
    */
-  function fitToBounds(maxWidth, maxHeight) {
+  function fitToBounds(maxWidth: number, maxHeight: number): Dimensions {
     let newWidth = originalWidth.value;
     let newHeight = originalHeight.value;
 
@@ -204,7 +209,7 @@ export function useResizeManager(options = {}) {
   /**
    * Preset-Größen für Social Media etc.
    */
-  const presetSizes = {
+  const presetSizes: Readonly<Record<string, ResizePresetSize>> = {
     instagram: { width: 1080, height: 1080, name: 'Instagram Post' },
     instagramStory: { width: 1080, height: 1920, name: 'Instagram Story' },
     facebook: { width: 1200, height: 630, name: 'Facebook Post' },
@@ -216,9 +221,8 @@ export function useResizeManager(options = {}) {
 
   /**
    * Wendet Preset-Größe an
-   * @param {string} presetName - Name des Presets
    */
-  function applyPreset(presetName) {
+  function applyPreset(presetName: string): void {
     const preset = presetSizes[presetName];
     if (preset) {
       resizeWidth.value = preset.width;

@@ -2,20 +2,35 @@
  * useImageHistory Composable
  * Verwaltet Undo/Redo-Funktionalität für Bildbearbeitung
  */
-import { ref, computed } from 'vue';
+import { ref, computed, type Ref } from 'vue';
+
+/** Gespeicherter Zustand plus Zeitstempel */
+export type HistoryEntry<S extends object> = S & { timestamp: number };
+
+export interface ImageHistoryOptions<S extends object> {
+  /** Maximale Anzahl der History-Einträge (Standard: 50) */
+  maxHistorySize?: number;
+  /** Callback beim Wiederherstellen eines States */
+  onRestore?: (state: HistoryEntry<S>) => void;
+}
+
+export interface HistoryListItem {
+  index: number;
+  timestamp: number;
+  isCurrent: boolean;
+}
 
 /**
  * Composable für Image-History Management
- * @param {Object} options - Optionen
- * @param {number} options.maxHistorySize - Maximale Anzahl der History-Einträge (Standard: 50)
- * @param {Function} options.onRestore - Callback beim Wiederherstellen eines States
- * @returns {Object} History-State und Methoden
+ * @typeParam S - Form eines gespeicherten Zustands (z. B. Canvas-Daten, Filter, Texte)
  */
-export function useImageHistory(options = {}) {
+export function useImageHistory<S extends object = Record<string, unknown>>(
+  options: ImageHistoryOptions<S> = {}
+) {
   const { maxHistorySize = 50, onRestore } = options;
 
-  // Reaktive State
-  const history = ref([]);
+  // Reaktive State (Ref-Typ ausdrücklich, damit generische Einträge nicht entpackt werden)
+  const history = ref([]) as Ref<HistoryEntry<S>[]>;
   const historyIndex = ref(-1);
 
   // Computed
@@ -31,15 +46,9 @@ export function useImageHistory(options = {}) {
 
   /**
    * Speichert einen neuen State in der History
-   * @param {Object} state - Zu speichernder State
-   * @param {Object} state.canvasData - Canvas-Daten (DataURL oder ImageData)
-   * @param {Object} state.filters - Filter-State
-   * @param {Object} state.background - Hintergrund-State
-   * @param {Object} state.transforms - Transform-State
-   * @param {Array} state.texts - Text-Objekte
-   * @param {Object} state.dimensions - Bild-Dimensionen
+   * (z. B. canvasData, filters, background, transforms, texts, dimensions)
    */
-  function saveState(state) {
+  function saveState(state: S): void {
     // Entferne alle States nach dem aktuellen Index (Redo-History löschen)
     if (historyIndex.value < history.value.length - 1) {
       history.value = history.value.slice(0, historyIndex.value + 1);
@@ -49,7 +58,7 @@ export function useImageHistory(options = {}) {
     history.value.push({
       ...state,
       timestamp: Date.now(),
-    });
+    } as HistoryEntry<S>);
 
     // Begrenze History-Größe
     if (history.value.length > maxHistorySize) {
@@ -62,9 +71,9 @@ export function useImageHistory(options = {}) {
 
   /**
    * Undo - Gehe einen Schritt zurück
-   * @returns {Object|null} Vorheriger State oder null
+   * @returns Vorheriger State oder null
    */
-  function undo() {
+  function undo(): HistoryEntry<S> | null {
     if (!canUndo.value) {
       return null;
     }
@@ -81,9 +90,9 @@ export function useImageHistory(options = {}) {
 
   /**
    * Redo - Gehe einen Schritt vorwärts
-   * @returns {Object|null} Nächster State oder null
+   * @returns Nächster State oder null
    */
-  function redo() {
+  function redo(): HistoryEntry<S> | null {
     if (!canRedo.value) {
       return null;
     }
@@ -100,10 +109,9 @@ export function useImageHistory(options = {}) {
 
   /**
    * Springt zu einem bestimmten History-Index
-   * @param {number} index - Ziel-Index
-   * @returns {Object|null} State am Index oder null
+   * @returns State am Index oder null
    */
-  function goToIndex(index) {
+  function goToIndex(index: number): HistoryEntry<S> | null {
     if (index < 0 || index >= history.value.length) {
       return null;
     }
@@ -121,29 +129,28 @@ export function useImageHistory(options = {}) {
   /**
    * Löscht die gesamte History
    */
-  function clearHistory() {
+  function clearHistory(): void {
     history.value = [];
     historyIndex.value = -1;
   }
 
   /**
    * Ersetzt den aktuellen State (ohne neuen History-Eintrag)
-   * @param {Object} state - Neuer State
    */
-  function replaceCurrentState(state) {
+  function replaceCurrentState(state: S): void {
     if (historyIndex.value >= 0 && historyIndex.value < history.value.length) {
       history.value[historyIndex.value] = {
         ...state,
         timestamp: Date.now(),
-      };
+      } as HistoryEntry<S>;
     }
   }
 
   /**
    * Gibt die History als Array zurück (für Debug/Export)
-   * @returns {Array} Kopie der History
+   * @returns Kopie der History
    */
-  function getHistoryList() {
+  function getHistoryList(): HistoryListItem[] {
     return history.value.map((state, index) => ({
       index,
       timestamp: state.timestamp,

@@ -12,13 +12,13 @@ export const RECENT_COLORS_MAX = 8;
 
 const HEX = /^#[0-9a-f]{6}$/i;
 
-function load() {
+function load(): string[] {
   try {
     const raw = globalThis.localStorage?.getItem(RECENT_COLORS_KEY);
-    const list = raw ? JSON.parse(raw) : [];
+    const list: unknown = raw ? JSON.parse(raw) : [];
     return Array.isArray(list)
       ? list
-          .filter((c) => typeof c === 'string' && HEX.test(c))
+          .filter((c): c is string => typeof c === 'string' && HEX.test(c))
           .map((c) => c.toLowerCase())
           .slice(0, RECENT_COLORS_MAX)
       : [];
@@ -27,9 +27,9 @@ function load() {
   }
 }
 
-const colors = ref(load());
+const colors = ref<string[]>(load());
 
-function save() {
+function save(): void {
   try {
     globalThis.localStorage?.setItem(RECENT_COLORS_KEY, JSON.stringify(colors.value));
   } catch {
@@ -37,8 +37,8 @@ function save() {
   }
 }
 
-/** Farbe vorn einreihen (ungültige Werte werden ignoriert). @returns {boolean} */
-export function addRecentColor(color) {
+/** Farbe vorn einreihen (ungültige Werte werden ignoriert). */
+export function addRecentColor(color: unknown): boolean {
   if (typeof color !== 'string' || !HEX.test(color)) return false;
   const value = color.toLowerCase();
   colors.value = [value, ...colors.value.filter((c) => c !== value)].slice(0, RECENT_COLORS_MAX);
@@ -46,13 +46,13 @@ export function addRecentColor(color) {
   return true;
 }
 
-export function clearRecentColors() {
+export function clearRecentColors(): void {
   colors.value = [];
   save();
 }
 
 /** Liste neu aus dem Speicher lesen (Tests, anderer Tab) */
-export function reloadRecentColors() {
+export function reloadRecentColors(): void {
   colors.value = load();
 }
 

@@ -3,6 +3,7 @@
  * Verwaltet Filter-State, Hintergrund-Einstellungen und Sidebar-Sektionen
  */
 import { ref, computed } from 'vue';
+import type { PresetFilters } from '@/composables/presets/defaultPresets';
 
 // Standard-Filterwerte
 export const DEFAULT_FILTERS = {
@@ -30,28 +31,60 @@ export const DEFAULT_FILTERS = {
   vignette: 0,
 };
 
+/** Vollständige Filterwerte des Editors (alle Felder gesetzt, siehe FilterValues) */
+export type EditorFilters = typeof DEFAULT_FILTERS;
+type FilterValue = EditorFilters[keyof EditorFilters];
+
+export interface EditorBackground {
+  color: string;
+  /** 0-100 */
+  opacity: number;
+}
+
 // Standard-Hintergrund
-export const DEFAULT_BACKGROUND = {
+export const DEFAULT_BACKGROUND: EditorBackground = {
   color: '#ffffff',
   opacity: 100,
 };
 
+export interface SectionsOpen {
+  adjustments: boolean;
+  lightColor: boolean;
+  curves: boolean;
+  effects: boolean;
+}
+
+/** Zustand für die Editor-Historie (exportState/importState) */
+export interface FilterState {
+  filters: EditorFilters;
+  background: EditorBackground;
+  /** undefined nur, wenn ein importierter Zustand es so mitbringt */
+  currentPreset: string | null | undefined;
+}
+
+export interface FilterManagementOptions {
+  /** Callback bei Filter-Änderungen */
+  onFilterChange?: () => void;
+}
+
+/** Werte aus Presets oder Auto-Verbessern landen ungeprüft im Filterobjekt (wie bisher) */
+function asFilters(values: PresetFilters | Partial<EditorFilters>): EditorFilters {
+  return values as EditorFilters;
+}
+
 /**
  * Composable für Filter-Management
- * @param {Object} options - Optionen
- * @param {Function} options.onFilterChange - Callback bei Filter-Änderungen
- * @returns {Object} Filter-State und Methoden
  */
-export function useFilterManagement(options = {}) {
+export function useFilterManagement(options: FilterManagementOptions = {}) {
   const { onFilterChange } = options;
 
   // Reaktive State
-  const filters = ref({ ...DEFAULT_FILTERS });
-  const background = ref({ ...DEFAULT_BACKGROUND });
-  const currentPreset = ref(null);
+  const filters = ref<EditorFilters>({ ...DEFAULT_FILTERS });
+  const background = ref<EditorBackground>({ ...DEFAULT_BACKGROUND });
+  const currentPreset = ref<string | null | undefined>(null);
 
   // Sidebar-Sektionen (collapsible)
-  const sectionsOpen = ref({
+  const sectionsOpen = ref<SectionsOpen>({
     adjustments: true,
     lightColor: false,
     curves: false,
@@ -60,7 +93,9 @@ export function useFilterManagement(options = {}) {
 
   // Computed: Prüft ob Filter vom Standard abweichen
   const hasActiveFilters = computed(() => {
-    return Object.keys(DEFAULT_FILTERS).some((key) => filters.value[key] !== DEFAULT_FILTERS[key]);
+    return (Object.keys(DEFAULT_FILTERS) as (keyof EditorFilters)[]).some(
+      (key) => filters.value[key] !== DEFAULT_FILTERS[key]
+    );
   });
 
   // Computed: Prüft ob Hintergrund aktiv ist
@@ -71,7 +106,7 @@ export function useFilterManagement(options = {}) {
   /**
    * Setzt alle Filter auf Standardwerte zurück
    */
-  function resetFilters() {
+  function resetFilters(): void {
     filters.value = { ...DEFAULT_FILTERS };
     currentPreset.value = null;
 
@@ -83,7 +118,7 @@ export function useFilterManagement(options = {}) {
   /**
    * Setzt Hintergrund auf Standardwerte zurück
    */
-  function resetBackground() {
+  function resetBackground(): void {
     background.value = { ...DEFAULT_BACKGROUND };
 
     if (onFilterChange) {
@@ -94,18 +129,17 @@ export function useFilterManagement(options = {}) {
   /**
    * Setzt alles zurück (Filter + Hintergrund)
    */
-  function resetAll() {
+  function resetAll(): void {
     resetFilters();
     resetBackground();
   }
 
   /**
    * Wendet ein Preset an
-   * @param {Object} preset - Preset-Objekt mit filters-Property
    */
-  function applyPreset(preset) {
+  function applyPreset(preset: { id: string; filters?: PresetFilters }): void {
     // Kombiniere Standard-Werte mit Preset-Werten
-    filters.value = { ...DEFAULT_FILTERS, ...preset.filters };
+    filters.value = asFilters({ ...DEFAULT_FILTERS, ...preset.filters });
     currentPreset.value = preset.id;
 
     if (onFilterChange) {
@@ -116,14 +150,14 @@ export function useFilterManagement(options = {}) {
   /**
    * Setzt mehrere Filter auf einmal (z. B. Auto-Verbessern); unbekannte
    * Schlüssel werden ignoriert, die übrigen Filter bleiben erhalten.
-   * @param {Object} values - Teilmenge der Filterwerte
+   * @param values - Teilmenge der Filterwerte
    */
-  function applyAdjustments(values) {
-    const next = { ...filters.value };
+  function applyAdjustments(values: PresetFilters): void {
+    const next: PresetFilters = { ...filters.value };
     for (const [key, value] of Object.entries(values)) {
       if (key in DEFAULT_FILTERS) next[key] = value;
     }
-    filters.value = next;
+    filters.value = asFilters(next);
     currentPreset.value = null;
 
     if (onFilterChange) {
@@ -133,12 +167,10 @@ export function useFilterManagement(options = {}) {
 
   /**
    * Aktualisiert einen einzelnen Filter
-   * @param {string} filterName - Name des Filters
-   * @param {number} value - Neuer Wert
    */
-  function updateFilter(filterName, value) {
+  function updateFilter(filterName: string, value: FilterValue): void {
     if (filterName in filters.value) {
-      filters.value[filterName] = value;
+      (filters.value as PresetFilters)[filterName] = value;
       currentPreset.value = null; // Preset wird ungültig bei manueller Änderung
 
       if (onFilterChange) {
@@ -149,12 +181,11 @@ export function useFilterManagement(options = {}) {
 
   /**
    * Aktualisiert Hintergrund-Einstellung
-   * @param {string} property - 'color' oder 'opacity'
-   * @param {string|number} value - Neuer Wert
+   * @param property - 'color' oder 'opacity'
    */
-  function updateBackground(property, value) {
+  function updateBackground(property: string, value: string | number): void {
     if (property in background.value) {
-      background.value[property] = value;
+      (background.value as EditorBackground & Record<string, string | number>)[property] = value;
 
       if (onFilterChange) {
         onFilterChange();
@@ -164,19 +195,18 @@ export function useFilterManagement(options = {}) {
 
   /**
    * Togglet eine Sidebar-Sektion
-   * @param {string} sectionName - Name der Sektion
    */
-  function toggleSection(sectionName) {
+  function toggleSection(sectionName: string): void {
     if (sectionName in sectionsOpen.value) {
-      sectionsOpen.value[sectionName] = !sectionsOpen.value[sectionName];
+      const key = sectionName as keyof SectionsOpen;
+      sectionsOpen.value[key] = !sectionsOpen.value[key];
     }
   }
 
   /**
    * Generiert CSS-Filter-String für Canvas
-   * @returns {string} CSS-Filter-String
    */
-  function getFilterString() {
+  function getFilterString(): string {
     const f = filters.value;
     const exposureAdjust = 100 + f.exposure;
     const highlightsAdjust = 100 + f.highlights * 0.5;
@@ -196,9 +226,8 @@ export function useFilterManagement(options = {}) {
 
   /**
    * Exportiert aktuellen State (für History)
-   * @returns {Object} Kopie des aktuellen States
    */
-  function exportState() {
+  function exportState(): FilterState {
     return {
       filters: { ...filters.value },
       background: { ...background.value },
@@ -208,9 +237,8 @@ export function useFilterManagement(options = {}) {
 
   /**
    * Importiert State (für History-Restore)
-   * @param {Object} state - Gespeicherter State
    */
-  function importState(state) {
+  function importState(state: Partial<FilterState>): void {
     if (state.filters) {
       filters.value = { ...DEFAULT_FILTERS, ...state.filters };
     }
