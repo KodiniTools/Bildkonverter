@@ -41,6 +41,17 @@ test.describe('Editor (Smoke)', () => {
     await expect(slider).toHaveValue('100');
   });
 
+  test('Zuschneiden: Bestätigen und Abbrechen sind Symbol-Buttons ohne Text', async ({ page }) => {
+    await page.getByRole('button', { name: 'Zuschneiden', exact: true }).click();
+    const confirm = page.getByRole('button', { name: 'Bestätigen', exact: true });
+    const cancel = page.getByRole('button', { name: 'Abbrechen', exact: true });
+    await expect(confirm).toBeVisible();
+    await expect(confirm).toHaveText('');
+    await expect(cancel).toHaveText('');
+    await cancel.click();
+    await expect(confirm).toBeHidden();
+  });
+
   test('Download: Dateiname im Export-Dialog, dann Speichern-unter-Dialog des Systems', async ({
     page,
   }) => {
