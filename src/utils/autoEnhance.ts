@@ -4,7 +4,7 @@
  * Schatten, Sättigung). Das Ergebnis sind normale Reglerwerte: Nutzer sehen,
  * was passiert ist, können nachjustieren und mit Rückgängig zurück.
  *
- * Die Reihenfolge entspricht dem Tonwert-Kernel (utils/tonalKernel.js):
+ * Die Reihenfolge entspricht dem Tonwert-Kernel (utils/tonalKernel.ts):
  * Belichtung → Helligkeit → Kontrast → Lichter/Schatten → Sättigung.
  */
 

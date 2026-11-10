@@ -1,11 +1,12 @@
 /**
- * tonalKernel.js
+ * tonalKernel.ts
  *
  * Reine Pixel-Berechnung der Tonwert-Anpassungen (Weißabgleich, Belichtung,
  * Helligkeit, Kontrast, Lichter, Schatten, Sättigung, zuletzt Kurven). Ohne
  * DOM-Zugriff und nur mit ebenso reinen Kernen als Import, damit sie identisch
  * im Hauptthread und im Web Worker laufen kann.
  */
+import type { FilterValues, PixelData } from '@/types/filters';
 import { curveLUTs } from './curveKernel';
 
 // Luminanz-Gewichte (Rec. 709)
@@ -14,14 +15,14 @@ const LUM_G = 0.7152;
 const LUM_B = 0.0722;
 
 // sRGB <-> lineares Licht (für physikalisch korrekte Belichtung)
-function srgbToLinear(c) {
+function srgbToLinear(c: number): number {
   return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
 }
-function linearToSrgb(c) {
+function linearToSrgb(c: number): number {
   return c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
 }
 
-function clamp01(v) {
+function clamp01(v: number): number {
   return v < 0 ? 0 : v > 1 ? 1 : v;
 }
 
@@ -32,10 +33,8 @@ export const WHITE_BALANCE_STRENGTH = 0.5;
  * Kanal-Gains des Weißabgleichs (im linearen Licht).
  * temperature −100 (kühl, blau) … 100 (warm, gelb): Rot hoch, Blau runter
  * tint        −100 (grün)       … 100 (magenta):    Grün runter
- * @param {Object} f
- * @returns {{ r: number, g: number, b: number }}
  */
-export function whiteBalanceGains(f) {
+export function whiteBalanceGains(f: FilterValues): { r: number; g: number; b: number } {
   const t = (f.temperature ?? 0) / 100;
   const m = (f.tint ?? 0) / 100;
   return {
@@ -49,11 +48,10 @@ export function whiteBalanceGains(f) {
  * Erzeugt eine Lookup-Tabelle (0..255 -> 0..1) für die Tonwert-Operationen
  * je Kanal: Weißabgleich-Gain und Belichtung (linear) -> Helligkeit
  * -> Kontrast. Das spart teure Berechnungen im Pixel-Loop.
- * @param {Object} f
- * @param {number} [channelGain=1] Weißabgleich-Gain dieses Kanals
- * @returns {Float32Array} Länge 256, Werte 0..1
+ * @param channelGain Weißabgleich-Gain dieses Kanals
+ * @returns Länge 256, Werte 0..1
  */
-function buildToneLUT(f, channelGain = 1) {
+function buildToneLUT(f: FilterValues, channelGain = 1): Float32Array {
   const exposure = f.exposure ?? 0;
   const brightness = (f.brightness ?? 100) / 100;
   const contrast = (f.contrast ?? 100) / 100;
@@ -88,10 +86,10 @@ function buildToneLUT(f, channelGain = 1) {
 
 /**
  * Wendet alle Tonwert-Anpassungen direkt auf ein ImageData-Array an.
- * @param {Uint8ClampedArray} data - RGBA-Pixeldaten (wird in-place verändert)
- * @param {Object} f - Filter-Objekt
+ * @param data - RGBA-Pixeldaten (wird in-place verändert)
+ * @param f - Filter-Objekt
  */
-export function applyTonalAdjustments(data, f) {
+export function applyTonalAdjustments(data: PixelData, f: FilterValues): void {
   // Ohne Weißabgleich teilen sich alle Kanäle eine Tabelle
   const wb = whiteBalanceGains(f);
   const lutR = buildToneLUT(f, wb.r);

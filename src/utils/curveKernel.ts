@@ -1,9 +1,9 @@
 /**
- * curveKernel.js
+ * curveKernel.ts
  *
  * Gradationskurven (Tonwerte/Kurven): eine Gesamtkurve und je eine Kurve für
  * Rot, Grün und Blau. Ohne Imports und DOM-Zugriff, damit die Berechnung
- * identisch im Hauptthread und im Web Worker läuft (über tonalKernel.js).
+ * identisch im Hauptthread und im Web Worker läuft (über tonalKernel.ts).
  *
  * Eine Kurve ist als Zeichenkette gespeichert: "x,y x,y …" mit Ganzzahlen
  * 0..255, nach x sortiert. Leer ('') bedeutet linear (keine Änderung). Als
@@ -14,27 +14,34 @@
  * und rechts vom letzten Punkt gilt dessen Ausgabewert (Schwarz-/Weißpunkt).
  */
 
+import type { FilterValues } from '@/types/filters';
+
+/** Ein Kurvenpunkt [x, y], beide 0..255 */
+export type CurvePoint = [number, number];
+
+/** Die Kurven-Felder eines Filter-Objekts */
+export type CurveFilters = Pick<FilterValues, 'curveRgb' | 'curveR' | 'curveG' | 'curveB'>;
+
 /** Filter-Schlüssel der Kurven je Kanal. */
 export const CURVE_KEYS = Object.freeze({
   rgb: 'curveRgb',
   r: 'curveR',
   g: 'curveG',
   b: 'curveB',
-});
+} as const);
 
-function clampByte(v) {
+function clampByte(v: number): number {
   return v < 0 ? 0 : v > 255 ? 255 : v;
 }
 
 /**
  * Liest eine Kurve. Ungültige Einträge werden verworfen; doppelte x-Werte
  * behalten den letzten Punkt.
- * @param {string|undefined|null} str
- * @returns {Array<[number, number]>|null} sortierte Punkte (mind. 2) oder null
+ * @returns sortierte Punkte (mind. 2) oder null
  */
-export function parseCurve(str) {
+export function parseCurve(str: unknown): CurvePoint[] | null {
   if (typeof str !== 'string' || str.trim() === '') return null;
-  const byX = new Map();
+  const byX = new Map<number, number>();
   for (const part of str.trim().split(/\s+/)) {
     const [xs, ys] = part.split(',');
     const x = Number(xs);
@@ -47,7 +54,7 @@ export function parseCurve(str) {
 }
 
 /** true, wenn die Punkte die Identität beschreiben (alle auf der Diagonalen, volle Breite). */
-export function isIdentityPoints(points) {
+export function isIdentityPoints(points: readonly CurvePoint[] | null): boolean {
   if (!points) return true;
   const first = points[0];
   const last = points[points.length - 1];
@@ -56,12 +63,12 @@ export function isIdentityPoints(points) {
 }
 
 /** true, wenn die Kurve das Bild verändert. */
-export function isActiveCurve(str) {
+export function isActiveCurve(str: unknown): boolean {
   return !isIdentityPoints(parseCurve(str));
 }
 
 /** Prüft, ob mindestens eine Kurve aktiv ist. */
-export function hasCurveAdjustments(f) {
+export function hasCurveAdjustments(f: CurveFilters): boolean {
   return (
     isActiveCurve(f.curveRgb) ||
     isActiveCurve(f.curveR) ||
@@ -72,18 +79,18 @@ export function hasCurveAdjustments(f) {
 
 /**
  * Wertet die Kurve für alle 256 Eingabewerte aus.
- * @param {Array<[number, number]>} points sortiert, mind. 2
- * @returns {Uint8Array} Länge 256
+ * @param points sortiert, mind. 2
+ * @returns Länge 256
  */
-export function buildCurveLUT(points) {
+export function buildCurveLUT(points: readonly CurvePoint[]): Uint8Array {
   const n = points.length;
   const xs = points.map((p) => p[0]);
   const ys = points.map((p) => p[1]);
 
   // Sekantensteigungen und Tangenten (Fritsch–Carlson, monoton)
-  const d = new Array(n - 1);
+  const d: number[] = new Array(n - 1);
   for (let k = 0; k < n - 1; k++) d[k] = (ys[k + 1] - ys[k]) / (xs[k + 1] - xs[k]);
-  const m = new Array(n);
+  const m: number[] = new Array(n);
   m[0] = d[0];
   m[n - 1] = d[n - 2];
   for (let k = 1; k < n - 1; k++) {
@@ -108,7 +115,7 @@ export function buildCurveLUT(points) {
   const lut = new Uint8Array(256);
   let k = 0;
   for (let x = 0; x < 256; x++) {
-    let y;
+    let y: number;
     if (x <= xs[0]) y = ys[0];
     else if (x >= xs[n - 1]) y = ys[n - 1];
     else {
@@ -129,21 +136,20 @@ export function buildCurveLUT(points) {
 }
 
 /** LUT einer Kurven-Zeichenkette oder null, wenn sie nichts ändert. */
-function lutOf(str) {
+function lutOf(str: string | undefined): Uint8Array | null {
   const points = parseCurve(str);
-  return isIdentityPoints(points) ? null : buildCurveLUT(points);
+  return !points || isIdentityPoints(points) ? null : buildCurveLUT(points);
 }
 
 /**
  * Kombinierte Tabellen je Kanal: erst die Gesamtkurve, dann die Kanalkurve.
- * @param {Object} f Filter-Objekt
- * @returns {{ r: Uint8Array, g: Uint8Array, b: Uint8Array }|null} null ohne aktive Kurve
+ * @returns null ohne aktive Kurve
  */
-export function curveLUTs(f) {
+export function curveLUTs(f: CurveFilters): { r: Uint8Array; g: Uint8Array; b: Uint8Array } | null {
   const master = lutOf(f.curveRgb);
   const channels = [lutOf(f.curveR), lutOf(f.curveG), lutOf(f.curveB)];
   if (!master && channels.every((c) => !c)) return null;
-  const [r, g, b] = channels.map((channel) => {
+  const [r, g, b] = channels.map((channel): Uint8Array => {
     const out = new Uint8Array(256);
     for (let v = 0; v < 256; v++) {
       const afterMaster = master ? master[v] : v;

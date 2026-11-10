@@ -1,8 +1,8 @@
 /**
- * detailKernel.js
+ * detailKernel.ts
  *
  * Reine Pixel-Berechnung der Detail-Anpassungen (Schärfen, Klarheit, Körnung).
- * Wie tonalKernel.js ohne Imports und DOM-Zugriff, damit sie identisch im
+ * Wie tonalKernel.ts ohne Imports und DOM-Zugriff, damit sie identisch im
  * Hauptthread und im Web Worker läuft. Läuft nach den Tonwert-Anpassungen.
  *
  *  - sharpness (0..100):   Unscharf maskieren mit kleinem Radius (Kanten)
@@ -15,6 +15,8 @@
  * Betrag: so entstehen keine Farbsäume.
  */
 
+import type { FilterValues, PixelData } from '@/types/filters';
+
 const LUM_R = 0.2126;
 const LUM_G = 0.7152;
 const LUM_B = 0.0722;
@@ -26,15 +28,13 @@ const GRAIN_AMOUNT = 0.12;
 
 /**
  * Prüft, ob mindestens eine Detail-Anpassung aktiv ist.
- * @param {Object} f - Filter-Objekt
- * @returns {boolean}
  */
-export function hasDetailAdjustments(f) {
+export function hasDetailAdjustments(f: FilterValues): boolean {
   return (f.sharpness ?? 0) !== 0 || (f.clarity ?? 0) !== 0 || (f.grain ?? 0) !== 0;
 }
 
 /** Radius des Klarheit-Weichzeichners: 2 % der kürzeren Seite, mindestens 2 px. */
-export function clarityRadius(width, height) {
+export function clarityRadius(width: number, height: number): number {
   return Math.max(2, Math.round(Math.min(width, height) * 0.02));
 }
 
@@ -42,7 +42,13 @@ export function clarityRadius(width, height) {
  * Box-Weichzeichner entlang der Zeilen mit gleitender Summe; die Ränder
  * werden fortgesetzt (Randpixel wiederholt).
  */
-function boxRows(src, dst, width, height, radius) {
+function boxRows(
+  src: Float32Array,
+  dst: Float32Array,
+  width: number,
+  height: number,
+  radius: number
+): void {
   const inv = 1 / (radius * 2 + 1);
   const last = width - 1;
   for (let y = 0; y < height; y++) {
@@ -64,7 +70,14 @@ function boxRows(src, dst, width, height, radius) {
  * Box-Weichzeichner entlang der Spalten. Arbeitet zeilenweise mit einer
  * Summe je Spalte, damit der Speicher der Reihe nach gelesen wird.
  */
-function boxColumns(src, dst, width, height, radius, sums) {
+function boxColumns(
+  src: Float32Array,
+  dst: Float32Array,
+  width: number,
+  height: number,
+  radius: number,
+  sums: Float32Array
+): void {
   const inv = 1 / (radius * 2 + 1);
   const last = height - 1;
   sums.fill(0);
@@ -88,14 +101,15 @@ function boxColumns(src, dst, width, height, radius, sums) {
 /**
  * Weichzeichner der Luminanz: `passes` Box-Durchläufe je Richtung
  * (3 nähern einen Gauß-Weichzeichner an).
- * @param {Float32Array} lum
- * @param {number} width
- * @param {number} height
- * @param {number} radius
- * @param {number} [passes=3]
- * @returns {Float32Array} neues Array
+ * @returns neues Array
  */
-export function blurLuminance(lum, width, height, radius, passes = 3) {
+export function blurLuminance(
+  lum: Float32Array,
+  width: number,
+  height: number,
+  radius: number,
+  passes = 3
+): Float32Array {
   const a = new Float32Array(lum.length);
   const b = new Float32Array(lum.length);
   const sums = new Float32Array(width);
@@ -109,7 +123,7 @@ export function blurLuminance(lum, width, height, radius, passes = 3) {
 }
 
 /** Ganzzahl-Hash → -1..1 (reproduzierbares Rauschen je Pixelindex). */
-function noise(i) {
+function noise(i: number): number {
   let x = (i + 0x9e3779b9) | 0;
   x = Math.imul(x ^ (x >>> 16), 0x85ebca6b);
   x = Math.imul(x ^ (x >>> 13), 0xc2b2ae35);
@@ -119,12 +133,14 @@ function noise(i) {
 
 /**
  * Wendet Schärfen, Klarheit und Körnung direkt auf RGBA-Pixeldaten an.
- * @param {Uint8ClampedArray} data - RGBA-Pixeldaten (wird in-place verändert)
- * @param {number} width
- * @param {number} height
- * @param {Object} f - Filter-Objekt
+ * @param data - RGBA-Pixeldaten (wird in-place verändert)
  */
-export function applyDetailAdjustments(data, width, height, f) {
+export function applyDetailAdjustments(
+  data: PixelData,
+  width: number,
+  height: number,
+  f: FilterValues
+): void {
   if (!hasDetailAdjustments(f) || width * height * 4 !== data.length) return;
 
   const sharpen = ((f.sharpness ?? 0) / 100) * SHARPEN_AMOUNT;

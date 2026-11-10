@@ -3,10 +3,12 @@ import { applyTonalAdjustments } from './tonalKernel';
 import { applyDetailAdjustments, hasDetailAdjustments } from './detailKernel';
 import { hasCurveAdjustments } from './curveKernel';
 import { adjustInWorker, isImageWorkerAvailable } from '@/lib/imageWorker';
+import type { FilterValues } from '@/types/filters';
+import { context2d } from './canvas2d';
 
 export { applyTonalAdjustments, applyDetailAdjustments, hasDetailAdjustments };
 /**
- * imageAdjustments.js
+ * imageAdjustments.ts
  *
  * Echte, pixelbasierte Bildanpassungen anstelle der bisherigen
  * CSS-Filter-Näherungen. Belichtung, Lichter und Schatten wurden
@@ -23,15 +25,33 @@ export { applyTonalAdjustments, applyDetailAdjustments, hasDetailAdjustments };
  *   - shadows    (Schatten)    – nur dunkle Tonwerte (Luminanz-Maske)
  *   - saturation (Sättigung)   – luminanzerhaltend
  *   - temperature / tint (Weißabgleich) – Kanal-Gains im linearen Licht
- *   - curveRgb / curveR / curveG / curveB (Kurven) – zuletzt, je Kanal (curveKernel.js)
+ *   - curveRgb / curveR / curveG / curveB (Kurven) – zuletzt, je Kanal (curveKernel.ts)
  *
- *  Detail-Anpassungen (echt, per Pixel, nach den Tonwerten; detailKernel.js):
+ *  Detail-Anpassungen (echt, per Pixel, nach den Tonwerten; detailKernel.ts):
  *   - sharpness (Schärfen), clarity (Klarheit), grain (Körnung)
  *
  *  Effekt-Filter (weiterhin als CSS-Filter beim Zeichnen, da nativ
  *  schneller/qualitativ gleichwertig):
  *   - blur, hue-rotate, sepia, grayscale, invert
  */
+
+/** Zeichenquelle für Anpassungen; `_adjKey` ersetzt bei Canvas-Quellen die fehlende src */
+export type AdjustableImage = (HTMLImageElement | HTMLCanvasElement) & { _adjKey?: string };
+
+export interface AdjustedImage {
+  el: AdjustableImage;
+  cssFilter: string;
+}
+
+interface WorkerJob {
+  key: string;
+  imageKey: string;
+  image: AdjustableImage;
+  w: number;
+  h: number;
+  filters: FilterValues;
+  generation: number;
+}
 
 // Standardwerte der Tonwert-Anpassungen (kein Effekt)
 const TONAL_DEFAULTS = {
@@ -47,14 +67,15 @@ const TONAL_DEFAULTS = {
 
 // Einfacher Ein-Eintrag-Cache, damit renderImage() und
 // renderImageForExport() (bzw. Crop) denselben Puffer wiederverwenden.
-let _cache = { key: null, canvas: null };
+let _cache: { key: string | null; canvas: HTMLCanvasElement | null } = {
+  key: null,
+  canvas: null,
+};
 
 /**
  * Prüft, ob mindestens eine echte Tonwert-Anpassung aktiv ist.
- * @param {Object} f - Filter-Objekt
- * @returns {boolean}
  */
-export function hasTonalAdjustments(f) {
+export function hasTonalAdjustments(f: FilterValues): boolean {
   return (
     (f.exposure ?? 0) !== TONAL_DEFAULTS.exposure ||
     (f.brightness ?? 100) !== TONAL_DEFAULTS.brightness ||
@@ -71,11 +92,10 @@ export function hasTonalAdjustments(f) {
 /**
  * Baut den CSS-Filter-String für die reinen Effekt-Filter.
  * Diese werden beim Zeichnen auf dem Ziel-Canvas angewendet.
- * @param {Object} f - Filter-Objekt
- * @returns {string} CSS-Filter-String ('none' wenn keiner aktiv)
+ * @returns CSS-Filter-String ('none' wenn keiner aktiv)
  */
-export function buildEffectFilterString(f) {
-  const parts = [];
+export function buildEffectFilterString(f: FilterValues): string {
+  const parts: string[] = [];
   if ((f.blur ?? 0) > 0) parts.push(`blur(${f.blur}px)`);
   if ((f.hue ?? 0) !== 0) parts.push(`hue-rotate(${f.hue}deg)`);
   if ((f.sepia ?? 0) > 0) parts.push(`sepia(${f.sepia}%)`);
@@ -88,10 +108,8 @@ export function buildEffectFilterString(f) {
  * Fallback-Filter-String (CSS-Näherung inkl. Tonwerte).
  * Wird nur genutzt, wenn die Pixelverarbeitung nicht möglich ist
  * (z. B. "tainted canvas" bei Cross-Origin-Bildern).
- * @param {Object} f - Filter-Objekt
- * @returns {string}
  */
-export function buildApproxFilterString(f) {
+export function buildApproxFilterString(f: FilterValues): string {
   const exposureAdjust = 100 + (f.exposure ?? 0);
   const highlightsAdjust = 100 + (f.highlights ?? 0) * 0.5;
   const shadowsAdjust = 100 + (f.shadows ?? 0) * 0.3;
@@ -105,7 +123,7 @@ export function buildApproxFilterString(f) {
   return parts.join(' ');
 }
 
-function tonalSignature(f) {
+function tonalSignature(f: FilterValues): string {
   return [
     f.exposure ?? 0,
     f.brightness ?? 100,
@@ -128,42 +146,43 @@ function tonalSignature(f) {
 /**
  * Alle pixelbasierten Anpassungen in fester Reihenfolge: erst Tonwerte, dann
  * Details. Gleiche Funktion im Hauptthread und (über die Kerne) im Worker.
- * @param {ImageData} imgData - wird in-place verändert
- * @param {Object} f - Filter-Objekt
+ * @param imgData - wird in-place verändert
  */
-export function applyPixelAdjustments(imgData, f) {
+export function applyPixelAdjustments(imgData: ImageData, f: FilterValues): void {
   if (hasTonalAdjustments(f)) applyTonalAdjustments(imgData.data, f);
   applyDetailAdjustments(imgData.data, imgData.width, imgData.height, f);
 }
 
 // Zuletzt fertig berechnete Quelle je Bild (Quelle + Größe). Dient im
 // asynchronen Modus als Platzhalter, bis der Worker das neue Ergebnis liefert.
-let _lastGood = { imageKey: null, canvas: null };
+let _lastGood: { imageKey: string | null; canvas: HTMLCanvasElement | null } = {
+  imageKey: null,
+  canvas: null,
+};
 
 // Asynchroner Modus: höchstens ein Worker-Auftrag gleichzeitig; neue Anfragen
 // ersetzen eine wartende (nur die jüngste Filtereinstellung zählt).
-let _inFlightKey = null;
-let _queued = null;
-const _readyListeners = new Set();
+let _inFlightKey: string | null = null;
+let _queued: WorkerJob | null = null;
+const _readyListeners = new Set<() => void>();
 
 /**
  * Registriert einen Callback, der aufgerufen wird, sobald der Worker ein
  * neues Ergebnis geliefert hat (z. B. um die Vorschau neu zu zeichnen).
- * @param {() => void} listener
- * @returns {() => void} Abmelden
+ * @returns Abmelden
  */
-export function onAdjustmentReady(listener) {
+export function onAdjustmentReady(listener: () => void): () => boolean {
   _readyListeners.add(listener);
   return () => _readyListeners.delete(listener);
 }
 
 // Kurze Kennung je Bildobjekt statt der (oft mehrere MB langen) Data-URL im
 // Cache-Schlüssel; eine geänderte Quelle desselben Elements gibt eine neue.
-const _imageIds = new WeakMap();
+const _imageIds = new WeakMap<AdjustableImage, { src: string; id: number }>();
 let _nextImageId = 0;
 
-function imageKeyOf(image, w, h) {
-  const src = image.src || image._adjKey || '';
+function imageKeyOf(image: AdjustableImage, w: number, h: number): string {
+  const src = ('src' in image ? image.src : '') || image._adjKey || '';
   let entry = _imageIds.get(image);
   if (!entry || entry.src !== src) {
     entry = { src, id: ++_nextImageId };
@@ -173,11 +192,11 @@ function imageKeyOf(image, w, h) {
 }
 
 /** Bild in Originalauflösung auf einen Canvas zeichnen und Pixel lesen */
-function readPixels(image, w, h) {
+function readPixels(image: AdjustableImage, w: number, h: number) {
   const off = document.createElement('canvas');
   off.width = w;
   off.height = h;
-  const octx = off.getContext('2d', { willReadFrequently: true });
+  const octx = context2d(off, { willReadFrequently: true });
   octx.drawImage(image, 0, 0, w, h);
   return { off, octx, imgData: octx.getImageData(0, 0, w, h) };
 }
@@ -185,22 +204,26 @@ function readPixels(image, w, h) {
 // Unveränderte Quellpixel des aktuellen Bildes (asynchroner Modus): Das Lesen
 // (drawImage + getImageData) kostet bei großen Bildern deutlich mehr als das
 // Kopieren eines Puffers und muss so nur einmal je Bild geschehen.
-let _source = { imageKey: null, data: null };
+let _source: { imageKey: string | null; data: ImageDataArray | null } = {
+  imageKey: null,
+  data: null,
+};
 
-function sourcePixels(image, w, h, imageKey) {
-  if (_source.imageKey !== imageKey) {
-    const { imgData } = readPixels(image, w, h);
-    _source = { imageKey, data: imgData.data };
+function sourcePixels(image: AdjustableImage, w: number, h: number, imageKey: string): ImageData {
+  let data = _source.data;
+  if (_source.imageKey !== imageKey || !data) {
+    data = readPixels(image, w, h).imgData.data;
+    _source = { imageKey, data };
   }
-  return new ImageData(_source.data.slice(), w, h);
+  return new ImageData(data.slice(), w, h);
 }
 
-function store(key, imageKey, canvas) {
+function store(key: string, imageKey: string, canvas: HTMLCanvasElement): void {
   _cache = { key, canvas };
   _lastGood = { imageKey, canvas };
 }
 
-async function runWorkerJob(job) {
+async function runWorkerJob(job: WorkerJob): Promise<void> {
   _inFlightKey = job.key;
   try {
     const imgData = sourcePixels(job.image, job.w, job.h, job.imageKey);
@@ -213,7 +236,7 @@ async function runWorkerJob(job) {
     const off = document.createElement('canvas');
     off.width = job.w;
     off.height = job.h;
-    off.getContext('2d').putImageData(adjusted, 0, 0);
+    context2d(off).putImageData(adjusted, 0, 0);
     // Ein inzwischen invalidierter Cache (neues Bild) wird nicht überschrieben
     if (job.generation === _generation) {
       store(job.key, job.imageKey, off);
@@ -248,20 +271,20 @@ let _generation = 0;
  *   Ohne Worker oder ohne `async` (Export, Zuschnitt) wird wie bisher
  *   synchron gerechnet.
  *
- * @param {HTMLImageElement|HTMLCanvasElement} image
- * @param {Object} filters
- * @param {{ async?: boolean }} [options]
- * @returns {{ el: HTMLImageElement|HTMLCanvasElement, cssFilter: string }}
  */
-export function getAdjustedImage(image, filters, { async = false } = {}) {
+export function getAdjustedImage(
+  image: AdjustableImage,
+  filters: FilterValues,
+  { async = false }: { async?: boolean } = {}
+): AdjustedImage {
   const effect = buildEffectFilterString(filters);
 
   if (!image || (!hasTonalAdjustments(filters) && !hasDetailAdjustments(filters))) {
     return { el: image, cssFilter: effect };
   }
 
-  const w = image.naturalWidth || image.width;
-  const h = image.naturalHeight || image.height;
+  const w = ('naturalWidth' in image ? image.naturalWidth : 0) || image.width;
+  const h = ('naturalHeight' in image ? image.naturalHeight : 0) || image.height;
   if (!w || !h) {
     return { el: image, cssFilter: effect };
   }
@@ -273,7 +296,15 @@ export function getAdjustedImage(image, filters, { async = false } = {}) {
   }
 
   if (async && isImageWorkerAvailable()) {
-    const job = { key, imageKey, image, w, h, filters: { ...filters }, generation: _generation };
+    const job: WorkerJob = {
+      key,
+      imageKey,
+      image,
+      w,
+      h,
+      filters: { ...filters },
+      generation: _generation,
+    };
     if (_inFlightKey === null) runWorkerJob(job);
     else _queued = _inFlightKey === key ? null : job;
     const placeholder = _lastGood.imageKey === imageKey ? _lastGood.canvas : null;
@@ -299,7 +330,7 @@ export function getAdjustedImage(image, filters, { async = false } = {}) {
 /**
  * Invalidiert den internen Cache (z. B. wenn ein neues Bild geladen wird).
  */
-export function clearAdjustmentCache() {
+export function clearAdjustmentCache(): void {
   _cache = { key: null, canvas: null };
   _lastGood = { imageKey: null, canvas: null };
   _source = { imageKey: null, data: null };
