@@ -13,8 +13,7 @@ import type { EditorText } from '@/composables/text/types';
 const $t = (key: string, fallback?: string) => fallback || key;
 const global = { mocks: { $t } };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let wrapper: VueWrapper<any> | null = null;
+let wrapper: VueWrapper | null = null;
 afterEach(() => {
   wrapper?.unmount();
   wrapper = null;

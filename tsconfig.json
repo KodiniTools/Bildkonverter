@@ -14,10 +14,6 @@
     "noEmit": true,
     "jsx": "preserve",
 
-    /* JavaScript: schrittweise Migration nach TS, JS wird mitgebaut, aber nicht geprüft */
-    "allowJs": true,
-    "checkJs": false,
-
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
@@ -30,14 +26,7 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.d.ts",
-    "src/**/*.tsx",
-    "src/**/*.vue",
-    "src/**/*.js",
-    "tests/**/*.ts"
-  ],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "tests/**/*.ts"],
   /* Worker: eigene Prüfung mit der WebWorker-Lib (tsconfig.worker.json).
      Root-Configs und Node-Skripte liegen außerhalb von include (tsconfig.node.json). */
   "exclude": ["src/workers/**"]

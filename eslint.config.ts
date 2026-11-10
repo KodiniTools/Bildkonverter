@@ -8,8 +8,8 @@ import {
   vueTsConfigs,
 } from '@vue/eslint-config-typescript';
 
-// Schrittweise Migration nach TypeScript: .vue-Dateien dürfen noch JS-Skripte haben.
-configureVueProject({ scriptLangs: ['ts', 'js'] });
+// Alle .vue-Dateien nutzen <script setup lang="ts">.
+configureVueProject({ scriptLangs: ['ts'] });
 
 export default defineConfigWithVueTs(
   {
@@ -54,6 +54,9 @@ export default defineConfigWithVueTs(
       ],
       // App-Code nutzt den Logger (src/utils/logger.ts), keine direkte Konsole
       'no-console': 'error',
+      // Das Projekt ist vollständig typisiert: kein `any` (steht auch in vueTsConfigs.recommended,
+      // hier ausdrücklich, damit es nicht versehentlich abgeschwächt wird)
+      '@typescript-eslint/no-explicit-any': 'error',
       // Neu mit ESLint 10 / typescript-eslint. Bestehende Treffer sind Altlasten und
       // werden gemeldet, nicht im Tooling-Schritt geändert; deshalb vorerst Warnung.
       'no-useless-assignment': 'warn',

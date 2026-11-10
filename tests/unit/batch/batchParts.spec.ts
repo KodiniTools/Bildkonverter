@@ -14,8 +14,7 @@ import { defaultBatchSettings, type BatchFile } from '@/composables/batch/types'
 const i18n = createI18n({ legacy: false, locale: 'de', messages: { de } });
 const global = { plugins: [i18n] };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let wrapper: VueWrapper<any> | null = null;
+let wrapper: VueWrapper | null = null;
 afterEach(() => {
   wrapper?.unmount();
   wrapper = null;

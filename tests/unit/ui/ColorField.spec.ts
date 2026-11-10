@@ -3,8 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { defineComponent, h, nextTick, ref } from 'vue';
 import ColorField from '@/components/ui/ColorField.vue';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let wrapper: VueWrapper<any> | null = null;
+let wrapper: VueWrapper | null = null;
 
 afterEach(() => {
   wrapper?.unmount();
@@ -25,8 +24,7 @@ function panel(): HTMLElement | null {
   return document.body.querySelector<HTMLElement>('.color-field__panel');
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function openPanel(w: VueWrapper<any>): Promise<HTMLElement> {
+async function openPanel(w: VueWrapper): Promise<HTMLElement> {
   await w.find('button.color-field__swatch').trigger('click');
   await nextTick();
   return panel()!;

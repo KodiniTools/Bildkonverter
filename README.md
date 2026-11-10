@@ -304,6 +304,7 @@ Für die Verarbeitung von TIFF, HEIC/HEIF, SVG und TIFF-Export wird eine Backend
 | Technologie | Zweck                                                |
 | ----------- | ---------------------------------------------------- |
 | Vue 3       | Reaktives UI-Framework (Composition API)             |
+| TypeScript  | Durchgehend strict typisiert (`npm run type-check`)  |
 | Vite        | Build-Tool und Dev-Server                            |
 | Pinia       | State Management                                     |
 | Vue Router  | Client-seitiges Routing mit SEO-Metadaten            |
