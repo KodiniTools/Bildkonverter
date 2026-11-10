@@ -1,5 +1,5 @@
 /**
- * useTextModal.js - Composable für Text-Modal-Verwaltung
+ * useTextModal.ts - Composable für Text-Modal-Verwaltung
  *
  * Bietet eine einfache API zum Öffnen/Schließen des Text-Modals
  */
@@ -7,11 +7,21 @@
 import { ref, readonly } from 'vue';
 import { useImageStore } from '@/stores/imageStore';
 import { logger } from '@/utils/logger';
+import type { StoreText } from '@/stores/image/types';
+
+export type TextModalMode = 'add' | 'edit';
+
+/** Position für einen neuen Text (Canvas-Koordinaten) */
+export interface TextPosition {
+  x: number;
+  y: number;
+}
 
 // Globaler State (außerhalb der Funktion für Singleton-Pattern)
 const isModalOpen = ref(false);
-const editingText = ref(null);
-const modalMode = ref('add'); // 'add' oder 'edit'
+/** Neuer Text: null oder nur die Position; Bearbeiten: Kopie des Textes */
+const editingText = ref<Partial<StoreText> | null>(null);
+const modalMode = ref<TextModalMode>('add');
 
 /**
  * Composable für Text-Modal
@@ -22,7 +32,7 @@ export function useTextModal() {
   /**
    * Öffnet Modal zum Hinzufügen eines neuen Textes
    */
-  function openAddTextModal(defaultPosition = null) {
+  function openAddTextModal(defaultPosition: TextPosition | null = null): void {
     editingText.value = null;
     modalMode.value = 'add';
 
@@ -40,7 +50,7 @@ export function useTextModal() {
   /**
    * Öffnet Modal zum Bearbeiten eines bestehenden Textes
    */
-  function openEditTextModal(textId) {
+  function openEditTextModal(textId: StoreText['id']): void {
     const text = imageStore.texts.find((t) => t.id === textId);
 
     if (!text) {
@@ -56,7 +66,7 @@ export function useTextModal() {
   /**
    * Schließt das Modal
    */
-  function closeModal() {
+  function closeModal(): void {
     isModalOpen.value = false;
     editingText.value = null;
     modalMode.value = 'add';
@@ -65,16 +75,16 @@ export function useTextModal() {
   /**
    * Speichert den Text (hinzufügen oder aktualisieren)
    */
-  function saveText(textData) {
+  function saveText(textData: Partial<StoreText>): void {
     try {
       if (modalMode.value === 'edit' && editingText.value?.id) {
         // Bestehenden Text aktualisieren
         imageStore.updateText(editingText.value.id, textData);
-        imageStore.saveState('Text bearbeitet', 'text');
+        imageStore.saveState('Text bearbeitet');
       } else {
         // Neuen Text hinzufügen
         imageStore.addText(textData);
-        imageStore.saveState('Text hinzugefügt', 'text');
+        imageStore.saveState('Text hinzugefügt');
       }
 
       closeModal();
@@ -87,7 +97,7 @@ export function useTextModal() {
   /**
    * Schnell einen Text mit Standardwerten hinzufügen
    */
-  function quickAddText(content, position = null) {
+  function quickAddText(content: string, position: TextPosition | null = null): void {
     try {
       const textData = {
         content,
@@ -96,7 +106,7 @@ export function useTextModal() {
       };
 
       imageStore.addText(textData);
-      imageStore.saveState('Text hinzugefügt', 'text');
+      imageStore.saveState('Text hinzugefügt');
     } catch (error) {
       logger.error('Fehler beim Hinzufügen des Textes:', error);
       throw error;
@@ -106,10 +116,10 @@ export function useTextModal() {
   /**
    * Löscht einen Text
    */
-  function deleteText(textId) {
+  function deleteText(textId: StoreText['id']): void {
     try {
       imageStore.deleteText(textId);
-      imageStore.saveState('Text gelöscht', 'text');
+      imageStore.saveState('Text gelöscht');
       closeModal();
     } catch (error) {
       logger.error('Fehler beim Löschen des Textes:', error);

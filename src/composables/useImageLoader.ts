@@ -1,6 +1,25 @@
 import { ApiClient } from '@/api/api';
 import { needsBackendPreview, readFileAsDataURL, loadImage } from '@/utils/fileUtils';
 import { logger } from '@/utils/logger';
+import type { Ref } from 'vue';
+import type { useImageStore } from '@/stores/imageStore';
+
+type ImageStore = ReturnType<typeof useImageStore>;
+type Translate = (key: string) => string;
+
+export interface ImageLoaderDeps {
+  /** Dateiendung des aktuellen Bildes (jpeg wird zu jpg) */
+  currentImageFormat: Ref<string>;
+  originalImageDataUrl: Ref<string | null>;
+  originalImage: Ref<HTMLImageElement | null>;
+  isDraggingFile: Ref<boolean>;
+  imageStore: Pick<ImageStore, 'loadImageFromFile' | 'imageLayers'>;
+  /** Dateiname ohne Endung (optional) */
+  currentFileName?: Ref<string>;
+  /** Originaldatei für EXIF (optional) */
+  sourceFile?: Ref<File | null>;
+  onImageReady: (img: HTMLImageElement) => unknown;
+}
 
 export function useImageLoader({
   currentImageFormat,
@@ -11,13 +30,15 @@ export function useImageLoader({
   currentFileName,
   sourceFile,
   onImageReady,
-}) {
-  async function loadFileIntoEditor(file) {
-    const fileType = file.type ? file.type.split('/')[1] : file.name.split('.').pop().toLowerCase();
+}: ImageLoaderDeps) {
+  async function loadFileIntoEditor(file: File): Promise<void> {
+    const fileType = file.type
+      ? file.type.split('/')[1]
+      : file.name.split('.').pop()!.toLowerCase();
     currentImageFormat.value = fileType === 'jpeg' ? 'jpg' : fileType;
     if (currentFileName) currentFileName.value = file.name.replace(/\.[^.]+$/, '');
 
-    let imageUrl;
+    let imageUrl: string;
     if (needsBackendPreview(file)) {
       const pngBlob = await ApiClient.convertImage(file, 'png', file.name, {});
       imageUrl = URL.createObjectURL(pngBlob);
@@ -39,22 +60,23 @@ export function useImageLoader({
     }
   }
 
-  function handleFileSelect(event) {
-    const file = event.target.files[0];
+  function handleFileSelect(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files![0];
     // Zurücksetzen, damit dieselbe Datei erneut gewählt werden kann
-    event.target.value = '';
+    input.value = '';
     if (!file) return;
     loadFileIntoEditor(file).catch((err) => logger.error('Fehler beim Laden:', err));
   }
 
-  function handleDragLeave(event) {
-    const canvasArea = event.currentTarget;
-    if (!canvasArea.contains(event.relatedTarget)) {
+  function handleDragLeave(event: DragEvent): void {
+    const canvasArea = event.currentTarget as Node;
+    if (!canvasArea.contains(event.relatedTarget as Node | null)) {
       isDraggingFile.value = false;
     }
   }
 
-  function handleFileDrop(event) {
+  function handleFileDrop(event: DragEvent): void {
     isDraggingFile.value = false;
     const files = event.dataTransfer?.files;
     if (!files || files.length === 0) return;
@@ -66,11 +88,10 @@ export function useImageLoader({
     loadFileIntoEditor(file).catch((err) => logger.error('Fehler beim Laden:', err));
   }
 
-  function handlePaste(e) {
+  function handlePaste(e: ClipboardEvent): void {
+    const active = document.activeElement as HTMLElement | null;
     const isInputFocused =
-      document.activeElement?.tagName === 'INPUT' ||
-      document.activeElement?.tagName === 'TEXTAREA' ||
-      document.activeElement?.isContentEditable;
+      active?.tagName === 'INPUT' || active?.tagName === 'TEXTAREA' || active?.isContentEditable;
     if (isInputFocused) return;
 
     const items = e.clipboardData?.items;
@@ -90,7 +111,10 @@ export function useImageLoader({
     }
   }
 
-  async function loadGalleryImage(galleryImageId, t) {
+  async function loadGalleryImage(
+    galleryImageId: string | number | null | undefined,
+    t: Translate
+  ): Promise<boolean> {
     if (!galleryImageId) return false;
     try {
       const { useGalleryStore } = await import('@/stores/galleryStore');
@@ -121,13 +145,13 @@ export function useImageLoader({
     return false;
   }
 
-  async function reloadImageLayers() {
+  async function reloadImageLayers(): Promise<void> {
     const layers = imageStore.imageLayers;
     if (!layers || layers.length === 0) return;
     await Promise.all(
       layers.map(
         (layer) =>
-          new Promise((resolve) => {
+          new Promise<void>((resolve) => {
             if (layer.image?.complete && layer.image.naturalWidth > 0) {
               resolve();
               return;

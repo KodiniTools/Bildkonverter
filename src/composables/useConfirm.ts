@@ -1,6 +1,26 @@
 import { ref } from 'vue';
 
-const state = ref({
+/** z. B. 'default' oder 'danger' (Farbe des Bestätigen-Knopfs) */
+export type ConfirmVariant = string;
+
+export interface ConfirmOptions {
+  title?: string;
+  confirmText?: string;
+  cancelText?: string;
+  variant?: ConfirmVariant;
+}
+
+export interface ConfirmState {
+  visible: boolean;
+  title: string;
+  message: string;
+  confirmText: string;
+  cancelText: string;
+  variant: ConfirmVariant;
+  resolve: ((result: boolean) => void) | null;
+}
+
+const state = ref<ConfirmState>({
   visible: false,
   title: '',
   message: '',
@@ -11,7 +31,7 @@ const state = ref({
 });
 
 export function useConfirm() {
-  function confirm(message, options = {}) {
+  function confirm(message: string, options: ConfirmOptions = {}): Promise<boolean> {
     return new Promise((resolve) => {
       state.value = {
         visible: true,
@@ -25,7 +45,7 @@ export function useConfirm() {
     });
   }
 
-  function respond(result) {
+  function respond(result: boolean): void {
     const { resolve } = state.value;
     state.value = { ...state.value, visible: false, resolve: null };
     if (resolve) resolve(result);

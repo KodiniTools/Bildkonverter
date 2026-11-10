@@ -40,7 +40,7 @@ describe('SEO je Sprache (?lang=en)', () => {
     updateSeoMeta(meta, 'en');
     updateSeoMeta(meta, 'en');
     expect(document.title).toBe('Guide - Image Converter Pro | KodiniTools');
-    expect(document.querySelector('meta[name="description"]').getAttribute('content')).toBe('EN');
+    expect(document.querySelector('meta[name="description"]')!.getAttribute('content')).toBe('EN');
     expect(canonical()).toBe(`${BASE}/guide?lang=en`);
     expect(alternates()).toHaveLength(3);
     expect(document.documentElement.lang).toBe('en');
