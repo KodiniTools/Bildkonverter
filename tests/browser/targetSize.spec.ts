@@ -19,7 +19,7 @@ function noisyCanvas(width = 800, height = 600) {
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d')!;
   const data = ctx.createImageData(width, height);
   let seed = 7;
   for (let i = 0; i < data.data.length; i += 4) {
@@ -33,13 +33,13 @@ function noisyCanvas(width = 800, height = 600) {
   return canvas;
 }
 
-let gradient;
+let gradient: HTMLCanvasElement;
 beforeAll(async () => {
   const img = await makeImage(800, 600);
   gradient = document.createElement('canvas');
   gradient.width = 800;
   gradient.height = 600;
-  gradient.getContext('2d').drawImage(img, 0, 0);
+  gradient.getContext('2d')!.drawImage(img, 0, 0);
 });
 
 describe('supportsTargetSize', () => {
@@ -158,6 +158,6 @@ describe('withWhiteBackground', () => {
     transparent.width = 4;
     transparent.height = 4;
     const copy = withWhiteBackground(transparent);
-    expect([...copy.getContext('2d').getImageData(1, 1, 1, 1).data]).toEqual([255, 255, 255, 255]);
+    expect([...copy.getContext('2d')!.getImageData(1, 1, 1, 1).data]).toEqual([255, 255, 255, 255]);
   });
 });

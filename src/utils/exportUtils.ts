@@ -1,6 +1,6 @@
 /**
  * Export Utils - Professionelle Export-Funktionalität für Vue 3
- * Pfad: /src/utils/exportUtils.js
+ * Pfad: /src/utils/exportUtils.ts
  *
  * Unterstützte Formate:
  * - PNG: Verlustfrei mit Transparenz (Client-side)
@@ -13,20 +13,65 @@
  */
 
 import { ApiClient } from '@/api/api';
-import { FORMAT_INFO, SUPPORTED_FORMATS, CLIENT_FORMATS, BACKEND_FORMATS } from './formatInfo';
+import {
+  FORMAT_INFO,
+  SUPPORTED_FORMATS,
+  CLIENT_FORMATS,
+  BACKEND_FORMATS,
+  type FormatInfo,
+} from './formatInfo';
+import type { jsPDF as JsPdf } from 'jspdf';
 import {
   calculatePdfLayout,
   createSvgWrapper,
   canvasToBlob as canvasToBlobUtil,
+  type PdfLayout,
 } from './conversionUtils';
+import { context2d } from './canvas2d';
 import { logger } from '@/utils/logger';
-import { encodeForExport } from './targetSize';
+import { encodeForExport, type TargetSizeOptions } from './targetSize';
 import { withExif } from './exif';
 import { downloadBlob as downloadBlobViaLink } from './saveFile';
 
 export { FORMAT_INFO, SUPPORTED_FORMATS, CLIENT_FORMATS, BACKEND_FORMATS };
 
+export interface ExportOptions {
+  /** 0-1 */
+  quality?: number;
+  texts?: unknown[];
+  /** Ziel-Dateigröße (JPEG/WebP) */
+  targetSize?: TargetSizeOptions | null;
+  /** Normalisierter TIFF-Block aus exif.ts; ohne bleibt die Datei EXIF-frei */
+  exif?: Uint8Array | null;
+  /** false: nur `result.blob` liefern, nicht herunterladen */
+  download?: boolean;
+  [key: string]: unknown;
+}
+
+export interface ExportResult {
+  success: true;
+  format: string;
+  filename: string;
+  /** Lesbare Größe, z. B. „12.3 KB“ */
+  size?: string;
+  /** Bei PDF mit Download undefined */
+  blob?: Blob;
+  /** Prozent (0-100) */
+  quality?: number | null;
+  bytes?: number;
+  width?: number;
+  height?: number;
+  targetReached?: boolean;
+  pages?: number;
+  orientation?: string;
+}
+
+type JsPdfConstructor = typeof JsPdf;
+
 export class ExportManager {
+  jsPDF: JsPdfConstructor | null;
+  backendAvailable: boolean;
+
   constructor() {
     this.jsPDF = null;
     this.backendAvailable = false;
@@ -36,7 +81,7 @@ export class ExportManager {
   /**
    * Initialisiert jsPDF für PDF-Export
    */
-  async initializePDF() {
+  async initializePDF(): Promise<boolean> {
     try {
       // Dynamischer Import von jsPDF
       const { jsPDF } = await import('jspdf');
@@ -52,7 +97,7 @@ export class ExportManager {
   /**
    * Prüft Backend-Verfügbarkeit
    */
-  async checkBackend() {
+  async checkBackend(): Promise<boolean> {
     this.backendAvailable = await ApiClient.checkBackendAvailability();
     return this.backendAvailable;
   }
@@ -60,22 +105,26 @@ export class ExportManager {
   /**
    * Hauptmethode: Exportiert ein Bild
    *
-   * @param {HTMLCanvasElement} canvas - Das Canvas-Element
-   * @param {string} format - Exportformat
-   * @param {string} filename - Dateiname (ohne Extension)
-   * @param {Object} options - Export-Optionen; `exif` (Uint8Array, exif.js)
+   * @param canvas - Das Canvas-Element
+   * @param format - Exportformat
+   * @param filename - Dateiname (ohne Extension)
+   * @param options - Export-Optionen; `exif` (Uint8Array, exif.ts)
    *   übernimmt Metadaten in PNG/JPEG/WebP, ohne bleibt die Datei EXIF-frei;
    *   `download: false` liefert die Datei nur als `result.blob` (z. B. zum Teilen)
-   * @returns {Promise<Object>} - Export-Ergebnis
    */
-  async exportImage(canvas, format, filename = 'image', options = {}) {
+  async exportImage(
+    canvas: HTMLCanvasElement,
+    format: string,
+    filename = 'image',
+    options: ExportOptions = {}
+  ): Promise<ExportResult> {
     if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
       throw new Error('Gültiges Canvas-Element erforderlich');
     }
 
     format = format.toLowerCase();
 
-    if (!SUPPORTED_FORMATS.includes(format)) {
+    if (!(SUPPORTED_FORMATS as readonly string[]).includes(format)) {
       throw new Error(`Format ${format} wird nicht unterstützt`);
     }
 
@@ -83,7 +132,7 @@ export class ExportManager {
     this.validateCanvas(canvas);
 
     // Default-Optionen
-    const exportOptions = {
+    const exportOptions: ExportOptions = {
       quality: options.quality || 0.92,
       texts: options.texts || [],
       ...options,
@@ -125,14 +174,14 @@ export class ExportManager {
       }
     } catch (error) {
       logger.error(`Export-Fehler (${format}):`, error);
-      throw new Error(`Export fehlgeschlagen: ${error.message}`);
+      throw new Error(`Export fehlgeschlagen: ${(error as Error | undefined)?.message}`);
     }
   }
 
   /**
    * Canvas-Validierung
    */
-  validateCanvas(canvas) {
+  validateCanvas(canvas: HTMLCanvasElement): void {
     const pixels = canvas.width * canvas.height;
     const maxPixels = 50000 * 50000; // 50k x 50k Pixel
 
@@ -149,7 +198,11 @@ export class ExportManager {
   /**
    * PNG Export
    */
-  async exportPNG(canvas, filename, options = {}) {
+  async exportPNG(
+    canvas: HTMLCanvasElement,
+    filename: string,
+    options: ExportOptions = {}
+  ): Promise<ExportResult> {
     // Kodierung im Web Worker (Fallback: canvas.toBlob im Hauptthread)
     const blob = await withExif(await this.canvasToBlob(canvas, 'image/png'), options.exif);
     this.deliver(blob, `${filename}.png`, options);
@@ -166,7 +219,11 @@ export class ExportManager {
   /**
    * JPEG Export
    */
-  async exportJPEG(canvas, filename, options) {
+  async exportJPEG(
+    canvas: HTMLCanvasElement,
+    filename: string,
+    options: ExportOptions
+  ): Promise<ExportResult> {
     const quality = options.quality || 0.92;
     const processedCanvas = this.addWhiteBackground(canvas);
     if (options.targetSize) {
@@ -191,7 +248,11 @@ export class ExportManager {
   /**
    * WebP Export
    */
-  async exportWebP(canvas, filename, options) {
+  async exportWebP(
+    canvas: HTMLCanvasElement,
+    filename: string,
+    options: ExportOptions
+  ): Promise<ExportResult> {
     if (!this.supportsWebP()) {
       throw new Error('WebP wird von diesem Browser nicht unterstützt');
     }
@@ -221,7 +282,14 @@ export class ExportManager {
    * werden so gewählt, dass die Datei höchstens options.targetSize.maxBytes
    * groß ist. Die gewählte Qualität wird dabei nie überschritten.
    */
-  async exportWithTargetSize(canvas, format, ext, filename, quality, options) {
+  async exportWithTargetSize(
+    canvas: HTMLCanvasElement,
+    format: string,
+    ext: string,
+    filename: string,
+    quality: number,
+    options: ExportOptions
+  ): Promise<ExportResult> {
     const result = await encodeForExport(
       canvas,
       format,
@@ -249,7 +317,11 @@ export class ExportManager {
   /**
    * TIFF Export (Backend)
    */
-  async exportTIFF(canvas, filename, options) {
+  async exportTIFF(
+    canvas: HTMLCanvasElement,
+    filename: string,
+    options: ExportOptions
+  ): Promise<ExportResult> {
     const blob = await this.canvasToBlob(canvas, 'image/png');
     const tiffBlob = await ApiClient.convertImage(blob, 'tiff', filename, options);
     this.deliver(tiffBlob, `${filename}.tiff`, options);
@@ -266,7 +338,11 @@ export class ExportManager {
   /**
    * HEIF Export (Backend)
    */
-  async exportHEIF(canvas, filename, options) {
+  async exportHEIF(
+    canvas: HTMLCanvasElement,
+    filename: string,
+    options: ExportOptions
+  ): Promise<ExportResult> {
     const blob = await this.canvasToBlob(canvas, 'image/png');
     const heifBlob = await ApiClient.convertImage(blob, 'heif', filename, options);
     this.deliver(heifBlob, `${filename}.heif`, options);
@@ -284,7 +360,11 @@ export class ExportManager {
   /**
    * GIF Export (Backend)
    */
-  async exportGIF(canvas, filename, options) {
+  async exportGIF(
+    canvas: HTMLCanvasElement,
+    filename: string,
+    options: ExportOptions
+  ): Promise<ExportResult> {
     const blob = await this.canvasToBlob(canvas, 'image/png');
     const gifBlob = await ApiClient.convertImage(blob, 'gif', filename, options);
     this.deliver(gifBlob, `${filename}.gif`, options);
@@ -301,7 +381,11 @@ export class ExportManager {
   /**
    * PDF Export (Client-side mit jsPDF)
    */
-  async exportPDF(canvas, filename, options = {}) {
+  async exportPDF(
+    canvas: HTMLCanvasElement,
+    filename: string,
+    options: ExportOptions = {}
+  ): Promise<ExportResult> {
     if (!this.jsPDF) {
       await this.initializePDF();
       if (!this.jsPDF) {
@@ -342,7 +426,7 @@ export class ExportManager {
     );
 
     // PDF speichern (oder nur als Blob zurückgeben)
-    let blob;
+    let blob: Blob | undefined;
     if (options.download === false) {
       blob = pdf.output('blob');
     } else {
@@ -364,15 +448,22 @@ export class ExportManager {
    * Versucht zuerst echte Vektorisierung über Backend (potrace/vtracer),
    * fällt bei Fehler auf SVG-Wrapper mit eingebettetem Rasterbild zurück.
    */
-  async exportSVG(canvas, filename, options) {
-    let svgBlob;
+  async exportSVG(
+    canvas: HTMLCanvasElement,
+    filename: string,
+    options: ExportOptions
+  ): Promise<ExportResult> {
+    let svgBlob: Blob;
 
     // Versuch 1: Backend-Vektorisierung
     try {
       const blob = await this.canvasToBlob(canvas, 'image/png');
       svgBlob = await ApiClient.convertImage(blob, 'svg', filename, options);
     } catch (error) {
-      logger.warn('Backend-SVG nicht verfügbar, verwende Client-Fallback:', error.message);
+      logger.warn(
+        'Backend-SVG nicht verfügbar, verwende Client-Fallback:',
+        (error as Error | undefined)?.message
+      );
       // Fallback: SVG-Wrapper mit eingebettetem Rasterbild
       svgBlob = this.createSVGWrapper(canvas);
     }
@@ -391,25 +482,25 @@ export class ExportManager {
   /**
    * Erstellt einen SVG-Wrapper mit eingebettetem Rasterbild (Fallback)
    */
-  createSVGWrapper(canvas) {
+  createSVGWrapper(canvas: HTMLCanvasElement): Blob {
     return createSvgWrapper(canvas);
   }
 
   /**
    * Berechnet PDF-Dimensionen (A4, 10 mm Rand)
    */
-  calculatePDFDimensions(canvas) {
+  calculatePDFDimensions(canvas: HTMLCanvasElement): PdfLayout {
     return calculatePdfLayout(canvas);
   }
 
   /**
    * Fügt weißen Hintergrund hinzu (für JPEG)
    */
-  addWhiteBackground(canvas) {
+  addWhiteBackground(canvas: HTMLCanvasElement): HTMLCanvasElement {
     const newCanvas = document.createElement('canvas');
     newCanvas.width = canvas.width;
     newCanvas.height = canvas.height;
-    const ctx = newCanvas.getContext('2d');
+    const ctx = context2d(newCanvas);
 
     // Weißer Hintergrund
     ctx.fillStyle = '#FFFFFF';
@@ -424,7 +515,7 @@ export class ExportManager {
   /**
    * Konvertiert Canvas zu Blob
    */
-  canvasToBlob(canvas, type = 'image/png', quality = 0.92) {
+  canvasToBlob(canvas: HTMLCanvasElement, type = 'image/png', quality = 0.92): Promise<Blob> {
     return canvasToBlobUtil(canvas, type, quality);
   }
 
@@ -432,7 +523,7 @@ export class ExportManager {
    * Liefert die fertige Datei aus: Download, außer `options.download === false`
    * (dann gibt der Aufrufer `result.blob` selbst weiter, z. B. an navigator.share)
    */
-  deliver(blob, filename, options = {}) {
+  deliver(blob: Blob, filename: string, options: ExportOptions = {}): void {
     if (options.download === false) return;
     this.downloadBlob(blob, filename);
   }
@@ -440,7 +531,7 @@ export class ExportManager {
   /**
    * Download von DataURL
    */
-  downloadDataURL(dataURL, filename) {
+  downloadDataURL(dataURL: string, filename: string): void {
     const link = document.createElement('a');
     link.download = filename;
     link.href = dataURL;
@@ -454,14 +545,14 @@ export class ExportManager {
   /**
    * Download von Blob
    */
-  downloadBlob(blob, filename) {
+  downloadBlob(blob: Blob, filename: string): void {
     downloadBlobViaLink(blob, filename);
   }
 
   /**
    * Berechnet DataURL-Größe
    */
-  getDataURLSize(dataURL) {
+  getDataURLSize(dataURL: string): string {
     const base64Data = dataURL.split(',')[1];
     const sizeInBytes = Math.round((base64Data.length * 3) / 4);
     return this.formatBytes(sizeInBytes);
@@ -470,7 +561,7 @@ export class ExportManager {
   /**
    * Formatiert Bytes zu lesbarer Größe
    */
-  formatBytes(bytes) {
+  formatBytes(bytes: number): string {
     if (bytes < 1024) {
       return `${bytes} B`;
     } else if (bytes < 1024 * 1024) {
@@ -483,7 +574,7 @@ export class ExportManager {
   /**
    * Prüft WebP-Support
    */
-  supportsWebP() {
+  supportsWebP(): boolean {
     const canvas = document.createElement('canvas');
     canvas.width = 1;
     canvas.height = 1;
@@ -498,12 +589,12 @@ export class ExportManager {
 }
 
 // Singleton-Instanz
-let exportManagerInstance = null;
+let exportManagerInstance: ExportManager | null = null;
 
 /**
  * Gibt die Export-Manager-Instanz zurück
  */
-export function getExportManager() {
+export function getExportManager(): ExportManager {
   if (!exportManagerInstance) {
     exportManagerInstance = new ExportManager();
   }
@@ -513,7 +604,12 @@ export function getExportManager() {
 /**
  * Shortcut-Funktion für Export
  */
-export async function exportImage(canvas, format, filename, options) {
+export async function exportImage(
+  canvas: HTMLCanvasElement,
+  format: string,
+  filename?: string,
+  options?: ExportOptions
+): Promise<ExportResult> {
   const manager = getExportManager();
   return await manager.exportImage(canvas, format, filename, options);
 }
@@ -521,15 +617,15 @@ export async function exportImage(canvas, format, filename, options) {
 /**
  * Gibt Format-Informationen zurück
  */
-export function getFormatInfo(format) {
-  return FORMAT_INFO[format.toLowerCase()] || null;
+export function getFormatInfo(format: string): FormatInfo | null {
+  return (FORMAT_INFO as Readonly<Record<string, FormatInfo>>)[format.toLowerCase()] || null;
 }
 
 /**
  * Prüft ob Format unterstützt wird
  */
-export function isFormatSupported(format) {
-  return SUPPORTED_FORMATS.includes(format.toLowerCase());
+export function isFormatSupported(format: string): boolean {
+  return (SUPPORTED_FORMATS as readonly string[]).includes(format.toLowerCase());
 }
 
 export default {

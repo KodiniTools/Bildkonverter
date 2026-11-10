@@ -11,7 +11,7 @@
 
 import { logger } from '@/utils/logger';
 
-const EXIF_HEADER = [0x45, 0x78, 0x69, 0x66, 0x00, 0x00]; // "Exif\0\0"
+const EXIF_HEADER: readonly number[] = [0x45, 0x78, 0x69, 0x66, 0x00, 0x00]; // "Exif\0\0"
 const TAG_ORIENTATION = 0x0112;
 const TAG_DATETIME = 0x0132;
 const TAG_EXIF_IFD = 0x8769;
@@ -19,7 +19,7 @@ const TAG_DATETIME_ORIGINAL = 0x9003;
 /** Größter TIFF-Block, der in ein JPEG-APP1-Segment passt */
 const JPEG_APP1_MAX_TIFF = 0xffff - 2 - EXIF_HEADER.length;
 
-function ascii(bytes, start, length) {
+function ascii(bytes: Uint8Array, start: number, length: number): string {
   let out = '';
   for (let i = start; i < start + length && i < bytes.length; i++) {
     out += String.fromCharCode(bytes[i]);
@@ -27,12 +27,12 @@ function ascii(bytes, start, length) {
   return out;
 }
 
-function startsWith(bytes, offset, pattern) {
+function startsWith(bytes: Uint8Array, offset: number, pattern: readonly number[]): boolean {
   if (offset + pattern.length > bytes.length) return false;
   return pattern.every((b, i) => bytes[offset + i] === b);
 }
 
-function isTiff(bytes) {
+function isTiff(bytes: Uint8Array): boolean {
   return (
     bytes.length >= 8 &&
     ((bytes[0] === 0x49 && bytes[1] === 0x49 && bytes[2] === 0x2a && bytes[3] === 0x00) ||
@@ -44,7 +44,7 @@ function isTiff(bytes) {
 // Auslesen
 // ---------------------------------------------------------------------------
 
-function fromJpeg(bytes) {
+function fromJpeg(bytes: Uint8Array): Uint8Array | null {
   let pos = 2;
   while (pos + 4 <= bytes.length) {
     if (bytes[pos] !== 0xff) return null;
@@ -70,7 +70,7 @@ function fromJpeg(bytes) {
   return null;
 }
 
-function fromPng(bytes) {
+function fromPng(bytes: Uint8Array): Uint8Array | null {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   let pos = 8;
   while (pos + 12 <= bytes.length) {
@@ -86,7 +86,7 @@ function fromPng(bytes) {
   return null;
 }
 
-function fromWebp(bytes) {
+function fromWebp(bytes: Uint8Array): Uint8Array | null {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   let pos = 12;
   while (pos + 8 <= bytes.length) {
@@ -105,7 +105,7 @@ function fromWebp(bytes) {
 }
 
 /** TIFF-Block der EXIF-Daten aus JPEG, PNG oder WebP, sonst null */
-export function extractExif(bytes) {
+export function extractExif(bytes: Uint8Array): Uint8Array | null {
   try {
     if (bytes[0] === 0xff && bytes[1] === 0xd8) return fromJpeg(bytes);
     if (startsWith(bytes, 0, [0x89, 0x50, 0x4e, 0x47])) return fromPng(bytes);
@@ -120,29 +120,42 @@ export function extractExif(bytes) {
 // TIFF-Struktur
 // ---------------------------------------------------------------------------
 
+interface IfdEntry {
+  tag: number;
+  type: number;
+  count: number;
+  /** Position des Wertfelds (oder des Offsets darauf) */
+  valuePos: number;
+}
+
 class Tiff {
-  constructor(bytes) {
+  readonly bytes: Uint8Array;
+  readonly view: DataView;
+  /** Little Endian („II“) */
+  readonly le: boolean;
+
+  constructor(bytes: Uint8Array) {
     this.bytes = bytes;
     this.view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     this.le = bytes[0] === 0x49;
   }
 
-  u16(pos) {
+  u16(pos: number): number {
     return this.view.getUint16(pos, this.le);
   }
 
-  u32(pos) {
+  u32(pos: number): number {
     return this.view.getUint32(pos, this.le);
   }
 
-  get ifd0() {
+  get ifd0(): number {
     return this.u32(4);
   }
 
   /** Einträge eines IFD; wirft bei Offsets außerhalb des Blocks */
-  entries(offset) {
+  entries(offset: number): { list: IfdEntry[]; nextPos: number } {
     const count = this.u16(offset);
-    const list = [];
+    const list: IfdEntry[] = [];
     for (let i = 0; i < count; i++) {
       const pos = offset + 2 + i * 12;
       list.push({
@@ -157,7 +170,7 @@ class Tiff {
     return { list, nextPos };
   }
 
-  asciiValue(entry) {
+  asciiValue(entry: IfdEntry): string {
     const start = entry.count <= 4 ? entry.valuePos : this.u32(entry.valuePos);
     return ascii(this.bytes, start, entry.count).replace(/\0+$/, '');
   }
@@ -167,7 +180,7 @@ class Tiff {
  * Kopie des TIFF-Blocks mit Orientation = 1 und ohne Verweis auf IFD1
  * (Vorschaubild). Bei defekten Daten null.
  */
-export function normalizeExif(tiff) {
+export function normalizeExif(tiff: Uint8Array): Uint8Array | null {
   if (!isTiff(tiff)) return null;
   const copy = tiff.slice();
   try {
@@ -186,7 +199,7 @@ export function normalizeExif(tiff) {
   }
 }
 
-function parseExifDate(value) {
+function parseExifDate(value: string): Date | null {
   const m = /^(\d{4}):(\d{2}):(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/.exec(value);
   if (!m) return null;
   const [, y, mo, d, h, mi, s] = m.map(Number);
@@ -195,7 +208,7 @@ function parseExifDate(value) {
 }
 
 /** Aufnahmedatum (DateTimeOriginal, sonst DateTime) als lokale Zeit */
-export function readExifDate(tiff) {
+export function readExifDate(tiff: Uint8Array): Date | null {
   if (!isTiff(tiff)) return null;
   try {
     const t = new Tiff(tiff);
@@ -219,7 +232,8 @@ export function readExifDate(tiff) {
 // Einfügen
 // ---------------------------------------------------------------------------
 
-function concat(parts) {
+/** Neues Array mit eigenem ArrayBuffer (direkt als BlobPart verwendbar) */
+function concat(parts: readonly Uint8Array[]): Uint8Array<ArrayBuffer> {
   const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
   let pos = 0;
   for (const part of parts) {
@@ -229,8 +243,8 @@ function concat(parts) {
   return out;
 }
 
-let crcTable = null;
-function crc32(bytes) {
+let crcTable: Uint32Array | null = null;
+function crc32(bytes: Uint8Array): number {
   if (!crcTable) {
     crcTable = new Uint32Array(256);
     for (let n = 0; n < 256; n++) {
@@ -244,7 +258,7 @@ function crc32(bytes) {
   return (crc ^ 0xffffffff) >>> 0;
 }
 
-function toJpeg(bytes, tiff) {
+function toJpeg(bytes: Uint8Array, tiff: Uint8Array): Uint8Array<ArrayBuffer> | null {
   if (bytes[0] !== 0xff || bytes[1] !== 0xd8 || tiff.length > JPEG_APP1_MAX_TIFF) return null;
   // Nach SOI und einem eventuellen JFIF-APP0 einfügen
   let insertAt = 2;
@@ -258,7 +272,7 @@ function toJpeg(bytes, tiff) {
   return concat([bytes.subarray(0, insertAt), segment, bytes.subarray(insertAt)]);
 }
 
-function toPng(bytes, tiff) {
+function toPng(bytes: Uint8Array, tiff: Uint8Array): Uint8Array<ArrayBuffer> | null {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   let pos = 8;
   while (pos + 12 <= bytes.length) {
@@ -278,7 +292,7 @@ function toPng(bytes, tiff) {
   return null;
 }
 
-function riffChunk(type, data) {
+function riffChunk(type: string, data: Uint8Array): Uint8Array {
   const chunk = new Uint8Array(8 + data.length + (data.length % 2));
   for (let i = 0; i < 4; i++) chunk[i] = type.charCodeAt(i);
   new DataView(chunk.buffer).setUint32(4, data.length, true);
@@ -286,9 +300,9 @@ function riffChunk(type, data) {
   return chunk;
 }
 
-function toWebp(bytes, tiff) {
+function toWebp(bytes: Uint8Array, tiff: Uint8Array): Uint8Array<ArrayBuffer> | null {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  const chunks = [];
+  const chunks: { type: string; data: Uint8Array }[] = [];
   let pos = 12;
   while (pos + 8 <= bytes.length) {
     const type = ascii(bytes, pos, 4);
@@ -348,7 +362,11 @@ function toWebp(bytes, tiff) {
  * Fügt den TIFF-Block in die kodierte Datei ein. Liefert null, wenn das
  * Format nicht unterstützt wird oder die Daten nicht passen.
  */
-export function insertExif(bytes, mimeType, tiff) {
+export function insertExif(
+  bytes: Uint8Array,
+  mimeType: string,
+  tiff: Uint8Array
+): Uint8Array<ArrayBuffer> | null {
   try {
     switch (mimeType) {
       case 'image/jpeg':
@@ -367,7 +385,7 @@ export function insertExif(bytes, mimeType, tiff) {
 }
 
 /** Ungefährer Mehrbedarf an Bytes durch das Einfügen (für die Zielgröße) */
-export function exifOverhead(tiff) {
+export function exifOverhead(tiff: Uint8Array): number {
   return tiff.length + 32;
 }
 
@@ -375,10 +393,10 @@ export function exifOverhead(tiff) {
 // Originaldateien
 // ---------------------------------------------------------------------------
 
-const sourceCache = new WeakMap();
+const sourceCache = new WeakMap<Blob, Promise<Uint8Array | null>>();
 
 /** Normalisierte EXIF-Daten der Originaldatei (gecacht pro Datei) */
-export function readSourceExif(file) {
+export function readSourceExif(file: Blob): Promise<Uint8Array | null> {
   let entry = sourceCache.get(file);
   if (!entry) {
     entry = file
@@ -397,16 +415,16 @@ export function readSourceExif(file) {
 }
 
 /** Fügt EXIF in den Blob ein; ohne passende Daten bleibt der Blob unverändert */
-export async function withExif(blob, tiff) {
+export async function withExif(blob: Blob, tiff?: Uint8Array | null): Promise<Blob> {
   if (!tiff) return blob;
   const out = insertExif(new Uint8Array(await blob.arrayBuffer()), blob.type, tiff);
   return out ? new Blob([out], { type: blob.type }) : blob;
 }
 
 /** Exportformate, in die EXIF eingefügt werden kann */
-const EXIF_FORMATS = ['png', 'jpg', 'jpeg', 'webp'];
+const EXIF_FORMATS: readonly string[] = ['png', 'jpg', 'jpeg', 'webp'];
 
 /** Kann das Exportformat EXIF aufnehmen? (PNG, JPEG, WebP) */
-export function supportsExif(format) {
+export function supportsExif(format: unknown): boolean {
   return EXIF_FORMATS.includes(String(format).toLowerCase());
 }

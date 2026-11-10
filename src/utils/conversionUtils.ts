@@ -7,14 +7,43 @@
  */
 
 import { ApiClient } from '@/api/api';
-import { FORMAT_INFO } from '@/utils/formatInfo';
+import { FORMAT_INFO, type FormatInfo } from '@/utils/formatInfo';
 import { logger } from '@/utils/logger';
 import { encodeInWorker } from '@/lib/imageWorker';
+import { context2d } from './canvas2d';
+import type { jsPDF as JsPdf } from 'jspdf';
+
+export interface Size {
+  width: number;
+  height: number;
+}
+
+export interface TargetSizeSpec {
+  width?: number | null;
+  height?: number | null;
+  maintainAspect?: boolean;
+}
+
+/** A4-Layout in mm */
+export interface PdfLayout {
+  orientation: 'landscape' | 'portrait';
+  format: 'a4';
+  width: number;
+  height: number;
+  x: number;
+  y: number;
+}
+
+export interface ConvertOptions {
+  /** 0-1 */
+  quality?: number;
+  onProgress?: (percent: number) => void;
+}
 
 /** Formate ohne Transparenz, die einen weißen Hintergrund brauchen */
-export const OPAQUE_FORMATS = ['jpg', 'bmp', 'pdf'];
+export const OPAQUE_FORMATS: readonly string[] = ['jpg', 'bmp', 'pdf'];
 
-const MIME_TYPES = {
+const MIME_TYPES: Readonly<Record<string, string>> = {
   png: 'image/png',
   jpg: 'image/jpeg',
   webp: 'image/webp',
@@ -22,7 +51,7 @@ const MIME_TYPES = {
 };
 
 /** Formate, die der Bild-Worker zuverlässig kodiert */
-const WORKER_ENCODE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
+const WORKER_ENCODE_TYPES: readonly string[] = ['image/png', 'image/jpeg', 'image/webp'];
 
 /**
  * Konvertiert einen Canvas in einen Blob. Kodiert bevorzugt im Web Worker
@@ -30,7 +59,11 @@ const WORKER_ENCODE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
  * Der Worker erfasst den Inhalt beim Aufruf; der seltene Rückfall kodiert den
  * Canvas danach erneut, Aufrufer übergeben daher einen stabilen Canvas.
  */
-export async function canvasToBlob(canvas, mimeType = 'image/png', quality) {
+export async function canvasToBlob(
+  canvas: HTMLCanvasElement,
+  mimeType = 'image/png',
+  quality?: number
+): Promise<Blob> {
   if (WORKER_ENCODE_TYPES.includes(mimeType)) {
     const blob = await encodeInWorker(canvas, mimeType, quality);
     if (blob && blob.type === mimeType) return blob;
@@ -39,7 +72,11 @@ export async function canvasToBlob(canvas, mimeType = 'image/png', quality) {
 }
 
 /** canvas.toBlob als Promise (Hauptthread) */
-export function canvasToBlobOnMainThread(canvas, mimeType = 'image/png', quality) {
+export function canvasToBlobOnMainThread(
+  canvas: HTMLCanvasElement,
+  mimeType = 'image/png',
+  quality?: number
+): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
@@ -55,14 +92,11 @@ export function canvasToBlobOnMainThread(canvas, mimeType = 'image/png', quality
 /**
  * Berechnet Zielgröße für eine optionale Skalierung.
  * Ohne Vorgaben bleibt die Originalgröße erhalten.
- *
- * @param {{width:number,height:number}} img
- * @param {{width?:number|null,height?:number|null,maintainAspect?:boolean}} target
  */
 export function calculateTargetSize(
-  img,
-  { width: targetWidth, height: targetHeight, maintainAspect = true }
-) {
+  img: Size,
+  { width: targetWidth, height: targetHeight, maintainAspect = true }: TargetSizeSpec
+): Size {
   let drawWidth = img.width;
   let drawHeight = img.height;
 
@@ -93,15 +127,17 @@ export function calculateTargetSize(
  * Zeichnet ein Bild auf einen neuen Canvas. Für Formate ohne Transparenz
  * wird ein weißer Hintergrund gesetzt.
  *
- * @param {HTMLImageElement} img
- * @param {{width:number,height:number}} size
- * @param {string} format Zielformat (bestimmt den weißen Hintergrund)
+ * @param format Zielformat (bestimmt den weißen Hintergrund)
  */
-export function drawImageToCanvas(img, { width, height }, format) {
+export function drawImageToCanvas(
+  img: CanvasImageSource,
+  { width, height }: Size,
+  format: string
+): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
-  const ctx = canvas.getContext('2d');
+  const ctx = context2d(canvas);
 
   if (OPAQUE_FORMATS.includes(format)) {
     ctx.fillStyle = '#FFFFFF';
@@ -114,13 +150,12 @@ export function drawImageToCanvas(img, { width, height }, format) {
 
 /**
  * Berechnet Ausrichtung und Bildposition auf einer A4-Seite (mm, 10 mm Rand).
- * @returns {{orientation:string, format:string, width:number, height:number, x:number, y:number}}
  */
-export function calculatePdfLayout(canvas) {
+export function calculatePdfLayout(canvas: Size): PdfLayout {
   const aspectRatio = canvas.width / canvas.height;
   const a4Width = 210;
   const a4Height = 297;
-  let orientation, width, height, x, y;
+  let orientation: PdfLayout['orientation'], width: number, height: number, x: number, y: number;
 
   if (aspectRatio > 1) {
     orientation = 'landscape';
@@ -145,13 +180,13 @@ export function calculatePdfLayout(canvas) {
   return { orientation, format: 'a4', width, height, x, y };
 }
 
-function addCanvasToPdf(pdf, canvas, layout) {
+function addCanvasToPdf(pdf: JsPdf, canvas: HTMLCanvasElement, layout: PdfLayout): void {
   const imgData = canvas.toDataURL('image/jpeg', 0.92);
   pdf.addImage(imgData, 'JPEG', layout.x, layout.y, layout.width, layout.height, undefined, 'FAST');
 }
 
 /** Konvertiert einen Canvas in ein einseitiges A4-PDF (jsPDF, dynamischer Import) */
-export async function convertCanvasToPdf(canvas) {
+export async function convertCanvasToPdf(canvas: HTMLCanvasElement): Promise<Blob> {
   const { jsPDF } = await import('jspdf');
   const layout = calculatePdfLayout(canvas);
   const pdf = new jsPDF({
@@ -165,9 +200,12 @@ export async function convertCanvasToPdf(canvas) {
 }
 
 /** Konvertiert mehrere Canvases in ein PDF mit einer Seite pro Bild */
-export async function convertCanvasesToMergedPdf(canvases) {
+export async function convertCanvasesToMergedPdf(
+  canvases: readonly HTMLCanvasElement[]
+): Promise<Blob> {
   const { jsPDF } = await import('jspdf');
-  let pdf = null;
+  // Zuweisung im Callback: ohne `as` würde TS pdf dauerhaft auf null einengen
+  let pdf = null as JsPdf | null;
 
   canvases.forEach((canvas, i) => {
     const layout = calculatePdfLayout(canvas);
@@ -179,16 +217,17 @@ export async function convertCanvasesToMergedPdf(canvases) {
         compress: true,
       });
     } else {
-      pdf.addPage('a4', layout.orientation);
+      pdf!.addPage('a4', layout.orientation);
     }
-    addCanvasToPdf(pdf, canvas, layout);
+    addCanvasToPdf(pdf!, canvas, layout);
   });
 
-  return pdf.output('blob');
+  // Wie bisher: ohne Canvases wirft output() (Aufrufer übergeben mind. einen)
+  return pdf!.output('blob');
 }
 
 /** Erstellt einen SVG-Wrapper mit eingebettetem Rasterbild (Client-Fallback) */
-export function createSvgWrapper(canvas) {
+export function createSvgWrapper(canvas: HTMLCanvasElement): Blob {
   const dataURL = canvas.toDataURL('image/png');
   const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -203,7 +242,10 @@ export function createSvgWrapper(canvas) {
  * Konvertiert einen Canvas in SVG. Versucht zuerst die Backend-Vektorisierung,
  * fällt bei Fehler oder leerer Antwort auf den SVG-Wrapper zurück.
  */
-export async function convertCanvasToSvg(canvas, filename) {
+export async function convertCanvasToSvg(
+  canvas: HTMLCanvasElement,
+  filename: string
+): Promise<Blob> {
   try {
     const sourceBlob = await canvasToBlob(canvas, 'image/png', 1);
     const svgBlob = await ApiClient.convertImage(sourceBlob, 'svg', filename, {});
@@ -211,7 +253,10 @@ export async function convertCanvasToSvg(canvas, filename) {
       return svgBlob;
     }
   } catch (error) {
-    logger.warn('Backend-SVG nicht verfügbar, verwende Client-Fallback:', error.message);
+    logger.warn(
+      'Backend-SVG nicht verfügbar, verwende Client-Fallback:',
+      (error as Error | undefined)?.message
+    );
   }
   return createSvgWrapper(canvas);
 }
@@ -219,15 +264,18 @@ export async function convertCanvasToSvg(canvas, filename) {
 /**
  * Konvertiert einen Canvas in das Zielformat und liefert den Blob.
  *
- * @param {HTMLCanvasElement} canvas
- * @param {string} format  Schlüssel aus FORMAT_INFO (png, jpg, webp, bmp, tiff, gif, heif, pdf, svg)
- * @param {string} filename Originalname (für Backend-Aufrufe)
- * @param {{quality?:number, onProgress?:(percent:number)=>void}} [options]
- *   quality: 0-1, wirkt bei JPG, WebP und Backend-Formaten
+ * @param format  Schlüssel aus FORMAT_INFO (png, jpg, webp, bmp, tiff, gif, heif, pdf, svg)
+ * @param filename Originalname (für Backend-Aufrufe)
+ * @param options quality: 0-1, wirkt bei JPG, WebP und Backend-Formaten
  */
-export async function convertCanvasToFormat(canvas, format, filename, options = {}) {
+export async function convertCanvasToFormat(
+  canvas: HTMLCanvasElement,
+  format: string,
+  filename: string,
+  options: ConvertOptions = {}
+): Promise<Blob> {
   const { quality, onProgress } = options;
-  const report = (p) => onProgress && onProgress(p);
+  const report = (p: number) => onProgress && onProgress(p);
 
   if (format === 'pdf') {
     return convertCanvasToPdf(canvas);
@@ -237,7 +285,7 @@ export async function convertCanvasToFormat(canvas, format, filename, options = 
     return convertCanvasToSvg(canvas, filename);
   }
 
-  const formatInfo = FORMAT_INFO[format];
+  const formatInfo = (FORMAT_INFO as Readonly<Record<string, FormatInfo | undefined>>)[format];
   if (formatInfo && formatInfo.requiresBackend) {
     // Backend-Konvertierung (TIFF, GIF, HEIF)
     const sourceBlob = await canvasToBlob(canvas, 'image/png', 1);

@@ -186,7 +186,7 @@ export async function encodeToTargetSize(
  * @param canvas bereits vorbereitet (JPEG: weißer Hintergrund)
  * @param format z. B. 'jpeg' oder 'webp'
  * @param quality 0-1
- * @param exif normalisierter EXIF-Block (exif.js); wird eingefügt, die
+ * @param exif normalisierter EXIF-Block (exif.ts); wird eingefügt, die
  *   Zielgröße hält dafür Platz frei
  */
 export async function encodeForExport(
