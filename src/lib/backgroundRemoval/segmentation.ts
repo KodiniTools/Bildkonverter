@@ -31,7 +31,7 @@ export function toModelInput(rgba: Uint8ClampedArray, size = MODEL_SIZE): Float3
 }
 
 /** Modell-Ausgabe (beliebige Skala) auf 0..255 strecken (min–max wie in rembg). */
-export function toAlphaMask(output: Float32Array | number[]): Uint8ClampedArray {
+export function toAlphaMask(output: Float32Array | number[]): Uint8ClampedArray<ArrayBuffer> {
   let min = Infinity;
   let max = -Infinity;
   for (const v of output) {

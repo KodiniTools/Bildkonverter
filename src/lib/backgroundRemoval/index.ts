@@ -6,29 +6,21 @@
  */
 import { MODEL_SIZE, maskToRgba } from './segmentation';
 import { logger } from '@/utils/logger';
+import type { RemovalPhase, RemovalReply, RemovalRunRequest } from '@/types/workerMessages';
 
 /** Modell im Ordner public/models (wird mit der App ausgeliefert). */
 export const MODEL_URL = `${import.meta.env.BASE_URL}models/isnet-general-use-fp16.onnx`;
 /** Ungefähre Downloadgröße für Hinweise in der Oberfläche. */
 export const MODEL_SIZE_MB = 90;
 
-export type RemovalPhase = 'download' | 'init' | 'run';
+export type { RemovalPhase };
 export interface RemovalProgress {
   phase: RemovalPhase;
   /** 0..1 beim Download, sonst undefined */
   fraction?: number;
 }
 
-interface WorkerReply {
-  type: 'progress' | 'result' | 'error';
-  id: number;
-  phase?: RemovalPhase;
-  loaded?: number;
-  total?: number;
-  mask?: ArrayBuffer;
-  backend?: string;
-  message?: string;
-}
+type WorkerReply = RemovalReply;
 
 let worker: Worker | null = null;
 let nextId = 0;
@@ -49,7 +41,7 @@ let workerPromise: Promise<Worker> | null = null;
 
 function getWorker(): Promise<Worker> {
   if (!workerPromise) {
-    workerPromise = import('@/workers/backgroundRemoval.worker.js?worker&inline')
+    workerPromise = import('@/workers/backgroundRemoval.worker.ts?worker&inline')
       .then(({ default: BackgroundRemovalWorker }) => {
         worker = new BackgroundRemovalWorker();
         return worker;
@@ -146,7 +138,14 @@ async function runInWorker(
     target.addEventListener('message', onMessage);
     target.addEventListener('error', onError);
     target.addEventListener('messageerror', onError);
-    target.postMessage({ type: 'run', id, modelUrl: absoluteModelUrl, pixels, wasmOnly }, [pixels]);
+    const request: RemovalRunRequest = {
+      type: 'run',
+      id,
+      modelUrl: absoluteModelUrl,
+      pixels,
+      wasmOnly,
+    };
+    target.postMessage(request, [pixels]);
   });
 }
 

@@ -1,0 +1,11 @@
+{
+  // Web Worker laufen ohne DOM: eigene Prüfung mit der WebWorker-Lib
+  // (self ist DedicatedWorkerGlobalScope). Im Haupt-tsconfig ausgenommen.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2020", "WebWorker"],
+    "noEmit": true
+  },
+  "include": ["src/workers/**/*.ts", "src/vite-env.d.ts"],
+  "exclude": []
+}

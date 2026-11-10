@@ -12,15 +12,16 @@ import {
   segment,
 } from '@/lib/backgroundRemoval';
 import { MODEL_SIZE } from '@/lib/backgroundRemoval/segmentation';
+import type { RemovalRunRequest } from '@/types/workerMessages';
 import maskModelUrl from '../fixtures/mask-mean.onnx?url';
 
 /** Links weiß, rechts schwarz */
-function halfImage(width, height) {
+function halfImage(width: number, height: number): Promise<HTMLImageElement> {
   return new Promise((resolve) => {
     const c = document.createElement('canvas');
     c.width = width;
     c.height = height;
-    const ctx = c.getContext('2d');
+    const ctx = c.getContext('2d')!;
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, width, height);
     ctx.fillStyle = '#fff';
@@ -31,7 +32,8 @@ function halfImage(width, height) {
   });
 }
 
-const alphaAt = (canvas, x, y) => canvas.getContext('2d').getImageData(x, y, 1, 1).data[3];
+const alphaAt = (canvas: HTMLCanvasElement, x: number, y: number) =>
+  canvas.getContext('2d')!.getImageData(x, y, 1, 1).data[3];
 
 afterAll(() => disposeBackgroundRemoval());
 
@@ -50,7 +52,7 @@ describe('Hintergrund entfernen', () => {
 
   it('Worker mit ONNX Runtime liefert Maske und Fortschritt', async () => {
     const img = await halfImage(320, 160);
-    const phases = new Set();
+    const phases = new Set<string>();
     const out = await removeBackground(img, (p) => phases.add(p.phase), maskModelUrl);
     expect(out.width).toBe(320);
     expect(alphaAt(out, 40, 80)).toBe(255);
@@ -60,9 +62,9 @@ describe('Hintergrund entfernen', () => {
 
   it('stürzt der Worker ab, wird einmal ohne WebGPU neu gerechnet', async () => {
     resetBackgroundRemovalForTests();
-    const runs = [];
+    const runs: (boolean | undefined)[] = [];
     class FakeWorker extends EventTarget {
-      postMessage(msg) {
+      postMessage(msg: RemovalRunRequest) {
         runs.push(msg.wasmOnly);
         setTimeout(() => {
           if (!msg.wasmOnly) {
