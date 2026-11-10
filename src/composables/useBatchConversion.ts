@@ -6,13 +6,11 @@
  * PDF), Ergebnisse herunterladen (einzeln, alle, als ZIP) und zurücksetzen.
  * Ausgelagert aus BatchView.vue; die View hält nur noch Einstellungen,
  * Drag-and-Drop und Vorschau-Modal.
- *
- * @param {object} deps
- * @param {import('vue').Ref<object>} deps.settings  format, quality, width, height, maintainAspect, prefix, pdfMode, keepExif
- * @param {Function} deps.t                            i18n-Übersetzungsfunktion
- * @param {Function} deps.confirm                      Bestätigungsdialog (useConfirm)
  */
-import { ref, computed } from 'vue';
+import { ref, computed, type Ref } from 'vue';
+import type { useI18n } from 'vue-i18n';
+import type { useConfirm } from '@/composables/useConfirm';
+import type { BatchFile, BatchSettings } from '@/composables/batch/types';
 import { ApiClient } from '@/api/api';
 import { FORMAT_INFO } from '@/utils/exportUtils';
 import {
@@ -32,14 +30,41 @@ import { readSourceExif, supportsExif, withExif } from '@/utils/exif';
 import { downloadBlob, pickSaveFolder, saveFile, writeFileToFolder } from '@/utils/saveFile';
 import { logger } from '@/utils/logger';
 
-export function useBatchConversion({ settings, t, confirm }) {
-  const files = ref([]);
-  const processedFiles = ref([]);
+export interface BatchConversionDeps {
+  /** format, quality, width, height, maintainAspect, prefix, pdfMode, keepExif */
+  settings: Ref<BatchSettings>;
+  /** i18n-Übersetzungsfunktion */
+  t: ReturnType<typeof useI18n>['t'];
+  /** Bestätigungsdialog (useConfirm) */
+  confirm: ReturnType<typeof useConfirm>['confirm'];
+}
+
+/** Gemeinsames PDF aller Bilder (pdfMode 'merged') */
+export interface MergedPdfResult {
+  id: 'merged-pdf';
+  name: string;
+  processedBlob: Blob;
+  processedSize: number;
+  processedPreview: null;
+  isMerged: true;
+}
+
+/** Eintrag der Ergebnisliste: konvertierte Datei oder gemeinsames PDF */
+export type BatchResult = (BatchFile & { isMerged?: undefined }) | MergedPdfResult;
+
+/** Fehlermeldung wie bisher über `error.message` */
+function messageOf(error: unknown): string {
+  return (error as Error).message;
+}
+
+export function useBatchConversion({ settings, t, confirm }: BatchConversionDeps) {
+  const files = ref<BatchFile[]>([]);
+  const processedFiles = ref<BatchResult[]>([]);
   const isProcessing = ref(false);
   const downloadReady = ref(false);
 
   // Seitenverhältnis des ersten Bildes als Referenz für die Größen-Eingabe
-  const referenceAspectRatio = ref(null);
+  const referenceAspectRatio = ref<number | null>(null);
 
   const hasConvertableFiles = computed(() => files.value.some((f) => f.status !== 'completed'));
   const hasCompletedFiles = computed(() => files.value.some((f) => f.status === 'completed'));
@@ -53,13 +78,13 @@ export function useBatchConversion({ settings, t, confirm }) {
   const isMergedPdf = () => settings.value.format === 'pdf' && settings.value.pdfMode === 'merged';
   const mergedPdfFilename = () => (settings.value.prefix || '') + 'merged.pdf';
 
-  function revokeProcessedPreview(file) {
+  function revokeProcessedPreview(file: Pick<BatchFile, 'processedPreview'>) {
     if (file.processedPreview && file.processedPreview.startsWith('blob:')) {
       URL.revokeObjectURL(file.processedPreview);
     }
   }
 
-  function resetFileResult(file) {
+  function resetFileResult(file: BatchFile) {
     revokeProcessedPreview(file);
     file.status = 'pending';
     file.progress = 0;
@@ -71,7 +96,7 @@ export function useBatchConversion({ settings, t, confirm }) {
 
   // ===== Dateien aufnehmen =====
 
-  async function addFiles(fileList) {
+  async function addFiles(fileList: File[]) {
     const imageFiles = fileList.filter((f) => isImageFile(f));
 
     if (imageFiles.length === 0) {
@@ -81,7 +106,7 @@ export function useBatchConversion({ settings, t, confirm }) {
 
     for (const file of imageFiles) {
       try {
-        let preview;
+        let preview: string;
         if (needsBackendPreview(file)) {
           // Browser kann TIFF/HEIC/RAW nicht anzeigen – Vorschau als PNG über das Backend
           const pngBlob = await ApiClient.convertImage(file, 'png', file.name, {});
@@ -107,12 +132,14 @@ export function useBatchConversion({ settings, t, confirm }) {
           error: null,
         });
       } catch (error) {
-        window.$toast?.error(t('toast.batch.fileError', { name: file.name, error: error.message }));
+        window.$toast?.error(
+          t('toast.batch.fileError', { name: file.name, error: messageOf(error) })
+        );
       }
     }
 
     if (!referenceAspectRatio.value && files.value.length > 0) {
-      const first = files.value[0];
+      const first = files.value[0]!;
       if (first.width && first.height) {
         referenceAspectRatio.value = first.width / first.height;
       }
@@ -124,7 +151,7 @@ export function useBatchConversion({ settings, t, confirm }) {
   // ===== Konvertierung =====
 
   /** Lädt das Bild und zeichnet es in Zielgröße auf einen Canvas */
-  async function prepareCanvas(file) {
+  async function prepareCanvas(file: BatchFile) {
     file.progress = 10;
     const img = await loadImage(file.preview);
     file.progress = 30;
@@ -139,7 +166,7 @@ export function useBatchConversion({ settings, t, confirm }) {
     return canvas;
   }
 
-  async function processFile(file) {
+  async function processFile(file: BatchFile) {
     const format = settings.value.format;
     const canvas = await prepareCanvas(file);
 
@@ -176,7 +203,7 @@ export function useBatchConversion({ settings, t, confirm }) {
 
     let errorCount = 0;
     const merged = isMergedPdf();
-    const canvasesForMerge = [];
+    const canvasesForMerge: { file: BatchFile; canvas: HTMLCanvasElement }[] = [];
 
     for (const file of files.value) {
       file.status = 'processing';
@@ -197,9 +224,11 @@ export function useBatchConversion({ settings, t, confirm }) {
         file.progress = 100;
       } catch (error) {
         file.status = 'error';
-        file.error = error.message;
+        file.error = messageOf(error);
         errorCount++;
-        window.$toast?.error(t('toast.batch.fileError', { name: file.name, error: error.message }));
+        window.$toast?.error(
+          t('toast.batch.fileError', { name: file.name, error: messageOf(error) })
+        );
       }
     }
 
@@ -222,7 +251,7 @@ export function useBatchConversion({ settings, t, confirm }) {
           file.processedPreview = file.preview;
         });
       } catch (error) {
-        window.$toast?.error(t('toast.batch.fileError', { name: 'PDF', error: error.message }));
+        window.$toast?.error(t('toast.batch.fileError', { name: 'PDF', error: messageOf(error) }));
         errorCount++;
       }
     }
@@ -242,10 +271,10 @@ export function useBatchConversion({ settings, t, confirm }) {
 
   // ===== Verwaltung =====
 
-  function removeFile(fileId) {
+  function removeFile(fileId: BatchFile['id']) {
     const index = files.value.findIndex((f) => f.id === fileId);
     if (index === -1) return;
-    const file = files.value[index];
+    const file = files.value[index]!;
     revokeProcessedPreview(file);
     files.value.splice(index, 1);
     window.$toast?.info(t('toast.batch.fileRemoved', { name: file.name }));
@@ -277,19 +306,22 @@ export function useBatchConversion({ settings, t, confirm }) {
 
   // ===== Download =====
 
-  function getOutputFilename(file) {
+  function getOutputFilename(file: Pick<BatchResult, 'name' | 'isMerged'>) {
     if (file.isMerged) return mergedPdfFilename();
     const prefix = settings.value.prefix || '';
     const format = settings.value.format;
-    const ext = FORMAT_INFO[format]?.extension || format;
+    const ext =
+      (FORMAT_INFO as Readonly<Record<string, { extension?: string } | undefined>>)[format]
+        ?.extension || format;
     const baseName = file.name.replace(/\.[^.]+$/, '');
     return `${prefix}${baseName}.${ext}`;
   }
 
   /** Fehler beim Speichern melden (Abbruch durch den Nutzer ist kein Fehler) */
-  function reportSaveError(error) {
+  function reportSaveError(error: unknown) {
     logger.error('Speichern fehlgeschlagen:', error);
-    window.$toast?.error(t('save.failed', { error: error?.message || String(error) }));
+    const message = (error as Error | null | undefined)?.message;
+    window.$toast?.error(t('save.failed', { error: message || String(error) }));
   }
 
   /**
@@ -297,13 +329,14 @@ export function useBatchConversion({ settings, t, confirm }) {
    * ohne diesen Dialog (Firefox/Safari) Dateinamen-Abfrage und Download.
    * Synchron aus dem Klick heraus aufrufen (Nutzergeste).
    */
-  async function downloadFile(file) {
-    if (!file.processedBlob) return;
+  async function downloadFile(file: BatchResult) {
+    const blob = file.processedBlob;
+    if (!blob) return;
     try {
       const saved = await saveFile({
         suggestedName: getOutputFilename(file),
-        mimeType: file.processedBlob.type || undefined,
-        getBlob: () => file.processedBlob,
+        mimeType: blob.type || undefined,
+        getBlob: () => blob,
       });
       if (saved.outcome === 'cancelled') return;
       downloadReady.value = false;
@@ -323,11 +356,14 @@ export function useBatchConversion({ settings, t, confirm }) {
    * Ohne Ordnerdialog: klassische Downloads wie bisher.
    */
   async function downloadAll() {
-    if (isMergedPdf() && processedFiles.value.length === 1 && processedFiles.value[0].isMerged) {
-      return downloadFile(processedFiles.value[0]);
+    const only = processedFiles.value[0];
+    if (isMergedPdf() && processedFiles.value.length === 1 && only!.isMerged) {
+      return downloadFile(only!);
     }
 
-    const ready = processedFiles.value.filter((file) => file.processedBlob);
+    const ready = processedFiles.value.filter(
+      (file): file is BatchResult & { processedBlob: Blob } => !!file.processedBlob
+    );
     if (ready.length === 0) return;
 
     // Synchron in der Geste öffnen
@@ -335,7 +371,7 @@ export function useBatchConversion({ settings, t, confirm }) {
     if (folder === null) return;
 
     if (folder) {
-      const taken = new Set();
+      const taken = new Set<string>();
       let count = 0;
       try {
         for (const file of ready) {

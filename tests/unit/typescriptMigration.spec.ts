@@ -33,8 +33,6 @@ const ALLOWED_JS_FILES: readonly string[] = [
   'src/composables/editor/useEditorResize.js',
   'src/composables/editor/useEditorText.js',
   'src/composables/editor/useImageInfo.js',
-  'src/composables/useBatchConversion.js',
-  'src/composables/useLayerPanel.js',
   'tests/browser/canvasRenderer.spec.js',
   'tests/browser/distort.spec.js',
   'tests/browser/exif.spec.js',

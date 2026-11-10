@@ -22,8 +22,8 @@ export type ImageLayer = Pick<
 >;
 
 /**
- * Rückgabe von useLayerPanel; die Ebenen-Listen typisiert, weil der JS-Store
- * sie als `never[]` ableitet.
+ * Rückgabe von useLayerPanel; die Ebenen-Listen auf die Felder eingeschränkt,
+ * die die Ebenen-Ansicht liest (Tests liefern dafür Teilobjekte).
  */
 export type LayerPanelContext = Omit<
   ReturnType<typeof useLayerPanel>,

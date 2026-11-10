@@ -3,6 +3,28 @@ import { useI18n } from 'vue-i18n';
 import { useImageStore } from '@/stores/imageStore';
 import { useConfirm } from '@/composables/useConfirm';
 import { availableFonts } from '@/assets/fonts/fontList';
+import type { ImageLayer, StoreText } from '@/stores/image/types';
+
+/** Props der Panel-Komponente, die useLayerPanel liest */
+export interface LayerPanelProps {
+  canvasSelectedTextId?: StoreText['id'] | null;
+}
+
+/** emit-Funktion der Panel-Komponente */
+export interface LayerPanelEmit {
+  (event: 'render' | 'preview'): void;
+  (event: 'select-text', textId: StoreText['id']): void;
+}
+
+type LayerBorder = ImageLayer['border'];
+type LayerShadow = ImageLayer['shadow'];
+
+/** Einzelnes Feld als Teil-Update (wie bisher `{ [property]: value }`) */
+function layerPatch<K extends keyof ImageLayer>(property: K, value: ImageLayer[K]) {
+  const updates: Partial<ImageLayer> = {};
+  updates[property] = value;
+  return updates;
+}
 
 /**
  * useLayerPanel
@@ -13,40 +35,37 @@ import { availableFonts } from '@/assets/fonts/fontList';
  * Panel in kleinere Teilkomponenten aufgeteilt werden kann, ohne die
  * Funktionalität zu ändern. Das zurückgegebene Kontext-Objekt wird vom
  * Orchestrator per provide/inject an die Tab-Komponenten weitergereicht.
- *
- * @param {{ canvasSelectedTextId: string | null }} props - Props der Panel-Komponente
- * @param {(event: string, ...args: any[]) => void} emit - emit-Funktion der Panel-Komponente
  */
-export function useLayerPanel(props, emit) {
+export function useLayerPanel(props: LayerPanelProps, emit: LayerPanelEmit) {
   const { t } = useI18n();
   const { confirm: confirmDialog } = useConfirm();
 
   const imageStore = useImageStore();
   const maintainAspectRatio = ref(true);
   const activeTab = ref('layers');
-  const selectedTextId = ref(null);
+  const selectedTextId = ref<StoreText['id'] | null>(null);
 
   // Debounce Timer für History-Speicherung
-  let saveStateTimer = null;
+  let saveStateTimer: ReturnType<typeof setTimeout> | null = null;
 
   // Debounced saveState - speichert erst nach 500ms Inaktivität
-  function debouncedSaveState(description, type = 'layer') {
+  function debouncedSaveState(description: string) {
     if (saveStateTimer) {
       clearTimeout(saveStateTimer);
     }
     saveStateTimer = setTimeout(() => {
-      imageStore.saveState(description, type);
+      imageStore.saveState(description);
       saveStateTimer = null;
     }, 500);
   }
 
   // Sofortige State-Speicherung ohne Debounce
-  function saveStateNow(description, type = 'layer') {
+  function saveStateNow(description: string) {
     if (saveStateTimer) {
       clearTimeout(saveStateTimer);
       saveStateTimer = null;
     }
-    imageStore.saveState(description, type);
+    imageStore.saveState(description);
   }
 
   // Wenn Text auf Canvas ausgewählt wird, zu Text-Tab wechseln und Text auswählen
@@ -163,28 +182,28 @@ export function useLayerPanel(props, emit) {
     opacity: selectedLayer.value?.shadow?.opacity || 50,
   }));
 
-  function toggleSection(section) {
+  function toggleSection(section: keyof typeof openSections) {
     openSections[section] = !openSections[section];
   }
 
-  function updateBackgroundColor(color) {
+  function updateBackgroundColor(color: string) {
     imageStore.canvasBackgroundColor = color;
     emit('render');
-    debouncedSaveState('Hintergrundfarbe geändert', 'layer');
+    debouncedSaveState('Hintergrundfarbe geändert');
   }
 
-  function selectLayer(layerId) {
+  function selectLayer(layerId: ImageLayer['id'] | null) {
     imageStore.selectImageLayer(layerId);
     emit('render');
   }
 
-  function toggleVisibility(layer) {
+  function toggleVisibility(layer: Pick<ImageLayer, 'id' | 'visible'>) {
     imageStore.updateImageLayer(layer.id, { visible: !layer.visible });
     emit('render');
-    saveStateNow(layer.visible ? 'Layer ausgeblendet' : 'Layer eingeblendet', 'layer');
+    saveStateNow(layer.visible ? 'Layer ausgeblendet' : 'Layer eingeblendet');
   }
 
-  async function deleteLayer(layerId) {
+  async function deleteLayer(layerId: ImageLayer['id']) {
     const confirmed = await confirmDialog(t('layerPanel.layers.confirmDelete'), {
       title: t('layerPanel.layers.delete'),
       confirmText: t('confirm.delete', 'Löschen'),
@@ -194,15 +213,15 @@ export function useLayerPanel(props, emit) {
     if (confirmed) {
       imageStore.deleteImageLayer(layerId);
       emit('render');
-      saveStateNow('Bild-Layer gelöscht', 'layer');
+      saveStateNow('Bild-Layer gelöscht');
     }
   }
 
-  function moveLayer(direction) {
+  function moveLayer(direction: 'up' | 'down' | 'top' | 'bottom') {
     if (selectedLayer.value) {
       imageStore.moveImageLayerOrder(selectedLayer.value.id, direction);
       emit('render');
-      saveStateNow('Layer-Reihenfolge geändert', 'layer');
+      saveStateNow('Layer-Reihenfolge geändert');
     }
   }
 
@@ -210,19 +229,19 @@ export function useLayerPanel(props, emit) {
     if (selectedLayer.value) {
       imageStore.duplicateImageLayer(selectedLayer.value.id);
       emit('render');
-      saveStateNow('Bild-Layer dupliziert', 'layer');
+      saveStateNow('Bild-Layer dupliziert');
     }
   }
 
-  function updateLayerProperty(property, value) {
+  function updateLayerProperty<K extends keyof ImageLayer>(property: K, value: ImageLayer[K]) {
     if (selectedLayer.value) {
-      imageStore.updateImageLayer(selectedLayer.value.id, { [property]: value });
+      imageStore.updateImageLayer(selectedLayer.value.id, layerPatch(property, value));
       emit('render');
-      debouncedSaveState(`Layer ${property} geändert`, 'layer');
+      debouncedSaveState(`Layer ${property} geändert`);
     }
   }
 
-  function updateSize(property, value) {
+  function updateSize(property: 'width' | 'height', value: number) {
     if (!selectedLayer.value) return;
 
     const layer = selectedLayer.value;
@@ -241,53 +260,51 @@ export function useLayerPanel(props, emit) {
         });
       }
     } else {
-      imageStore.updateImageLayer(layer.id, { [property]: value });
+      imageStore.updateImageLayer(layer.id, layerPatch(property, value));
     }
     emit('render');
-    debouncedSaveState('Layer-Größe geändert', 'layer');
+    debouncedSaveState('Layer-Größe geändert');
   }
 
-  function rotateBy(degrees) {
+  function rotateBy(degrees: number) {
     if (selectedLayer.value) {
       const newRotation = (selectedLayer.value.rotation + degrees) % 360;
       updateLayerProperty('rotation', newRotation);
     }
   }
 
-  function toggleFlip(direction) {
+  function toggleFlip(direction: 'flipX' | 'flipY') {
     if (selectedLayer.value) {
       const currentValue = selectedLayer.value[direction] || false;
-      imageStore.updateImageLayer(selectedLayer.value.id, { [direction]: !currentValue });
+      imageStore.updateImageLayer(selectedLayer.value.id, layerPatch(direction, !currentValue));
       emit('render');
-      saveStateNow(
-        direction === 'flipX' ? 'Horizontal gespiegelt' : 'Vertikal gespiegelt',
-        'layer'
-      );
+      saveStateNow(direction === 'flipX' ? 'Horizontal gespiegelt' : 'Vertikal gespiegelt');
     }
   }
 
-  function updateFilter(filterName, value) {
+  function updateFilter(filterName: string, value: number) {
     if (selectedLayer.value) {
       const newFilters = { ...selectedLayer.value.filters, [filterName]: value };
       imageStore.updateImageLayer(selectedLayer.value.id, { filters: newFilters });
       emit('render');
-      debouncedSaveState(`Layer-Filter ${filterName} geändert`, 'layer');
+      debouncedSaveState(`Layer-Filter ${filterName} geändert`);
     }
   }
 
-  function updateBorder(property, value) {
+  function updateBorder<K extends keyof LayerBorder>(property: K, value: LayerBorder[K]) {
     if (selectedLayer.value) {
       const currentBorder = selectedLayer.value.border || { width: 0, color: '#000000', radius: 0 };
-      const newBorder = { ...currentBorder, [property]: value };
+      const newBorder: LayerBorder = { ...currentBorder };
+      newBorder[property] = value;
       imageStore.updateImageLayer(selectedLayer.value.id, { border: newBorder });
       emit('render');
-      debouncedSaveState('Layer-Umrandung geändert', 'layer');
+      debouncedSaveState('Layer-Umrandung geändert');
     }
   }
 
-  function updateShadow(property, value) {
+  function updateShadow<K extends keyof LayerShadow>(property: K, value: LayerShadow[K]) {
     if (selectedLayer.value) {
-      const currentShadow = selectedLayer.value.shadow || {
+      const currentShadow: LayerShadow = selectedLayer.value.shadow || {
         enabled: false,
         offsetX: 5,
         offsetY: 5,
@@ -295,10 +312,11 @@ export function useLayerPanel(props, emit) {
         color: '#000000',
         opacity: 50,
       };
-      const newShadow = { ...currentShadow, [property]: value };
+      const newShadow: LayerShadow = { ...currentShadow };
+      newShadow[property] = value;
       imageStore.updateImageLayer(selectedLayer.value.id, { shadow: newShadow });
       emit('render');
-      debouncedSaveState('Layer-Schatten geändert', 'layer');
+      debouncedSaveState('Layer-Schatten geändert');
     }
   }
 
@@ -320,13 +338,13 @@ export function useLayerPanel(props, emit) {
         shadow: { enabled: false, offsetX: 5, offsetY: 5, blur: 10, color: '#000000', opacity: 50 },
       });
       emit('render');
-      saveStateNow('Layer-Filter zurückgesetzt', 'layer');
+      saveStateNow('Layer-Filter zurückgesetzt');
     }
   }
 
   // Text Funktionen
   function addText() {
-    const newText = {
+    const newText: StoreText = {
       id: `text_${Date.now()}`,
       content: t('layerPanel.text.newText'),
       x: 100,
@@ -355,7 +373,7 @@ export function useLayerPanel(props, emit) {
     emit('render');
   }
 
-  function selectText(textId) {
+  function selectText(textId: StoreText['id']) {
     selectedTextId.value = textId;
     // Store-Renderer-Auswahl synchron setzen (für Canvas-Markierung)
     imageStore.selectedTextId = textId;
@@ -365,7 +383,7 @@ export function useLayerPanel(props, emit) {
     emit('render');
   }
 
-  async function deleteText(textId) {
+  async function deleteText(textId: StoreText['id']) {
     const confirmed = await confirmDialog(t('layerPanel.text.confirmDelete'), {
       title: t('layerPanel.text.delete', 'Text löschen'),
       confirmText: t('confirm.delete', 'Löschen'),
@@ -384,14 +402,17 @@ export function useLayerPanel(props, emit) {
     }
   }
 
-  function updateTextProperty(property, value) {
-    if (selectedText.value) {
-      const index = imageStore.texts.findIndex((t) => t.id === selectedText.value.id);
+  function updateTextProperty(property: string, value: unknown) {
+    const current = selectedText.value;
+    if (current) {
+      const index = imageStore.texts.findIndex((t) => t.id === current.id);
       if (index !== -1) {
-        imageStore.texts[index][property] = value;
+        // StoreText ist offen (Index-Signatur); Felder werden wie bisher direkt gesetzt
+        const text = imageStore.texts[index] as Record<string, unknown>;
+        text[property] = value;
         // Für ältere Text-Struktur auch 'txt' aktualisieren
         if (property === 'content') {
-          imageStore.texts[index].txt = value;
+          text.txt = value;
         }
         emit('render');
       }
