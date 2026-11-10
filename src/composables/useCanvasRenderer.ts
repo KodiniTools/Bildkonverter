@@ -3,6 +3,7 @@
  * Extrahiert Canvas-Rendering-Logik aus EditorView.vue
  */
 
+import type { Ref } from 'vue';
 import { buildTextFontString, applyTextTransform } from '@/utils/textRender';
 import { getAdjustedImage } from '@/utils/imageAdjustments';
 import { logger } from '@/utils/logger';
@@ -14,7 +15,60 @@ import {
   drawWarpedImage,
   hasDistortion,
   traceRoundedPolygon,
+  type CornerOffsets,
+  type QuadCorners,
+  type Rect,
 } from '@/utils/warpImage';
+import { context2d } from '@/utils/canvas2d';
+import type { Shape } from '@/utils/shapes';
+import type { EditorText } from '@/composables/text/types';
+import type { ImageLayer } from '@/stores/image/types';
+import type { useImageStore } from '@/stores/imageStore';
+import type { CanvasTransform } from '@/types/transform';
+import type { EditorBackground, EditorFilters } from '@/composables/useFilterManagement';
+
+type ImageStore = ReturnType<typeof useImageStore>;
+
+/** Teil des imageStore, den der Renderer liest */
+export type RendererImageStore = Pick<
+  ImageStore,
+  | 'texts'
+  | 'shapes'
+  | 'selectedShapeId'
+  | 'canvasBackgroundColor'
+  | 'imageLayers'
+  | 'selectedLayerId'
+  | 'hasImageLayers'
+>;
+
+/** Geometrie des zuletzt gezeichneten Einzelbildes (Canvas ← Bildsystem) */
+export interface DistortGeometry {
+  matrix: DOMMatrix;
+  rect: Rect;
+}
+
+/** Optionen des gemeinsamen Render-Pfads für Vorschau und Export */
+export interface RenderOptions {
+  /** Auswahl-Rahmen für Ebene/Text zeichnen (nur Vorschau) */
+  showSelection: boolean;
+  /** Hintergrund weglassen (transparenter Export) */
+  forceTransparent: boolean;
+  /** Overlays (Formen und Texte) mitzeichnen */
+  includeTexts: boolean;
+}
+
+export interface CanvasRendererDeps {
+  canvas: Ref<HTMLCanvasElement | null>;
+  currentImage: Ref<HTMLImageElement | HTMLCanvasElement | null>;
+  isCollageMode: Ref<boolean>;
+  imageStore: RendererImageStore;
+  transform: CanvasTransform;
+  filters: Ref<EditorFilters>;
+  background: Ref<EditorBackground>;
+  selectedTextId: Ref<string | number | null>;
+}
+
+type Ctx = CanvasRenderingContext2D;
 
 // Gitterauflösung für das freie Verzerren (Distort). Höher = genauer, langsamer.
 const DISTORT_SUBDIVISIONS = 16;
@@ -32,7 +86,7 @@ export const SHAPE_ROTATE_GAP = 26;
  * Anzeige-Skalierung des Canvas (Bildschirm-Pixel pro Canvas-Pixel).
  * Fällt auf 1 zurück, wenn der Canvas nicht im Layout hängt.
  */
-export function getCanvasDisplayScale(canvasEl) {
+export function getCanvasDisplayScale(canvasEl: HTMLCanvasElement | null | undefined): number {
   if (!canvasEl || !canvasEl.width) return 1;
   const rect = canvasEl.getBoundingClientRect();
   return rect.width > 0 ? rect.width / canvasEl.width : 1;
@@ -42,7 +96,10 @@ export function getCanvasDisplayScale(canvasEl) {
  * Zeichnet den Auswahl-Rahmen mit Resize-Handles für eine Bild-Ebene.
  * Modulweit exportiert, damit auch die Zwischenansicht des imageStore ihn nutzt.
  */
-export function drawLayerSelection(context, layer) {
+export function drawLayerSelection(
+  context: Ctx,
+  layer: Pick<ImageLayer, 'x' | 'y' | 'width' | 'height' | 'rotation'>
+): void {
   context.save();
 
   // Rotation für Auswahl-Rahmen
@@ -85,9 +142,9 @@ export function drawLayerSelection(context, layer) {
 /**
  * Zeichnet Auswahlrahmen, Eck-Griffe (Größe) und Drehgriff einer Form.
  * Nur Vorschau – wird nie exportiert.
- * @param {number} displayScale Bildschirm-Pixel pro Canvas-Pixel
+ * @param displayScale Bildschirm-Pixel pro Canvas-Pixel
  */
-export function drawShapeSelection(context, shape, displayScale = 1) {
+export function drawShapeSelection(context: Ctx, shape: Shape, displayScale = 1): void {
   const px = 1 / (displayScale || 1);
   const handles = getShapeHandles(shape, SHAPE_SELECTION_PAD * px, SHAPE_ROTATE_GAP * px);
   const accent = currentThemeColorsV2().accent;
@@ -137,15 +194,7 @@ export function drawShapeSelection(context, shape, displayScale = 1) {
 }
 
 /**
- * @param {Object} options
- * @param {import('vue').Ref<HTMLCanvasElement>} options.canvas
- * @param {import('vue').Ref<HTMLImageElement>} options.currentImage
- * @param {import('vue').Ref<boolean>} options.isCollageMode
- * @param {Object} options.imageStore - Pinia store instance
- * @param {Object} options.transform - useTransform() composable instance
- * @param {import('vue').Ref<Object>} options.filters - reactive filters ref
- * @param {import('vue').Ref<Object>} options.background - reactive background ref
- * @param {import('vue').Ref<number|null>} options.selectedTextId
+ * Rendert Vorschau und Export des Editors (Einzelbild oder Collage).
  */
 export function useCanvasRenderer({
   canvas,
@@ -156,14 +205,21 @@ export function useCanvasRenderer({
   filters,
   background,
   selectedTextId,
-}) {
+}: CanvasRendererDeps) {
   // Geometrie des zuletzt gezeichneten Einzelbildes für das freie Verzerren:
   // Transformationsmatrix (Canvas ← Bildsystem) und Zeichen-Rechteck.
   // null im Collage-Modus bzw. ohne Bild.
-  let distortGeometry = null;
+  let distortGeometry: DistortGeometry | null = null;
 
   // Helper-Funktion für abgerundete Rechtecke
-  function roundedRect(ctx, x, y, width, height, radius) {
+  function roundedRect(
+    ctx: Ctx,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    radius: number
+  ): void {
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
     ctx.lineTo(x + width - radius, y);
@@ -178,18 +234,20 @@ export function useCanvasRenderer({
   }
 
   // Berechnet den Border-Radius in Pixeln aus dem Prozentwert (50% = perfekter Kreis)
-  function getBorderRadiusPixels() {
+  function getBorderRadiusPixels(): number {
     if (!canvas.value) return 0;
     const percentage = transform.transforms.value.borderRadius;
     return (percentage / 100) * Math.min(canvas.value.width, canvas.value.height);
   }
 
   // Zeichnet Text-Auswahl als Overlay (nur visuell, nicht Teil des exportierten Bildes)
-  function drawTextSelection() {
+  function drawTextSelection(): void {
     if (!canvas.value || !selectedTextId.value) return;
 
-    const ctx = canvas.value.getContext('2d');
-    const text = imageStore.texts?.find((t) => t.id === selectedTextId.value);
+    const ctx = context2d(canvas.value);
+    const text: EditorText | undefined = imageStore.texts?.find(
+      (t) => t.id === selectedTextId.value
+    );
     if (!text) return;
 
     ctx.save();
@@ -198,9 +256,10 @@ export function useCanvasRenderer({
     ctx.strokeStyle = currentThemeColorsV2().accent;
     ctx.lineWidth = 2;
     ctx.setLineDash([5, 5]);
+    // Number(): dieselbe Umwandlung wie zuvor beim Rechnen mit x/y
     ctx.strokeRect(
-      text.x - 4,
-      text.y - 4,
+      Number(text.x) - 4,
+      Number(text.y) - 4,
       metrics.width + 8,
       (text.fontSize || text.size || 32) + 8
     );
@@ -209,7 +268,7 @@ export function useCanvasRenderer({
   }
 
   // Schnelle Funktion: nur Dimensionen aktualisieren (wird bei jedem renderImage() aufgerufen)
-  function updateImageDimensions() {
+  function updateImageDimensions(): void {
     // This is a helper used inside renderImage; the actual ref updates happen in EditorView
     // We expose it so EditorView can call it directly too
     if (!canvas.value) return;
@@ -217,7 +276,7 @@ export function useCanvasRenderer({
   }
 
   // Wandelt eine Hex-Farbe (#rrggbb) in einen rgba()-String mit Deckkraft um
-  function hexToRgba(hex, alpha) {
+  function hexToRgba(hex: string, alpha: number): string {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
@@ -225,7 +284,7 @@ export function useCanvasRenderer({
   }
 
   // Setzt Canvas-Schatten auf die Werte eines Layers (Collage-Modus)
-  function applyLayerShadow(ctx, layer) {
+  function applyLayerShadow(ctx: Ctx, layer: ImageLayer): void {
     ctx.shadowColor = hexToRgba(
       layer.shadow.color || '#000000',
       (layer.shadow.opacity || 50) / 100
@@ -235,7 +294,7 @@ export function useCanvasRenderer({
     ctx.shadowOffsetY = layer.shadow.offsetY || 5;
   }
 
-  function clearShadow(ctx) {
+  function clearShadow(ctx: Ctx): void {
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur = 0;
     ctx.shadowOffsetX = 0;
@@ -246,7 +305,8 @@ export function useCanvasRenderer({
    * Zeichnet eine einzelne Bild-Ebene (Collage-Modus) mit Deckkraft, Filtern,
    * Rotation, Spiegelung, Schatten, abgerundeten Ecken und Umrandung.
    */
-  function drawImageLayer(ctx, layer) {
+  /** image = layer.image, bereits auf „geladen“ geprüft (siehe renderCollage) */
+  function drawImageLayer(ctx: Ctx, layer: ImageLayer, image: HTMLImageElement): void {
     ctx.save();
 
     // Deckkraft
@@ -255,10 +315,7 @@ export function useCanvasRenderer({
     // Echte, pixelbasierte Tonwert-Anpassungen (Helligkeit, Kontrast,
     // Sättigung) werden in die Ebenen-Quelle gebacken; Effekt-Filter
     // (Graustufen, Sepia) bleiben CSS-Filter – wie beim Hauptbild.
-    const { el: layerSource, cssFilter: layerCssFilter } = getAdjustedImage(
-      layer.image,
-      layer.filters
-    );
+    const { el: layerSource, cssFilter: layerCssFilter } = getAdjustedImage(image, layer.filters);
     ctx.filter = layerCssFilter;
 
     // Rotation um Mittelpunkt
@@ -332,10 +389,10 @@ export function useCanvasRenderer({
 
   /**
    * Zeichnet eine Text-Ebene mit Deckkraft, Rotation/Neigung, Schatten und Kontur.
-   * @param {boolean} inlineSelection Auswahl-Rahmen direkt im transformierten
+   * @param inlineSelection Auswahl-Rahmen direkt im transformierten
    *   Kontext mitzeichnen (Collage-Vorschau)
    */
-  function drawTextLayer(ctx, text, inlineSelection = false) {
+  function drawTextLayer(ctx: Ctx, text: EditorText, inlineSelection = false): void {
     ctx.save();
 
     const opacity = text.opacity !== undefined ? text.opacity : 100;
@@ -388,7 +445,7 @@ export function useCanvasRenderer({
    * Formen-Ebenen (liegen über dem Bild/den Ebenen und unter den Texten).
    * Die Auswahl wird hier nicht gezeichnet – siehe drawSelectedShapeOverlay.
    */
-  function drawShapes(ctx) {
+  function drawShapes(ctx: Ctx): void {
     const list = imageStore.shapes;
     if (!list || list.length === 0) return;
     ctx.filter = 'none';
@@ -396,7 +453,7 @@ export function useCanvasRenderer({
   }
 
   // Auswahl der Form als oberstes Overlay (nur Vorschau)
-  function drawSelectedShapeOverlay(ctx) {
+  function drawSelectedShapeOverlay(ctx: Ctx): void {
     const id = imageStore.selectedShapeId;
     if (!id) return;
     const shape = imageStore.shapes?.find((s) => s.id === id);
@@ -407,26 +464,31 @@ export function useCanvasRenderer({
   /**
    * Collage-Modus: Canvas-Hintergrund, alle sichtbaren Bild-Ebenen und Texte.
    */
-  function renderCollage(ctx, { showSelection, forceTransparent, includeTexts }) {
-    ctx.clearRect(0, 0, canvas.value.width, canvas.value.height);
+  function renderCollage(
+    ctx: Ctx,
+    cv: HTMLCanvasElement,
+    { showSelection, forceTransparent, includeTexts }: RenderOptions
+  ): void {
+    ctx.clearRect(0, 0, cv.width, cv.height);
 
     // Hintergrund (Canvas-Hintergrundfarbe aus dem imageStore)
     const bgColor = imageStore.canvasBackgroundColor;
     if (!forceTransparent && bgColor && bgColor !== 'transparent') {
       ctx.save();
       ctx.fillStyle = bgColor;
-      ctx.fillRect(0, 0, canvas.value.width, canvas.value.height);
+      ctx.fillRect(0, 0, cv.width, cv.height);
       ctx.restore();
     }
 
     imageStore.imageLayers.forEach((layer) => {
       if (!layer.visible) return;
-      if (!layer.image || !layer.image.complete) {
+      const image = layer.image;
+      if (!image || !image.complete) {
         if (showSelection) logger.warn(`Layer "${layer.name}" hat kein gültiges Bild`);
         return;
       }
 
-      drawImageLayer(ctx, layer);
+      drawImageLayer(ctx, layer, image);
 
       if (showSelection && layer.id === imageStore.selectedLayerId) {
         drawLayerSelection(ctx, layer);
@@ -445,9 +507,14 @@ export function useCanvasRenderer({
    * Normal-Modus: Hintergrund, transformiertes Hauptbild mit Schatten,
    * Rahmen und abgerundeten Ecken, Vignette und Texte.
    */
-  function renderSingleImage(ctx, { showSelection, forceTransparent, includeTexts }) {
+  function renderSingleImage(
+    ctx: Ctx,
+    cv: HTMLCanvasElement,
+    image: HTMLImageElement | HTMLCanvasElement,
+    { showSelection, forceTransparent, includeTexts }: RenderOptions
+  ): void {
     const tf = transform.transforms.value;
-    ctx.clearRect(0, 0, canvas.value.width, canvas.value.height);
+    ctx.clearRect(0, 0, cv.width, cv.height);
 
     // Shadow-Padding, damit der Schatten nicht abgeschnitten wird
     let shadowPadding = 0;
@@ -462,12 +529,8 @@ export function useCanvasRenderer({
     let skewPadX = 0;
     let skewPadY = 0;
     if (tf.skewX !== 0 || tf.skewY !== 0) {
-      skewPadX = Math.ceil(
-        (Math.abs(Math.tan((tf.skewX * Math.PI) / 180)) * canvas.value.height) / 2
-      );
-      skewPadY = Math.ceil(
-        (Math.abs(Math.tan((tf.skewY * Math.PI) / 180)) * canvas.value.width) / 2
-      );
+      skewPadX = Math.ceil((Math.abs(Math.tan((tf.skewX * Math.PI) / 180)) * cv.height) / 2);
+      skewPadY = Math.ceil((Math.abs(Math.tan((tf.skewY * Math.PI) / 180)) * cv.width) / 2);
     }
 
     // Rotations-Padding, damit das rotierte Bild nicht abgeschnitten wird.
@@ -478,8 +541,8 @@ export function useCanvasRenderer({
       const radians = (tf.rotation * Math.PI) / 180;
       const cos = Math.abs(Math.cos(radians));
       const sin = Math.abs(Math.sin(radians));
-      const w = canvas.value.width - (shadowPadding + skewPadX) * 2;
-      const h = canvas.value.height - (shadowPadding + skewPadY) * 2;
+      const w = cv.width - (shadowPadding + skewPadX) * 2;
+      const h = cv.height - (shadowPadding + skewPadY) * 2;
       const rotatedW = w * cos + h * sin;
       const rotatedH = w * sin + h * cos;
       const scale = Math.min(w / rotatedW, h / rotatedH);
@@ -492,20 +555,20 @@ export function useCanvasRenderer({
     const totalPadY = shadowPadding + skewPadY + rotPadY;
     const drawX = totalPadX;
     const drawY = totalPadY;
-    const drawWidth = canvas.value.width - totalPadX * 2;
-    const drawHeight = canvas.value.height - totalPadY * 2;
+    const drawWidth = cv.width - totalPadX * 2;
+    const drawHeight = cv.height - totalPadY * 2;
 
     // Hintergrund (unterste Ebene)
     if (!forceTransparent && background.value.opacity > 0) {
       ctx.save();
       ctx.globalAlpha = background.value.opacity / 100;
       ctx.fillStyle = background.value.color;
-      ctx.fillRect(0, 0, canvas.value.width, canvas.value.height);
+      ctx.fillRect(0, 0, cv.width, cv.height);
       ctx.restore();
     }
 
     // Transformationen (temporär, wird am Ende wieder zurückgenommen)
-    const restoreTransform = transform.applyToCanvas(canvas.value, ctx);
+    const restoreTransform = transform.applyToCanvas(cv, ctx);
 
     // Geometrie für Verzerr-Griffe und Hit-Testing merken (exakt die hier
     // aktive Matrix → Griffe folgen Rotation, Zoom, Pan, Spiegelung, Neigung)
@@ -519,11 +582,9 @@ export function useCanvasRenderer({
     // Invertieren) bleiben CSS-Filter. In der Vorschau rechnet der Web Worker
     // (bis er fertig ist, zeigt der Canvas das letzte Ergebnis); Export,
     // Druck und Vorschau-Modal rechnen synchron, damit nichts veraltet ist.
-    const { el: adjustedSource, cssFilter: filterString } = getAdjustedImage(
-      currentImage.value,
-      filters.value,
-      { async: showSelection }
-    );
+    const { el: adjustedSource, cssFilter: filterString } = getAdjustedImage(image, filters.value, {
+      async: showSelection,
+    });
     ctx.filter = filterString;
 
     const isCircle = tf.borderRadius >= 50;
@@ -534,10 +595,11 @@ export function useCanvasRenderer({
     const circleRadius = Math.min(drawWidth, drawHeight) / 2;
 
     // Umrissform einer übernommenen Verzerrung (Viereck im Zeichen-Rechteck)
-    const shapePts = tf.shapeQuad
+    const shapeQuad = tf.shapeQuad;
+    const shapePts = shapeQuad
       ? CORNERS.map((c) => ({
-          x: drawX + tf.shapeQuad[c].x * drawWidth,
-          y: drawY + tf.shapeQuad[c].y * drawHeight,
+          x: drawX + shapeQuad[c].x * drawWidth,
+          y: drawY + shapeQuad[c].y * drawHeight,
         }))
       : null;
     // Pfad nötig für Clip/Schatten/Rahmen (Rechteck ohne Rundung nutzt Rect-APIs)
@@ -626,8 +688,8 @@ export function useCanvasRenderer({
     if (filters.value.vignette > 0) {
       ctx.save();
       const vignetteStrength = filters.value.vignette / 100;
-      const cx = canvas.value.width / 2;
-      const cy = canvas.value.height / 2;
+      const cx = cv.width / 2;
+      const cy = cv.height / 2;
       const radius = Math.max(cx, cy) * (1.5 - vignetteStrength * 0.5);
 
       const gradient = ctx.createRadialGradient(cx, cy, radius * 0.3, cx, cy, radius);
@@ -636,7 +698,7 @@ export function useCanvasRenderer({
       gradient.addColorStop(1, `rgba(0, 0, 0, ${vignetteStrength * 0.8})`);
 
       ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.value.width, canvas.value.height);
+      ctx.fillRect(0, 0, cv.width, cv.height);
       ctx.restore();
     }
 
@@ -668,21 +730,28 @@ export function useCanvasRenderer({
    * Zeichnet die (gefilterte) Bildquelle verzerrt in das Viereck, das sich aus
    * dem Zeichen-Rechteck und den normierten Eck-Versätzen ergibt.
    */
-  function drawDistortedImage(ctx, source, cssFilter, rect, offsets) {
+  function drawDistortedImage(
+    ctx: Ctx,
+    source: HTMLImageElement | HTMLCanvasElement,
+    cssFilter: string,
+    rect: Rect,
+    offsets: CornerOffsets | null
+  ): void {
     const sw = Math.max(1, Math.round(rect.width));
     const sh = Math.max(1, Math.round(rect.height));
-    let warpSource = source;
+    let warpSource: HTMLImageElement | HTMLCanvasElement = source;
     if (cssFilter && cssFilter !== 'none') {
       const tmp = document.createElement('canvas');
       tmp.width = sw;
       tmp.height = sh;
-      const tctx = tmp.getContext('2d');
+      const tctx = context2d(tmp);
       tctx.filter = cssFilter;
       tctx.drawImage(source, 0, 0, sw, sh);
       warpSource = tmp;
     }
-    const srcW = warpSource === source ? source.naturalWidth || source.width : sw;
-    const srcH = warpSource === source ? source.naturalHeight || source.height : sh;
+    const natural = source as Partial<Pick<HTMLImageElement, 'naturalWidth' | 'naturalHeight'>>;
+    const srcW = warpSource === source ? natural.naturalWidth || source.width : sw;
+    const srcH = warpSource === source ? natural.naturalHeight || source.height : sh;
 
     ctx.save();
     ctx.filter = 'none';
@@ -701,11 +770,11 @@ export function useCanvasRenderer({
    * Eckpunkte des (ggf. verzerrten) Bildes in Canvas-Koordinaten, d.h. nach
    * Rotation/Zoom/Pan/Spiegelung/Neigung. null, wenn kein Einzelbild gezeichnet wurde.
    */
-  function getDistortHandlePoints() {
+  function getDistortHandlePoints(): QuadCorners | null {
     if (!distortGeometry) return null;
     const { matrix, rect } = distortGeometry;
     const local = computeQuadCorners(rect, transform.transforms.value.cornerOffsets);
-    const out = {};
+    const out = {} as QuadCorners;
     for (const c of CORNERS) {
       const p = matrix.transformPoint(new DOMPoint(local[c].x, local[c].y));
       out[c] = { x: p.x, y: p.y };
@@ -714,12 +783,12 @@ export function useCanvasRenderer({
   }
 
   /** Geometrie des zuletzt gezeichneten Einzelbildes (Matrix + Zeichen-Rechteck). */
-  function getDistortGeometry() {
+  function getDistortGeometry(): DistortGeometry | null {
     return distortGeometry;
   }
 
   // Umriss des Vierecks und die 4 Eck-Griffe (im Canvas-System, ohne Transform)
-  function drawDistortHandles(ctx) {
+  function drawDistortHandles(ctx: Ctx): void {
     const pts = getDistortHandlePoints();
     if (!pts) return;
     const px = 1 / getCanvasDisplayScale(canvas.value);
@@ -756,30 +825,28 @@ export function useCanvasRenderer({
   /**
    * Gemeinsamer Render-Pfad für Vorschau und Export.
    *
-   * @param {Object}  opts
-   * @param {boolean} opts.showSelection    Auswahl-Rahmen für Ebene/Text zeichnen (nur Vorschau)
-   * @param {boolean} opts.forceTransparent Hintergrund weglassen (transparenter Export)
-   * @param {boolean} opts.includeTexts     Overlays (Formen und Texte) mitzeichnen
    */
-  function renderScene(opts) {
-    if (!canvas.value) return;
-    const ctx = canvas.value.getContext('2d');
+  function renderScene(opts: RenderOptions): void {
+    const cv = canvas.value;
+    if (!cv) return;
+    const ctx = context2d(cv);
 
     if (isCollageMode.value && imageStore.hasImageLayers) {
       distortGeometry = null;
-      renderCollage(ctx, opts);
+      renderCollage(ctx, cv, opts);
       return;
     }
 
-    if (!currentImage.value) {
+    const image = currentImage.value;
+    if (!image) {
       distortGeometry = null;
       return;
     }
-    renderSingleImage(ctx, opts);
+    renderSingleImage(ctx, cv, image, opts);
   }
 
   // Vorschau: mit Auswahl-Markierungen, Hintergrund und Texten
-  function renderImage() {
+  function renderImage(): void {
     renderScene({ showSelection: true, forceTransparent: false, includeTexts: true });
   }
 
@@ -787,7 +854,7 @@ export function useCanvasRenderer({
   // forceTransparent=true lässt den Hintergrund weg (z.B. PNG mit Transparenz).
   // includeTexts=false backt nur das Bild/die Ebenen ohne Text-Overlays (z.B. beim
   // "Bild vom Hintergrund lösen", damit Text als separate Ebene erhalten bleibt).
-  function renderImageForExport(forceTransparent = false, includeTexts = true) {
+  function renderImageForExport(forceTransparent = false, includeTexts = true): void {
     renderScene({ showSelection: false, forceTransparent, includeTexts });
   }
 

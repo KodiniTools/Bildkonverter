@@ -198,7 +198,7 @@ describe('Globale SSI-Navigation (Partials)', () => {
 });
 
 describe('Leinwand-Overlays', () => {
-  it.each(['composables/useCanvasRenderer.js', 'utils/textUtils.ts'])(
+  it.each(['composables/useCanvasRenderer.ts', 'utils/textUtils.ts'])(
     '%s zeichnet Auswahl und Griffe mit Token-Farben',
     (file) => {
       const src = read(file);
