@@ -5,18 +5,23 @@
  * Breite/Höhe-Felder, Größen-Presets (Dropdown) und die endgültige Übernahme
  * mit History-Eintrag über "Anwenden". Ausgelagert aus EditorView.vue,
  * Verhalten unverändert.
- *
- * @param {object} deps
- * @param {import('vue').Ref} deps.canvas
- * @param {import('vue').Ref} deps.currentImage
- * @param {object}   deps.resizeManager   useResizeManager()-Instanz
- * @param {Function} deps.renderImage
- * @param {Function} deps.updateImageSize Dateigröße neu schätzen
- * @param {Function} deps.saveHistory
- * @param {Function} deps.t
  */
-import { ref, watch } from 'vue';
-import { computeResizeTarget, defaultResizeSpec } from '@/utils/resizeModes';
+import { ref, watch, type Ref } from 'vue';
+import { computeResizeTarget, defaultResizeSpec, type ResizeSpec } from '@/utils/resizeModes';
+import type { useResizeManager } from '@/composables/useResizeManager';
+import type { EditorImage, Translate } from './types';
+
+export interface EditorResizeDeps {
+  canvas: Ref<HTMLCanvasElement | null>;
+  currentImage: Ref<EditorImage | null>;
+  /** useResizeManager()-Instanz */
+  resizeManager: ReturnType<typeof useResizeManager>;
+  renderImage: () => void;
+  /** Dateigröße neu schätzen */
+  updateImageSize: () => void;
+  saveHistory: () => void;
+  t: Translate;
+}
 
 /** Maximale Kantenlänge für Größenänderungen (identisch zur Live-Vorschau) */
 export const MAX_RESIZE_DIMENSION = 10000;
@@ -29,7 +34,7 @@ export function useEditorResize({
   updateImageSize,
   saveHistory,
   t,
-}) {
+}: EditorResizeDeps) {
   const { resizeWidth, resizeHeight, naturalWidth, naturalHeight } = resizeManager;
 
   // Aktuell im Dropdown gewähltes Größen-Preset ('' = keines)
@@ -38,7 +43,7 @@ export function useEditorResize({
   // Resize-Modus. In den relativen Modi (Prozent, lange Kante, einpassen)
   // werden Breite/Höhe aus den Eingaben und der aktuellen Bildgröße berechnet;
   // Live-Vorschau und "Anwenden" laufen danach wie bei manueller Eingabe.
-  const resizeSpec = ref({ ...defaultResizeSpec });
+  const resizeSpec = ref<ResizeSpec>({ ...defaultResizeSpec });
 
   /** Felder aus dem Modus neu berechnen (nur relative Modi) */
   function syncFromSpec() {
@@ -67,7 +72,7 @@ export function useEditorResize({
   // Live-Vorschau: Das Bild im Canvas reagiert schon während des Tippens auf die
   // Werte in den "Grösse ändern"-Feldern (Breite/Höhe) sowie auf Presets. Die
   // endgültige Übernahme (History + Toast) erfolgt weiterhin über "Anwenden".
-  let resizePreviewTimer = null;
+  let resizePreviewTimer: ReturnType<typeof setTimeout> | null = null;
 
   /** Verwirft eine noch ausstehende Live-Vorschau (veralteter Feldwert) */
   function cancelResizePreview() {
@@ -123,17 +128,17 @@ export function useEditorResize({
     }
   });
 
-  function onResizeChange(dimension) {
+  function onResizeChange(dimension: 'width' | 'height') {
     resizeManager.onDimensionChange(dimension);
   }
 
   /**
    * Übernimmt eine neue Bildgröße endgültig: Canvas anpassen, neu zeichnen,
    * Basiswerte aktualisieren und einen History-Eintrag schreiben (Undo/Redo).
-   * @param {number} width - Neue Breite in Pixeln
-   * @param {number} height - Neue Höhe in Pixeln
+   * @param width - Neue Breite in Pixeln
+   * @param height - Neue Höhe in Pixeln
    */
-  function commitResize(width, height) {
+  function commitResize(width: number, height: number) {
     if (!canvas.value || !currentImage.value) return;
 
     // Ausstehende Live-Vorschau verwerfen – die Größe wird jetzt direkt gesetzt
@@ -162,7 +167,7 @@ export function useEditorResize({
     }
   }
 
-  function applySocialPreset(presetName) {
+  function applySocialPreset(presetName: string) {
     if (!canvas.value || !currentImage.value) return;
 
     // Platzhalter "Preset wählen..." → keine Änderung

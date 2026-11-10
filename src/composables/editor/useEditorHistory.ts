@@ -9,26 +9,94 @@
  * Die Historie wird beim imageStore registriert, damit Composables ohne
  * Editor-Kontext (Ebenen-Panel, Text-Dialog, Ebenen-Interaktion) über
  * imageStore.saveState()/undo()/redo() dieselbe Historie nutzen.
- *
- * @param {object} deps
- * @param {import('vue').Ref} deps.canvas
- * @param {import('vue').Ref} deps.currentImage
- * @param {import('vue').Ref} deps.isCollageMode
- * @param {import('vue').Ref} deps.detachedFromBackground
- * @param {import('vue').Ref} deps.selectedTextId
- * @param {import('vue').Ref} deps.filters          filters-Ref aus useFilterManagement
- * @param {import('vue').Ref} deps.background       background-Ref aus useFilterManagement
- * @param {object}   deps.imageStore
- * @param {object}   deps.filterManagement
- * @param {object}   deps.transform                  useTransform()-Instanz
- * @param {object}   deps.resizeManager              useResizeManager()-Instanz
- * @param {object}   deps.crop                       useCrop()-Instanz
- * @param {Function} deps.renderImage
- * @param {Function} deps.updateImageInfo
  */
-import { nextTick } from 'vue';
+import { nextTick, type Ref } from 'vue';
 import { useImageHistory } from '@/composables/useImageHistory';
 import { logger } from '@/utils/logger';
+import { context2d } from '@/utils/canvas2d';
+import type { useImageStore } from '@/stores/imageStore';
+import type { ImageLayer, StoreText } from '@/stores/image/types';
+import type { Shape } from '@/utils/shapes';
+import type { TransformState } from '@/types/transform';
+import type { useTransform } from '@/composables/useTransform';
+import type { useResizeManager } from '@/composables/useResizeManager';
+import type { useCrop } from '@/composables/useCrop';
+import type {
+  EditorBackground,
+  EditorFilters,
+  useFilterManagement,
+} from '@/composables/useFilterManagement';
+import type { EditorSnapshot } from '@/lib/project/projectSnapshot';
+import type { EditorImage } from './types';
+
+type ImageStore = ReturnType<typeof useImageStore>;
+
+/** Ein Eintrag der Editor-Historie (siehe saveHistory) */
+export interface EditorHistoryState {
+  description: string;
+  /** Gerenderter Canvas (Fallback, wenn das Rohbild fehlt) */
+  imageData: string | null;
+  /** Rohbild ohne Transformationen */
+  rawImageSrc: string | null;
+  filters: EditorFilters;
+  background: EditorBackground;
+  transforms: TransformState;
+  texts: StoreText[];
+  selectedTextId: StoreText['id'] | null;
+  shapes: Shape[];
+  selectedShapeId: string | null;
+  width: number;
+  height: number;
+  naturalWidth: number;
+  naturalHeight: number;
+  hasCropped: boolean;
+  isCollageMode: boolean;
+  detachedFromBackground: boolean;
+  imageLayers: ImageLayer[];
+  selectedLayerId: ImageLayer['id'] | null;
+  canvasBackgroundColor: string;
+}
+
+/**
+ * Wiederherstellbarer Zustand: Breite/Höhe immer vorhanden, alles andere kann
+ * in älteren gespeicherten Projekten fehlen.
+ */
+export type RestorableState = Pick<EditorHistoryState, 'width' | 'height'> &
+  Partial<Omit<EditorHistoryState, 'width' | 'height'>>;
+
+export interface EditorHistoryDeps {
+  canvas: Ref<HTMLCanvasElement | null>;
+  currentImage: Ref<EditorImage | null>;
+  isCollageMode?: Ref<boolean>;
+  detachedFromBackground?: Ref<boolean>;
+  selectedTextId: Ref<StoreText['id'] | null>;
+  /** filters-Ref aus useFilterManagement */
+  filters: Ref<EditorFilters>;
+  /** background-Ref aus useFilterManagement */
+  background: Ref<EditorBackground>;
+  imageStore: Pick<
+    ImageStore,
+    | 'texts'
+    | 'shapes'
+    | 'selectedShapeId'
+    | 'selectedLayerId'
+    | 'canvasBackgroundColor'
+    | 'restoreImageLayers'
+  > &
+    Partial<Pick<ImageStore, 'serializeImageLayers' | 'clearImageLayers' | 'registerHistory'>>;
+  filterManagement: Pick<ReturnType<typeof useFilterManagement>, 'importState'>;
+  /** useTransform()-Instanz */
+  transform: Pick<ReturnType<typeof useTransform>, 'transforms'>;
+  /** useResizeManager()-Instanz */
+  resizeManager: Pick<
+    ReturnType<typeof useResizeManager>,
+    'naturalWidth' | 'naturalHeight' | 'initFromDimensions' | 'setNaturalSize'
+  >;
+  /** useCrop()-Instanz */
+  crop: Pick<ReturnType<typeof useCrop>, 'hasCropped' | 'resetCropState'>;
+  renderImage: () => void;
+  updateImageInfo: () => void;
+}
 
 export function useEditorHistory({
   canvas,
@@ -45,8 +113,8 @@ export function useEditorHistory({
   crop,
   renderImage,
   updateImageInfo,
-}) {
-  const imageHistory = useImageHistory({
+}: EditorHistoryDeps) {
+  const imageHistory = useImageHistory<EditorHistoryState>({
     maxHistorySize: 50,
     onRestore: (state) => restoreState(state),
   });
@@ -54,24 +122,25 @@ export function useEditorHistory({
 
   /**
    * Schreibt einen Snapshot des gesamten Editor-Zustands.
-   * @param {string} [description] Kurzbeschreibung der Aktion (für Anzeige/Debugging)
+   * @param description Kurzbeschreibung der Aktion (für Anzeige/Debugging)
    */
   function saveHistory(description = '') {
     if (!canvas.value) return;
 
     // Das rohe Bild (ohne Transforms) für verlässliches Undo/Redo speichern
-    let rawImageSrc = null;
-    if (currentImage.value) {
-      if (currentImage.value.src && currentImage.value.src.startsWith('data:')) {
-        rawImageSrc = currentImage.value.src;
+    let rawImageSrc: string | null = null;
+    const image = currentImage.value;
+    if (image) {
+      // Canvas-Quellen haben kein src und landen wie bisher im else-Zweig
+      const src = (image as Partial<HTMLImageElement>).src;
+      if (src && src.startsWith('data:')) {
+        rawImageSrc = src;
       } else {
         // Blob-URL o.ä.: als Data-URL über Hilfs-Canvas sichern
         const tmpCanvas = document.createElement('canvas');
         tmpCanvas.width = canvas.value.width;
         tmpCanvas.height = canvas.value.height;
-        tmpCanvas
-          .getContext('2d')
-          .drawImage(currentImage.value, 0, 0, tmpCanvas.width, tmpCanvas.height);
+        context2d(tmpCanvas).drawImage(image, 0, 0, tmpCanvas.width, tmpCanvas.height);
         rawImageSrc = tmpCanvas.toDataURL('image/png');
       }
     }
@@ -120,7 +189,7 @@ export function useEditorHistory({
   }
 
   /** Gemeinsamer Teil der Wiederherstellung (Canvas, Filter, Transform, Texte, Crop) */
-  function applyEditorState(state) {
+  function applyEditorState(state: RestorableState) {
     if (!canvas.value) {
       logger.warn('Historie: Canvas fehlt, Zustand nicht angewendet');
       return;
@@ -167,8 +236,8 @@ export function useEditorHistory({
     renderImage();
   }
 
-  function loadSnapshotImage(src) {
-    return new Promise((resolve, reject) => {
+  function loadSnapshotImage(src: string) {
+    return new Promise<HTMLImageElement>((resolve, reject) => {
       const img = new Image();
       img.onload = () => resolve(img);
       img.onerror = () => reject(new Error('Bild aus der Historie nicht ladbar'));
@@ -184,7 +253,7 @@ export function useEditorHistory({
     if (!canvas.value) await nextTick();
   }
 
-  async function restoreState(state) {
+  async function restoreState(state: RestorableState) {
     if (state.isCollageMode) {
       // Ebenen samt Bildern neu laden; das Basisbild bleibt unverändert
       await imageStore.restoreImageLayers(state.imageLayers || [], state.selectedLayerId ?? null);
@@ -213,7 +282,7 @@ export function useEditorHistory({
       applyEditorState(state);
       return;
     }
-    let img;
+    let img: HTMLImageElement;
     try {
       img = await loadSnapshotImage(srcToLoad);
     } catch (e) {
@@ -228,9 +297,11 @@ export function useEditorHistory({
   /**
    * Gespeichertes Projekt fortsetzen: Zustand wiederherstellen und als neuen
    * Startpunkt der (leeren) Historie setzen.
-   * @param {object} state  History-Eintrag (z. B. aus projectSnapshot.unpackSnapshot)
+   * @param snapshot  History-Eintrag (z. B. aus projectSnapshot.unpackSnapshot)
    */
-  async function restoreSnapshot(state) {
+  async function restoreSnapshot(snapshot: EditorSnapshot) {
+    // Gespeicherte Projekte stammen aus saveHistory (siehe projectSnapshot)
+    const state = snapshot as unknown as RestorableState;
     imageHistory.clearHistory();
     await restoreState(state);
     saveHistory(state.description || 'Projekt fortgesetzt');

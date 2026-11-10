@@ -4,29 +4,47 @@
  * "Bild vom Hintergrund lösen": wandelt das fest im Canvas verankerte
  * Basisbild in eine frei bewegliche Ebene um (nutzt das Ebenen-/Collage-System)
  * und wieder zurück. Ausgelagert aus EditorView.vue, Verhalten unverändert.
- *
- * @param {object} deps
- * @param {import('vue').Ref} deps.canvas
- * @param {import('vue').Ref} deps.currentImage
- * @param {import('vue').Ref} deps.originalImage
- * @param {import('vue').Ref} deps.isCollageMode
- * @param {import('vue').Ref} [deps.detachedFromBackground] Zustand "abgelöst"; wird vom Editor
- *   geteilt, damit die Historie ihn mitsichern kann (fehlt er, wird er hier angelegt)
- * @param {import('vue').Ref} deps.background       background-Ref aus useFilterManagement
- * @param {import('vue').Ref} deps.currentFileName
- * @param {object}   deps.imageStore
- * @param {object}   deps.filterManagement
- * @param {object}   deps.transform
- * @param {object}   deps.resizeManager
- * @param {Function} deps.renderImage
- * @param {Function} deps.renderImageForExport
- * @param {Function} deps.updateImageInfo
- * @param {Function} deps.saveHistory
- * @param {Function} deps.t
  */
-import { ref, watch } from 'vue';
+import { ref, watch, type Ref } from 'vue';
 import { loadImage } from '@/utils/fileUtils';
 import { logger } from '@/utils/logger';
+import type { useImageStore } from '@/stores/imageStore';
+import type { useTransform } from '@/composables/useTransform';
+import type { useResizeManager } from '@/composables/useResizeManager';
+import type { EditorBackground, useFilterManagement } from '@/composables/useFilterManagement';
+import type { EditorImage, Translate } from './types';
+
+export interface EditorDetachDeps {
+  canvas: Ref<HTMLCanvasElement | null>;
+  currentImage: Ref<EditorImage | null>;
+  originalImage: Ref<EditorImage | null>;
+  isCollageMode: Ref<boolean>;
+  /**
+   * Zustand "abgelöst"; wird vom Editor geteilt, damit die Historie ihn
+   * mitsichern kann (fehlt er, wird er hier angelegt)
+   */
+  detachedFromBackground?: Ref<boolean>;
+  /** background-Ref aus useFilterManagement */
+  background: Ref<EditorBackground>;
+  currentFileName: Ref<string | null | undefined>;
+  imageStore: Pick<
+    ReturnType<typeof useImageStore>,
+    | 'canvasBackgroundColor'
+    | 'initCanvas'
+    | 'addImageLayer'
+    | 'updateImageLayer'
+    | 'selectImageLayer'
+    | 'clearImageLayers'
+  >;
+  filterManagement: Pick<ReturnType<typeof useFilterManagement>, 'resetFilters'>;
+  transform: Pick<ReturnType<typeof useTransform>, 'resetTransforms'>;
+  resizeManager: Pick<ReturnType<typeof useResizeManager>, 'initFromDimensions'>;
+  renderImage: () => void;
+  renderImageForExport: (forceTransparent?: boolean, includeTexts?: boolean) => void;
+  updateImageInfo: () => void;
+  saveHistory: () => void;
+  t: Translate;
+}
 
 export function useEditorDetach({
   canvas,
@@ -45,7 +63,7 @@ export function useEditorDetach({
   updateImageInfo,
   saveHistory,
   t,
-}) {
+}: EditorDetachDeps) {
   // true, wenn das Basisbild als frei bewegliche Ebene "abgelöst" wurde
   const detachedFromBackground = sharedDetached || ref(false);
 
@@ -125,7 +143,7 @@ export function useEditorDetach({
     renderImageForExport(true, false);
     const flatUrl = canvas.value.toDataURL('image/png');
 
-    let img;
+    let img: HTMLImageElement;
     try {
       img = await loadImage(flatUrl);
     } catch (error) {

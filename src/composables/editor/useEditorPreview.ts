@@ -4,16 +4,19 @@
  * Vorher/Nachher-Vorschau-Modal des Editors. Das "Nachher"-Bild wird ohne
  * Auswahl-Markierungen gerendert (wie beim Export). Ausgelagert aus
  * EditorView.vue, Verhalten unverändert.
- *
- * @param {object} deps
- * @param {import('vue').Ref} deps.canvas
- * @param {import('vue').Ref} deps.currentImage
- * @param {import('vue').Ref} deps.originalImageDataUrl
- * @param {object}   deps.imageStore
- * @param {Function} deps.renderImage
- * @param {Function} deps.renderImageForExport
  */
-import { ref } from 'vue';
+import { ref, type Ref } from 'vue';
+import type { useImageStore } from '@/stores/imageStore';
+import type { EditorImage } from './types';
+
+export interface EditorPreviewDeps {
+  canvas: Ref<HTMLCanvasElement | null>;
+  currentImage: Ref<EditorImage | null>;
+  originalImageDataUrl: Ref<string | null>;
+  imageStore: Pick<ReturnType<typeof useImageStore>, 'workingUrl' | 'imageLayers'>;
+  renderImage: () => void;
+  renderImageForExport: () => void;
+}
 
 export function useEditorPreview({
   canvas,
@@ -22,7 +25,7 @@ export function useEditorPreview({
   imageStore,
   renderImage,
   renderImageForExport,
-}) {
+}: EditorPreviewDeps) {
   const showPreviewModal = ref(false);
   const originalPreviewSrc = ref('');
   const editedPreviewSrc = ref('');
@@ -60,7 +63,7 @@ export function useEditorPreview({
     setTimeout(() => {
       // Im Collage-Modus: Erstes Layer-Bild als "Original" verwenden
       originalPreviewSrc.value =
-        imageStore.imageLayers.length > 0 ? imageStore.imageLayers[0].url || '' : '';
+        imageStore.imageLayers.length > 0 ? imageStore.imageLayers[0]!.url || '' : '';
       captureEditedPreview();
       showPreviewModal.value = true;
     }, 100);
