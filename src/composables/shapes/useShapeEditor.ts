@@ -23,20 +23,14 @@ import {
   isHeightless,
   supportsShapeText,
 } from '@/utils/shapes';
+import type { ShapeGalleryItem } from '@/utils/shapes';
 
 export type { Shape } from '@/stores/image/types';
 import type { Shape } from '@/stores/image/types';
 
 export type ShapePatch = Partial<Omit<Shape, 'id'>>;
 
-export interface GalleryItem {
-  id: string;
-  type?: string;
-  category?: string;
-  tool?: string;
-  aspect?: number;
-  preset?: { textKey?: string };
-}
+export type GalleryItem = ShapeGalleryItem;
 
 export interface DrawStyle {
   color: string;
@@ -46,8 +40,7 @@ export interface DrawStyle {
 
 export type ReorderDirection = 'up' | 'down';
 
-/** Galerie mit der hier gelesenen Teilmenge der Felder */
-const GALLERY = SHAPE_GALLERY as unknown as readonly GalleryItem[];
+const GALLERY = SHAPE_GALLERY;
 
 export interface ShapeEditorOptions {
   /** Canvas-Größe in px (0 = aus dem Store) */
@@ -274,7 +267,7 @@ export function useShapeEditor(options: ShapeEditorOptions) {
     commit();
   }
 
-  function onTileClick(item: GalleryItem) {
+  function onTileClick(item: Pick<GalleryItem, 'id'> & Partial<GalleryItem>) {
     if (isDrawToolItem(item)) {
       if (options.disabled()) return;
       setDrawTool(drawTool.value === item.tool ? null : (item.tool ?? null));

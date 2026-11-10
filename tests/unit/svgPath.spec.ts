@@ -56,8 +56,8 @@ describe('Social-Media-Symbole', () => {
     expect(ids).toHaveLength(20);
     for (const id of ids) {
       expect(SHAPE_GALLERY.find((g) => g.id === id)?.category, id).toBe('symbols');
-      expect(de.shapes.items[id], id).toBeTruthy();
-      expect(en.shapes.items[id], id).toBeTruthy();
+      expect((de.shapes.items as Record<string, string>)[id], id).toBeTruthy();
+      expect((en.shapes.items as Record<string, string>)[id], id).toBeTruthy();
     }
   });
 
@@ -67,7 +67,7 @@ describe('Social-Media-Symbole', () => {
     // Endpunkte liegen im Rahmen (±12 % Rand für Strichenden)
     const coords = d
       .replace(/A [^A-Z]*?(?= [A-Z]|$)/g, (arc) => arc.split(' ').slice(-2).join(' '))
-      .match(/-?\d+(\.\d+)?/g)
+      .match(/-?\d+(\.\d+)?/g)!
       .map(Number);
     for (let i = 0; i + 1 < coords.length; i += 2) {
       expect(Math.abs(coords[i])).toBeLessThanOrEqual(112);
@@ -78,6 +78,6 @@ describe('Social-Media-Symbole', () => {
   it('starten als Umriss mit Linienstärke, Füllung zuschaltbar', () => {
     const shape = createShape('socialLike', 1000, 1000);
     expect(shape).toMatchObject({ type: 'socialLike', filled: false });
-    expect(shape.strokeWidth).toBeGreaterThan(0);
+    expect(shape!.strokeWidth).toBeGreaterThan(0);
   });
 });

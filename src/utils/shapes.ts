@@ -33,6 +33,131 @@
 
 import { SOCIAL_ICONS, SOCIAL_ICON_GRID } from './socialIcons';
 import { scaleSvgPath } from './svgPath';
+import { context2d } from './canvas2d';
+
+// ===== TYPEN =====
+
+/** Zeichenwerkzeuge (DRAW_TOOLS) */
+export type DrawTool = 'pen' | 'highlighter';
+
+/** Normierter Freihand-Punkt [x, y] im Rahmen (-0,5 … 0,5) */
+export type FreehandPoint = [number, number];
+
+/** Form-Objekt (siehe Kommentar oben). Unbekannte Felder bleiben erlaubt (alte Projekte). */
+export interface Shape {
+  id: string;
+  type: string;
+  galleryId?: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation?: number;
+  opacity?: number;
+  flipX?: boolean;
+  flipY?: boolean;
+  filled?: boolean;
+  fillType?: string;
+  fillColor?: string;
+  fillColor2?: string;
+  gradientAngle?: number;
+  strokeWidth?: number;
+  strokeColor?: string;
+  dash?: string;
+  shadowBlur?: number;
+  shadowColor?: string;
+  number?: number | string;
+  markerStyle?: string;
+  textColor?: string;
+  emoji?: string;
+  text?: string;
+  fontFamily?: string;
+  textAlign?: string;
+  textScale?: number;
+  effect?: string;
+  region?: string;
+  intensity?: number;
+  /** Freihand-Striche: normierte Punkte relativ zum Rahmen */
+  points?: FreehandPoint[];
+  tool?: string;
+  [key: string]: unknown;
+}
+
+/** Lage und Größe einer Form (Mittelpunkt, Rahmen, Drehung in Grad) */
+export interface ShapeFrame {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation?: number;
+}
+
+export interface LocalPoint {
+  x: number;
+  y: number;
+}
+
+/** Textbereich einer Form im lokalen System (x/y = Mitte) */
+export interface ShapeTextBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/** Formabhängige Varianten des Pfads (aus der Form oder dem Galerie-Preset) */
+export interface ShapePathOptions {
+  markerStyle?: string;
+  region?: string;
+  points?: readonly (readonly number[])[];
+}
+
+/** Pfad-Generator und Zeichenart eines Form-Typs */
+export interface ShapePathDef {
+  kind: ShapeKind;
+  path: (w: number, h: number, options?: ShapePathOptions | null) => string;
+  textBox?: (w: number, h: number) => ShapeTextBox;
+  fillRule?: CanvasFillRule;
+}
+
+/** Standardwerte eines Galerie-Eintrags für die neue Form */
+export interface ShapePreset {
+  filled?: boolean;
+  strokeRatio?: number;
+  dash?: string;
+  color?: string;
+  fillColor?: string;
+  strokeColor?: string;
+  markerStyle?: string;
+  region?: string;
+  effect?: string;
+  text?: string;
+  textKey?: string;
+  textColor?: string;
+  textScale?: number;
+  fontFamily?: string;
+  textAlign?: string;
+  fillType?: string;
+  fillColor2?: string;
+  gradientAngle?: number;
+  emoji?: string;
+}
+
+export interface ShapeGalleryItem {
+  id: string;
+  type: string;
+  category?: string;
+  aspect: number;
+  preset?: ShapePreset;
+  tool?: DrawTool;
+}
+
+export type ShapeCorner = 'nw' | 'ne' | 'se' | 'sw';
+
+export type ShapeHandleHit = { mode: 'rotate' } | { mode: 'resize'; corner: ShapeCorner };
+
+/** Kontext-Teil für Text-Messungen (in Tests durch Attrappen ersetzbar) */
+type TextMeasureContext = Pick<CanvasRenderingContext2D, 'measureText'>;
 
 /**
  * Zeichenart: Flächenformen werden gefüllt (+ optionale Kontur), Linienformen
@@ -47,6 +172,8 @@ export const SHAPE_KIND = Object.freeze({
   EFFECT: 'effect',
 });
 
+export type ShapeKind = (typeof SHAPE_KIND)[keyof typeof SHAPE_KIND];
+
 export const SHAPE_CATEGORIES = Object.freeze([
   'basic',
   'arrows',
@@ -58,10 +185,10 @@ export const SHAPE_CATEGORIES = Object.freeze([
 ]);
 
 /** Füllarten: einfarbig oder Farbverlauf */
-export const FILL_TYPES = Object.freeze(['solid', 'linear', 'radial']);
+export const FILL_TYPES: readonly string[] = Object.freeze(['solid', 'linear', 'radial']);
 
 /** Emoji-Sticker der Galerie (id → Zeichen) */
-export const EMOJI_SET = Object.freeze({
+export const EMOJI_SET: Readonly<Record<string, string>> = Object.freeze({
   emojiThumbsUp: '👍',
   emojiSmile: '😀',
   emojiLove: '😍',
@@ -106,20 +233,22 @@ export const MARKER_MAX = 999;
 export const DASH_STYLES = Object.freeze(['solid', 'dashed', 'dotted']);
 
 /** Text in Formen */
-export const TEXT_ALIGNS = Object.freeze(['left', 'center', 'right']);
+export const TEXT_ALIGNS = Object.freeze(['left', 'center', 'right'] as const);
 export const SHAPE_TEXT_DEFAULTS = Object.freeze({
   fontFamily: 'Satoshi Bold',
   textColor: '#1f2937',
   textScale: 0.22,
-  textAlign: 'center',
+  textAlign: 'center' as CanvasTextAlign,
 });
 /** Grenzen für textScale (Anteil an min(Breite, Höhe)) */
 export const TEXT_SCALE_LIMITS = Object.freeze({ min: 0.04, max: 0.9 });
 const TEXT_LINE_HEIGHT = 1.2;
 
 /** Freihand-Werkzeuge: Stift und halbtransparenter Textmarker */
-export const DRAW_TOOLS = Object.freeze(['pen', 'highlighter']);
-export const DRAW_TOOL_DEFAULTS = Object.freeze({
+export const DRAW_TOOLS: readonly DrawTool[] = Object.freeze(['pen', 'highlighter'] as const);
+export const DRAW_TOOL_DEFAULTS: Readonly<
+  Record<DrawTool, { color: string; widthRatio: number; opacity: number }>
+> = Object.freeze({
   pen: { color: '#e53935', widthRatio: 0.006, opacity: 100 },
   highlighter: { color: '#ffeb3b', widthRatio: 0.03, opacity: 60 },
 });
@@ -134,17 +263,17 @@ const DEFAULT_COLOR = '#e53935';
 
 // ===== GEOMETRIE-HELFER =====
 
-const r2 = (n) => Math.round(n * 100) / 100;
+const r2 = (n: number): number => Math.round(n * 100) / 100;
 
 /** Punktliste → geschlossener SVG-Pfad */
-function polygonPath(points) {
+function polygonPath(points: readonly (readonly number[])[]): string {
   return points.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${r2(x)} ${r2(y)}`).join(' ') + ' Z';
 }
 
 /** Skaliert normierte Punkte so, dass ihr Begrenzungsrahmen exakt w × h füllt. */
-function fitPoints(points, w, h) {
-  const xs = points.map((p) => p[0]);
-  const ys = points.map((p) => p[1]);
+function fitPoints(points: readonly (readonly number[])[], w: number, h: number): number[][] {
+  const xs = points.map((p) => p[0]!);
+  const ys = points.map((p) => p[1]!);
   const minX = Math.min(...xs);
   const maxX = Math.max(...xs);
   const minY = Math.min(...ys);
@@ -153,12 +282,12 @@ function fitPoints(points, w, h) {
   const sy = h / (maxY - minY || 1);
   const cx = (minX + maxX) / 2;
   const cy = (minY + maxY) / 2;
-  return points.map(([x, y]) => [(x - cx) * sx, (y - cy) * sy]);
+  return points.map(([x, y]) => [(x! - cx) * sx, (y! - cy) * sy]);
 }
 
 /** Regelmäßiges n-Eck (Spitze oben), auf den Rahmen gestreckt */
-function regularPolygon(n, w, h) {
-  const pts = [];
+function regularPolygon(n: number, w: number, h: number): string {
+  const pts: number[][] = [];
   for (let i = 0; i < n; i++) {
     const a = -Math.PI / 2 + (i * 2 * Math.PI) / n;
     pts.push([Math.cos(a), Math.sin(a)]);
@@ -167,8 +296,8 @@ function regularPolygon(n, w, h) {
 }
 
 /** Stern mit `spikes` Zacken und Innenradius-Verhältnis `inner` */
-function starPath(spikes, inner, w, h) {
-  const pts = [];
+function starPath(spikes: number, inner: number, w: number, h: number): string {
+  const pts: number[][] = [];
   for (let i = 0; i < spikes * 2; i++) {
     const a = -Math.PI / 2 + (i * Math.PI) / spikes;
     const r = i % 2 === 0 ? 1 : inner;
@@ -178,7 +307,7 @@ function starPath(spikes, inner, w, h) {
 }
 
 /** Ellipse als zwei Bögen (Mittelpunkt cx/cy) */
-function ellipsePath(cx, cy, rx, ry) {
+function ellipsePath(cx: number, cy: number, rx: number, ry: number): string {
   return (
     `M ${r2(cx - rx)} ${r2(cy)} ` +
     `A ${r2(rx)} ${r2(ry)} 0 1 0 ${r2(cx + rx)} ${r2(cy)} ` +
@@ -187,7 +316,7 @@ function ellipsePath(cx, cy, rx, ry) {
 }
 
 /** Abgerundetes Rechteck (Mittelpunkt im Ursprung) */
-function roundedRectPath(w, h, radius) {
+function roundedRectPath(w: number, h: number, radius: number): string {
   const a = w / 2;
   const b = h / 2;
   const r = Math.max(0, Math.min(radius, a, b));
@@ -213,7 +342,7 @@ function roundedRectPath(w, h, radius) {
 }
 
 /** Offene Pfeilspitze an `tip`, die entgegen `dir` (Einheitsvektor) zeigt */
-function arrowHead(tip, dir, length, spread) {
+function arrowHead(tip: LocalPoint, dir: LocalPoint, length: number, spread: number): string {
   const back = { x: tip.x - dir.x * length, y: tip.y - dir.y * length };
   const nx = -dir.y * spread;
   const ny = dir.x * spread;
@@ -228,10 +357,10 @@ function arrowHead(tip, dir, length, spread) {
  * Pfad-Generator für ein Symbol auf dem 24er-Raster: der Inhaltsbereich
  * (2 … 22, Lucide-Konvention) füllt den Rahmen w × h.
  */
-function socialIconPath(d) {
+function socialIconPath(d: string): (w: number, h: number) => string {
   const content = SOCIAL_ICON_GRID - 4;
   const half = SOCIAL_ICON_GRID / 2;
-  return (w, h) => {
+  return (w: number, h: number) => {
     const sx = w / content;
     const sy = h / content;
     return scaleSvgPath(d, sx, sy, -half * sx, -half * sy);
@@ -239,12 +368,12 @@ function socialIconPath(d) {
 }
 
 /** Breite der Etiketten-Spitze */
-function labelPointWidth(w, h) {
+function labelPointWidth(w: number, h: number): number {
   return Math.min(h * 0.5, w * 0.3);
 }
 
 // Wellenlinie als Vorschau, solange eine Freihand-Form keine Punkte hat
-const FREEHAND_PREVIEW = Object.freeze([
+const FREEHAND_PREVIEW: readonly FreehandPoint[] = Object.freeze([
   [-0.5, 0.2],
   [-0.32, -0.3],
   [-0.14, 0.1],
@@ -258,15 +387,15 @@ const FREEHAND_PREVIEW = Object.freeze([
  * Glatter Pfad durch Punkte (quadratische Kurven über die Mittelpunkte).
  * Punkte sind auf den Rahmen normiert (-0,5 … 0,5).
  */
-function freehandPath(w, h, points) {
+function freehandPath(w: number, h: number, points: ShapePathOptions['points']): string {
   const src = Array.isArray(points) && points.length ? points : FREEHAND_PREVIEW;
-  const p = src.map(([x, y]) => [x * w, y * h]);
-  const pt = ([x, y]) => `${r2(x)} ${r2(y)}`;
+  const p = src.map(([x, y]): FreehandPoint => [x! * w, y! * h]);
+  const pt = ([x, y]: FreehandPoint) => `${r2(x)} ${r2(y)}`;
   if (p.length === 1) return `M ${pt(p[0])} L ${pt(p[0])}`;
   if (p.length === 2) return `M ${pt(p[0])} L ${pt(p[1])}`;
   let d = `M ${pt(p[0])}`;
   for (let i = 1; i < p.length - 1; i++) {
-    const mid = [(p[i][0] + p[i + 1][0]) / 2, (p[i][1] + p[i + 1][1]) / 2];
+    const mid: FreehandPoint = [(p[i]![0] + p[i + 1]![0]) / 2, (p[i]![1] + p[i + 1]![1]) / 2];
     d += ` Q ${pt(p[i])} ${pt(mid)}`;
   }
   return `${d} L ${pt(p[p.length - 1])}`;
@@ -279,7 +408,7 @@ function freehandPath(w, h, points) {
  * `kind` legt fest, ob gefüllt oder nur gestrichen wird; `fillRule` für Formen
  * mit Loch.
  */
-export const SHAPE_PATHS = Object.freeze({
+export const SHAPE_PATHS: Readonly<Record<string, ShapePathDef>> = Object.freeze({
   rect: {
     kind: SHAPE_KIND.FILL,
     path: (w, h) => roundedRectPath(w, h, 0),
@@ -435,7 +564,7 @@ export const SHAPE_PATHS = Object.freeze({
     path: (w, h) => {
       const a = w / 2;
       const b = h / 2;
-      const p = (x, y) => `${r2(x * a)} ${r2(y * b)}`;
+      const p = (x: number, y: number) => `${r2(x * a)} ${r2(y * b)}`;
       return (
         `M ${p(0, -0.45)} ` +
         `C ${p(0, -0.95)} ${p(-1, -1.05)} ${p(-1, -0.35)} ` +
@@ -588,7 +717,7 @@ export const SHAPE_PATHS = Object.freeze({
     kind: SHAPE_KIND.FILL,
     path: (w, h) => {
       // Entwurf auf einem 100 × 100-Raster, auf den Rahmen gestreckt
-      const p = (x, y) => `${r2(((x - 50) / 100) * w)} ${r2(((y - 50) / 100) * h)}`;
+      const p = (x: number, y: number) => `${r2(((x - 50) / 100) * w)} ${r2(((y - 50) / 100) * h)}`;
       return (
         `M ${p(31, 96)} L ${p(31, 46)} L ${p(46, 26)} ` +
         `C ${p(50, 20)} ${p(51, 13)} ${p(51, 8)} ` +
@@ -613,7 +742,7 @@ export const SHAPE_PATHS = Object.freeze({
   ...Object.fromEntries(
     Object.entries(SOCIAL_ICONS).map(([id, d]) => [
       id,
-      { kind: SHAPE_KIND.FILL, path: socialIconPath(d) },
+      { kind: SHAPE_KIND.FILL, path: socialIconPath(d) } satisfies ShapePathDef,
     ])
   ),
   // Emoji: Rahmen nur für Auswahl/Hit-Test, gezeichnet wird das Zeichen
@@ -641,7 +770,7 @@ export const SHAPE_PATHS = Object.freeze({
  * Standardwerte (z. B. gestrichelte Linie, Rahmen ohne Füllung), `aspect` ist
  * das Start-Seitenverhältnis (Breite / Höhe).
  */
-export const SHAPE_GALLERY = Object.freeze([
+export const SHAPE_GALLERY: readonly ShapeGalleryItem[] = Object.freeze<ShapeGalleryItem[]>([
   { id: 'rect', type: 'rect', category: 'basic', aspect: 1.4 },
   { id: 'roundedRect', type: 'roundedRect', category: 'basic', aspect: 1.4 },
   { id: 'ellipse', type: 'ellipse', category: 'basic', aspect: 1 },
@@ -852,35 +981,38 @@ export const SHAPE_GALLERY = Object.freeze([
   { id: 'highlighter', type: 'freehand', category: 'draw', aspect: 1.6, tool: 'highlighter' },
 ]);
 
-export function getShapeKind(type) {
-  return SHAPE_PATHS[type]?.kind ?? SHAPE_KIND.FILL;
+export function getShapeKind(type: string | undefined): ShapeKind {
+  // '' wie undefined: kein Eintrag
+  return SHAPE_PATHS[type ?? '']?.kind ?? SHAPE_KIND.FILL;
 }
 
 /** true, wenn die Form ein eingebettetes Textfeld hat */
-export function supportsShapeText(type) {
-  return typeof SHAPE_PATHS[type]?.textBox === 'function';
+export function supportsShapeText(type: string | undefined): boolean {
+  return typeof SHAPE_PATHS[type ?? '']?.textBox === 'function';
 }
 
 /** Textbereich der Form im lokalen System ({ x, y, width, height }, x/y = Mitte) */
-export function getShapeTextBox(shape) {
-  const def = SHAPE_PATHS[shape?.type];
+export function getShapeTextBox(
+  shape: Pick<Shape, 'type' | 'width' | 'height'> | null | undefined
+): ShapeTextBox | null {
+  const def = shape ? SHAPE_PATHS[shape.type] : undefined;
   if (!def?.textBox) return null;
-  return def.textBox(Math.max(shape.width, 0.01), Math.max(shape.height, 0.01));
+  return def.textBox(Math.max(shape!.width, 0.01), Math.max(shape!.height, 0.01));
 }
 
 /** Gewünschte Schriftgröße in Canvas-px (skaliert mit der Form) */
-export function getShapeFontSize(shape) {
+export function getShapeFontSize(shape: Pick<Shape, 'width' | 'height' | 'textScale'>): number {
   const scale = Number(shape?.textScale) || SHAPE_TEXT_DEFAULTS.textScale;
   return Math.max(1, Math.min(shape.width, shape.height) * scale);
 }
 
 /** true, wenn die Galerie-Kachel ein Zeichenwerkzeug ist */
-export function isDrawToolItem(item) {
+export function isDrawToolItem(item: { tool?: unknown } | null | undefined): boolean {
   return !!item?.tool;
 }
 
 /** true, wenn die Höhe der Form keine sichtbare Wirkung hat (gerade Linie) */
-export function isHeightless(type) {
+export function isHeightless(type: string | undefined): boolean {
   return type === 'line';
 }
 
@@ -888,14 +1020,21 @@ export function isHeightless(type) {
  * SVG-Pfaddaten der Form im lokalen System (leer bei unbekanntem Typ).
  * `options` liefert formabhängige Varianten (markerStyle, region).
  */
-export function getShapePathData(type, width, height, options = null) {
+export function getShapePathData(
+  type: string,
+  width: number,
+  height: number,
+  options: ShapePathOptions | null = null
+): string {
   const def = SHAPE_PATHS[type];
   if (!def) return '';
   return def.path(Math.max(width, 0.01), Math.max(height, 0.01), options);
 }
 
 /** Nächste freie Marker-Nummer (höchste vorhandene + 1) */
-export function nextMarkerNumber(shapes) {
+export function nextMarkerNumber(
+  shapes: readonly (Shape | null | undefined)[] | null | undefined
+): number {
   if (!Array.isArray(shapes)) return 1;
   const max = shapes.reduce(
     (m, s) => (s?.type === 'marker' ? Math.max(m, Number(s.number) || 0) : m),
@@ -905,7 +1044,9 @@ export function nextMarkerNumber(shapes) {
 }
 
 /** Pixelgröße der Verpixelung bzw. Radius der Unschärfe in Canvas-px */
-export function getCensorStrength(shape) {
+export function getCensorStrength(
+  shape: Pick<Shape, 'width' | 'height' | 'intensity' | 'effect'>
+): number {
   const minSide = Math.max(1, Math.min(shape.width, shape.height));
   const intensity = Math.max(1, Math.min(100, Number(shape.intensity) || 50));
   return shape.effect === 'blur'
@@ -917,7 +1058,11 @@ export function getCensorStrength(shape) {
  * Vorschau einer Galerie-Form für eine Kachel: Pfad zentriert in einer
  * `size` × `size`-viewBox.
  */
-export function getGalleryPreview(item, size = 40, padding = 6) {
+export function getGalleryPreview(
+  item: Pick<ShapeGalleryItem, 'type' | 'aspect' | 'preset'>,
+  size = 40,
+  padding = 6
+) {
   const box = size - padding * 2;
   const aspect = item.aspect || 1;
   const width = aspect >= 1 ? box : box * aspect;
@@ -942,7 +1087,7 @@ export function getGalleryPreview(item, size = 40, padding = 6) {
     const cells = 4;
     const inner = Math.min(width, height) * (item.preset?.region === 'ellipse' ? 0.62 : 0.8);
     const cell = inner / cells;
-    const squares = [];
+    const squares: string[] = [];
     for (let r = 0; r < cells; r++) {
       for (let c = 0; c < cells; c++) {
         if ((r + c) % 2) continue;
@@ -964,7 +1109,7 @@ export function getGalleryPreview(item, size = 40, padding = 6) {
 }
 
 let idCounter = 0;
-function nextShapeId() {
+function nextShapeId(): string {
   idCounter = (idCounter + 1) % 1e6;
   return `shape-${Date.now().toString(36)}-${idCounter}`;
 }
@@ -973,13 +1118,15 @@ function nextShapeId() {
  * Erzeugt eine neue Form aus einem Galerie-Eintrag, mittig im Canvas und in
  * einer zur Canvas-Größe passenden Startgröße.
  *
- * @param {string} galleryId  id aus SHAPE_GALLERY (oder direkt ein Pfad-Typ)
- * @param {number} canvasWidth
- * @param {number} canvasHeight
- * @returns {object|null} null bei unbekanntem Eintrag
+ * @param galleryId  id aus SHAPE_GALLERY (oder direkt ein Pfad-Typ)
+ * @returns null bei unbekanntem Eintrag
  */
-export function createShape(galleryId, canvasWidth, canvasHeight) {
-  const item =
+export function createShape(
+  galleryId: string,
+  canvasWidth: number,
+  canvasHeight: number
+): Shape | null {
+  const item: ShapeGalleryItem | null =
     SHAPE_GALLERY.find((g) => g.id === galleryId) ??
     (SHAPE_PATHS[galleryId] ? { id: galleryId, type: galleryId, aspect: 1 } : null);
   if (!item) return null;
@@ -989,7 +1136,7 @@ export function createShape(galleryId, canvasWidth, canvasHeight) {
   const base = Math.max(24, Math.round(Math.min(W, H) * 0.22));
   const aspect = item.aspect || 1;
   const kind = getShapeKind(item.type);
-  const preset = item.preset || {};
+  const preset: ShapePreset = item.preset || {};
 
   let width = aspect >= 1 ? base * Math.min(aspect, 1.8) : base * aspect;
   let height = aspect >= 1 ? width / aspect : base;
@@ -1061,7 +1208,10 @@ export function createShape(galleryId, canvasWidth, canvasHeight) {
     ...(item.type === 'freehand' ? { points: [], tool: item.tool ?? 'pen' } : {}),
     ...(kind === SHAPE_KIND.FILL || kind === SHAPE_KIND.MARKER
       ? {
-          fillType: FILL_TYPES.includes(preset.fillType) ? preset.fillType : 'solid',
+          fillType:
+            preset.fillType !== undefined && FILL_TYPES.includes(preset.fillType)
+              ? preset.fillType
+              : 'solid',
           fillColor2: preset.fillColor2 ?? '#ffffff',
           gradientAngle: preset.gradientAngle ?? 90,
         }
@@ -1077,10 +1227,10 @@ export function createShape(galleryId, canvasWidth, canvasHeight) {
  * umschließt die Mittellinie; normierte Punkte liegen in -0,5 … 0,5, so dass
  * Verschieben, Skalieren und Drehen wie bei jeder anderen Form funktionieren.
  *
- * @param {{x:number,y:number}[]} canvasPoints
- * @returns {{x:number,y:number,width:number,height:number,points:number[][]}|null}
  */
-export function fitFreehandPoints(canvasPoints) {
+export function fitFreehandPoints(
+  canvasPoints: readonly LocalPoint[] | null | undefined
+): (ShapeFrame & { points: FreehandPoint[] }) | null {
   if (!Array.isArray(canvasPoints) || canvasPoints.length === 0) return null;
   let minX = Infinity;
   let minY = Infinity;
@@ -1097,27 +1247,33 @@ export function fitFreehandPoints(canvasPoints) {
   const height = Math.max(1, maxY - minY);
   const cx = (minX + maxX) / 2;
   const cy = (minY + maxY) / 2;
-  const n4 = (v) => Math.round(v * 10000) / 10000;
+  const n4 = (v: number): number => Math.round(v * 10000) / 10000;
   return {
     x: cx,
     y: cy,
     width,
     height,
-    points: canvasPoints.map((p) => [n4((p.x - cx) / width), n4((p.y - cy) / height)]),
+    points: canvasPoints.map(
+      (p): FreehandPoint => [n4((p.x - cx) / width), n4((p.y - cy) / height)]
+    ),
   };
 }
 
 /**
  * Neue Freihand-Form aus Canvas-Punkten.
- * @param {{x:number,y:number}[]} canvasPoints
- * @param {{tool?:string,color?:string,width?:number,opacity?:number}} style
  */
-export function createFreehandShape(canvasPoints, style = {}) {
+export function createFreehandShape(
+  canvasPoints: readonly LocalPoint[] | null | undefined,
+  style: { tool?: string; color?: string; width?: number; opacity?: number } = {}
+): Shape | null {
   const fit = fitFreehandPoints(canvasPoints);
   if (!fit) return null;
-  const tool = DRAW_TOOLS.includes(style.tool) ? style.tool : 'pen';
+  const tool: DrawTool = (DRAW_TOOLS as readonly unknown[]).includes(style.tool)
+    ? (style.tool as DrawTool)
+    : 'pen';
   const defaults = DRAW_TOOL_DEFAULTS[tool];
-  const shape = createShape(tool, 1, 1);
+  // 'pen' und 'highlighter' sind Galerie-Einträge, createShape liefert immer eine Form
+  const shape = createShape(tool, 1, 1)!;
   return Object.assign(shape, fit, {
     tool,
     strokeColor: style.color || defaults.color,
@@ -1128,14 +1284,19 @@ export function createFreehandShape(canvasPoints, style = {}) {
 }
 
 /** Standard-Strichstärke eines Werkzeugs passend zur Canvas-Größe */
-export function getDefaultDrawWidth(tool, canvasWidth, canvasHeight) {
-  const ratio = (DRAW_TOOL_DEFAULTS[tool] ?? DRAW_TOOL_DEFAULTS.pen).widthRatio;
+export function getDefaultDrawWidth(
+  tool: string | null | undefined,
+  canvasWidth: number,
+  canvasHeight: number
+): number {
+  // Unbekanntes oder fehlendes Werkzeug: Stift
+  const ratio = (DRAW_TOOL_DEFAULTS[tool as DrawTool] ?? DRAW_TOOL_DEFAULTS.pen).widthRatio;
   const base = Math.min(Number(canvasWidth) || 800, Number(canvasHeight) || 600);
   return Math.max(2, Math.min(SHAPE_LIMITS.maxStroke, Math.round(base * ratio)));
 }
 
 /** Linienmuster in Canvas-Pixeln (abhängig von der Linienstärke) */
-export function getDashPattern(dash, strokeWidth) {
+export function getDashPattern(dash: string | undefined, strokeWidth: unknown): number[] {
   const sw = Math.max(1, Number(strokeWidth) || 1);
   if (dash === 'dashed') return [sw * 3, sw * 2];
   if (dash === 'dotted') return [0.001, sw * 2];
@@ -1146,8 +1307,9 @@ export function getDashPattern(dash, strokeWidth) {
  * Zeichnet eine Form auf den Kontext (Deckkraft, Rotation, Spiegelung,
  * Schatten, Füllung, Kontur). Der Kontextzustand wird wiederhergestellt.
  */
-export function drawShape(ctx, shape) {
-  const def = SHAPE_PATHS[shape?.type];
+export function drawShape(ctx: CanvasRenderingContext2D, shape: Shape | null | undefined): void {
+  if (!shape) return;
+  const def = SHAPE_PATHS[shape.type];
   if (!def) return;
   const width = Math.max(shape.width, 0.01);
   const height = Math.max(shape.height, 0.01);
@@ -1183,10 +1345,11 @@ export function drawShape(ctx, shape) {
     ctx.scale(shape.flipX ? -1 : 1, shape.flipY ? -1 : 1);
   }
 
-  if (shape.shadowBlur > 0) {
+  const shadowBlur = shape.shadowBlur ?? 0;
+  if (shadowBlur > 0) {
     ctx.shadowColor = shape.shadowColor || '#000000';
-    ctx.shadowBlur = shape.shadowBlur;
-    const offset = Math.max(2, shape.shadowBlur / 3);
+    ctx.shadowBlur = shadowBlur;
+    const offset = Math.max(2, shadowBlur / 3);
     ctx.shadowOffsetX = offset;
     ctx.shadowOffsetY = offset;
   }
@@ -1219,21 +1382,21 @@ export function drawShape(ctx, shape) {
  * Zerlegt Text in Zeilen, die in `maxWidth` passen (Umbruch an Leerzeichen,
  * Zeilenumbrüche bleiben erhalten). Zu lange Einzelwörter bleiben ganz.
  */
-export function wrapShapeText(ctx, text, maxWidth) {
-  const lines = [];
+export function wrapShapeText(ctx: TextMeasureContext, text: unknown, maxWidth: number): string[] {
+  const lines: string[] = [];
   for (const paragraph of String(text ?? '').split(/\r?\n/)) {
     const words = paragraph.split(/\s+/).filter(Boolean);
     if (words.length === 0) {
       lines.push('');
       continue;
     }
-    let line = words[0];
+    let line = words[0]!;
     for (let i = 1; i < words.length; i++) {
       const candidate = `${line} ${words[i]}`;
       if (ctx.measureText(candidate).width <= maxWidth) line = candidate;
       else {
         lines.push(line);
-        line = words[i];
+        line = words[i]!;
       }
     }
     lines.push(line);
@@ -1241,20 +1404,22 @@ export function wrapShapeText(ctx, text, maxWidth) {
   return lines;
 }
 
-function shapeFont(size, family) {
+function shapeFont(size: number, family: string | undefined): string {
   return `${size}px "${family || SHAPE_TEXT_DEFAULTS.fontFamily}", "Helvetica Neue", Arial, sans-serif`;
 }
 
 /**
  * Text-Layout im Textbereich: Schriftgröße folgt der Form (textScale) und wird
  * verkleinert, bis Breite und Höhe passen.
- * @returns {{ lines: string[], fontSize: number, box: object }|null}
  */
-export function layoutShapeText(ctx, shape) {
+export function layoutShapeText(
+  ctx: TextMeasureContext & Pick<CanvasRenderingContext2D, 'font'>,
+  shape: Pick<Shape, 'type' | 'width' | 'height' | 'textScale' | 'fontFamily' | 'text'>
+): { lines: string[]; fontSize: number; box: ShapeTextBox } | null {
   const box = getShapeTextBox(shape);
   if (!box) return null;
   let fontSize = getShapeFontSize(shape);
-  let lines = [];
+  let lines: string[] = [];
   for (let i = 0; i < 30; i++) {
     ctx.font = shapeFont(fontSize, shape.fontFamily);
     lines = wrapShapeText(ctx, shape.text, box.width);
@@ -1267,11 +1432,13 @@ export function layoutShapeText(ctx, shape) {
 }
 
 /** Text in die (bereits verschobene/gedrehte, ungespiegelte) Form schreiben */
-function drawShapeText(ctx, shape) {
+function drawShapeText(ctx: CanvasRenderingContext2D, shape: Shape): void {
   const layout = layoutShapeText(ctx, shape);
   if (!layout) return;
   const { lines, fontSize, box } = layout;
-  const align = TEXT_ALIGNS.includes(shape.textAlign) ? shape.textAlign : 'center';
+  const align: CanvasTextAlign = (TEXT_ALIGNS as readonly unknown[]).includes(shape.textAlign)
+    ? (shape.textAlign as CanvasTextAlign)
+    : 'center';
   const x =
     align === 'left' ? box.x - box.width / 2 : align === 'right' ? box.x + box.width / 2 : box.x;
   const lineHeight = fontSize * TEXT_LINE_HEIGHT;
@@ -1293,12 +1460,17 @@ function drawShapeText(ctx, shape) {
  * so lang, dass der Verlauf den ganzen Rahmen abdeckt. Radial: von der Mitte
  * (fillColor) nach außen (fillColor2).
  */
-export function getFillStyle(ctx, shape, width, height) {
+export function getFillStyle(
+  ctx: CanvasRenderingContext2D,
+  shape: Pick<Shape, 'fillColor' | 'fillType' | 'fillColor2' | 'gradientAngle'>,
+  width: number,
+  height: number
+): string | CanvasGradient {
   const from = shape.fillColor || DEFAULT_COLOR;
   const type = shape.fillType;
   if (type !== 'linear' && type !== 'radial') return from;
   const to = shape.fillColor2 || '#ffffff';
-  let gradient;
+  let gradient: CanvasGradient;
   if (type === 'linear') {
     const rad = ((Number(shape.gradientAngle) || 0) * Math.PI) / 180;
     const cos = Math.cos(rad);
@@ -1314,7 +1486,12 @@ export function getFillStyle(ctx, shape, width, height) {
 }
 
 /** Emoji-Sticker: Zeichen füllt den Rahmen (Drehen, Spiegeln, Deckkraft, Schatten) */
-function drawEmoji(ctx, shape, width, height) {
+function drawEmoji(
+  ctx: CanvasRenderingContext2D,
+  shape: Shape,
+  width: number,
+  height: number
+): void {
   const glyph = String(shape.emoji || '').trim();
   if (!glyph) return;
   ctx.save();
@@ -1322,10 +1499,11 @@ function drawEmoji(ctx, shape, width, height) {
   ctx.translate(shape.x, shape.y);
   if (shape.rotation) ctx.rotate((shape.rotation * Math.PI) / 180);
   if (shape.flipX || shape.flipY) ctx.scale(shape.flipX ? -1 : 1, shape.flipY ? -1 : 1);
-  if (shape.shadowBlur > 0) {
+  const shadowBlur = shape.shadowBlur ?? 0;
+  if (shadowBlur > 0) {
     ctx.shadowColor = shape.shadowColor || '#000000';
-    ctx.shadowBlur = shape.shadowBlur;
-    const offset = Math.max(2, shape.shadowBlur / 3);
+    ctx.shadowBlur = shadowBlur;
+    const offset = Math.max(2, shadowBlur / 3);
     ctx.shadowOffsetX = offset;
     ctx.shadowOffsetY = offset;
   }
@@ -1349,7 +1527,12 @@ function drawEmoji(ctx, shape, width, height) {
 }
 
 /** Nummer mittig in den (bereits transformierten) Marker schreiben */
-function drawMarkerNumber(ctx, shape, width, height) {
+function drawMarkerNumber(
+  ctx: CanvasRenderingContext2D,
+  shape: Shape,
+  width: number,
+  height: number
+): void {
   const label = String(Math.max(0, Math.round(Number(shape.number) || 0)));
   const factor = label.length >= 3 ? 0.4 : label.length === 2 ? 0.5 : 0.6;
   const fontSize = Math.max(6, Math.min(width, height) * factor);
@@ -1365,7 +1548,7 @@ function drawMarkerNumber(ctx, shape, width, height) {
 }
 
 /** true, wenn der Kontext CSS-Filter unterstützt (Safari: nein) */
-function supportsCanvasFilter(ctx) {
+function supportsCanvasFilter(ctx: CanvasRenderingContext2D): boolean {
   return typeof ctx.filter === 'string';
 }
 
@@ -1375,7 +1558,7 @@ function supportsCanvasFilter(ctx) {
  * beschnitten – zurück. Wirkt daher auf Bild und darunterliegende Ebenen.
  * Erwartet, dass der Kontext im Canvas-Pixelsystem steht (Overlay-Pass).
  */
-function drawCensor(ctx, shape, path) {
+function drawCensor(ctx: CanvasRenderingContext2D, shape: Shape, path: Path2D): void {
   const source = ctx.canvas;
   if (!source || !source.width || !source.height || typeof document === 'undefined') return;
 
@@ -1401,7 +1584,7 @@ function drawCensor(ctx, shape, path) {
   const out = document.createElement('canvas');
   out.width = sw;
   out.height = sh;
-  const octx = out.getContext('2d');
+  const octx = context2d(out);
 
   if (isBlur && supportsCanvasFilter(octx)) {
     octx.filter = `blur(${strength}px)`;
@@ -1414,7 +1597,7 @@ function drawCensor(ctx, shape, path) {
     const small = document.createElement('canvas');
     small.width = smallW;
     small.height = smallH;
-    const sctx = small.getContext('2d');
+    const sctx = context2d(small);
     sctx.imageSmoothingEnabled = true;
     sctx.imageSmoothingQuality = 'high';
     sctx.drawImage(source, x0, y0, sw, sh, 0, 0, smallW, smallH);
@@ -1436,7 +1619,7 @@ function drawCensor(ctx, shape, path) {
 // ===== HIT-TESTING & GRIFFE =====
 
 /** Rechnet einen Canvas-Punkt in das (unrotierte) lokale System der Form um. */
-export function toLocal(shape, x, y) {
+export function toLocal(shape: ShapeFrame, x: number, y: number): LocalPoint {
   const dx = x - shape.x;
   const dy = y - shape.y;
   const rad = (-(shape.rotation || 0) * Math.PI) / 180;
@@ -1446,7 +1629,7 @@ export function toLocal(shape, x, y) {
 }
 
 /** Rechnet einen lokalen Punkt der Form zurück in Canvas-Koordinaten. */
-export function toCanvas(shape, lx, ly) {
+export function toCanvas(shape: ShapeFrame, lx: number, ly: number): LocalPoint {
   const rad = ((shape.rotation || 0) * Math.PI) / 180;
   const cos = Math.cos(rad);
   const sin = Math.sin(rad);
@@ -1457,36 +1640,55 @@ export function toCanvas(shape, lx, ly) {
  * true, wenn (x, y) im (gedrehten) Begrenzungsrahmen der Form liegt.
  * `padding` erweitert den Rahmen (dünne Linien bleiben greifbar).
  */
-export function hitTestShape(shape, x, y, padding = 0) {
+export function hitTestShape(
+  shape: ShapeFrame & Pick<Shape, 'strokeWidth'>,
+  x: number,
+  y: number,
+  padding = 0
+): boolean {
   const p = toLocal(shape, x, y);
   const pad = padding + (Number(shape.strokeWidth) || 0) / 2;
   return Math.abs(p.x) <= shape.width / 2 + pad && Math.abs(p.y) <= shape.height / 2 + pad;
 }
 
 /** Oberste Form an der Position (spätere Formen liegen oben) */
-export function findShapeAt(shapes, x, y, padding = 0) {
+export function findShapeAt<T extends ShapeFrame & Pick<Shape, 'strokeWidth'>>(
+  shapes: readonly T[] | null | undefined,
+  x: number,
+  y: number,
+  padding = 0
+): T | null {
   if (!Array.isArray(shapes)) return null;
   for (let i = shapes.length - 1; i >= 0; i--) {
-    if (hitTestShape(shapes[i], x, y, padding)) return shapes[i];
+    if (hitTestShape(shapes[i]!, x, y, padding)) return shapes[i]!;
   }
   return null;
 }
 
-export const SHAPE_CORNERS = Object.freeze(['nw', 'ne', 'se', 'sw']);
-const CORNER_SIGNS = { nw: [-1, -1], ne: [1, -1], se: [1, 1], sw: [-1, 1] };
+export const SHAPE_CORNERS: readonly ShapeCorner[] = Object.freeze([
+  'nw',
+  'ne',
+  'se',
+  'sw',
+] as const);
+const CORNER_SIGNS: Readonly<Record<string, readonly [number, number]>> = {
+  nw: [-1, -1],
+  ne: [1, -1],
+  se: [1, 1],
+  sw: [-1, 1],
+};
 
 /**
  * Lage der Griffe in Canvas-Koordinaten.
- * @param {object} shape
- * @param {number} pad        Abstand des Auswahlrahmens zur Form (Canvas-px)
- * @param {number} rotateGap  Abstand des Drehgriffs über dem Rahmen (Canvas-px)
+ * @param pad        Abstand des Auswahlrahmens zur Form (Canvas-px)
+ * @param rotateGap  Abstand des Drehgriffs über dem Rahmen (Canvas-px)
  */
-export function getShapeHandles(shape, pad = 0, rotateGap = 24) {
+export function getShapeHandles(shape: ShapeFrame, pad = 0, rotateGap = 24) {
   const a = shape.width / 2 + pad;
   const b = shape.height / 2 + pad;
-  const corners = {};
+  const corners = {} as Record<ShapeCorner, LocalPoint>;
   for (const c of SHAPE_CORNERS) {
-    const [sx, sy] = CORNER_SIGNS[c];
+    const [sx, sy] = CORNER_SIGNS[c]!;
     corners[c] = toCanvas(shape, sx * a, sy * b);
   }
   return {
@@ -1500,9 +1702,18 @@ export function getShapeHandles(shape, pad = 0, rotateGap = 24) {
 
 /**
  * Griff unter der Position: { mode: 'rotate' } | { mode: 'resize', corner } | null
- * @param {number} radius  Trefferradius in Canvas-px
+ * radius: Trefferradius in Canvas-px
  */
-export function findShapeHandleAt(shape, x, y, { pad = 0, rotateGap = 24, radius = 8 } = {}) {
+export function findShapeHandleAt(
+  shape: ShapeFrame,
+  x: number,
+  y: number,
+  {
+    pad = 0,
+    rotateGap = 24,
+    radius = 8,
+  }: { pad?: number; rotateGap?: number; radius?: number } = {}
+): ShapeHandleHit | null {
   const h = getShapeHandles(shape, pad, rotateGap);
   if (Math.hypot(x - h.rotate.x, y - h.rotate.y) <= radius) return { mode: 'rotate' };
   for (const c of SHAPE_CORNERS) {
@@ -1514,14 +1725,18 @@ export function findShapeHandleAt(shape, x, y, { pad = 0, rotateGap = 24, radius
 
 /**
  * Neue Größe/Lage beim Ziehen einer Ecke; die gegenüberliegende Ecke bleibt fest.
- * @param {object} start   Form beim Start des Ziehens (x, y, width, height, rotation)
- * @param {string} corner  'nw' | 'ne' | 'se' | 'sw'
- * @param {{x:number,y:number}} pointer Canvas-Position
- * @param {boolean} keepRatio Seitenverhältnis beibehalten
- * @returns {{x:number,y:number,width:number,height:number}}
+ * @param start   Form beim Start des Ziehens (x, y, width, height, rotation)
+ * @param corner  'nw' | 'ne' | 'se' | 'sw' (unbekannt → 'se')
+ * @param pointer Canvas-Position
+ * @param keepRatio Seitenverhältnis beibehalten
  */
-export function resizeFromCorner(start, corner, pointer, keepRatio = false) {
-  const [sx, sy] = CORNER_SIGNS[corner] ?? CORNER_SIGNS.se;
+export function resizeFromCorner(
+  start: ShapeFrame,
+  corner: string,
+  pointer: LocalPoint,
+  keepRatio = false
+): ShapeFrame {
+  const [sx, sy] = CORNER_SIGNS[corner] ?? CORNER_SIGNS.se!;
   const min = SHAPE_LIMITS.minSize;
   const anchor = { x: -sx * (start.width / 2), y: -sy * (start.height / 2) };
   const local = toLocal(start, pointer.x, pointer.y);
@@ -1539,7 +1754,11 @@ export function resizeFromCorner(start, corner, pointer, keepRatio = false) {
 }
 
 /** Drehwinkel (Grad, -180…180), wenn der Drehgriff zur Position gezogen wird */
-export function rotationFromPointer(shape, pointer, snap = 0) {
+export function rotationFromPointer(
+  shape: Pick<ShapeFrame, 'x' | 'y'>,
+  pointer: LocalPoint,
+  snap = 0
+): number {
   const deg = (Math.atan2(pointer.y - shape.y, pointer.x - shape.x) * 180) / Math.PI + 90;
   let angle = ((((deg + 180) % 360) + 360) % 360) - 180;
   if (snap > 0) angle = Math.round(angle / snap) * snap;
@@ -1551,11 +1770,15 @@ export function rotationFromPointer(shape, pointer, snap = 0) {
 
 /**
  * Skaliert Formen proportional auf eine neue Canvas-Größe (Bild ersetzen).
- * Mutiert die Form-Objekte. @returns {boolean} true, wenn skaliert wurde
+ * Mutiert die Form-Objekte. Liefert true, wenn skaliert wurde.
  */
-export function scaleShapesToCanvas(shapes, from, to) {
+export function scaleShapesToCanvas(
+  shapes: Shape[] | null | undefined,
+  from: { width: number; height: number } | null | undefined,
+  to: { width: number; height: number } | null | undefined
+): boolean {
   if (!Array.isArray(shapes) || shapes.length === 0) return false;
-  if (!from?.width || !from?.height || !to?.width || !to?.height) return false;
+  if (!from?.width || !from.height || !to?.width || !to.height) return false;
   const sx = to.width / from.width;
   const sy = to.height / from.height;
   if (sx === 1 && sy === 1) return false;
@@ -1574,13 +1797,16 @@ export function scaleShapesToCanvas(shapes, from, to) {
 /**
  * Passt Formen an einen Zuschnitt an: verschiebt sie um den Ausschnitt-Ursprung
  * und entfernt Formen, deren Mittelpunkt außerhalb liegt (wie bei Texten).
- * Mutiert das Array. @returns {number} Anzahl entfernter Formen
+ * Mutiert das Array. Liefert die Anzahl entfernter Formen.
  */
-export function cropShapes(shapes, { x, y, width, height }) {
+export function cropShapes(
+  shapes: Shape[] | null | undefined,
+  { x, y, width, height }: ShapeFrame
+): number {
   if (!Array.isArray(shapes)) return 0;
   let removed = 0;
   for (let i = shapes.length - 1; i >= 0; i--) {
-    const s = shapes[i];
+    const s = shapes[i]!;
     if (s.x < x || s.x > x + width || s.y < y || s.y > y + height) {
       shapes.splice(i, 1);
       removed++;
