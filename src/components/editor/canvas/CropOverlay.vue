@@ -31,12 +31,12 @@
  * Verschiebe-Symbol und Live-Abmessungen. Die Maus-/Touch-Logik bleibt beim
  * Canvas (useCanvasInteraction), hier wird nur dargestellt.
  */
-import type { CSSProperties } from 'vue';
+import type { CropBoxStyle } from '@/composables/editor/useCropOverlay';
 import AppIcon from '@/components/ui/AppIcon.vue';
 
 defineProps<{
   /** Position und Größe in Anzeige-Pixeln (siehe useCropOverlay) */
-  overlayStyle: CSSProperties;
+  overlayStyle: CropBoxStyle;
   dragging: boolean;
   resizing: boolean;
   /** Abmessungs-Label nach innen klappen (Rahmen klebt oben) */

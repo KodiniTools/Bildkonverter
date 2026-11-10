@@ -10,7 +10,8 @@
 </template>
 
 <script setup lang="ts">
-import { provide } from 'vue';
+import { provide, type PropType } from 'vue';
+import type { StoreText } from '@/stores/image/types';
 import { useLayerPanel, LAYER_PANEL_KEY } from '@/composables/useLayerPanel';
 import PanelTopBar from './layer-control/PanelTopBar.vue';
 import LayersTab from './layer-control/LayersTab.vue';
@@ -18,8 +19,9 @@ import TextTab from './layer-control/TextTab.vue';
 import ShapesPanel from './shapes/ShapesPanel.vue';
 
 const props = defineProps({
+  // Text-IDs sind Zahlen (Store) oder Strings (Ebenen-Panel)
   canvasSelectedTextId: {
-    type: String,
+    type: [String, Number] as PropType<StoreText['id'] | null>,
     default: null,
   },
 });

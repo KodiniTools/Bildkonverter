@@ -50,7 +50,7 @@ import type { StoreText } from '@/stores/image/types';
 
 defineProps({
   texts: { type: Array as PropType<StoreText[]>, default: () => [] },
-  selectedTextId: { type: [String, Number], default: null },
+  selectedTextId: { type: [String, Number] as PropType<StoreText['id'] | null>, default: null },
 });
 
 defineEmits(['add-text', 'select-text-by-id', 'delete-text-by-id']);
