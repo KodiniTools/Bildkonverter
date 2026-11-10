@@ -28,6 +28,9 @@ test('Pipette entfernt einen Farbstich über Temperatur und Tönung', async ({ p
   const pick = page.getByTestId('pick-white');
   await pick.click();
   await expect(pick).toHaveAttribute('aria-pressed', 'true');
+  // Aktiv nur per Hervorhebung, ohne Hinweistext im Button oder als Toast
+  await expect(pick).toHaveText('Graupunkt wählen');
+  await expect(page.locator('#overlay-root').getByRole('status')).toHaveCount(0);
   await page.locator('canvas.main-canvas').click();
 
   await expect(page.getByText('Weißabgleich gesetzt')).toBeVisible();

@@ -458,7 +458,6 @@ const de = {
     },
     whiteBalance: {
       pick: 'Graupunkt wählen',
-      pickActive: 'Auf eine graue oder weiße Stelle im Bild klicken',
       pickHint:
         'Pipette: Klick auf eine Stelle, die neutral grau oder weiß sein soll, entfernt den Farbstich',
     },

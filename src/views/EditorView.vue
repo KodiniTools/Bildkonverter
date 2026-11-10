@@ -1036,7 +1036,6 @@ const pickingWhite = ref(false);
 
 function togglePickWhite() {
   pickingWhite.value = !pickingWhite.value && Boolean(currentImage.value);
-  if (pickingWhite.value) window.$toast?.info(t('editor.whiteBalance.pickActive'));
 }
 
 function pickWhitePoint(pos: { x: number; y: number }) {
