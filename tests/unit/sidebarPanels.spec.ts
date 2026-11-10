@@ -18,12 +18,27 @@ import { FORMAT_INFO } from '@/utils/formatInfo';
 import { createI18n } from 'vue-i18n';
 import de from '@/i18n/de';
 import { defaultResizeSpec } from '@/utils/resizeModes';
-import { DEFAULT_FILTERS, DEFAULT_BACKGROUND } from '@/composables/useFilterManagement';
+import type { Component } from 'vue';
+import {
+  DEFAULT_FILTERS,
+  DEFAULT_BACKGROUND,
+  type EditorFilters,
+} from '@/composables/useFilterManagement';
+import type { SizeEstimate } from '@/composables/editor/useEditorExport';
+import type { ResizeSpec } from '@/utils/resizeModes';
 
-const $t = (key, fallback) => fallback || key;
-const mountPanel = (component, props) => mount(component, { props, global: { mocks: { $t } } });
+const $t = (key: string, fallback?: string) => fallback || key;
+const mountPanel = (component: Component, props: Record<string, unknown>) =>
+  mount(component, { props, global: { mocks: { $t } } });
 
-const filterPanels = [
+type FilterPanelCase = [
+  name: string,
+  component: Component,
+  section: 'adjustments' | 'lightColor' | 'effects',
+  firstFilter: keyof EditorFilters,
+];
+
+const filterPanels: FilterPanelCase[] = [
   ['AdjustmentsPanel', AdjustmentsPanel, 'adjustments', 'brightness'],
   ['LightColorPanel', LightColorPanel, 'lightColor', 'highlights'],
   ['EffectsPanel', EffectsPanel, 'effects', 'blur'],
@@ -42,7 +57,7 @@ describe.each(filterPanels)('%s', (_, component, section, firstFilter) => {
     const slider = wrapper.findAllComponents(FilterSlider)[0];
     expect(slider.props('modelValue')).toBe(DEFAULT_FILTERS[firstFilter]);
 
-    const range = slider.find('input[type="range"]');
+    const range = slider.find<HTMLInputElement>('input[type="range"]');
     range.element.value = '5';
     await range.trigger('input');
 
@@ -61,12 +76,15 @@ describe.each(filterPanels)('%s', (_, component, section, firstFilter) => {
   });
 
   it('meldet den Reset eines Sliders mit dem Standardwert', async () => {
-    const filters = { ...DEFAULT_FILTERS, [firstFilter]: DEFAULT_FILTERS[firstFilter] + 5 };
+    const filters = {
+      ...DEFAULT_FILTERS,
+      [firstFilter]: Number(DEFAULT_FILTERS[firstFilter]) + 5,
+    };
     const sectionsOpen = { adjustments: true, lightColor: true, effects: true };
     const wrapper = mountPanel(component, { filters, sectionsOpen, disabled: false });
     const slider = wrapper.findAllComponents(FilterSlider)[0];
     await slider.find('button.slider-field__reset').trigger('click');
-    expect(wrapper.emitted('update-filter').at(-1)).toEqual([
+    expect(wrapper.emitted('update-filter')!.at(-1)).toEqual([
       firstFilter,
       slider.props('defaultValue'),
     ]);
@@ -86,7 +104,7 @@ describe.each(filterPanels)('%s', (_, component, section, firstFilter) => {
       sectionsOpen: { adjustments: false, lightColor: false, effects: false },
     });
     // v-show setzt display:none
-    expect(closed.find('.section-content').element.style.display).toBe('none');
+    expect(closed.find<HTMLElement>('.section-content').element.style.display).toBe('none');
     expect(closed.classes()).toContain('collapsed');
   });
 });
@@ -94,9 +112,9 @@ describe.each(filterPanels)('%s', (_, component, section, firstFilter) => {
 describe('AdjustmentsPanel – Hintergrund entfernen', () => {
   const sectionsOpen = { adjustments: true, lightColor: true, effects: true };
   // $t mit Platzhaltern: der Schlüssel genügt
-  const mountPanel = (component, props) =>
-    mount(component, { props, global: { mocks: { $t: (key) => key } } });
-  const state = (extra) => ({
+  const mountPanel = (component: Component, props: Record<string, unknown>) =>
+    mount(component, { props, global: { mocks: { $t: (key: string) => key } } });
+  const state = (extra?: Record<string, unknown>) => ({
     available: true,
     busy: false,
     phase: null,
@@ -177,7 +195,7 @@ describe('BackgroundPanel', () => {
     const { wrapper, background } = setup();
     // ColorField statt <input type="color">: meldet den Hex-Wert als update:modelValue
     await wrapper.findComponent(ColorField).vm.$emit('update:modelValue', '#112233');
-    const text = wrapper.find('input[type="text"]');
+    const text = wrapper.find<HTMLInputElement>('input[type="text"]');
     text.element.value = '#445566';
     await text.trigger('input');
     await text.trigger('change');
@@ -193,7 +211,7 @@ describe('BackgroundPanel', () => {
 
   it('meldet die Deckkraft über den Slider', async () => {
     const { wrapper } = setup();
-    const range = wrapper.findComponent(FilterSlider).find('input[type="range"]');
+    const range = wrapper.findComponent(FilterSlider).find<HTMLInputElement>('input[type="range"]');
     range.element.value = '35';
     await range.trigger('input');
     expect(wrapper.emitted('update-background')).toEqual([['opacity', 35]]);
@@ -201,7 +219,7 @@ describe('BackgroundPanel', () => {
 
   it('zeigt die Werte aus den Props an', () => {
     const wrapper = mountPanel(BackgroundPanel, { background: { color: '#abcdef', opacity: 60 } });
-    expect(wrapper.find('input[type="text"]').element.value).toBe('#abcdef');
+    expect(wrapper.find<HTMLInputElement>('input[type="text"]').element.value).toBe('#abcdef');
     expect(wrapper.findComponent(FilterSlider).props('modelValue')).toBe(60);
   });
 });
@@ -219,16 +237,16 @@ describe('ResizePanel – Modi', () => {
     const resizeSpec = Object.freeze({ ...defaultResizeSpec });
     const wrapper = mountPanel(ResizePanel, { ...base, resizeSpec });
     await wrapper.find('#resize-mode-select').setValue('percent');
-    expect(wrapper.emitted('update:resizeSpec')[0][0]).toEqual({
+    expect(wrapper.emitted<[ResizeSpec]>('update:resizeSpec')![0]![0]).toEqual({
       ...defaultResizeSpec,
       mode: 'percent',
     });
 
     await wrapper.setProps({ resizeSpec: { ...defaultResizeSpec, mode: 'percent' } });
-    const percent = wrapper.find('#resize-percent');
+    const percent = wrapper.find<HTMLInputElement>('#resize-percent');
     percent.element.value = '25';
     await percent.trigger('input');
-    expect(wrapper.emitted('update:resizeSpec')[1][0].percent).toBe(25);
+    expect(wrapper.emitted<[ResizeSpec]>('update:resizeSpec')![1]![0].percent).toBe(25);
     expect(resizeSpec.mode).toBe('exact');
   });
 
@@ -249,7 +267,7 @@ describe('ResizePanel – UiSelect/UiSwitch', () => {
 
   it('meldet ein Preset und setzt die Anzeige auf den Parent-Wert zurück', async () => {
     const wrapper = mountPanel(ResizePanel, { ...base, selectedPreset: '' });
-    const select = wrapper.findAll('select')[0];
+    const select = wrapper.findAll<HTMLSelectElement>('select')[0];
     expect(select.findAll('option')).toHaveLength(9);
     await select.setValue('none');
     expect(wrapper.emitted('apply-preset')).toEqual([['none']]);
@@ -268,13 +286,15 @@ describe('ResizePanel – UiSelect/UiSwitch', () => {
 
     await wrapper.setProps({ resizeSpec: { ...defaultResizeSpec, mode: 'fit', noUpscale: true } });
     await wrapper.get('[role="switch"]').trigger('click');
-    expect(wrapper.emitted('update:resizeSpec').at(-1)[0].noUpscale).toBe(false);
+    expect(wrapper.emitted<[ResizeSpec]>('update:resizeSpec')!.at(-1)![0].noUpscale).toBe(false);
   });
 });
 
 describe('ExportPanel – Ziel-Dateigröße', () => {
   const i18n = createI18n({ legacy: false, locale: 'de', messages: { de } });
-  const mountExport = (props) =>
+  const mountExport = (
+    props: { outputFormat: keyof typeof FORMAT_INFO } & Record<string, unknown>
+  ) =>
     mount(ExportPanel, {
       props: {
         formats: ['png', 'jpeg', 'webp'],
@@ -299,7 +319,7 @@ describe('ExportPanel – Ziel-Dateigröße', () => {
     expect(wrapper.emitted('update:targetSizeEnabled')).toEqual([[true]]);
 
     await wrapper.setProps({ targetSizeEnabled: true });
-    const kb = wrapper.find('#target-size-kb');
+    const kb = wrapper.find<HTMLInputElement>('#target-size-kb');
     kb.element.value = '300';
     await kb.trigger('input');
     kb.element.value = '3';
@@ -328,7 +348,10 @@ describe('ExportPanel – Ziel-Dateigröße', () => {
     });
     expect(text()).toContain('verkleinert auf 640 × 480 px');
 
-    await wrapper.setProps({ sizeEstimate: { bytes: 900 * 1024, quality: 5, reached: false } });
+    // Unvollständige Schätzung: die Warnung braucht keine Abmessungen
+    await wrapper.setProps({
+      sizeEstimate: { bytes: 900 * 1024, quality: 5, reached: false } as SizeEstimate,
+    });
     expect(text()).toContain('Ziel nicht erreichbar');
     expect(wrapper.find('.size-estimate--warn').exists()).toBe(true);
   });
@@ -344,7 +367,7 @@ describe('ExportPanel – Ziel-Dateigröße', () => {
 
 describe('ExportPanel – EXIF', () => {
   const i18n = createI18n({ legacy: false, locale: 'de', messages: { de } });
-  const mountExport = (props) =>
+  const mountExport = (props: Record<string, unknown>) =>
     mount(ExportPanel, {
       props: {
         formats: ['png', 'jpeg', 'webp'],

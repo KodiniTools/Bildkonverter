@@ -35,13 +35,6 @@ const ALLOWED_JS_FILES: readonly string[] = [
   'tests/browser/useEditorDetach.spec.js',
   'tests/browser/useEditorHistory.spec.js',
   'tests/browser/useEditorResize.spec.js',
-  'tests/unit/GuideSectionHeader.spec.js',
-  'tests/unit/designTokens.spec.js',
-  'tests/unit/i18n.spec.js',
-  'tests/unit/shapes.spec.js',
-  'tests/unit/sidebarPanels.spec.js',
-  'tests/unit/sliderControls.spec.js',
-  'tests/unit/textPanelPosition.spec.js',
   'vite.config.js',
   'vitest.config.js',
 ];
