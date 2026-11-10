@@ -95,25 +95,32 @@
   </aside>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import TextPanel from './transform/TextPanel.vue';
 import TextListPanel from './transform/TextListPanel.vue';
 import CropPanel from './transform/CropPanel.vue';
 import ImageTransformPanel from './transform/ImageTransformPanel.vue';
 import ShapesPanel from './shapes/ShapesPanel.vue';
+import type { PropType } from 'vue';
+import type { ImageTransforms } from '@/composables/transform/types';
+import type { AspectRatioPreset } from '@/composables/useCrop';
+import type { StoreText } from '@/stores/image/types';
 
 defineProps({
   cropMode: { type: Boolean, required: true },
   hasCropped: { type: Boolean, required: true },
   selectedAspectRatio: { type: String, default: 'free' },
-  aspectRatioPresets: { type: Array, default: () => [] },
-  cropDimensions: { type: Object, default: () => ({ width: 0, height: 0 }) },
-  transforms: { type: Object, required: true },
+  aspectRatioPresets: { type: Array as PropType<AspectRatioPreset[]>, default: () => [] },
+  cropDimensions: {
+    type: Object as PropType<{ width: number; height: number }>,
+    default: () => ({ width: 0, height: 0 }),
+  },
+  transforms: { type: Object as PropType<ImageTransforms>, required: true },
   canPan: { type: Boolean, default: false },
   hasPan: { type: Boolean, default: false },
   selectedText: { type: Object, default: null },
   hasTexts: { type: Boolean, default: false },
-  texts: { type: Array, default: () => [] },
+  texts: { type: Array as PropType<StoreText[]>, default: () => [] },
   selectedTextId: { type: [String, Number], default: null },
   canUndoText: { type: Boolean, default: false },
   canRedoText: { type: Boolean, default: false },

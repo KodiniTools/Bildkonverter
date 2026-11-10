@@ -67,7 +67,7 @@
   </header>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
 import AppIcon from '@/components/ui/AppIcon.vue';
@@ -97,7 +97,7 @@ const routes = [
 ];
 
 // Methods
-function isActiveRoute(path) {
+function isActiveRoute(path: string) {
   return route.path === path;
 }
 

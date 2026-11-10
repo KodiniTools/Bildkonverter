@@ -15,6 +15,14 @@ export interface StoreText {
   size?: number;
   fontFamily?: string;
   color?: string;
+  opacity?: number;
+  rotation?: number;
+  strokeWidth?: number;
+  strokeColor?: string;
+  shadowBlur?: number;
+  shadowOffsetX?: number;
+  shadowOffsetY?: number;
+  shadowColor?: string;
   [key: string]: unknown;
 }
 

@@ -44,7 +44,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onBeforeUnmount } from 'vue';
 
 // Klicken-und-Halten: ein Schritt sofort, nach HOLD_DELAY ein Dauerlauf, der
@@ -73,34 +73,35 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'commit']);
 
 // Rundet auf die durch step vorgegebene Genauigkeit (vermeidet Float-Drift)
-function roundToStep(v) {
+function roundToStep(v: number) {
   return Number(v.toFixed(4));
 }
 
-function clamp(v) {
+function clamp(v: number) {
   if (Number.isNaN(v)) return props.modelValue;
   return Math.min(props.max, Math.max(props.min, v));
 }
 
-function onInput(e) {
-  emit('update:modelValue', clamp(Number(e.target.value)));
+function onInput(e: Event) {
+  emit('update:modelValue', clamp(Number((e.target as HTMLInputElement).value)));
 }
 
 // Schritt um `factor` Schritte ohne Commit (Commit erfolgt beim Loslassen)
-function doStep(direction, factor = 1) {
+function doStep(direction: number, factor = 1) {
   const next = clamp(roundToStep(props.modelValue + direction * props.step * factor));
   if (next === props.modelValue) return false;
   emit('update:modelValue', next);
   return true;
 }
 
-let holdTimer = null;
+let holdTimer: ReturnType<typeof setTimeout> | null = null;
 let holdTicks = 0;
 let holdChanged = false;
 
-function repeatHold(direction) {
+function repeatHold(direction: number) {
   holdTicks += 1;
-  const phase = HOLD_PHASES.find((p) => holdTicks <= p.until);
+  // Die letzte Phase reicht bis Infinity, find trifft daher immer
+  const phase = HOLD_PHASES.find((p) => holdTicks <= p.until)!;
   if (!doStep(direction, phase.factor)) {
     stopHold(); // Grenze erreicht → anhalten
     return;
@@ -109,7 +110,7 @@ function repeatHold(direction) {
   holdTimer = setTimeout(() => repeatHold(direction), phase.interval);
 }
 
-function startHold(direction, event) {
+function startHold(direction: number, event?: Pick<PointerEvent, 'button' | 'preventDefault'>) {
   if (props.disabled) return;
   if (event) {
     if (event.button !== undefined && event.button !== 0) return; // nur linke Taste

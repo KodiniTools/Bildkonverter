@@ -35,16 +35,21 @@
   </Transition>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { checkHandoff, consumeHandoff, dismissHandoff } from '@/lib/core/handoff';
+import {
+  checkHandoff,
+  consumeHandoff,
+  dismissHandoff,
+  type HandoffPayload,
+} from '@/lib/core/handoff';
 import AppIcon from '@/components/ui/AppIcon.vue';
 
 const emit = defineEmits(['accept', 'dismiss']);
-const handoffPayload = ref(null);
+const handoffPayload = ref<HandoffPayload | null>(null);
 
 // Produktnamen der sendenden Tools; unbekannte Kennungen werden roh angezeigt
-const SOURCE_LABELS = {
+const SOURCE_LABELS: Partial<Record<string, string>> = {
   bildergalerie: 'Bildergalerie',
   collagemaker: 'Collage Maker',
   'color-extractor': 'Color Extractor',

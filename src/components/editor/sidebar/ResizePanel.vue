@@ -20,7 +20,7 @@
           :options="modeOptions($t)"
           :disabled="disabled"
           :model-value="spec.mode"
-          @update:model-value="updateSpec('mode', $event)"
+          @update:model-value="updateSpec('mode', $event as ResizeMode)"
         />
       </div>
 
@@ -34,7 +34,7 @@
             :min="RESIZE_PERCENT_MIN"
             :max="RESIZE_PERCENT_MAX"
             :disabled="disabled"
-            @input="updateSpec('percent', Number($event.target.value))"
+            @input="updateSpec('percent', Number(($event.target as HTMLInputElement).value))"
           />
         </div>
       </template>
@@ -49,7 +49,7 @@
             min="1"
             :max="RESIZE_PX_MAX"
             :disabled="disabled"
-            @input="updateSpec('longEdge', Number($event.target.value))"
+            @input="updateSpec('longEdge', Number(($event.target as HTMLInputElement).value))"
           />
         </div>
       </template>
@@ -64,7 +64,7 @@
             min="1"
             :max="RESIZE_PX_MAX"
             :disabled="disabled"
-            @input="updateSpec('fitWidth', Number($event.target.value))"
+            @input="updateSpec('fitWidth', Number(($event.target as HTMLInputElement).value))"
           />
         </div>
         <div class="resize-input">
@@ -76,7 +76,7 @@
             min="1"
             :max="RESIZE_PX_MAX"
             :disabled="disabled"
-            @input="updateSpec('fitHeight', Number($event.target.value))"
+            @input="updateSpec('fitHeight', Number(($event.target as HTMLInputElement).value))"
           />
         </div>
       </template>
@@ -108,7 +108,7 @@
           type="number"
           :disabled="disabled"
           @input="
-            $emit('update:resizeWidth', Number($event.target.value));
+            $emit('update:resizeWidth', Number(($event.target as HTMLInputElement).value));
             $emit('dimension-change', 'width');
           "
         />
@@ -120,7 +120,7 @@
           type="number"
           :disabled="disabled"
           @input="
-            $emit('update:resizeHeight', Number($event.target.value));
+            $emit('update:resizeHeight', Number(($event.target as HTMLInputElement).value));
             $emit('dimension-change', 'height');
           "
         />
@@ -139,8 +139,8 @@
   </div>
 </template>
 
-<script setup>
-import { computed, nextTick, ref } from 'vue';
+<script setup lang="ts">
+import { computed, nextTick, ref, type PropType } from 'vue';
 import UiSelect from '@/components/ui/UiSelect.vue';
 import UiSwitch from '@/components/ui/UiSwitch.vue';
 import {
@@ -149,7 +149,12 @@ import {
   RESIZE_PERCENT_MIN,
   RESIZE_PX_MAX,
   defaultResizeSpec,
+  type ResizeMode,
+  type ResizeSpec,
 } from '@/utils/resizeModes';
+
+/** $t aus dem Template (Schlüssel plus optionaler Standardtext) */
+type TemplateTranslate = (key: string, fallback?: string) => string;
 
 const props = defineProps({
   resizeWidth: {
@@ -187,7 +192,7 @@ const props = defineProps({
   // Resize-Modus und seine Eingaben (siehe utils/resizeModes.ts). Ohne Angabe
   // bleibt es beim Modus "Exakt" (nur Breite/Höhe).
   resizeSpec: {
-    type: Object,
+    type: Object as PropType<ResizeSpec | null>,
     default: null,
   },
   // Aktuelle Bildgröße, Bezug der relativen Modi (für die Ergebniszeile)
@@ -216,7 +221,7 @@ const emit = defineEmits([
   'apply-resize',
 ]);
 
-const presetSelect = ref(null);
+const presetSelect = ref<InstanceType<typeof UiSelect> | null>(null);
 
 const SOCIAL_PRESET_OPTIONS = [
   { value: 'instagram', label: 'Instagram Post (1080×1080)' },
@@ -234,7 +239,7 @@ const isChanged = computed(
   () => props.resizeWidth !== props.baseWidth || props.resizeHeight !== props.baseHeight
 );
 
-function updateSpec(key, value) {
+function updateSpec<K extends keyof ResizeSpec>(key: K, value: ResizeSpec[K]) {
   emit('update:resizeSpec', { ...spec.value, [key]: value });
 }
 
@@ -245,7 +250,7 @@ const naturalSizeLabel = computed(() => {
 
 // Optionen bekommen die Übersetzungsfunktion aus dem Template ($t) als t, damit das
 // Panel weiterhin ohne eigenes useI18n auskommt.
-function presetOptions(t) {
+function presetOptions(t: TemplateTranslate) {
   return [
     { value: '', label: t('editor.resize.selectPreset', 'Preset wählen...') },
     {
@@ -256,7 +261,7 @@ function presetOptions(t) {
   ];
 }
 
-function modeOptions(t) {
+function modeOptions(t: TemplateTranslate) {
   return RESIZE_MODES.map((mode) => ({
     value: mode,
     label: t(`editor.resize.modes.${mode}`),
@@ -271,7 +276,7 @@ function modeOptions(t) {
  * kein Zustand, der Parent bleibt dabei auf ''. Ohne Prop-Änderung patcht Vue
  * das :value-Binding nicht erneut – die Auswahl bliebe sonst sichtbar hängen.
  */
-function onPresetChange(value) {
+function onPresetChange(value: string) {
   emit('apply-preset', value);
 
   nextTick(() => {

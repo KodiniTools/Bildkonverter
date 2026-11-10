@@ -44,7 +44,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * HistoryActions – Zeile aus beschrifteten Rückgängig-/Wiederholen-Buttons
  * (optional Zurücksetzen), Muster aus dem Visualizer. Weitere Buttons im

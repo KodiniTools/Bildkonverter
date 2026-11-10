@@ -105,8 +105,9 @@
   </div>
 </template>
 
-<script setup>
-import { computed } from 'vue';
+<script setup lang="ts">
+import { computed, type PropType } from 'vue';
+import type { AspectRatioPreset } from '@/composables/useCrop';
 import AppIcon from '@/components/ui/AppIcon.vue';
 import { useI18n } from 'vue-i18n';
 
@@ -116,8 +117,11 @@ const props = defineProps({
   cropMode: { type: Boolean, required: true },
   hasCropped: { type: Boolean, required: true },
   selectedAspectRatio: { type: String, default: 'free' },
-  aspectRatioPresets: { type: Array, default: () => [] },
-  cropDimensions: { type: Object, default: () => ({ width: 0, height: 0 }) },
+  aspectRatioPresets: { type: Array as PropType<AspectRatioPreset[]>, default: () => [] },
+  cropDimensions: {
+    type: Object as PropType<{ width: number; height: number }>,
+    default: () => ({ width: 0, height: 0 }),
+  },
 });
 
 const emit = defineEmits([
@@ -136,21 +140,21 @@ const hasSelection = computed(
 );
 
 // Pixelgenaue Eingabe der Zuschnittgröße über die Zahlenfelder
-function onWidthChange(event) {
-  const value = Math.round(Number(event.target.value));
+function onWidthChange(event: Event) {
+  const value = Math.round(Number((event.target as HTMLInputElement).value));
   if (Number.isFinite(value) && value > 0) {
     emit('set-crop-width', value);
   }
 }
 
-function onHeightChange(event) {
-  const value = Math.round(Number(event.target.value));
+function onHeightChange(event: Event) {
+  const value = Math.round(Number((event.target as HTMLInputElement).value));
   if (Number.isFinite(value) && value > 0) {
     emit('set-crop-height', value);
   }
 }
 
-function getPresetLabel(preset) {
+function getPresetLabel(preset: Pick<AspectRatioPreset, 'id' | 'label'>) {
   if (preset.id === 'free' || preset.id === 'circle') {
     return t(`transform.crop.presets.${preset.id}`);
   }

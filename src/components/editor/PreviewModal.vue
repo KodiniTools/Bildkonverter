@@ -100,7 +100,7 @@
   </Teleport>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from 'vue';
 import AppIcon from '@/components/ui/AppIcon.vue';
 
@@ -113,7 +113,7 @@ defineEmits(['close']);
 
 const mode = ref('compare');
 const sliderPos = ref(50);
-const sliderContainer = ref(null);
+const sliderContainer = ref<HTMLElement | null>(null);
 let dragging = false;
 
 watch(
@@ -126,7 +126,7 @@ watch(
   }
 );
 
-function startDrag(e) {
+function startDrag(e: MouseEvent | TouchEvent) {
   // Verhindert natives Bild-Ziehen (sonst „schluckt" der Browser das
   // mouseup und der Slider würde nach dem Loslassen weiterziehen)
   if (e.cancelable) e.preventDefault();
@@ -138,7 +138,7 @@ function startDrag(e) {
   window.addEventListener('touchend', stopDrag);
 }
 
-function onDrag(e) {
+function onDrag(e: MouseEvent | TouchEvent) {
   if (!dragging) return;
   e.preventDefault();
   updateSlider(e);
@@ -152,11 +152,12 @@ function stopDrag() {
   window.removeEventListener('touchend', stopDrag);
 }
 
-function updateSlider(e) {
+function updateSlider(e: MouseEvent | TouchEvent) {
   const container = sliderContainer.value;
   if (!container) return;
   const rect = container.getBoundingClientRect();
-  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const touches = (e as Partial<TouchEvent>).touches;
+  const clientX = touches ? touches[0]!.clientX : (e as MouseEvent).clientX;
   const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
   sliderPos.value = (x / rect.width) * 100;
 }

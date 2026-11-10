@@ -25,7 +25,11 @@
               <h3>{{ $t(`shortcuts.groups.${group.name}`) }}</h3>
 
               <div class="shortcuts-list">
-                <div v-for="shortcut in group.shortcuts" :key="shortcut.key" class="shortcut-item">
+                <div
+                  v-for="shortcut in group.shortcuts"
+                  :key="shortcut.action"
+                  class="shortcut-item"
+                >
                   <div class="shortcut-keys">
                     <kbd v-for="(key, index) in shortcut.keys" :key="index" class="key">
                       {{ key }}
@@ -50,7 +54,7 @@
   </Teleport>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import AppIcon from '@/components/ui/AppIcon.vue';
@@ -92,8 +96,8 @@ const shortcutGroups = [
 ];
 
 // State for sequence detection
-let keySequence = [];
-let sequenceTimeout = null;
+let keySequence: string[] = [];
+let sequenceTimeout: ReturnType<typeof setTimeout> | undefined;
 
 // Methods
 function toggleHelp() {
@@ -105,7 +109,7 @@ function closeHelp() {
 }
 
 function focusSearch() {
-  const searchInput = document.querySelector('.search-input');
+  const searchInput = document.querySelector<HTMLElement>('.search-input');
   if (searchInput) {
     searchInput.focus();
   }
@@ -137,10 +141,10 @@ function triggerReset() {
   window.dispatchEvent(new CustomEvent('editor-reset'));
 }
 
-function handleKeyDown(event) {
+function handleKeyDown(event: KeyboardEvent) {
   // Tastenkürzel ignorieren, wenn ein Eingabefeld fokussiert ist,
   // damit z.B. der Buchstabe "R" (Reset-Shortcut) normal getippt werden kann.
-  const target = event.target;
+  const target = event.target as HTMLElement | null;
   const isEditable =
     target?.tagName === 'INPUT' ||
     target?.tagName === 'TEXTAREA' ||

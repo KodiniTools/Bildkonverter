@@ -43,11 +43,13 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { PropType } from 'vue';
 import AppIcon from '@/components/ui/AppIcon.vue';
+import type { StoreText } from '@/stores/image/types';
 
 defineProps({
-  texts: { type: Array, default: () => [] },
+  texts: { type: Array as PropType<StoreText[]>, default: () => [] },
   selectedTextId: { type: [String, Number], default: null },
 });
 
