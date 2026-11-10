@@ -1,3 +1,4 @@
+/// <reference types="@vitest/browser/providers/playwright" />
 import { defineConfig } from 'vitest/config';
 import vue from '@vitejs/plugin-vue';
 import path from 'path';
@@ -10,7 +11,7 @@ import { fileURLToPath } from 'url';
  * Fallback: ein bereits vorhandenes Chromium unter PLAYWRIGHT_BROWSERS_PATH (z.B. in CI-Images),
  * dessen Build-Nummer nicht zur Playwright-Version passt. Explizit per VITEST_CHROMIUM setzbar.
  */
-function findChromium() {
+function findChromium(): string | undefined {
   if (process.env.VITEST_CHROMIUM) return process.env.VITEST_CHROMIUM;
   const root = process.env.PLAYWRIGHT_BROWSERS_PATH;
   if (!root || !fs.existsSync(root)) return undefined;

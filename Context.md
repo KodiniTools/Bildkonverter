@@ -27,7 +27,7 @@
 | Utilities             | @vueuse/core            | ^10.9   |
 | Konfetti              | canvas-confetti         | ^1.9    |
 
-**Dev-Dependencies:** TypeScript + vue-tsc (schrittweise Migration, `allowJs`), ESLint 10 (Flat-Config `eslint.config.js` mit `@vue/eslint-config-typescript`), Prettier, Vitest, Playwright (E2E), `@vitejs/plugin-vue`
+**Dev-Dependencies:** TypeScript + vue-tsc (schrittweise Migration, `allowJs`), ESLint 10 (Flat-Config `eslint.config.ts` mit `@vue/eslint-config-typescript`, geladen über `jiti`), Prettier, Vitest, Playwright (E2E), `@vitejs/plugin-vue`
 
 **TypeScript:** `tsconfig.json` ist strict und schließt `src/**/*.js` mit `allowJs` ein, prüft JS aber nicht (`checkJs: false`). Dateien, die ein Umbau anfasst, werden nach `.ts` bzw. `<script setup lang="ts">` portiert.
 
@@ -430,7 +430,7 @@ npm run test:browser  # nur Browser-Tests (Chromium via Playwright)
 
 ---
 
-## Tests (`tests/`, `vitest.config.js`)
+## Tests (`tests/`, `vitest.config.ts`)
 
 Zwei Vitest-Projekte:
 
@@ -444,12 +444,12 @@ Dazu kommen Playwright-E2E-Tests in `e2e/` (`playwright.config.ts`): alle Routen
 Download) und Batch (konvertieren).
 
 Die Browser-Tests brauchen einen echten 2D-Canvas und laufen deshalb nicht in jsdom/happy-dom.
-`vitest.config.js` sucht Chromium über Playwright, ersatzweise unter `PLAYWRIGHT_BROWSERS_PATH`
+`vitest.config.ts` sucht Chromium über Playwright, ersatzweise unter `PLAYWRIGHT_BROWSERS_PATH`
 oder per `VITEST_CHROMIUM`.
 
 ---
 
-## Build-Konfiguration (`vite.config.js`)
+## Build-Konfiguration (`vite.config.ts`)
 
 - **Output:** `dist/`
 - **Minification:** esbuild (keine Sourcemaps)

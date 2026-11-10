@@ -28,7 +28,7 @@ on:
     paths:
       - 'src-tauri/**'
       - '.github/workflows/desktop-windows.yml'
-      - 'vite.config.js'
+      - 'vite.config.ts'
       - '.env.desktop'
 
 concurrency:

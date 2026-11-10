@@ -1,5 +1,5 @@
 /**
- * generate-fonts.js (ES Module Version)
+ * generate-fonts.ts
  *
  * Script zum automatischen Generieren von:
  * 1. fonts.css mit @font-face Deklarationen
@@ -7,7 +7,8 @@
  *
  * Verwendung:
  * 1. Kopiere alle .woff2 Dateien nach src/assets/fonts/
- * 2. Führe aus: node generate-fonts.js
+ * 2. Führe aus: node generate-fonts.ts
+ *    (Node ≥ 22.18 entfernt die Typen selbst; ältere 22er: node --experimental-strip-types generate-fonts.ts)
  */
 
 import fs from 'fs';
@@ -28,7 +29,7 @@ const outputJsFile = path.join(__dirname, 'src', 'assets', 'fonts', 'fontList.ts
  * z.B. "Roboto-Regular.woff2" -> "Roboto Regular"
  * oder "OpenSans-Bold.woff2" -> "OpenSans Bold"
  */
-function getFontName(filename) {
+function getFontName(filename: string): string {
   // Entferne .woff2 Extension
   let name = filename.replace('.woff2', '');
 
@@ -41,7 +42,7 @@ function getFontName(filename) {
 /**
  * Generiert @font-face CSS für eine Font-Datei
  */
-function generateFontFace(filename) {
+function generateFontFace(filename: string): string {
   const fontName = getFontName(filename);
   const fontPath = `./${filename}`;
 
@@ -58,7 +59,7 @@ function generateFontFace(filename) {
 /**
  * Hauptfunktion
  */
-function generateFontFiles() {
+function generateFontFiles(): void {
   try {
     console.log('🔍 Suche nach woff2-Dateien in:', fontsDir);
 
@@ -123,7 +124,7 @@ export default availableFonts
     console.log('   1. Importiere in main.js: import "@/assets/fonts/fonts.css"');
     console.log('   2. Verwende fontList.ts in deiner Komponente');
   } catch (error) {
-    console.error('❌ Fehler:', error.message);
+    console.error('❌ Fehler:', error instanceof Error ? error.message : error);
   }
 }
 

@@ -11,7 +11,7 @@ außerhalb des öffentlich erreichbaren Verzeichnisses.
 | Build-Verzeichnis | `/opt/bildkonverter` (Clone + `node_modules`) |
 | Backups           | `/var/backups/bildkonverter/` (letzte 5)      |
 
-Der Pfad `/bildkonverter/` ist in `vite.config.js` als `base` fest verdrahtet und
+Der Pfad `/bildkonverter/` ist in `vite.config.ts` als `base` fest verdrahtet und
 muss zum Ordnernamen im Webroot passen – sonst laden die Assets nicht.
 
 ---
@@ -173,9 +173,9 @@ cd /opt/bildkonverter && git checkout <commit> && sudo ./deploy.sh
 
 ## Hinweis zu Altlasten im Repository
 
-`deploy-check.js` und `deploy-to-server.ps1` stammen aus dem Schwesterprojekt
+`deploy-check.ts` (früher `deploy-check.js`) und `deploy-to-server.ps1` stammen aus dem Schwesterprojekt
 _bilderseriebearbeiten_ und nennen den base-Pfad `/bilderseriebearbeiten/`.
-Die ebenfalls von dort stammende `vite.config.ts` wurde entfernt; maßgeblich ist
-`vite.config.js`, der Build verwendet `/bildkonverter/`. Für das Deployment sind
-die beiden verbliebenen Dateien ohne Bedeutung; `deploy-check.js` würde bei
+Die ebenfalls von dort stammende Vite-Konfiguration wurde ersetzt; maßgeblich ist
+`vite.config.ts`, der Build verwendet `/bildkonverter/`. Für das Deployment sind
+die beiden verbliebenen Dateien ohne Bedeutung; `deploy-check.ts` würde bei
 einem Aufruf allerdings irreführende Fehler melden.
