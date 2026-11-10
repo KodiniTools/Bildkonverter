@@ -18,9 +18,11 @@ import { encodeForExport } from '@/utils/targetSize';
 import { ExportManager } from '@/utils/exportUtils';
 import { useBatchConversion } from '@/composables/useBatchConversion';
 import { installToastMock, t } from './helpers';
+import { context2d } from '@/utils/canvas2d';
+import type { BatchSettings } from '@/composables/batch/types';
 
 /** Kleiner TIFF-Block (Little Endian): Make, Orientation 6, Datum, Exif-IFD, IFD1 */
-function buildTiff(padding = 0) {
+function buildTiff(padding = 0): Uint8Array {
   const out = new Uint8Array(200 + padding);
   const v = new DataView(out.buffer);
   out.set([0x49, 0x49, 0x2a, 0x00]);
@@ -34,14 +36,14 @@ function buildTiff(padding = 0) {
   const exifEnd = exifIfd + 2 + 12 + 4;
   const origPos = exifEnd;
   const ifd1 = origPos + 20;
-  const entry = (pos, tag, type, count, value) => {
+  const entry = (pos: number, tag: number, type: number, count: number, value: number) => {
     v.setUint16(pos, tag, true);
     v.setUint16(pos + 2, type, true);
     v.setUint32(pos + 4, count, true);
     if (type === 3 && count === 1) v.setUint16(pos + 8, value, true);
     else v.setUint32(pos + 8, value, true);
   };
-  const text = (pos, s) => {
+  const text = (pos: number, s: string) => {
     for (let i = 0; i < s.length; i++) out[pos + i] = s.charCodeAt(i);
   };
   v.setUint16(ifd0, entries, true);
@@ -62,23 +64,26 @@ function buildTiff(padding = 0) {
   return out;
 }
 
-const orientation = (tiff) => new DataView(tiff.buffer, tiff.byteOffset).getUint16(30, true);
-const nextIfd = (tiff) => new DataView(tiff.buffer, tiff.byteOffset).getUint32(58, true);
+// Die Tests übergeben gelesene Blöcke; fehlt einer, scheitert der Aufruf wie bisher
+const orientation = (tiff: Uint8Array | null) =>
+  new DataView(tiff!.buffer, tiff!.byteOffset).getUint16(30, true);
+const nextIfd = (tiff: Uint8Array | null) =>
+  new DataView(tiff!.buffer, tiff!.byteOffset).getUint32(58, true);
 const TAKEN = new Date(2024, 5, 15, 14, 30, 0);
 
-function canvas(width, height, alpha = false) {
+function canvas(width: number, height: number, alpha = false): HTMLCanvasElement {
   const c = document.createElement('canvas');
   c.width = width;
   c.height = height;
-  const ctx = c.getContext('2d');
+  const ctx = context2d(c);
   ctx.fillStyle = alpha ? 'rgba(200, 50, 50, 0.5)' : '#c83232';
   ctx.fillRect(0, 0, width, height);
   return c;
 }
 
-function noisyCanvas(width, height) {
+function noisyCanvas(width: number, height: number): HTMLCanvasElement {
   const c = canvas(width, height);
-  const ctx = c.getContext('2d');
+  const ctx = context2d(c);
   const img = ctx.getImageData(0, 0, width, height);
   let seed = 7;
   for (let i = 0; i < img.data.length; i += 4) {
@@ -89,15 +94,16 @@ function noisyCanvas(width, height) {
   return c;
 }
 
-const encode = (c, mime, quality = 0.9) =>
-  new Promise((resolve, reject) =>
+const encode = (c: HTMLCanvasElement, mime: string, quality = 0.9) =>
+  new Promise<Blob>((resolve, reject) =>
     c.toBlob((b) => (b ? resolve(b) : reject(new Error('toBlob'))), mime, quality)
   );
-const bytes = async (blob) => new Uint8Array(await blob.arrayBuffer());
+const bytes = async (blob: Blob) => new Uint8Array(await blob.arrayBuffer());
 
 async function jpegWithExif(width = 120, height = 80) {
   const raw = await bytes(await encode(canvas(width, height), 'image/jpeg'));
-  return new File([insertExif(raw, 'image/jpeg', buildTiff())], 'foto.jpg', {
+  // insertExif liefert für ein frisches JPEG mit kleinem Block immer Daten
+  return new File([insertExif(raw, 'image/jpeg', buildTiff())!], 'foto.jpg', {
     type: 'image/jpeg',
   });
 }
@@ -108,11 +114,11 @@ describe('EXIF lesen und normalisieren', () => {
   it('liest den TIFF-Block aus JPEG und setzt Ausrichtung und IFD1 zurück', async () => {
     const tiff = extractExif(await bytes(await jpegWithExif()));
     expect(tiff).toEqual(buildTiff());
-    const normalized = normalizeExif(tiff);
+    const normalized = normalizeExif(tiff!);
     expect(orientation(normalized)).toBe(1);
     expect(nextIfd(normalized)).toBe(0);
     expect(orientation(tiff)).toBe(6); // Original unverändert
-    expect(readExifDate(normalized)).toEqual(TAKEN);
+    expect(readExifDate(normalized!)).toEqual(TAKEN);
   });
 
   it('liefert null für Dateien ohne EXIF und kaputte Daten', async () => {
@@ -197,7 +203,7 @@ describe('Editor-Export mit EXIF', () => {
     const [plain, withMeta] = download.mock.calls.map((c) => c[0]);
     expect([plain.type, withMeta.type]).toEqual([mime, mime]);
     expect(extractExif(await bytes(plain))).toBeNull();
-    expect(readExifDate(extractExif(await bytes(withMeta)))).toEqual(TAKEN);
+    expect(readExifDate(extractExif(await bytes(withMeta))!)).toEqual(TAKEN);
   });
 
   it('Zielgröße im Editor-Export fügt EXIF ein', async () => {
@@ -217,7 +223,7 @@ describe('Editor-Export mit EXIF', () => {
 });
 
 describe('Batch-Konvertierung und ZIP mit EXIF', () => {
-  async function convert(format, keepExif) {
+  async function convert(format: string, keepExif: boolean) {
     installToastMock();
     const settings = ref({
       format,
@@ -228,7 +234,7 @@ describe('Batch-Konvertierung und ZIP mit EXIF', () => {
       prefix: '',
       pdfMode: 'single',
       keepExif,
-    });
+    } as BatchSettings);
     const batch = useBatchConversion({ settings, t, confirm: async () => true });
     await batch.addFiles([await jpegWithExif()]);
     await batch.startProcessing();
@@ -237,25 +243,25 @@ describe('Batch-Konvertierung und ZIP mit EXIF', () => {
 
   it('entfernt EXIF standardmäßig', async () => {
     const batch = await convert('jpg', false);
-    expect(extractExif(await bytes(batch.files.value[0].processedBlob))).toBeNull();
+    expect(extractExif(await bytes(batch.files.value[0].processedBlob!))).toBeNull();
   });
 
   it.each(['jpg', 'png', 'webp'])('%s: übernimmt EXIF auf Wunsch, auch im ZIP', async (format) => {
     const batch = await convert(format, true);
-    const tiff = extractExif(await bytes(batch.files.value[0].processedBlob));
+    const tiff = extractExif(await bytes(batch.files.value[0].processedBlob!));
     expect(orientation(tiff)).toBe(1);
-    expect(readExifDate(tiff)).toEqual(TAKEN);
+    expect(readExifDate(tiff!)).toEqual(TAKEN);
 
-    let zipBlob = null;
+    let zipBlob: Blob | null = null;
     vi.spyOn(URL, 'createObjectURL').mockImplementation((blob) => {
-      zipBlob = blob;
+      zipBlob = blob as Blob;
       return 'blob:zip';
     });
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     await batch.downloadAsZip();
-    const zip = await JSZip.loadAsync(zipBlob);
-    const entry = Object.values(zip.files).find((f) => !f.dir);
+    const zip = await JSZip.loadAsync(zipBlob!);
+    const entry = Object.values(zip.files).find((f) => !f.dir)!;
     expect(entry.name).toBe(`foto.${format}`);
-    expect(readExifDate(extractExif(await entry.async('uint8array')))).toEqual(TAKEN);
+    expect(readExifDate(extractExif(await entry.async('uint8array'))!)).toEqual(TAKEN);
   });
 });

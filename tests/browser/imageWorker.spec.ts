@@ -18,10 +18,11 @@ import {
 } from '@/utils/imageAdjustments';
 import { canvasToBlob } from '@/utils/conversionUtils';
 import { makeImage } from './helpers';
+import { context2d } from '@/utils/canvas2d';
 
 const FILTERS = { exposure: 20, contrast: 120, highlights: -30, shadows: 25, saturation: 140 };
 
-let img;
+let img: HTMLImageElement;
 beforeAll(async () => {
   img = await makeImage(120, 80, 0);
 });
@@ -33,17 +34,19 @@ afterEach(() => {
   clearAdjustmentCache();
 });
 
-function pixelsOf(source) {
+function pixelsOf(source: HTMLImageElement | HTMLCanvasElement): ImageData {
   const c = document.createElement('canvas');
-  c.width = source.naturalWidth || source.width;
-  c.height = source.naturalHeight || source.height;
-  const ctx = c.getContext('2d', { willReadFrequently: true });
+  // Canvas haben keine natural*-Maße: wie bisher auf width/height zurückfallen
+  const natural = source as Partial<HTMLImageElement>;
+  c.width = natural.naturalWidth || source.width;
+  c.height = natural.naturalHeight || source.height;
+  const ctx = context2d(c, { willReadFrequently: true });
   ctx.drawImage(source, 0, 0);
   return ctx.getImageData(0, 0, c.width, c.height);
 }
 
 const nextAdjustment = () =>
-  new Promise((resolve) => {
+  new Promise<void>((resolve) => {
     const off = onAdjustmentReady(() => {
       off();
       resolve();
@@ -60,8 +63,8 @@ describe('imageWorker', () => {
     applyTonalAdjustments(main.data, FILTERS);
     const result = await adjustInWorker(pixelsOf(img), FILTERS);
     expect(result).not.toBeNull();
-    expect(result.width).toBe(main.width);
-    expect(result.data).toEqual(main.data);
+    expect(result!.width).toBe(main.width);
+    expect(result!.data).toEqual(main.data);
   });
 
   it('Schärfen, Klarheit und Körnung im Worker entsprechen exakt dem Hauptthread', async () => {
@@ -71,7 +74,7 @@ describe('imageWorker', () => {
     applyDetailAdjustments(main.data, main.width, main.height, detail);
     const result = await adjustInWorker(pixelsOf(img), detail);
     expect(result).not.toBeNull();
-    expect(result.data).toEqual(main.data);
+    expect(result!.data).toEqual(main.data);
   });
 
   it('Weißabgleich (Temperatur/Tönung) im Worker entspricht exakt dem Hauptthread', async () => {
@@ -80,7 +83,7 @@ describe('imageWorker', () => {
     applyTonalAdjustments(main.data, wb);
     const result = await adjustInWorker(pixelsOf(img), wb);
     expect(result).not.toBeNull();
-    expect(result.data).toEqual(main.data);
+    expect(result!.data).toEqual(main.data);
   });
 
   it('Kurven im Worker entsprechen exakt dem Hauptthread', async () => {
@@ -93,7 +96,7 @@ describe('imageWorker', () => {
     applyTonalAdjustments(main.data, curves);
     const result = await adjustInWorker(pixelsOf(img), curves);
     expect(result).not.toBeNull();
-    expect(result.data).toEqual(main.data);
+    expect(result!.data).toEqual(main.data);
   });
 
   it('nur Detail-Regler aktiv: getAdjustedImage rechnet pixelbasiert', () => {
@@ -107,11 +110,11 @@ describe('imageWorker', () => {
     const c = document.createElement('canvas');
     c.width = 64;
     c.height = 48;
-    c.getContext('2d').drawImage(img, 0, 0, 64, 48);
+    context2d(c).drawImage(img, 0, 0, 64, 48);
     const blob = await encodeInWorker(c, type, 0.8);
     expect(blob).toBeInstanceOf(Blob);
-    expect(blob.type).toBe(type);
-    expect(blob.size).toBeGreaterThan(0);
+    expect(blob!.type).toBe(type);
+    expect(blob!.size).toBeGreaterThan(0);
   });
 
   it('canvasToBlob fällt ohne Worker auf den Hauptthread zurück', async () => {

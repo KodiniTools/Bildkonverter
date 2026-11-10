@@ -2,7 +2,7 @@
 /**
  * Regressionsschutz für das Design-System v2 über ALLE Styles in src/
  * (Kopie aus KodiniTools/Collage-Maker, src/design-system/__tests__/designTokens.spec.ts;
- * ergänzt tests/unit/designTokens.spec.js mit den Bildkonverter-eigenen Prüfungen).
+ * ergänzt tests/unit/designTokens.spec.ts mit den Bildkonverter-eigenen Prüfungen).
  * Literale gehören nur nach src/design-system/; Komponenten und Stylesheets
  * laufen auf --ds-* Tokens. Anders als in der Vorlage werden auch .scss-Dateien geprüft.
  */

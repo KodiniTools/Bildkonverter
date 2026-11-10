@@ -3,7 +3,7 @@
  * und die automatische Sicherung im Editor (useProjectAutosave).
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ref, nextTick } from 'vue';
+import { ref, nextTick, type Ref } from 'vue';
 import {
   dataUrlToBlob,
   packSnapshot,
@@ -16,13 +16,18 @@ import {
   saveProject,
   resetProjectStorageForTests,
   PROJECT_FORMAT_VERSION,
+  type StoredProject,
 } from '@/lib/project/projectStorage';
-import { useProjectAutosave } from '@/composables/editor/useProjectAutosave';
+import {
+  useProjectAutosave,
+  type ProjectAutosaveDeps,
+} from '@/composables/editor/useProjectAutosave';
+import type { EditorSnapshot } from '@/lib/project/projectSnapshot';
 import { loadImage } from '@/utils/fileUtils';
 import { makeImage, makePngFile } from './helpers';
 
-async function blobText(blob) {
-  return new Uint8Array(await blob.arrayBuffer()).join(',');
+async function blobText(blob: Blob | null) {
+  return new Uint8Array(await blob!.arrayBuffer()).join(',');
 }
 
 async function sampleSnapshot() {
@@ -61,18 +66,19 @@ describe('projectSnapshot', () => {
     // keine URLs im JSON-Teil, gerendertes Vorschaubild fällt weg
     expect(JSON.stringify(packed.state)).not.toMatch(/blob:|data:/);
     expect(packed.state.imageData).toBeUndefined();
-    expect(packed.rawImage.type).toBe('image/png');
+    expect(packed.rawImage!.type).toBe('image/png');
     expect(packed.layerImages).toHaveLength(1);
-    expect(packed.layerImages[0].type).toBe('image/png');
+    expect(packed.layerImages[0]!.type).toBe('image/png');
 
     const restored = unpackSnapshot(packed);
     expect(restored.filters).toEqual({ brightness: 120 });
     expect(restored.texts).toEqual(snapshot.texts);
-    expect(restored.imageLayers[0]).toMatchObject({ id: 'l1', x: 5 });
-    expect(restored.imageLayers[0].url.startsWith('blob:')).toBe(true);
-    const layerImg = await loadImage(restored.imageLayers[0].url);
+    const [layer] = restored.imageLayers!;
+    expect(layer).toMatchObject({ id: 'l1', x: 5 });
+    expect(layer!.url!.startsWith('blob:')).toBe(true);
+    const layerImg = await loadImage(layer!.url!);
     expect(layerImg.naturalWidth).toBe(30);
-    const raw = await loadImage(restored.rawImageSrc);
+    const raw = await loadImage(restored.rawImageSrc!);
     expect(raw.naturalWidth).toBe(60);
   });
 
@@ -88,7 +94,7 @@ describe('projectSnapshot', () => {
       layerThumbnails: [null, null],
     });
     expect(restored.rawImageSrc).toBeNull();
-    expect(restored.imageLayers.map((l) => l.id)).toEqual(['b']);
+    expect(restored.imageLayers!.map((l) => l.id)).toEqual(['b']);
   });
 });
 
@@ -109,7 +115,7 @@ describe('projectStorage (IndexedDB)', () => {
       snapshot: packed,
     });
 
-    const loaded = await loadProject();
+    const loaded = (await loadProject())!;
     expect(loaded.name).toBe('foto');
     expect(loaded.snapshot.state.texts).toEqual([{ id: 't1', content: 'Hallo' }]);
     expect(await blobText(loaded.snapshot.layerImages[0])).toBe(
@@ -121,19 +127,20 @@ describe('projectStorage (IndexedDB)', () => {
   });
 
   it('verwirft Einträge in fremdem Format', async () => {
-    await saveProject({ version: 99, snapshot: {} });
+    // Absichtlich unvollständig: fremde Version
+    await saveProject({ version: 99, snapshot: {} } as unknown as StoredProject);
     expect(await loadProject()).toBeNull();
   });
 });
 
 describe('useProjectAutosave', () => {
-  let stored;
-  let storage;
+  let stored: StoredProject | null;
+  let storage: NonNullable<ProjectAutosaveDeps['storage']>;
 
   beforeEach(() => {
     stored = null;
     storage = {
-      save: vi.fn(async (p) => {
+      save: vi.fn(async (p: StoredProject) => {
         stored = p;
       }),
       load: vi.fn(async () => stored),
@@ -143,20 +150,26 @@ describe('useProjectAutosave', () => {
       available: () => true,
     };
   });
-  async function setup(overrides = {}) {
+  async function setup(
+    overrides: {
+      onError?: ProjectAutosaveDeps['onError'];
+      currentFileName?: Ref<string>;
+      sourceFile?: Ref<File | null>;
+    } = {}
+  ) {
     const canvas = document.createElement('canvas');
     canvas.width = 60;
     canvas.height = 40;
     const deps = {
       canvas: ref(canvas),
-      history: ref([]),
+      history: ref<unknown[]>([]),
       historyIndex: ref(-1),
       currentFileName: ref('urlaub'),
       currentImageFormat: ref('jpg'),
       originalImageDataUrl: ref(''),
-      originalImage: ref(null),
-      sourceFile: ref(await makePngFile('urlaub.png', 4, 4)),
-      restoreSnapshot: vi.fn(async () => {}),
+      originalImage: ref<HTMLImageElement | null>(null),
+      sourceFile: ref<File | null>(await makePngFile('urlaub.png', 4, 4)),
+      restoreSnapshot: vi.fn<(state: EditorSnapshot) => Promise<void>>(async () => {}),
       delay: 20,
       storage,
       ...overrides,
@@ -164,7 +177,7 @@ describe('useProjectAutosave', () => {
     return { deps, autosave: useProjectAutosave(deps) };
   }
 
-  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
   it('sichert den aktuellen Historien-Eintrag kurz nach einer Änderung', async () => {
     const { deps, autosave } = await setup();
@@ -175,16 +188,16 @@ describe('useProjectAutosave', () => {
 
     await vi.waitFor(() => expect(autosave.status.value).toBe('saved'));
     expect(storage.save).toHaveBeenCalledTimes(1);
-    expect(stored.name).toBe('urlaub');
-    expect(stored.format).toBe('jpg');
-    expect(stored.sourceFile.name).toBe('urlaub.png');
-    expect(stored.snapshot.state.texts).toEqual(snapshot.texts);
+    expect(stored!.name).toBe('urlaub');
+    expect(stored!.format).toBe('jpg');
+    expect(stored!.sourceFile!.name).toBe('urlaub.png');
+    expect(stored!.snapshot.state.texts).toEqual(snapshot.texts);
     expect(autosave.status.value).toBe('saved');
   });
 
   it('löscht die Sicherung, wenn die Historie geleert wird', async () => {
     const { deps } = await setup();
-    stored = { version: PROJECT_FORMAT_VERSION };
+    stored = { version: PROJECT_FORMAT_VERSION } as StoredProject;
     deps.history.value = [{ width: 1 }];
     deps.historyIndex.value = 0;
     await nextTick();
@@ -219,7 +232,7 @@ describe('useProjectAutosave', () => {
       format: 'png',
       thumbnail: packed.rawImage,
       original: packed.rawImage,
-      sourceFile: { blob: packed.rawImage, name: 'orig.png', type: 'image/png', lastModified: 1 },
+      sourceFile: { blob: packed.rawImage!, name: 'orig.png', type: 'image/png', lastModified: 1 },
       snapshot: packed,
     };
     const { deps, autosave } = await setup({
@@ -235,22 +248,22 @@ describe('useProjectAutosave', () => {
       textCount: 1,
       shapeCount: 1,
     });
-    expect(autosave.savedProject.value.thumbnailUrl).toMatch(/^blob:/);
+    expect(autosave.savedProject.value!.thumbnailUrl).toMatch(/^blob:/);
 
     expect(await autosave.resumeProject()).toBe(true);
-    const state = deps.restoreSnapshot.mock.calls[0][0];
+    const state = deps.restoreSnapshot.mock.calls[0]![0];
     expect(state.isCollageMode).toBe(true);
-    expect(state.imageLayers[0].url).toMatch(/^blob:/);
+    expect(state.imageLayers![0]!.url).toMatch(/^blob:/);
     expect(deps.currentFileName.value).toBe('collage');
     expect(deps.sourceFile.value).toBeInstanceOf(File);
-    expect(deps.sourceFile.value.name).toBe('orig.png');
+    expect(deps.sourceFile.value!.name).toBe('orig.png');
     expect(deps.originalImage.value).toBeInstanceOf(HTMLImageElement);
     expect(deps.originalImageDataUrl.value).toMatch(/^blob:/);
     expect(autosave.savedProject.value).toBeNull();
   });
 
   it('verwerfen löscht die Sicherung', async () => {
-    stored = { version: PROJECT_FORMAT_VERSION };
+    stored = { version: PROJECT_FORMAT_VERSION } as StoredProject;
     const { autosave } = await setup();
     await autosave.discardProject();
     expect(storage.remove).toHaveBeenCalled();

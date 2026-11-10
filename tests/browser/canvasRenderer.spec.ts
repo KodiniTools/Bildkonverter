@@ -5,23 +5,36 @@
  */
 import { describe, it, expect, beforeAll } from 'vitest';
 import { ref } from 'vue';
-import { useCanvasRenderer, drawLayerSelection } from '@/composables/useCanvasRenderer';
+import {
+  useCanvasRenderer,
+  drawLayerSelection,
+  type RendererImageStore,
+} from '@/composables/useCanvasRenderer';
 import { useTransform } from '@/composables/useTransform';
-import { DEFAULT_FILTERS, DEFAULT_BACKGROUND } from '@/composables/useFilterManagement';
+import {
+  DEFAULT_FILTERS,
+  DEFAULT_BACKGROUND,
+  type EditorBackground,
+  type EditorFilters,
+} from '@/composables/useFilterManagement';
+import { context2d } from '@/utils/canvas2d';
+import type { EditorImage } from '@/composables/editor/types';
+import type { StoreText } from '@/stores/image/types';
+import type { TransformState } from '@/types/transform';
 import { makeImage, pixelAt, diffPixels, snapshot } from './helpers';
 import { themeColorsV2 } from '@/design-system/tokens-v2';
 import { onAdjustmentReady } from '@/utils/imageAdjustments';
 
 // Die Vorschau rechnet Tonwerte im Worker: auf das Ergebnis warten
 const nextAdjustment = () =>
-  new Promise((resolve) => {
+  new Promise<void>((resolve) => {
     const off = onAdjustmentReady(() => {
       off();
       resolve();
     });
   });
 
-let imgA, imgB;
+let imgA: HTMLImageElement, imgB: HTMLImageElement;
 beforeAll(async () => {
   imgA = await makeImage(320, 240, 0);
   imgB = await makeImage(160, 200, 1);
@@ -39,7 +52,21 @@ const TEXT = {
   opacity: 100,
 };
 
-function setup(state = {}) {
+/** Ausgangszustand eines Testfalls; Ebenen sind Teil-Objekte (nur gelesene Felder) */
+interface RenderState {
+  transforms?: Partial<TransformState>;
+  texts?: StoreText[];
+  layers?: object[];
+  selectedLayerId?: string | null;
+  canvasBackgroundColor?: string;
+  image?: EditorImage | null;
+  collage?: boolean;
+  filters?: Partial<EditorFilters>;
+  background?: Partial<EditorBackground>;
+  selectedTextId?: StoreText['id'] | null;
+}
+
+function setup(state: RenderState = {}) {
   const canvasEl = document.createElement('canvas');
   canvasEl.width = 400;
   canvasEl.height = 300;
@@ -51,10 +78,11 @@ function setup(state = {}) {
     hasImageLayers: (state.layers || []).length > 0,
     selectedLayerId: state.selectedLayerId ?? null,
     canvasBackgroundColor: state.canvasBackgroundColor ?? '#ffffff',
-  };
+    // Attrappe ohne Formen: der Renderer liest nur die Felder oben
+  } as RendererImageStore;
   const renderer = useCanvasRenderer({
     canvas: ref(canvasEl),
-    currentImage: ref('image' in state ? state.image : imgA),
+    currentImage: ref<EditorImage | null>('image' in state ? (state.image ?? null) : imgA),
     isCollageMode: ref(!!state.collage),
     imageStore,
     transform,
@@ -128,8 +156,8 @@ describe('useCanvasRenderer – Einzelbild', () => {
 
   it('zeichnet nichts ohne Bild', () => {
     const { canvasEl, renderer } = setup({ image: null });
-    canvasEl.getContext('2d').fillStyle = '#123456';
-    canvasEl.getContext('2d').fillRect(0, 0, 10, 10);
+    context2d(canvasEl).fillStyle = '#123456';
+    context2d(canvasEl).fillRect(0, 0, 10, 10);
     renderer.renderImage();
     expect(pixelAt(canvasEl, 1, 1)).toEqual([0x12, 0x34, 0x56, 255]);
   });
@@ -256,14 +284,14 @@ describe('useCanvasRenderer – Collage', () => {
   });
 
   /** '#c9984d' → [201, 152, 77, 255] */
-  const rgba = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).concat(255);
+  const rgba = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).concat(255);
 
   it.each(['light', 'dark'])('drawLayerSelection zeichnet Rahmen und acht Griffe (%s)', (theme) => {
     document.documentElement.setAttribute('data-theme', theme);
     const c = document.createElement('canvas');
     c.width = 200;
     c.height = 200;
-    drawLayerSelection(c.getContext('2d'), { x: 50, y: 50, width: 100, height: 80, rotation: 0 });
+    drawLayerSelection(context2d(c), { x: 50, y: 50, width: 100, height: 80, rotation: 0 });
     // Griff oben links liegt bei (50-4 .. 50+4), in der Akzentfarbe des Themes
     expect(pixelAt(c, 50, 50)).toEqual(rgba(themeColorsV2(theme).accent));
     // Mitte des Rahmens bleibt leer

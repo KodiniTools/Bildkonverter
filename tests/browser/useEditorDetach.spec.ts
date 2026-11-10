@@ -9,8 +9,11 @@ import { useFilterManagement } from '@/composables/useFilterManagement';
 import { useTransform } from '@/composables/useTransform';
 import { useResizeManager } from '@/composables/useResizeManager';
 import { makeImage, installToastMock, t } from './helpers';
+import { context2d } from '@/utils/canvas2d';
+import type { ImageLayer, LayerSource } from '@/stores/image/types';
+import type { EditorImage } from '@/composables/editor/types';
 
-let image;
+let image: HTMLImageElement;
 beforeAll(async () => {
   image = await makeImage(300, 200);
 });
@@ -20,7 +23,7 @@ function setup({ addImageLayerFails = false } = {}) {
   const canvasEl = document.createElement('canvas');
   canvasEl.width = 300;
   canvasEl.height = 200;
-  canvasEl.getContext('2d').drawImage(image, 0, 0);
+  context2d(canvasEl).drawImage(image, 0, 0);
 
   const filterManagement = useFilterManagement({});
   filterManagement.filters.value.brightness = 150;
@@ -32,9 +35,10 @@ function setup({ addImageLayerFails = false } = {}) {
   const imageStore = {
     canvasBackgroundColor: '#000000',
     initCanvas: vi.fn(),
-    addImageLayer: vi.fn(async ({ url, name }) => {
+    addImageLayer: vi.fn(async ({ url, name }: LayerSource) => {
       if (addImageLayerFails) throw new Error('kaputt');
-      return { id: 'L1', url, name };
+      // Attrappe: nur die Felder, die useEditorDetach liest
+      return { id: 'L1', url, name } as ImageLayer;
     }),
     updateImageLayer: vi.fn(),
     selectImageLayer: vi.fn(),
@@ -43,8 +47,8 @@ function setup({ addImageLayerFails = false } = {}) {
 
   const deps = {
     canvas: ref(canvasEl),
-    currentImage: ref(image),
-    originalImage: ref(null),
+    currentImage: ref<EditorImage | null>(image),
+    originalImage: ref<HTMLImageElement | null>(null),
     isCollageMode: ref(false),
     detachedFromBackground: ref(false),
     background: filterManagement.background,
@@ -137,7 +141,7 @@ describe('useEditorDetach – Verbinden und Umschalten', () => {
     expect(s.imageStore.clearImageLayers).toHaveBeenCalledTimes(1);
     expect(s.imageStore.selectImageLayer).toHaveBeenLastCalledWith(null);
     expect(s.currentImage.value).not.toBe(detachedImage);
-    expect([s.currentImage.value.width, s.currentImage.value.height]).toEqual([300, 200]);
+    expect([s.currentImage.value!.width, s.currentImage.value!.height]).toEqual([300, 200]);
     expect(s.originalImage.value).toBe(s.currentImage.value); // vorher leer → übernommen
     expect(s.isCollageMode.value).toBe(false);
     expect(s.detach.detachedFromBackground.value).toBe(false);

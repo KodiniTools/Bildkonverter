@@ -3,28 +3,52 @@
  * Wiederherstellung von Bild, Canvas-Größe, Filtern, Transformationen,
  * Texten und Crop-Zustand.
  */
-import { describe, it, expect, vi, beforeAll } from 'vitest';
+import { describe, it, expect, vi, beforeAll, type Mock } from 'vitest';
 import { ref } from 'vue';
-import { useEditorHistory } from '@/composables/editor/useEditorHistory';
+import { useEditorHistory, type EditorHistoryDeps } from '@/composables/editor/useEditorHistory';
 import { useFilterManagement } from '@/composables/useFilterManagement';
 import { useTransform } from '@/composables/useTransform';
 import { useResizeManager } from '@/composables/useResizeManager';
 import { loadImage } from '@/utils/fileUtils';
 import { makeImage } from './helpers';
+import { context2d } from '@/utils/canvas2d';
+import type { EditorImage } from '@/composables/editor/types';
+import type { ImageLayer, StoreText } from '@/stores/image/types';
+import type { Shape } from '@/utils/shapes';
 
-let dataUrlImage;
+/** Ebene der Attrappe: `image` ist ein Platzhalter-Objekt statt eines echten Bildes */
+type FakeLayer = Omit<Partial<ImageLayer>, 'image'> & { image?: unknown };
+
+/** Store-Attrappe: nur die Felder und Ebenen-Funktionen, die die Historie nutzt */
+interface StoreFake {
+  texts: StoreText[];
+  shapes?: Shape[];
+  selectedShapeId?: string | null;
+  imageLayers: FakeLayer[];
+  selectedLayerId: ImageLayer['id'] | null;
+  canvasBackgroundColor: string;
+  registerHistory: Mock;
+  serializeImageLayers: Mock;
+  restoreImageLayers: Mock;
+  clearImageLayers: Mock;
+}
+
+/** Die Attrappe deckt den Teil des Stores ab, den useEditorHistory liest und schreibt */
+const asHistoryStore = (fake: StoreFake) => fake as unknown as EditorHistoryDeps['imageStore'];
+
+let dataUrlImage: HTMLImageElement;
 beforeAll(async () => {
   dataUrlImage = await makeImage(200, 100);
 });
 
-function setup(image = dataUrlImage) {
+function setup(image: HTMLImageElement = dataUrlImage) {
   const canvasEl = document.createElement('canvas');
   canvasEl.width = 200;
   canvasEl.height = 100;
-  canvasEl.getContext('2d').drawImage(image, 0, 0);
+  context2d(canvasEl).drawImage(image, 0, 0);
 
-  const currentImage = ref(image);
-  const selectedTextId = ref(null);
+  const currentImage = ref<EditorImage | null>(image);
+  const selectedTextId = ref<StoreText['id'] | null>(null);
   const filterManagement = useFilterManagement({});
   const transform = useTransform();
   const resizeManager = useResizeManager({});
@@ -33,20 +57,24 @@ function setup(image = dataUrlImage) {
   const isCollageMode = ref(false);
   const detachedFromBackground = ref(false);
   // Store-Attrappe mit den Ebenen-Funktionen der Historie
-  const imageStore = {
+  const imageStore: StoreFake = {
     texts: [],
     imageLayers: [],
     selectedLayerId: null,
     canvasBackgroundColor: '#ffffff',
     registerHistory: vi.fn(),
-    serializeImageLayers: vi.fn(function () {
+    serializeImageLayers: vi.fn(function (this: StoreFake) {
       return JSON.parse(JSON.stringify(this.imageLayers.map((l) => ({ ...l, image: null }))));
     }),
-    restoreImageLayers: vi.fn(async function (layers, selectedId) {
+    restoreImageLayers: vi.fn(async function (
+      this: StoreFake,
+      layers: FakeLayer[],
+      selectedId: ImageLayer['id'] | null
+    ) {
       this.imageLayers = layers.map((l) => ({ ...l, image: {} }));
       this.selectedLayerId = selectedId;
     }),
-    clearImageLayers: vi.fn(function () {
+    clearImageLayers: vi.fn(function (this: StoreFake) {
       this.imageLayers = [];
       this.selectedLayerId = null;
     }),
@@ -62,7 +90,7 @@ function setup(image = dataUrlImage) {
     selectedTextId,
     filters: filterManagement.filters,
     background: filterManagement.background,
-    imageStore,
+    imageStore: asHistoryStore(imageStore),
     filterManagement,
     transform,
     resizeManager,
@@ -89,7 +117,7 @@ function setup(image = dataUrlImage) {
 }
 
 /** Wartet, bis restoreState() das Bild geladen und neu gezeichnet hat */
-const restored = (renderImage, calls) =>
+const restored = (renderImage: Mock, calls: number) =>
   vi.waitFor(() => expect(renderImage).toHaveBeenCalledTimes(calls));
 
 describe('useEditorHistory', () => {
@@ -117,16 +145,16 @@ describe('useEditorHistory', () => {
   });
 
   it('sichert Bilder mit Blob-URL als Data-URL', async () => {
-    const blob = await new Promise((r) => {
+    const blob = await new Promise<Blob | null>((r) => {
       const c = document.createElement('canvas');
       c.width = 40;
       c.height = 20;
       c.toBlob(r, 'image/png');
     });
-    const blobImage = await loadImage(URL.createObjectURL(blob));
+    const blobImage = await loadImage(URL.createObjectURL(blob!));
     const { history } = setup(blobImage);
     history.saveHistory();
-    expect(history.history.value[0].rawImageSrc.startsWith('data:image/png')).toBe(true);
+    expect(history.history.value[0].rawImageSrc!.startsWith('data:image/png')).toBe(true);
 
     const { history: h2 } = setup(dataUrlImage);
     h2.saveHistory();
@@ -230,6 +258,7 @@ describe('useEditorHistory', () => {
     const s = setup();
     const history = useEditorHistory({
       ...s,
+      imageStore: asHistoryStore(s.imageStore),
       canvas: ref(null),
       filters: s.filterManagement.filters,
       background: s.filterManagement.background,
@@ -240,7 +269,7 @@ describe('useEditorHistory', () => {
 });
 
 describe('useEditorHistory – Ebenen-/Collage-Modus', () => {
-  const layer = (id) => ({
+  const layer = (id: string) => ({
     id,
     url: dataUrlImage.src,
     name: id,
@@ -373,7 +402,7 @@ describe('useEditorHistory.restoreSnapshot (Projekt fortsetzen)', () => {
     expect(target.currentImage.value).toBeInstanceOf(HTMLImageElement);
     expect(target.filterManagement.filters.value.brightness).toBe(140);
     expect(target.imageStore.texts).toEqual([{ id: 't1', content: 'Hallo' }]);
-    expect(target.imageStore.shapes[0].id).toBe('s1');
+    expect(target.imageStore.shapes![0].id).toBe('s1');
     expect(target.canvasEl.width).toBe(200);
     expect(target.renderImage).toHaveBeenCalled();
   });

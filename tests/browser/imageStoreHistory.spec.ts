@@ -8,7 +8,7 @@ import { setActivePinia, createPinia } from 'pinia';
 import { useImageStore } from '@/stores/imageStore';
 import { makeImage } from './helpers';
 
-let image;
+let image: HTMLImageElement;
 beforeAll(async () => {
   image = await makeImage(60, 40);
 });
@@ -18,14 +18,14 @@ beforeEach(() => {
 });
 
 function fakeHistory() {
-  const history = ref([]);
+  const history = ref<{ description?: string }[]>([]);
   const historyIndex = ref(-1);
   return {
     history,
     historyIndex,
     canUndo: computed(() => historyIndex.value > 0),
     canRedo: computed(() => historyIndex.value < history.value.length - 1),
-    saveHistory: vi.fn((description) => {
+    saveHistory: vi.fn((description?: string) => {
       history.value.push({ description });
       historyIndex.value = history.value.length - 1;
     }),
@@ -113,7 +113,7 @@ describe('imageStore – Historie', () => {
       [b.id, b.x, 0],
     ]);
     expect(store.imageLayers[0].image).toBeInstanceOf(HTMLImageElement);
-    expect(store.imageLayers[0].image.width).toBe(60);
+    expect(store.imageLayers[0].image!.width).toBe(60);
     expect(store.selectedLayerId).toBe(a.id);
   });
 
