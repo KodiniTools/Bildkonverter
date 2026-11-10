@@ -47,7 +47,7 @@ const ALLOWED_JS_FILES: readonly string[] = [
 ];
 
 /** .vue-Dateien, deren <script> noch kein lang="ts" hat. */
-const ALLOWED_JS_VUE_FILES: readonly string[] = ['src/views/EditorView.vue'];
+const ALLOWED_JS_VUE_FILES: readonly string[] = [];
 
 const toPosix = (path: string): string => path.split(sep).join('/');
 

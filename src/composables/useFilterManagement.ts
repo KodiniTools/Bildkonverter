@@ -152,7 +152,7 @@ export function useFilterManagement(options: FilterManagementOptions = {}) {
    * Schlüssel werden ignoriert, die übrigen Filter bleiben erhalten.
    * @param values - Teilmenge der Filterwerte
    */
-  function applyAdjustments(values: PresetFilters): void {
+  function applyAdjustments(values: PresetFilters | Partial<EditorFilters>): void {
     const next: PresetFilters = { ...filters.value };
     for (const [key, value] of Object.entries(values)) {
       if (key in DEFAULT_FILTERS) next[key] = value;

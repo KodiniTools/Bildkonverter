@@ -1,12 +1,15 @@
 import { computed, type ComputedRef, type Ref } from 'vue';
 
-/** Pixelangaben der Crop-Box in Canvas-Koordinaten, wie useCrop sie liefert */
-export interface CropBoxStyle {
+/**
+ * Pixelangaben der Crop-Box in Canvas-Koordinaten, wie useCrop sie liefert.
+ * Typalias statt Interface: so auch als `:style`-Bindung zuweisbar.
+ */
+export type CropBoxStyle = {
   left: string;
   top: string;
   width: string;
   height: string;
-}
+};
 
 export interface CropSize {
   width: number;

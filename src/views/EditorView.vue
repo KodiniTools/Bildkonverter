@@ -388,7 +388,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount, onUnmounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
@@ -397,7 +397,12 @@ import { useTextModal } from '@/composables/useTextModal';
 import { useConfirm } from '@/composables/useConfirm';
 import { useCrop, ASPECT_RATIO_PRESETS } from '@/composables/useCrop';
 import { useTransform } from '@/composables/useTransform';
-import { useFilterManagement, DEFAULT_FILTERS } from '@/composables/useFilterManagement';
+import {
+  useFilterManagement,
+  DEFAULT_FILTERS,
+  type EditorBackground,
+  type EditorFilters,
+} from '@/composables/useFilterManagement';
 import { useResizeManager } from '@/composables/useResizeManager';
 import { useImageLayerInteraction } from '@/composables/useImageLayerInteraction';
 import { useCanvasRenderer } from '@/composables/useCanvasRenderer';
@@ -443,6 +448,12 @@ import { logger } from '@/utils/logger';
 import { onAdjustmentReady } from '@/utils/imageAdjustments';
 import { scaleTextsToCanvas } from '@/utils/textLayout';
 import { scaleShapesToCanvas } from '@/utils/shapes';
+import type { LocationQueryValue } from 'vue-router';
+import type { EditorImage } from '@/composables/editor/types';
+import type { StoreText } from '@/stores/image/types';
+import type { PresetFilters } from '@/composables/presets/defaultPresets';
+import type { AspectRatioPreset } from '@/composables/useCrop';
+import { context2d } from '@/utils/canvas2d';
 
 const { t } = useI18n({ useScope: 'global' });
 const route = useRoute();
@@ -452,18 +463,18 @@ const textModal = useTextModal();
 const { confirm: confirmDialog } = useConfirm();
 
 // ===== CORE REFS =====
-const fileInput = ref(null);
-const canvas = ref(null);
-const currentImage = ref(null);
-const originalImage = ref(null);
+const fileInput = ref<HTMLInputElement | null>(null);
+const canvas = ref<HTMLCanvasElement | null>(null);
+const currentImage = ref<EditorImage | null>(null);
+const originalImage = ref<HTMLImageElement | null>(null);
 const originalImageDataUrl = ref(''); // Speichert das Original als Data URL
 const outputFormat = ref('png');
 const currentImageFormat = ref(''); // Format des hochgeladenen Bildes
 const currentFileName = ref(''); // Dateiname ohne Endung (für Export und Ebenen)
-const sourceFile = ref(null); // Originaldatei (EXIF beim Export übernehmen)
+const sourceFile = ref<File | null>(null); // Originaldatei (EXIF beim Export übernehmen)
 
 // ===== TEXT INTERACTION STATE =====
-const selectedTextId = ref(null);
+const selectedTextId = ref<StoreText['id'] | null>(null);
 const isDraggingText = ref(false);
 const dragOffset = ref({ x: 0, y: 0 });
 
@@ -496,10 +507,10 @@ const { filters, background, sectionsOpen, currentPreset } = filterManagement;
 
 // Die Sidebar-Panels verändern ihre Props nicht, sondern melden Änderungen;
 // gesetzt wird hier, neu gezeichnet über das render-Ereignis der Panels.
-function setFilter(name, value) {
-  filters.value[name] = value;
+function setFilter(name: string, value: number | string) {
+  (filters.value as PresetFilters)[name] = value;
 }
-function setBackground(property, value) {
+function setBackground<K extends keyof EditorBackground>(property: K, value: EditorBackground[K]) {
   background.value[property] = value;
 }
 const toggleSection = filterManagement.toggleSection;
@@ -807,13 +818,15 @@ function triggerFileInput() {
 }
 
 /**
- * @param {HTMLImageElement} img
- * @param {object} [options]
- * @param {boolean} [options.replace]  Neues Bild ersetzt ein geladenes Bild:
+ * @param img  Neues Bild
+ * @param options.replace  Neues Bild ersetzt ein geladenes Bild:
  *   vorhandene Texte werden proportional an die neue Größe angepasst.
- * @param {{width:number,height:number}|null} [options.previousSize]  intern (Retry)
+ * @param options.previousSize  intern (Retry)
  */
-async function loadImage(img, options = {}) {
+async function loadImage(
+  img: HTMLImageElement,
+  options: { replace?: boolean; previousSize?: { width: number; height: number } | null } = {}
+): Promise<void> {
   // Bisherige Canvas-Größe merken (nur beim Ersetzen eines geladenen Bildes)
   const previousSize =
     options.previousSize !== undefined
@@ -900,8 +913,8 @@ async function resetFilters() {
   // Canvas auf Original-Dimensionen zurücksetzen
   const maxWidth = 1200;
   const maxHeight = 800;
-  let width = originalImage.value.width;
-  let height = originalImage.value.height;
+  let width: number = originalImage.value.width;
+  let height: number = originalImage.value.height;
 
   if (width > maxWidth || height > maxHeight) {
     const ratio = Math.min(maxWidth / width, maxHeight / height);
@@ -909,8 +922,9 @@ async function resetFilters() {
     height *= ratio;
   }
 
-  canvas.value.width = width;
-  canvas.value.height = height;
+  // Der Editor zeigt das Canvas, sobald ein Bild geladen ist (wie bisher ohne Prüfung)
+  canvas.value!.width = width;
+  canvas.value!.height = height;
 
   // Initialisiere ResizeManager mit korrektem Seitenverhältnis
   resizeManager.initFromDimensions(width, height);
@@ -974,7 +988,7 @@ async function clearImage() {
 
   // Canvas leeren
   if (canvas.value) {
-    const ctx = canvas.value.getContext('2d');
+    const ctx = context2d(canvas.value);
     ctx.clearRect(0, 0, canvas.value.width, canvas.value.height);
     canvas.value.width = 0;
     canvas.value.height = 0;
@@ -994,20 +1008,13 @@ async function clearImage() {
   resetHistory();
 
   // Resize-Werte zurücksetzen
-  resizeWidth.value = null;
-  resizeHeight.value = null;
+  // Startwert des ResizeManagers; die Leiste ist ohne Bild ausgeblendet und
+  // das nächste Bild setzt die Werte über initFromDimensions
+  resizeWidth.value = 0;
+  resizeHeight.value = 0;
 
-  // Text-Elemente zurücksetzen (falls Methode existiert)
-  if (textModal && typeof textModal.clearAllTexts === 'function') {
-    textModal.clearAllTexts();
-  }
   selectedTextId.value = null;
   imageStore.clearShapes();
-
-  // ImageStore zurücksetzen (falls Methode existiert)
-  if (imageStore && typeof imageStore.clearImage === 'function') {
-    imageStore.clearImage();
-  }
 
   // File Input zurücksetzen
   if (fileInput.value) {
@@ -1030,7 +1037,7 @@ function togglePickWhite() {
   if (pickingWhite.value) window.$toast?.info(t('editor.whiteBalance.pickActive'));
 }
 
-function pickWhitePoint(pos) {
+function pickWhitePoint(pos: { x: number; y: number }) {
   pickingWhite.value = false;
   const ctx = canvas.value?.getContext('2d');
   if (!ctx) return;
@@ -1073,7 +1080,7 @@ function handleAutoEnhance() {
   window.$toast?.success(t('toast.editor.autoEnhanced'));
 }
 
-function handlePresetApply(preset) {
+function handlePresetApply(preset: { id: string; filters?: PresetFilters }) {
   // Verwende filterManagement Composable
   filterManagement.applyPreset(preset);
 
@@ -1106,8 +1113,9 @@ function handleFinishCrop() {
     borderRadiusBeforeCrop: transform.transforms.value.borderRadius,
     onCropComplete: (img, width, height, isCircleCrop) => {
       currentImage.value = img;
-      canvas.value.width = width;
-      canvas.value.height = height;
+      // finishCrop läuft nur mit vorhandenem Canvas
+      canvas.value!.width = width;
+      canvas.value!.height = height;
       resizeManager.initFromDimensions(width, height);
 
       // Umrissform einer übernommenen Verzerrung passt nicht mehr zum Ausschnitt
@@ -1115,7 +1123,7 @@ function handleFinishCrop() {
 
       // Bei Kreis-Zuschnitt automatisch borderRadius auf 50% setzen
       if (isCircleCrop) {
-        transform.setBorderRadius(50, false);
+        transform.setBorderRadius(50);
       }
 
       renderImage();
@@ -1130,12 +1138,14 @@ function handleUndoCrop() {
     imageStore,
     onUndoComplete: (img, beforeCropData) => {
       currentImage.value = img;
-      canvas.value.width = beforeCropData.width;
-      canvas.value.height = beforeCropData.height;
+      // Rückgängig ist nur nach einem Zuschnitt mit Canvas möglich
+      canvas.value!.width = beforeCropData.width;
+      canvas.value!.height = beforeCropData.height;
       resizeManager.initFromDimensions(beforeCropData.width, beforeCropData.height);
-      filters.value = { ...beforeCropData.filters };
+      // Die Sicherung ist eine vollständige Kopie der Editor-Filter (finishCrop)
+      filters.value = { ...beforeCropData.filters } as EditorFilters;
       // BorderRadius auf den Wert vor dem Zuschnitt zurücksetzen (wichtig für Kreis-Preset)
-      transform.setBorderRadius(beforeCropData.borderRadius ?? 0, false);
+      transform.setBorderRadius(beforeCropData.borderRadius ?? 0);
       renderImage();
       updateImageSize(); // Dateigröße neu berechnen nach Undo
       saveHistory();
@@ -1143,16 +1153,16 @@ function handleUndoCrop() {
   });
 }
 
-function handleSetAspectRatio(ratioId) {
+function handleSetAspectRatio(ratioId: AspectRatioPreset['id']) {
   crop.setAspectRatio(ratioId);
 }
 
 // Pixelgenaue Zuschnittgröße über die Eingabefelder im Crop-Panel
-function handleSetCropWidth(width) {
+function handleSetCropWidth(width: number) {
   crop.setCropWidth(width);
 }
 
-function handleSetCropHeight(height) {
+function handleSetCropHeight(height: number) {
   crop.setCropHeight(height);
 }
 
@@ -1401,7 +1411,7 @@ onMounted(async () => {
   }
 
   // Prüfe ob Bild aus Galerie geladen werden soll
-  const loaded = await loadGalleryImage(route.query.galleryImageId, t);
+  const loaded = await loadGalleryImage(galleryIdOf(route.query.galleryImageId), t);
 
   // Wenn kein Galerie-Bild geladen wurde und ein Bild im Store ist, lade es
   if (!loaded && imageStore.hasImage && imageStore.originalImage) {
@@ -1418,6 +1428,14 @@ onMounted(async () => {
   }
 });
 
+/**
+ * Galerie-ID aus der Route. Galerie-Links setzen genau einen Wert; der Wert
+ * wird wie bisher unverändert weitergegeben.
+ */
+function galleryIdOf(value: LocationQueryValue | LocationQueryValue[] | undefined) {
+  return value as string | null | undefined;
+}
+
 // Watch für Galerie-Navigation: Lädt Bild neu wenn galleryImageId sich ändert
 watch(
   () => route.query.galleryImageId,
@@ -1425,7 +1443,7 @@ watch(
     // Nur laden wenn sich die ID geändert hat und eine neue ID vorhanden ist
     if (newId && newId !== oldId) {
       logger.log('🔄 Galerie-Bild-ID geändert:', newId);
-      await loadGalleryImage(newId, t);
+      await loadGalleryImage(galleryIdOf(newId), t);
     }
   }
 );

@@ -102,6 +102,7 @@
 import { computed, type PropType } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { SizeEstimate } from '@/composables/editor/useEditorExport';
+import type { FormatInfo } from '@/utils/formatInfo';
 import AppIcon from '@/components/ui/AppIcon.vue';
 import UiSelect from '@/components/ui/UiSelect.vue';
 import UiSwitch from '@/components/ui/UiSwitch.vue';
@@ -115,7 +116,7 @@ const props = defineProps({
   outputFormat: { type: String, required: true },
   formats: { type: Array as PropType<string[]>, required: true },
   formatInfo: { type: Object, required: true },
-  currentFormatInfo: { type: Object, default: null },
+  currentFormatInfo: { type: Object as PropType<FormatInfo | null>, default: null },
   supportsQuality: { type: Boolean, default: false },
   requiresBackend: { type: Boolean, default: false },
   exportQuality: { type: Number, default: 92 },
