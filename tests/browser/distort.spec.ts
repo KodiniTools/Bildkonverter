@@ -4,8 +4,16 @@
  */
 import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest';
 import { ref } from 'vue';
-import { useCanvasRenderer } from '@/composables/useCanvasRenderer';
-import { useCanvasInteraction } from '@/composables/editor/useCanvasInteraction';
+import { useCanvasRenderer, type RendererImageStore } from '@/composables/useCanvasRenderer';
+import {
+  useCanvasInteraction,
+  type CanvasInteractionDeps,
+} from '@/composables/editor/useCanvasInteraction';
+import { context2d } from '@/utils/canvas2d';
+import type { EditorImage } from '@/composables/editor/types';
+import type { StoreText } from '@/stores/image/types';
+import type { TransformState } from '@/types/transform';
+import type { CornerOffsets } from '@/utils/warpImage';
 import { useTransform } from '@/composables/useTransform';
 import { drawWarpedImage, bakeDistortion } from '@/utils/warpImage';
 import { useEditorDistort } from '@/composables/editor/useEditorDistort';
@@ -13,17 +21,17 @@ import { installToastMock, t } from './helpers';
 import { DEFAULT_FILTERS, DEFAULT_BACKGROUND } from '@/composables/useFilterManagement';
 import { makeImage, pixelAt, diffPixels, snapshot } from './helpers';
 
-let img;
+let img: HTMLImageElement;
 beforeAll(async () => {
   img = await makeImage(400, 300);
 });
 
-const mounted = [];
+const mounted: HTMLElement[] = [];
 afterEach(() => {
   mounted.splice(0).forEach((el) => el.remove());
 });
 
-function setup(transforms = {}, { attach = false } = {}) {
+function setup(transforms: Partial<TransformState> = {}, { attach = false } = {}) {
   const canvasEl = document.createElement('canvas');
   canvasEl.width = 400;
   canvasEl.height = 300;
@@ -36,11 +44,16 @@ function setup(transforms = {}, { attach = false } = {}) {
   const transform = useTransform();
   Object.assign(transform.transforms.value, transforms);
   const canvas = ref(canvasEl);
-  const selectedTextId = ref(null);
-  const imageStore = { texts: [], imageLayers: [], hasImageLayers: false };
+  const selectedTextId = ref<StoreText['id'] | null>(null);
+  // Attrappe: ohne Texte, Formen und Ebenen
+  const imageStore = {
+    texts: [],
+    imageLayers: [],
+    hasImageLayers: false,
+  } as unknown as RendererImageStore;
   const renderer = useCanvasRenderer({
     canvas,
-    currentImage: ref(img),
+    currentImage: ref<EditorImage | null>(img),
     isCollageMode: ref(false),
     imageStore,
     transform,
@@ -51,7 +64,7 @@ function setup(transforms = {}, { attach = false } = {}) {
   return { canvasEl, canvas, renderer, transform, imageStore, selectedTextId };
 }
 
-const offsets = (patch) => ({
+const offsets = (patch: Partial<CornerOffsets>): CornerOffsets => ({
   nw: { x: 0, y: 0 },
   ne: { x: 0, y: 0 },
   se: { x: 0, y: 0 },
@@ -105,7 +118,7 @@ describe('Verzerren – Rendering', () => {
       cornerOffsets: offsets({ se: { x: -0.5, y: 0 } }),
     });
     renderer.renderImage();
-    const pts = renderer.getDistortHandlePoints();
+    const pts = renderer.getDistortHandlePoints()!;
     expect(pts.nw.x).toBeCloseTo(100);
     expect(pts.nw.y).toBeCloseTo(75);
     // se: lokal (200, 300) → Canvas 200 + (200-200)*0.5 … = (200, 225)
@@ -119,14 +132,14 @@ describe('drawWarpedImage – Nähte', () => {
     const src = document.createElement('canvas');
     src.width = 400;
     src.height = 300;
-    const sctx = src.getContext('2d');
+    const sctx = context2d(src);
     sctx.fillStyle = '#f00';
     sctx.fillRect(0, 0, 400, 300);
 
     const c = document.createElement('canvas');
     c.width = 400;
     c.height = 300;
-    const ctx = c.getContext('2d');
+    const ctx = context2d(c);
     ctx.translate(200, 150);
     ctx.scale(scale, scale);
     ctx.translate(-200, -150);
@@ -150,7 +163,7 @@ describe('drawWarpedImage – Nähte', () => {
 });
 
 describe('Verzerren – Eckpunkte ziehen', () => {
-  function interaction(ctx) {
+  function interaction(ctx: ReturnType<typeof setup>) {
     const saveHistory = vi.fn();
     const crop = {
       cropMode: ref(false),
@@ -174,9 +187,10 @@ describe('Verzerren – Eckpunkte ziehen', () => {
       dragOffset: ref({ x: 0, y: 0 }),
       transform: ctx.transform,
       crop,
-      layerInteraction: {},
-      imageStore: ctx.imageStore,
-      textModal: {},
+      // Im Einzelbild-Modus ungenutzt: leere Attrappen
+      layerInteraction: {} as CanvasInteractionDeps['layerInteraction'],
+      imageStore: ctx.imageStore as unknown as CanvasInteractionDeps['imageStore'],
+      textModal: {} as CanvasInteractionDeps['textModal'],
       renderImage: ctx.renderer.renderImage,
       handleFinishCrop: () => {},
       saveHistory,
@@ -186,7 +200,9 @@ describe('Verzerren – Eckpunkte ziehen', () => {
     return { api, saveHistory, crop };
   }
 
-  const at = (x, y) => ({ clientX: x, clientY: y, button: 0, preventDefault() {} });
+  // Ereignis-Attrappe mit den Feldern, die die Interaktion liest
+  const at = (x: number, y: number) =>
+    ({ clientX: x, clientY: y, button: 0, preventDefault() {} }) as unknown as MouseEvent;
 
   it('zieht eine Ecke und schreibt beim Loslassen die Historie', () => {
     const ctx = setup({ distortEnabled: true }, { attach: true });
@@ -198,9 +214,9 @@ describe('Verzerren – Eckpunkte ziehen', () => {
     expect(saveHistory).not.toHaveBeenCalled();
     api.onCanvasMouseUp();
 
-    const o = ctx.transform.transforms.value.cornerOffsets;
-    expect(o.se.x).toBeCloseTo(-0.1);
-    expect(o.se.y).toBeCloseTo(-0.1);
+    const o = ctx.transform.transforms.value.cornerOffsets!;
+    expect(o.se!.x).toBeCloseTo(-0.1);
+    expect(o.se!.y).toBeCloseTo(-0.1);
     expect(o.nw).toEqual({ x: 0, y: 0 });
     expect(saveHistory).toHaveBeenCalledTimes(1);
   });
@@ -285,7 +301,7 @@ describe('Verzerrung übernehmen', () => {
     const ctx = setup({ distortEnabled: true, cornerOffsets: offsets({ ne: { x: 0.5, y: 0 } }) });
     const saveHistory = vi.fn();
     const initFromDimensions = vi.fn();
-    const currentImage = ref(img);
+    const currentImage = ref<EditorImage | null>(img);
     const { applyDistortion, isApplyingDistort } = useEditorDistort({
       canvas: ctx.canvas,
       currentImage,
@@ -299,14 +315,14 @@ describe('Verzerrung übernehmen', () => {
     await expect(applyDistortion()).resolves.toBe(true);
     expect(isApplyingDistort.value).toBe(false);
     expect(currentImage.value).not.toBe(img);
-    expect(currentImage.value.naturalWidth).toBe(600);
+    expect((currentImage.value as HTMLImageElement).naturalWidth).toBe(600);
     expect(ctx.canvasEl.width).toBe(600);
     expect(ctx.canvasEl.height).toBe(300);
     expect(initFromDimensions).toHaveBeenCalledWith(600, 300);
     const tf = ctx.transform.transforms.value;
     expect(tf.distortEnabled).toBe(false);
     expect(tf.cornerOffsets).toBeNull();
-    expect(tf.shapeQuad.ne).toEqual({ x: 1, y: 0 });
+    expect(tf.shapeQuad!.ne).toEqual({ x: 1, y: 0 });
     expect(saveHistory).toHaveBeenCalledTimes(1);
     expect(toasts).toContain('success:toast.transform.distortApplied');
 

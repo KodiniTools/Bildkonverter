@@ -2,17 +2,17 @@
  * useEditorResize: Live-Vorschau beim Tippen, Größen-Presets und "Anwenden".
  */
 import { describe, it, expect, vi, beforeAll } from 'vitest';
-import { ref, nextTick } from 'vue';
+import { ref, nextTick, type Ref } from 'vue';
 import { useEditorResize, MAX_RESIZE_DIMENSION } from '@/composables/editor/useEditorResize';
 import { useResizeManager } from '@/composables/useResizeManager';
 import { makeImage, installToastMock, t } from './helpers';
 
-let image;
+let image: HTMLImageElement;
 beforeAll(async () => {
   image = await makeImage(800, 400);
 });
 
-const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 function setup() {
   const toasts = installToastMock();
@@ -76,7 +76,8 @@ describe('useEditorResize – Live-Vorschau', () => {
     const { canvasEl, resizeManager, renderImage } = setup();
     resizeManager.resizeWidth.value = 500;
     await nextTick();
-    resizeManager.resizeWidth.value = null; // Feld geleert
+    // Feld geleert: das Zahlenfeld liefert dann zur Laufzeit null
+    (resizeManager.resizeWidth as Ref<number | null>).value = null;
     await nextTick();
     await wait(150);
     expect([canvasEl.width, canvasEl.height]).toEqual([800, 400]);
@@ -91,8 +92,8 @@ describe('useEditorResize – Live-Vorschau', () => {
       [MAX_RESIZE_DIMENSION + 1, 300],
       [800, 400],
     ]) {
-      resizeManager.resizeWidth.value = w;
-      resizeManager.resizeHeight.value = h;
+      (resizeManager.resizeWidth as Ref<number | null>).value = w;
+      (resizeManager.resizeHeight as Ref<number | null>).value = h;
       await nextTick();
     }
     await wait(150);

@@ -10,7 +10,7 @@ unveränderte Kopien; Werte werden nur dort geändert und hierher kopiert.
   Kontrast WCAG AA) und `tests/unit/design-system/designTokens.spec.ts` (alle Styles:
   Farbliterale, Schriftgrößen/-familien, Radien, Schatten, Verläufe, z-index ≤ 100,
   undefinierte `--ds-*`, Token-Zyklen; Ausnahmen mit Begründung je Datei).
-  `tests/unit/designTokens.spec.js` prüft die Bildkonverter-eigenen Regeln (SSI, Icons, Overlays).
+  `tests/unit/designTokens.spec.ts` prüft die Bildkonverter-eigenen Regeln (SSI, Icons, Overlays).
 
 - **Tokens:** `tokens-v2.css` (`--ds-*`). Dark liegt auf `:root`, Light auf
   `:root[data-theme='light']`. `index.html` setzt `data-theme` vor dem ersten Paint.

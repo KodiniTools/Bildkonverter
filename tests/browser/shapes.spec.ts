@@ -7,19 +7,22 @@ import { ref } from 'vue';
 import { useCanvasRenderer } from '@/composables/useCanvasRenderer';
 import { useTransform } from '@/composables/useTransform';
 import { DEFAULT_FILTERS, DEFAULT_BACKGROUND } from '@/composables/useFilterManagement';
-import { createShape, drawShape } from '@/utils/shapes';
+import { createShape, drawShape, type Shape } from '@/utils/shapes';
+import { context2d } from '@/utils/canvas2d';
+import type { EditorImage } from '@/composables/editor/types';
+import type { RendererImageStore } from '@/composables/useCanvasRenderer';
 import { makeImage, pixelAt, diffPixels, snapshot } from './helpers';
 
-function blankCanvas(w = 200, h = 200) {
+function blankCanvas(w = 200, h = 200): HTMLCanvasElement {
   const c = document.createElement('canvas');
   c.width = w;
   c.height = h;
   return c;
 }
 
-function shape(overrides = {}) {
+function shape(overrides: Partial<Shape> = {}): Shape {
   return {
-    ...createShape('rect', 200, 200),
+    ...createShape('rect', 200, 200)!,
     x: 100,
     y: 100,
     width: 100,
@@ -33,21 +36,21 @@ function shape(overrides = {}) {
 describe('drawShape', () => {
   it('füllt die Form in der Füllfarbe, außerhalb bleibt der Canvas leer', () => {
     const c = blankCanvas();
-    drawShape(c.getContext('2d'), shape());
+    drawShape(context2d(c), shape());
     expect(pixelAt(c, 100, 100)).toEqual([255, 0, 0, 255]);
     expect(pixelAt(c, 100, 140)[3]).toBe(0);
   });
 
   it('Drehung um 90° stellt die Form hoch', () => {
     const c = blankCanvas();
-    drawShape(c.getContext('2d'), shape({ rotation: 90 }));
+    drawShape(context2d(c), shape({ rotation: 90 }));
     expect(pixelAt(c, 100, 140)).toEqual([255, 0, 0, 255]);
     expect(pixelAt(c, 140, 100)[3]).toBe(0);
   });
 
   it('Deckkraft wirkt auf den Alphakanal', () => {
     const c = blankCanvas();
-    drawShape(c.getContext('2d'), shape({ opacity: 50 }));
+    drawShape(context2d(c), shape({ opacity: 50 }));
     const alpha = pixelAt(c, 100, 100)[3];
     expect(alpha).toBeGreaterThan(110);
     expect(alpha).toBeLessThan(145);
@@ -55,32 +58,38 @@ describe('drawShape', () => {
 
   it('ohne Füllung zeichnet nur die Umrandung', () => {
     const c = blankCanvas();
-    drawShape(c.getContext('2d'), shape({ filled: false, strokeWidth: 6, strokeColor: '#0000ff' }));
+    drawShape(context2d(c), shape({ filled: false, strokeWidth: 6, strokeColor: '#0000ff' }));
     expect(pixelAt(c, 100, 100)[3]).toBe(0);
     expect(pixelAt(c, 50, 100)).toEqual([0, 0, 255, 255]);
   });
 
   it('Linienformen werden gestrichen (Pfeil)', () => {
     const c = blankCanvas();
-    const arrow = { ...createShape('arrow', 200, 200), x: 100, y: 100, strokeColor: '#00ff00' };
-    drawShape(c.getContext('2d'), arrow);
+    const arrow = { ...createShape('arrow', 200, 200)!, x: 100, y: 100, strokeColor: '#00ff00' };
+    drawShape(context2d(c), arrow);
     expect(pixelAt(c, 100, 100)).toEqual([0, 255, 0, 255]);
   });
 });
 
 describe('useCanvasRenderer – Formen', () => {
-  let img;
+  let img: HTMLImageElement;
   beforeAll(async () => {
     img = await makeImage(200, 200);
   });
 
-  function setup(store) {
+  function setup(store: Pick<RendererImageStore, 'shapes' | 'selectedShapeId'>) {
     const canvasEl = blankCanvas();
     const renderer = useCanvasRenderer({
       canvas: ref(canvasEl),
-      currentImage: ref(img),
+      currentImage: ref<EditorImage | null>(img),
       isCollageMode: ref(false),
-      imageStore: { texts: [], imageLayers: [], hasImageLayers: false, ...store },
+      // Attrappe ohne Texte und Ebenen
+      imageStore: {
+        texts: [],
+        imageLayers: [],
+        hasImageLayers: false,
+        ...store,
+      } as unknown as RendererImageStore,
       transform: useTransform(),
       filters: ref({ ...DEFAULT_FILTERS }),
       background: ref({ ...DEFAULT_BACKGROUND }),
@@ -120,7 +129,7 @@ describe('Marker und Verpixeln', () => {
   /** Canvas mit kleinem Schachbrett (scharfe Kanten) */
   function checkerCanvas() {
     const c = blankCanvas();
-    const x = c.getContext('2d');
+    const x = context2d(c);
     for (let i = 0; i < 20; i++) {
       for (let j = 0; j < 20; j++) {
         x.fillStyle = (i + j) % 2 ? '#000000' : '#ffffff';
@@ -133,7 +142,7 @@ describe('Marker und Verpixeln', () => {
   it('Marker zeigt die Nummer in der Zahlenfarbe auf der Füllfarbe', () => {
     const c = blankCanvas();
     const m = {
-      ...createShape('marker', 200, 200),
+      ...createShape('marker', 200, 200)!,
       x: 100,
       y: 100,
       width: 120,
@@ -142,8 +151,8 @@ describe('Marker und Verpixeln', () => {
       textColor: '#0000ff',
       number: 1,
     };
-    drawShape(c.getContext('2d'), m);
-    const ctx = c.getContext('2d');
+    drawShape(context2d(c), m);
+    const ctx = context2d(c);
     const data = ctx.getImageData(70, 70, 60, 60).data;
     let blue = 0;
     for (let i = 0; i < data.length; i += 4) if (data[i + 2] > 200 && data[i] < 60) blue++;
@@ -156,7 +165,7 @@ describe('Marker und Verpixeln', () => {
     const c = checkerCanvas();
     const before = snapshot(c);
     const shape = {
-      ...createShape('pixelate', 200, 200),
+      ...createShape('pixelate', 200, 200)!,
       effect,
       x: 100,
       y: 100,
@@ -164,14 +173,12 @@ describe('Marker und Verpixeln', () => {
       height: 80,
       intensity: 80,
     };
-    drawShape(c.getContext('2d'), shape);
+    drawShape(context2d(c), shape);
     // außerhalb identisch
-    expect(pixelAt(c, 5, 5)).toEqual(
-      Array.from(before.getContext('2d').getImageData(5, 5, 1, 1).data)
-    );
+    expect(pixelAt(c, 5, 5)).toEqual(Array.from(context2d(before).getImageData(5, 5, 1, 1).data));
     // innen: deutlich weniger harte Wechsel als vorher
-    const changes = (canvas) => {
-      const d = canvas.getContext('2d').getImageData(70, 100, 60, 1).data;
+    const changes = (canvas: HTMLCanvasElement) => {
+      const d = context2d(canvas).getImageData(70, 100, 60, 1).data;
       let n = 0;
       for (let i = 4; i < d.length; i += 4) if (Math.abs(d[i] - d[i - 4]) > 128) n++;
       return n;
@@ -182,34 +189,42 @@ describe('Marker und Verpixeln', () => {
 });
 
 describe('Text in Formen und Freihand (Canvas)', () => {
-  function inkInRegion(c, x0, y0, x1, y1, test) {
-    const data = c.getContext('2d').getImageData(x0, y0, x1 - x0, y1 - y0).data;
+  function inkInRegion(
+    c: HTMLCanvasElement,
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+    test: (r: number, g: number, b: number, a: number) => boolean
+  ) {
+    const data = context2d(c).getImageData(x0, y0, x1 - x0, y1 - y0).data;
     let n = 0;
     for (let i = 0; i < data.length; i += 4)
       if (test(data[i], data[i + 1], data[i + 2], data[i + 3])) n++;
     return n;
   }
-  const isDark = (r, g, b, a) => a > 200 && r < 90 && g < 90 && b < 90;
+  const isDark = (r: number, g: number, b: number, a: number) =>
+    a > 200 && r < 90 && g < 90 && b < 90;
 
   it('Text liegt mittig in der Form und bleibt beim Spiegeln lesbar', () => {
     const base = shape({ fillColor: '#ffffff', text: 'HH', textColor: '#000000', textScale: 0.5 });
     const a = blankCanvas();
-    drawShape(a.getContext('2d'), base);
+    drawShape(context2d(a), base);
     expect(inkInRegion(a, 60, 85, 140, 115, isDark)).toBeGreaterThan(20);
     // außerhalb des Textbereichs bleibt die Füllung weiß
     expect(pixelAt(a, 55, 100)).toEqual([255, 255, 255, 255]);
 
     const b = blankCanvas();
-    drawShape(b.getContext('2d'), { ...base, flipX: true });
+    drawShape(context2d(b), { ...base, flipX: true });
     // Gespiegelt wird nur der Umriss: Text identisch
     expect(diffPixels(snapshot(a), snapshot(b))).toBe(0);
   });
 
   it('Text skaliert mit der Form', () => {
-    const count = (w, h) => {
+    const count = (w: number, h: number) => {
       const c = blankCanvas(400, 400);
       drawShape(
-        c.getContext('2d'),
+        context2d(c),
         shape({
           x: 200,
           y: 200,
@@ -227,13 +242,13 @@ describe('Text in Formen und Freihand (Canvas)', () => {
 
   it('Textmarker multipliziert: dunkle Bildteile bleiben dunkel, Weiß wird gelb', () => {
     const c = blankCanvas();
-    const ctx = c.getContext('2d');
+    const ctx = context2d(c);
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, 200, 200);
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, 100, 200);
-    const stroke = {
-      ...createShape('highlighter', 200, 200),
+    const stroke: Shape = {
+      ...createShape('highlighter', 200, 200)!,
       ...{
         x: 100,
         y: 100,
@@ -260,7 +275,7 @@ describe('Farbverlauf und Emojis (Canvas)', () => {
   it('linearer Verlauf: links Start-, rechts Endfarbe', () => {
     const c = blankCanvas();
     drawShape(
-      c.getContext('2d'),
+      context2d(c),
       shape({ fillType: 'linear', fillColor: '#ff0000', fillColor2: '#0000ff', gradientAngle: 0 })
     );
     const [lr, , lb] = pixelAt(c, 52, 100);
@@ -274,7 +289,7 @@ describe('Farbverlauf und Emojis (Canvas)', () => {
   it('radialer Verlauf: Mitte Start-, Rand Endfarbe', () => {
     const c = blankCanvas();
     drawShape(
-      c.getContext('2d'),
+      context2d(c),
       shape({ height: 100, fillType: 'radial', fillColor: '#ff0000', fillColor2: '#0000ff' })
     );
     expect(pixelAt(c, 100, 100)[0]).toBeGreaterThan(240);
@@ -283,9 +298,15 @@ describe('Farbverlauf und Emojis (Canvas)', () => {
 
   it('Emoji wird farbig im Rahmen gezeichnet, außerhalb bleibt der Canvas leer', () => {
     const c = blankCanvas();
-    const emoji = { ...createShape('emojiHeart', 200, 200), x: 100, y: 100, width: 80, height: 80 };
-    drawShape(c.getContext('2d'), emoji);
-    const data = c.getContext('2d').getImageData(0, 0, 200, 200).data;
+    const emoji = {
+      ...createShape('emojiHeart', 200, 200)!,
+      x: 100,
+      y: 100,
+      width: 80,
+      height: 80,
+    };
+    drawShape(context2d(c), emoji);
+    const data = context2d(c).getImageData(0, 0, 200, 200).data;
     let inside = 0;
     let outside = 0;
     for (let y = 0; y < 200; y++) {

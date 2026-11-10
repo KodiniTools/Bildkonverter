@@ -3,12 +3,22 @@
  * (einzeln und gesamt), SVG-Fallback, Fehlerpfad, Verwaltung.
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { ref } from 'vue';
+import { ref, type Ref } from 'vue';
 import { useBatchConversion } from '@/composables/useBatchConversion';
 import { loadImage } from '@/utils/fileUtils';
 import { makePngFile, installToastMock, t } from './helpers';
+import type { BatchSettings } from '@/composables/batch/types';
 
-let settings, batch, toasts;
+/** Fenster mit den (in Tests ersetzten) Dialogen der File System Access API */
+type PickerWindow = Window & {
+  showSaveFilePicker?: (options: { suggestedName: string }) => Promise<unknown>;
+  showDirectoryPicker?: () => Promise<unknown>;
+};
+const win = window as PickerWindow;
+
+let settings: Ref<BatchSettings>;
+let batch: ReturnType<typeof useBatchConversion>;
+let toasts: string[];
 
 beforeEach(async () => {
   toasts = installToastMock();
@@ -20,7 +30,8 @@ beforeEach(async () => {
     maintainAspect: true,
     prefix: 'x_',
     pdfMode: 'single',
-  });
+    // ohne keepExif: wie bisher undefined (EXIF wird entfernt)
+  } as BatchSettings);
   batch = useBatchConversion({ settings, t, confirm: async () => true });
   await batch.addFiles([
     await makePngFile('a.png', 400, 300),
@@ -29,7 +40,7 @@ beforeEach(async () => {
   ]);
 });
 
-async function run(format, extra = {}) {
+async function run(format: string, extra: Partial<BatchSettings> = {}) {
   Object.assign(settings.value, { format, width: null, height: null, pdfMode: 'single' }, extra);
   await batch.startProcessing();
   return batch.files.value.map((f) => ({
@@ -72,7 +83,7 @@ describe('useBatchConversion', () => {
     await run('jpg', { width: 100 });
     const dims = await Promise.all(
       batch.files.value.map(async (f) => {
-        const img = await loadImage(URL.createObjectURL(f.processedBlob));
+        const img = await loadImage(URL.createObjectURL(f.processedBlob!));
         return [img.width, img.height];
       })
     );
@@ -103,7 +114,7 @@ describe('useBatchConversion', () => {
   it('fällt ohne Backend auf den SVG-Wrapper zurück', async () => {
     const result = await run('svg');
     expect(result.every((r) => r.status === 'completed' && r.type === 'image/svg+xml')).toBe(true);
-    const svg = await batch.files.value[0].processedBlob.text();
+    const svg = await batch.files.value[0].processedBlob!.text();
     expect(svg.startsWith('<?xml')).toBe(true);
     expect(svg).toContain('<image');
   });
@@ -134,15 +145,15 @@ describe('useBatchConversion', () => {
 });
 
 describe('useBatchConversion: Speichern mit Dialog', () => {
-  const realSavePicker = window.showSaveFilePicker;
-  const realDirPicker = window.showDirectoryPicker;
+  const realSavePicker = win.showSaveFilePicker;
+  const realDirPicker = win.showDirectoryPicker;
 
-  function fakeFolder(existing = []) {
-    const written = new Map();
+  function fakeFolder(existing: string[] = []) {
+    const written = new Map<string, Blob>();
     const names = new Set(existing);
     return {
       written,
-      async getFileHandle(name, opts) {
+      async getFileHandle(name: string, opts?: { create?: boolean }) {
         if (!names.has(name) && !opts?.create) {
           throw Object.assign(new Error('nf'), { name: 'NotFoundError' });
         }
@@ -150,7 +161,7 @@ describe('useBatchConversion: Speichern mit Dialog', () => {
         return {
           name,
           createWritable: async () => ({
-            write: async (blob) => written.set(name, blob),
+            write: async (blob: Blob) => written.set(name, blob),
             close: async () => {},
             abort: async () => {},
           }),
@@ -160,26 +171,26 @@ describe('useBatchConversion: Speichern mit Dialog', () => {
   }
 
   afterEach(() => {
-    window.showSaveFilePicker = realSavePicker;
-    window.showDirectoryPicker = realDirPicker;
+    win.showSaveFilePicker = realSavePicker;
+    win.showDirectoryPicker = realDirPicker;
   });
 
   it('„Alle herunterladen“ schreibt alle Dateien in den gewählten Ordner, ohne zu überschreiben', async () => {
     await run('png');
     const folder = fakeFolder(['x_a.png']);
-    window.showDirectoryPicker = async () => folder;
+    win.showDirectoryPicker = async () => folder;
 
     await batch.downloadAll();
 
     expect([...folder.written.keys()]).toEqual(['x_a (1).png', 'x_b.png']);
-    expect(folder.written.get('x_b.png').type).toBe('image/png');
+    expect(folder.written.get('x_b.png')!.type).toBe('image/png');
     expect(toasts).toContain('success:save.folderSaved{"count":2}');
     expect(batch.downloadReady.value).toBe(false);
   });
 
   it('Abbruch im Ordnerdialog speichert nichts', async () => {
     await run('png');
-    window.showDirectoryPicker = async () => {
+    win.showDirectoryPicker = async () => {
       throw Object.assign(new Error('abort'), { name: 'AbortError' });
     };
 
@@ -191,11 +202,11 @@ describe('useBatchConversion: Speichern mit Dialog', () => {
 
   it('einzelne Datei und ZIP gehen über den Speichern-unter-Dialog', async () => {
     await run('png');
-    const saved = [];
-    window.showSaveFilePicker = async ({ suggestedName }) => ({
+    const saved: [string, string][] = [];
+    win.showSaveFilePicker = async ({ suggestedName }) => ({
       name: suggestedName,
       createWritable: async () => ({
-        write: async (blob) => saved.push([suggestedName, blob.type]),
+        write: async (blob: Blob) => saved.push([suggestedName, blob.type]),
         close: async () => {},
         abort: async () => {},
       }),
