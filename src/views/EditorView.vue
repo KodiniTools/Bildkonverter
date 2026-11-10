@@ -1013,6 +1013,8 @@ async function clearImage() {
   resizeWidth.value = 0;
   resizeHeight.value = 0;
 
+  // Texte und Formen gehören zum gelöschten Bild (wie in resetToOriginal)
+  imageStore.texts.splice(0, imageStore.texts.length);
   selectedTextId.value = null;
   imageStore.clearShapes();
 
