@@ -9,7 +9,7 @@ function solidCanvas(width = 64, height = 48) {
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d')!;
   ctx.fillStyle = '#3366cc';
   ctx.fillRect(0, 0, width, height);
   return canvas;
@@ -34,8 +34,8 @@ describe('ExportManager download-Option', () => {
     expect(download).not.toHaveBeenCalled();
     expect(result.filename).toBe(filename);
     expect(result.blob).toBeInstanceOf(Blob);
-    expect(result.blob.type).toBe(mime);
-    expect(result.blob.size).toBeGreaterThan(0);
+    expect(result.blob!.type).toBe(mime);
+    expect(result.blob!.size).toBeGreaterThan(0);
   });
 
   it('Zielgröße: download false liefert ebenfalls nur den Blob', async () => {
@@ -49,14 +49,14 @@ describe('ExportManager download-Option', () => {
     });
 
     expect(download).not.toHaveBeenCalled();
-    expect(result.blob.type).toBe('image/jpeg');
+    expect(result.blob!.type).toBe('image/jpeg');
   });
 
   it('PDF: download false liefert einen PDF-Blob statt pdf.save', async () => {
     const manager = new ExportManager();
     const result = await manager.exportImage(solidCanvas(), 'pdf', 'bild', { download: false });
     expect(result.blob).toBeInstanceOf(Blob);
-    expect(result.blob.type).toBe('application/pdf');
+    expect(result.blob!.type).toBe('application/pdf');
   });
 
   it('ohne Option wird wie bisher heruntergeladen', async () => {
