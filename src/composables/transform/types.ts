@@ -1,4 +1,4 @@
-/** Bild-Transformationen des Editors (siehe DEFAULT_TRANSFORMS in useTransform.js) */
+/** Bild-Transformationen des Editors (siehe DEFAULT_TRANSFORMS in useTransform.ts) */
 export interface ImageTransforms {
   opacity: number;
   rotation: number;
