@@ -5,25 +5,35 @@
  * Spiegeln, Rotation, Text löschen). Ausgelagert aus EditorView.vue –
  * Verhalten unverändert. Eingabefelder (INPUT/TEXTAREA/SELECT) werden
  * weiterhin ignoriert, damit normales Tippen nicht abgefangen wird.
- *
- * @param {object} deps
- * @param {import('vue').Ref} deps.canvas
- * @param {import('vue').Ref} deps.currentImage
- * @param {import('vue').Ref} deps.selectedTextId
- * @param {import('vue').Ref} deps.isSpacePressed
- * @param {import('vue').Ref} deps.isPanning
- * @param {object}   deps.transform
- * @param {object}   deps.imageStore
- * @param {Function} deps.renderImage
- * @param {Function} deps.undo
- * @param {Function} deps.redo
- * @param {Function} deps.handleFlipHorizontal
- * @param {Function} deps.handleFlipVertical
- * @param {Function} deps.handleRotate90
- * @param {Function} deps.handleRotate90Counter
- * @param {Function} deps.handleRotate180
- * @param {Function} deps.t
  */
+import type { Ref } from 'vue';
+import type { useImageStore } from '@/stores/imageStore';
+import type { useTransform } from '@/composables/useTransform';
+import type { StoreText } from '@/stores/image/types';
+import type { EditorImage, Translate } from './types';
+
+export interface EditorKeyboardDeps {
+  canvas: Ref<HTMLCanvasElement | null>;
+  currentImage: Ref<EditorImage | null>;
+  selectedTextId: Ref<StoreText['id'] | null>;
+  isSpacePressed: Ref<boolean>;
+  isPanning: Ref<boolean>;
+  transform: Pick<ReturnType<typeof useTransform>, 'canPan' | 'transforms' | 'setRotation'>;
+  imageStore: Pick<
+    ReturnType<typeof useImageStore>,
+    'drawTool' | 'setDrawTool' | 'deleteText' | 'saveState' | 'selectedShapeId' | 'deleteShape'
+  >;
+  renderImage: () => void;
+  undo: () => void;
+  redo: () => void;
+  handleFlipHorizontal: () => void;
+  handleFlipVertical: () => void;
+  handleRotate90: () => void;
+  handleRotate90Counter: () => void;
+  handleRotate180: () => void;
+  t: Translate;
+}
+
 export function useEditorKeyboard({
   canvas,
   currentImage,
@@ -41,8 +51,8 @@ export function useEditorKeyboard({
   handleRotate90Counter,
   handleRotate180,
   t,
-}) {
-  function handleKeydown(e) {
+}: EditorKeyboardDeps) {
+  function handleKeydown(e: KeyboardEvent) {
     // Ignoriere Shortcuts wenn Input/Textarea fokussiert ist
     const isInputFocused =
       document.activeElement?.tagName === 'INPUT' ||
@@ -160,7 +170,7 @@ export function useEditorKeyboard({
           e.preventDefault();
           imageStore.deleteText(selectedTextId.value);
           selectedTextId.value = null;
-          imageStore.saveState('Text gelöscht', 'text');
+          imageStore.saveState('Text gelöscht');
         } else if (imageStore.selectedShapeId) {
           e.preventDefault();
           imageStore.deleteShape(imageStore.selectedShapeId);
@@ -171,7 +181,7 @@ export function useEditorKeyboard({
     }
   }
 
-  function handleKeyup(e) {
+  function handleKeyup(e: KeyboardEvent) {
     // Leertaste loslassen beendet Pan-Modus
     if (e.code === 'Space') {
       isSpacePressed.value = false;

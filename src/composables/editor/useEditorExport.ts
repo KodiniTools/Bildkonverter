@@ -4,19 +4,9 @@
  * Export-Dialog, Datei-Export, Teilen (Systemdialog/Zwischenablage), Drucken
  * und die optionale Weiterleitung des exportierten Bildes an ein anderes
  * Kodini-Tool (Handoff). Ausgelagert aus EditorView.vue.
- *
- * @param {object} deps
- * @param {import('vue').Ref} deps.canvas
- * @param {import('vue').Ref} deps.outputFormat
- * @param {import('vue').Ref} deps.currentFileName
- * @param {import('vue').Ref<Blob|null>} [deps.sourceFile] Originaldatei (für EXIF)
- * @param {object}   deps.imageStore
- * @param {Function} deps.renderImage
- * @param {Function} deps.renderImageForExport
- * @param {Function} deps.t
  */
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
-import { exportImage, getFormatInfo } from '@/utils/exportUtils';
+import { computed, onBeforeUnmount, ref, watch, type Ref } from 'vue';
+import { exportImage, getFormatInfo, type ExportResult } from '@/utils/exportUtils';
 import { saveFile } from '@/utils/saveFile';
 import { IS_DESKTOP } from '@/lib/core/desktop';
 import { canvasToBlob } from '@/utils/conversionUtils';
@@ -39,17 +29,50 @@ import {
   shareFile,
 } from '@/utils/shareUtils';
 import { logger } from '@/utils/logger';
+import { context2d } from '@/utils/canvas2d';
+import type { useImageStore } from '@/stores/imageStore';
+import type { Translate } from './types';
+
+export interface EditorExportDeps {
+  canvas: Ref<HTMLCanvasElement | null>;
+  outputFormat: Ref<string>;
+  currentFileName: Ref<string | null | undefined>;
+  /** Originaldatei (für EXIF) */
+  sourceFile?: Ref<Blob | null>;
+  imageStore: Pick<ReturnType<typeof useImageStore>, 'texts'>;
+  renderImage: () => void;
+  renderImageForExport: (forceTransparent?: boolean, includeTexts?: boolean) => void;
+  t: Translate;
+}
+
+/** Vorab geschätzte Exportgröße (siehe runEstimate) */
+export interface SizeEstimate {
+  bytes: number;
+  /** Prozent; nur bei JPEG/WebP */
+  quality?: number;
+  width: number;
+  height: number;
+  reached: boolean;
+  scaled?: boolean;
+}
+
+export type ExportDialogMode = 'download' | 'share';
+
+/** Fehlermeldung wie bisher über `error.message` */
+function messageOf(error: unknown): string {
+  return (error as Error).message;
+}
 
 export function useEditorExport({
   canvas,
   outputFormat,
   currentFileName,
-  sourceFile = ref(null),
+  sourceFile = ref<Blob | null>(null),
   imageStore,
   renderImage,
   renderImageForExport,
   t,
-}) {
+}: EditorExportDeps) {
   // ===== EXPORT STATE =====
   const exportQuality = ref(92); // Quality-Wert (0-100)
   const isExporting = ref(false); // Loading-State beim Export
@@ -57,9 +80,9 @@ export function useEditorExport({
   const showExportDialog = ref(false);
   const exportDialogFilename = ref('');
   // 'download' oder 'share': derselbe Dialog (Dateiname) für beide Aktionen
-  const exportDialogMode = ref('download');
+  const exportDialogMode = ref<ExportDialogMode>('download');
   // Fertig kodierte Datei, falls der Systemdialog einen zweiten Klick braucht
-  const pendingShareFile = ref(null);
+  const pendingShareFile = ref<File | null>(null);
 
   // ===== ZIEL-DATEIGRÖSSE (nur JPEG/WebP) =====
   const targetSizeEnabled = ref(false);
@@ -78,7 +101,8 @@ export function useEditorExport({
   /** Normalisierter EXIF-Block für den Export; null = entfernen/keiner vorhanden */
   async function exportExif() {
     if (!keepExif.value || !exifAvailable.value) return null;
-    return readSourceExif(sourceFile.value);
+    // exifAvailable setzt eine Originaldatei voraus
+    return readSourceExif(sourceFile.value!);
   }
 
   /** Zielgröße für den Export; null = aus, nicht unterstützt oder ungültig */
@@ -93,9 +117,9 @@ export function useEditorExport({
   // Kodiert den aktuellen Canvas mit denselben Einstellungen wie der Export
   // (JPEG/WebP inkl. Zielgröße, PNG). Entprellt, weil Kodieren großer Bilder
   // spürbar dauert; veraltete Ergebnisse werden verworfen.
-  const sizeEstimate = ref(null);
+  const sizeEstimate = ref<SizeEstimate | null>(null);
   const isEstimating = ref(false);
-  let estimateTimer = null;
+  let estimateTimer: ReturnType<typeof setTimeout> | null = null;
   let estimateRequest = 0;
 
   function estimatableFormat() {
@@ -114,7 +138,7 @@ export function useEditorExport({
 
     isEstimating.value = true;
     try {
-      let result;
+      let result: SizeEstimate;
       const exif = await exportExif();
       if (outputFormat.value === 'png') {
         const blob = await withExif(await canvasToBlob(source, 'image/png'), exif);
@@ -175,7 +199,7 @@ export function useEditorExport({
 
   // ===== FORWARD/HANDOFF STATE (nach Download zu anderem Tool weiterleiten) =====
   const showForwardOffer = ref(false);
-  const forwardCanvasSnapshot = ref(null); // Kopie des exportierten Canvas
+  const forwardCanvasSnapshot = ref<HTMLCanvasElement | null>(null); // Kopie des exportierten Canvas
   const forwardFilename = ref('');
 
   /** Dateiname aus dem Dialog, mit sicherem Default */
@@ -183,7 +207,7 @@ export function useEditorExport({
     return exportDialogFilename.value.trim() || currentFileName.value || 'image';
   }
 
-  function openExportDialog(mode) {
+  function openExportDialog(mode: ExportDialogMode) {
     if (!canvas.value) return;
     exportDialogMode.value = mode;
     pendingShareFile.value = null;
@@ -210,14 +234,15 @@ export function useEditorExport({
    * Rendert ohne Auswahl-Markierung und kodiert mit den Export-Einstellungen
    * (Format, Qualität, Zielgröße, EXIF). `download: false` liefert nur den Blob.
    */
-  async function renderAndExport(filename, { download }) {
+  async function renderAndExport(filename: string, { download }: { download: boolean }) {
     // Vor dem Export-Render lesen: Zwischen Render und Kodierung darf kein
     // await liegen, sonst könnte ein Vorschau-Neuzeichnen dazwischenkommen
     const exif = await exportExif();
     const useTransparent = outputFormat.value === 'png' && exportTransparent.value;
     renderImageForExport(useTransparent);
 
-    return exportImage(canvas.value, outputFormat.value, filename, {
+    // Aufrufer prüfen den Canvas vorher (Dialog öffnet nur mit Canvas)
+    return exportImage(canvas.value!, outputFormat.value, filename, {
       quality: exportQuality.value / 100,
       texts: imageStore.texts || [],
       targetSize: targetSizeOptions.value,
@@ -239,7 +264,8 @@ export function useEditorExport({
     isExporting.value = true;
 
     try {
-      let result = null;
+      // Zuweisung im Callback: ohne `as` würde TS result dauerhaft auf null einengen
+      let result = null as ExportResult | null;
       // Systemdialog für Speicherort/Dateiname öffnet synchron in der Klick-Geste;
       // kodiert wird erst danach und nur, wenn nicht abgebrochen wurde
       const saved = await saveFile({
@@ -248,8 +274,10 @@ export function useEditorExport({
         // Der Name kam schon aus dem Export-Dialog
         askName: false,
         getBlob: async () => {
-          result = await renderAndExport(filename, { download: false });
-          return result.blob;
+          const exported = await renderAndExport(filename, { download: false });
+          result = exported;
+          // Ohne Download liefert exportImage immer den Blob
+          return exported.blob!;
         },
       });
 
@@ -263,9 +291,10 @@ export function useEditorExport({
       if (!IS_DESKTOP) {
         try {
           const snap = document.createElement('canvas');
-          snap.width = canvas.value.width;
-          snap.height = canvas.value.height;
-          snap.getContext('2d').drawImage(canvas.value, 0, 0);
+          const source = canvas.value!;
+          snap.width = source.width;
+          snap.height = source.height;
+          context2d(snap).drawImage(source, 0, 0);
           forwardCanvasSnapshot.value = snap;
           forwardFilename.value = filename;
           showForwardOffer.value = true;
@@ -289,7 +318,7 @@ export function useEditorExport({
       logger.error('❌ Export fehlgeschlagen:', error);
 
       if (window.$toast) {
-        window.$toast.error(`Export fehlgeschlagen: ${error.message}`);
+        window.$toast.error(`Export fehlgeschlagen: ${messageOf(error)}`);
       }
     } finally {
       isExporting.value = false;
@@ -314,12 +343,13 @@ export function useEditorExport({
 
     const filename = dialogFilename();
     isExporting.value = true;
-    let file = null;
+    let file: File;
 
     try {
       const result = await renderAndExport(filename, { download: false });
-      file = new File([result.blob], result.filename, {
-        type: result.blob.type || mimeForFormat(result.format),
+      // Ohne Download liefert exportImage immer den Blob
+      file = new File([result.blob!], result.filename, {
+        type: result.blob!.type || mimeForFormat(result.format),
       });
       if (result.targetReached === false) {
         window.$toast?.warning(
@@ -328,7 +358,7 @@ export function useEditorExport({
       }
     } catch (error) {
       logger.error('❌ Export zum Teilen fehlgeschlagen:', error);
-      window.$toast?.error(`Export fehlgeschlagen: ${error.message}`);
+      window.$toast?.error(`Export fehlgeschlagen: ${messageOf(error)}`);
       showExportDialog.value = false;
       return;
     } finally {
@@ -345,14 +375,17 @@ export function useEditorExport({
     if (file) return openShareSheet(file);
   }
 
-  async function openShareSheet(file) {
+  async function openShareSheet(file: File) {
     try {
       const outcome = await shareFile(file, { title: file.name });
       pendingShareFile.value = null;
       showExportDialog.value = false;
       if (outcome === 'shared') window.$toast?.success(t('toast.editor.shared'));
     } catch (error) {
-      if (error?.name === 'NotAllowedError' && !pendingShareFile.value) {
+      if (
+        (error as Error | null | undefined)?.name === 'NotAllowedError' &&
+        !pendingShareFile.value
+      ) {
         // Geste abgelaufen (v. a. Safari nach längerem Kodieren): Dialog bleibt
         // offen und bietet „Jetzt teilen“ mit der fertigen Datei an
         pendingShareFile.value = file;
@@ -374,7 +407,7 @@ export function useEditorExport({
       return;
     }
 
-    let pngPromise;
+    let pngPromise: Promise<Blob>;
     try {
       // Snapshot synchron nach dem Export-Render, damit das Neuzeichnen der
       // Vorschau (mit Auswahl-Markierung) die Kodierung nicht beeinflusst
@@ -382,7 +415,7 @@ export function useEditorExport({
       const snap = document.createElement('canvas');
       snap.width = canvas.value.width;
       snap.height = canvas.value.height;
-      snap.getContext('2d').drawImage(canvas.value, 0, 0);
+      context2d(snap).drawImage(canvas.value, 0, 0);
       pngPromise = canvasToBlob(snap, 'image/png');
     } catch (error) {
       logger.error('❌ Kopieren fehlgeschlagen:', error);
@@ -429,7 +462,7 @@ export function useEditorExport({
   }
 
   // Weiterleitung an anderes Kodini-Tool (Color-Extractor / Visualizer)
-  function forwardTo(target) {
+  function forwardTo(target: string) {
     const snap = forwardCanvasSnapshot.value;
     showForwardOffer.value = false;
 

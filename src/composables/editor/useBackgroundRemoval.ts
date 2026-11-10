@@ -7,27 +7,33 @@
  * wieder her. Damit die Transparenz sichtbar und beim Export erhalten bleibt,
  * wird die Hintergrundfarbe ausgeblendet und der Export auf PNG mit
  * Transparenz gestellt.
- *
- * @param {object}   deps
- * @param {import('vue').Ref} deps.currentImage
- * @param {import('vue').Ref<boolean>} deps.isCollageMode
- * @param {import('vue').Ref} deps.background        background-Ref aus useFilterManagement
- * @param {import('vue').Ref<string>} deps.outputFormat
- * @param {import('vue').Ref<boolean>} deps.exportTransparent
- * @param {Function} deps.renderImage
- * @param {Function} [deps.updateImageSize]
- * @param {Function} deps.saveHistory
- * @param {Function} deps.t
- * @param {Function} [deps.remove]  Ersatz für removeBackground (Tests)
  */
-import { computed, ref } from 'vue';
+import { computed, ref, type Ref } from 'vue';
+import type { EditorBackground } from '@/composables/useFilterManagement';
+import type { EditorImage, Translate } from './types';
 import {
   MODEL_SIZE_MB,
   isBackgroundRemovalSupported,
   removeBackground,
+  type RemovalPhase,
 } from '@/lib/backgroundRemoval';
 import { loadImage } from '@/utils/fileUtils';
 import { logger } from '@/utils/logger';
+
+export interface BackgroundRemovalDeps {
+  currentImage: Ref<EditorImage | null>;
+  isCollageMode?: Ref<boolean>;
+  /** background-Ref aus useFilterManagement */
+  background: Ref<EditorBackground>;
+  outputFormat: Ref<string>;
+  exportTransparent: Ref<boolean>;
+  renderImage: () => void;
+  updateImageSize?: () => void;
+  saveHistory: () => void;
+  t: Translate;
+  /** Ersatz für removeBackground (Tests) */
+  remove?: typeof removeBackground;
+}
 
 export function useBackgroundRemoval({
   currentImage,
@@ -40,10 +46,10 @@ export function useBackgroundRemoval({
   saveHistory,
   t,
   remove = removeBackground,
-}) {
+}: BackgroundRemovalDeps) {
   const busy = ref(false);
-  const phase = ref(null);
-  const fraction = ref(null);
+  const phase = ref<RemovalPhase | null>(null);
+  const fraction = ref<number | null>(null);
   const available = isBackgroundRemovalSupported();
 
   /** Zustand für das Panel */

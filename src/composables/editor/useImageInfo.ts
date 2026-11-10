@@ -1,4 +1,4 @@
-import { ref, watch } from 'vue';
+import { ref, watch, type Ref } from 'vue';
 import { formatSize } from '@/utils/fileUtils';
 
 /**
@@ -7,12 +7,15 @@ import { formatSize } from '@/utils/fileUtils';
  * Verwaltet die Anzeige-Infos zum aktuellen Canvas: Breite, Höhe und
  * geschätzte Dateigröße sowie deren Aktualisierung sund Formatierung.
  * Ausgelagert aus EditorView.vue – Verhalten unverändert.
- *
- * @param {object} deps
- * @param {import('vue').Ref} deps.canvas        Canvas-Element-Ref
- * @param {import('vue').Ref} deps.outputFormat  Aktuelles Export-Format
  */
-export function useImageInfo({ canvas, outputFormat }) {
+export interface ImageInfoDeps {
+  /** Canvas-Element-Ref */
+  canvas: Ref<HTMLCanvasElement | null>;
+  /** Aktuelles Export-Format */
+  outputFormat: Ref<string>;
+}
+
+export function useImageInfo({ canvas, outputFormat }: ImageInfoDeps) {
   const imageWidth = ref(0);
   const imageHeight = ref(0);
   const imageSize = ref(0);
@@ -38,11 +41,12 @@ export function useImageInfo({ canvas, outputFormat }) {
 
     try {
       const dataUrl = canvas.value.toDataURL(`image/${outputFormat.value}`, 0.92);
-      const base64String = dataUrl.split(',')[1];
+      // Wie bisher: ohne Komma-Teil wirft endsWith und der catch-Zweig schätzt
+      const base64String = dataUrl.split(',')[1]!;
       const padding = base64String.endsWith('==') ? 2 : base64String.endsWith('=') ? 1 : 0;
       const bytes = (base64String.length * 3) / 4 - padding;
       imageSize.value = Math.round(bytes);
-    } catch (error) {
+    } catch {
       imageSize.value = Math.round(canvas.value.toDataURL().length * 0.75);
     }
   }

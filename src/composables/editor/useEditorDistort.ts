@@ -6,21 +6,29 @@
  * Verzerr-Modus und merkt sich die Umrissform. Danach wirken Schatten,
  * abgerundete Ecken und Rahmen wieder – entlang der verzerrten Form.
  * Filter werden nicht eingebacken, sie bleiben live editierbar.
- *
- * @param {object}   deps
- * @param {import('vue').Ref} deps.canvas
- * @param {import('vue').Ref} deps.currentImage
- * @param {object}   deps.transform        useTransform()-Instanz
- * @param {object}   deps.resizeManager
- * @param {Function} deps.renderImage
- * @param {Function} [deps.updateImageSize]
- * @param {Function} deps.saveHistory
- * @param {Function} deps.t
  */
-import { ref } from 'vue';
+import { ref, type Ref } from 'vue';
+import type { useTransform } from '@/composables/useTransform';
+import type { useResizeManager } from '@/composables/useResizeManager';
+import type { EditorImage, Translate } from './types';
 import { bakeDistortion } from '@/utils/warpImage';
 import { loadImage } from '@/utils/fileUtils';
 import { logger } from '@/utils/logger';
+
+export interface EditorDistortDeps {
+  canvas: Ref<HTMLCanvasElement | null>;
+  currentImage: Ref<EditorImage | null>;
+  /** useTransform()-Instanz */
+  transform: Pick<
+    ReturnType<typeof useTransform>,
+    'transforms' | 'hasDistortion' | 'commitDistortion'
+  >;
+  resizeManager: Pick<ReturnType<typeof useResizeManager>, 'initFromDimensions'>;
+  renderImage: () => void;
+  updateImageSize?: () => void;
+  saveHistory: () => void;
+  t: Translate;
+}
 
 export function useEditorDistort({
   canvas,
@@ -31,27 +39,29 @@ export function useEditorDistort({
   updateImageSize,
   saveHistory,
   t,
-}) {
+}: EditorDistortDeps) {
   const isApplyingDistort = ref(false);
 
   /** @returns {Promise<boolean>} true, wenn die Verzerrung übernommen wurde */
   async function applyDistortion() {
     if (isApplyingDistort.value) return false;
-    if (!canvas.value || !currentImage.value || !transform.hasDistortion.value) return false;
+    const cv = canvas.value;
+    const source = currentImage.value;
+    if (!cv || !source || !transform.hasDistortion.value) return false;
 
     const tf = transform.transforms.value;
     isApplyingDistort.value = true;
     try {
-      const baked = bakeDistortion(currentImage.value, tf.cornerOffsets, tf.shapeQuad);
+      const baked = bakeDistortion(source, tf.cornerOffsets, tf.shapeQuad);
       const img = await loadImage(baked.canvas.toDataURL('image/png'));
 
       // Anzeigegröße im selben Maßstab wie bisher, nur auf die neue Bounding-Box
-      const width = Math.max(1, Math.round(canvas.value.width * baked.spanU));
-      const height = Math.max(1, Math.round(canvas.value.height * baked.spanV));
+      const width = Math.max(1, Math.round(cv.width * baked.spanU));
+      const height = Math.max(1, Math.round(cv.height * baked.spanV));
 
       currentImage.value = img;
-      canvas.value.width = width;
-      canvas.value.height = height;
+      cv.width = width;
+      cv.height = height;
       resizeManager.initFromDimensions(width, height);
       transform.commitDistortion(baked.shapeQuad);
 

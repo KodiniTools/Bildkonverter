@@ -4,15 +4,27 @@
  * Bündelt das Erstellen, Aktualisieren und Löschen der Text-Ebenen im
  * Editor. Ausgelagert aus EditorView.vue. Undo/Redo läuft über die
  * gemeinsame Editor-Historie (saveHistory), nicht über eine eigene Text-History.
- *
- * @param {object}   deps
- * @param {import('vue').Ref} deps.currentImage    Aktuell geladenes Bild
- * @param {import('vue').Ref} deps.canvas          Canvas-Element-Ref
- * @param {object}   deps.imageStore               Pinia-Image-Store
- * @param {import('vue').Ref} deps.selectedTextId  ID des selektierten Textes
- * @param {Function} deps.renderImage              Rendert das Canvas neu
- * @param {Function} deps.saveHistory              Speichert allgemeine History
  */
+import type { Ref } from 'vue';
+import type { useImageStore } from '@/stores/imageStore';
+import type { StoreText } from '@/stores/image/types';
+import type { EditorImage } from './types';
+
+export interface EditorTextDeps {
+  /** Aktuell geladenes Bild */
+  currentImage: Ref<EditorImage | null>;
+  /** Canvas-Element-Ref */
+  canvas: Ref<HTMLCanvasElement | null>;
+  /** Pinia-Image-Store */
+  imageStore: Pick<ReturnType<typeof useImageStore>, 'texts'>;
+  /** ID des selektierten Textes */
+  selectedTextId: Ref<StoreText['id'] | null>;
+  /** Rendert das Canvas neu */
+  renderImage: () => void;
+  /** Speichert allgemeine History */
+  saveHistory: () => void;
+}
+
 export function useEditorText({
   currentImage,
   canvas,
@@ -20,14 +32,16 @@ export function useEditorText({
   selectedTextId,
   renderImage,
   saveHistory,
-}) {
+}: EditorTextDeps) {
   function addText() {
     if (!currentImage.value) return;
-    const newText = {
+    // Mit geladenem Bild ist der Canvas gemountet
+    const cv = canvas.value!;
+    const newText: StoreText = {
       id: Date.now(),
       content: 'Neuer Text',
-      x: Math.floor(canvas.value.width / 2) - 50,
-      y: Math.floor(canvas.value.height / 2),
+      x: Math.floor(cv.width / 2) - 50,
+      y: Math.floor(cv.height / 2),
       fontSize: 32,
       fontFamily: 'Satoshi Regular',
       color: '#000000',
@@ -50,7 +64,7 @@ export function useEditorText({
     saveHistory();
   }
 
-  function updateSelectedText(updates) {
+  function updateSelectedText(updates: Partial<StoreText>) {
     if (!selectedTextId.value) return;
     const text = imageStore.texts.find((t) => t.id === selectedTextId.value);
     if (!text) return;
@@ -58,33 +72,37 @@ export function useEditorText({
     renderImage();
   }
 
-  const handleTextContentUpdate = (content) => updateSelectedText({ content, txt: content });
-  const handleTextFontSizeUpdate = (fontSize) => updateSelectedText({ fontSize, size: fontSize });
-  const handleTextColorUpdate = (color) => updateSelectedText({ color });
-  const handleTextRotationUpdate = (rotation) => updateSelectedText({ rotation });
-  const handleTextOpacityUpdate = (opacity) => updateSelectedText({ opacity });
-  const handleTextBoldUpdate = (bold) => updateSelectedText({ bold });
-  const handleTextItalicUpdate = (italic) => updateSelectedText({ italic });
-  const handleTextSkewXUpdate = (skewX) => updateSelectedText({ skewX });
-  const handleTextSkewYUpdate = (skewY) => updateSelectedText({ skewY });
-  const handleTextStrokeWidthUpdate = (strokeWidth) => updateSelectedText({ strokeWidth });
-  const handleTextStrokeColorUpdate = (strokeColor) => updateSelectedText({ strokeColor });
-  const handleTextShadowOffsetXUpdate = (shadowOffsetX) => updateSelectedText({ shadowOffsetX });
-  const handleTextShadowOffsetYUpdate = (shadowOffsetY) => updateSelectedText({ shadowOffsetY });
-  const handleTextShadowColorUpdate = (shadowColor) => updateSelectedText({ shadowColor });
-  const handleTextPositionXUpdate = (x) => updateSelectedText({ x });
-  const handleTextPositionYUpdate = (y) => updateSelectedText({ y });
+  const handleTextContentUpdate = (content: string) =>
+    updateSelectedText({ content, txt: content });
+  const handleTextFontSizeUpdate = (fontSize: number) =>
+    updateSelectedText({ fontSize, size: fontSize });
+  const handleTextColorUpdate = (color: string) => updateSelectedText({ color });
+  const handleTextRotationUpdate = (rotation: number) => updateSelectedText({ rotation });
+  const handleTextOpacityUpdate = (opacity: number) => updateSelectedText({ opacity });
+  const handleTextBoldUpdate = (bold: boolean) => updateSelectedText({ bold });
+  const handleTextItalicUpdate = (italic: boolean) => updateSelectedText({ italic });
+  const handleTextSkewXUpdate = (skewX: number) => updateSelectedText({ skewX });
+  const handleTextSkewYUpdate = (skewY: number) => updateSelectedText({ skewY });
+  const handleTextStrokeWidthUpdate = (strokeWidth: number) => updateSelectedText({ strokeWidth });
+  const handleTextStrokeColorUpdate = (strokeColor: string) => updateSelectedText({ strokeColor });
+  const handleTextShadowOffsetXUpdate = (shadowOffsetX: number) =>
+    updateSelectedText({ shadowOffsetX });
+  const handleTextShadowOffsetYUpdate = (shadowOffsetY: number) =>
+    updateSelectedText({ shadowOffsetY });
+  const handleTextShadowColorUpdate = (shadowColor: string) => updateSelectedText({ shadowColor });
+  const handleTextPositionXUpdate = (x: number) => updateSelectedText({ x });
+  const handleTextPositionYUpdate = (y: number) => updateSelectedText({ y });
 
-  function handleTextFontFamilyUpdate(fontFamily) {
+  function handleTextFontFamilyUpdate(fontFamily: string) {
     updateSelectedText({ fontFamily });
     saveHistory();
   }
 
-  function handleTextShadowBlurUpdate(shadowBlur) {
+  function handleTextShadowBlurUpdate(shadowBlur: number) {
     if (!selectedTextId.value) return;
     const text = imageStore.texts.find((t) => t.id === selectedTextId.value);
     if (!text) return;
-    const updates = { shadowBlur };
+    const updates: Partial<StoreText> = { shadowBlur };
     if (shadowBlur > 0 && !text.shadowOffsetX) {
       updates.shadowOffsetX = 2;
       updates.shadowOffsetY = 2;
@@ -111,7 +129,7 @@ export function useEditorText({
   }
 
   // Löscht einen Text anhand seiner ID (für die Textliste im Normal-Modus)
-  function handleDeleteTextById(id) {
+  function handleDeleteTextById(id: StoreText['id']) {
     const index = imageStore.texts.findIndex((t) => t.id === id);
     if (index !== -1) {
       imageStore.texts.splice(index, 1);
