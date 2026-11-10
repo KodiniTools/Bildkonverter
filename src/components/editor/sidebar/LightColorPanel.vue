@@ -102,7 +102,7 @@
         @click="$emit('toggle-pick-white')"
       >
         <template #icon><AppIcon name="eye-dropper" :size="16" /></template>
-        {{ pickingWhite ? $t('editor.whiteBalance.pickActive') : $t('editor.whiteBalance.pick') }}
+        {{ $t('editor.whiteBalance.pick') }}
       </UiButton>
     </div>
   </div>

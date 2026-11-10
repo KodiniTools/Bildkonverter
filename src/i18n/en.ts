@@ -459,7 +459,6 @@ const en: LocaleMessages = {
     },
     whiteBalance: {
       pick: 'Pick gray point',
-      pickActive: 'Click a gray or white spot in the image',
       pickHint:
         'Eyedropper: click a spot that should be neutral gray or white to remove the color cast',
     },
