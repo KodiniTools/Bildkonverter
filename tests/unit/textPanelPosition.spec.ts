@@ -6,22 +6,24 @@ import { describe, it, expect } from 'vitest';
 import { mount } from '@vue/test-utils';
 import TextPanel from '@/components/features/transform/TextPanel.vue';
 import SliderField from '@/components/ui/SliderField.vue';
+import type { StoreText } from '@/stores/image/types';
 
-const $t = (key, fallback) => fallback || key;
+const $t = (key: string, fallback?: string) => fallback || key;
 const global = { mocks: { $t } };
 
-function mountPanel(text, props = {}) {
+function mountPanel(text: StoreText, props: Record<string, unknown> = {}) {
   return mount(TextPanel, {
     props: { selectedText: text, canvasWidth: 832, canvasHeight: 1248, ...props },
     global,
   });
 }
 
-function positionFields(w) {
+function positionFields(w: ReturnType<typeof mountPanel>) {
   const fields = w.findAllComponents(SliderField);
+  // Beide Regler gehören zum Panel; fehlt einer, scheitert der Test wie bisher
   return {
-    x: fields.find((f) => f.props('inputId') === 'text-position-x'),
-    y: fields.find((f) => f.props('inputId') === 'text-position-y'),
+    x: fields.find((f) => f.props('inputId') === 'text-position-x')!,
+    y: fields.find((f) => f.props('inputId') === 'text-position-y')!,
   };
 }
 

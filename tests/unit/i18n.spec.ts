@@ -13,12 +13,12 @@ import en from '@/i18n/en';
 // Vitest läuft aus dem Projektwurzelverzeichnis
 const SRC = path.resolve(process.cwd(), 'src');
 
-const leaves = (obj, prefix = '') =>
+const leaves = (obj: object, prefix = ''): string[] =>
   Object.entries(obj).flatMap(([k, v]) =>
     v && typeof v === 'object' ? leaves(v, `${prefix}${k}.`) : [`${prefix}${k}`]
   );
 
-function sourceFiles(dir) {
+function sourceFiles(dir: string): string[] {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
     const p = path.join(dir, e.name);
     if (e.isDirectory()) return p.includes('assets') || p.endsWith('i18n') ? [] : sourceFiles(p);
@@ -30,7 +30,10 @@ const keys = new Set(leaves(de));
 const prefixes = new Set(
   [...keys].flatMap((k) => k.split('.').map((_, i, a) => a.slice(0, i + 1).join('.')))
 );
-const sources = sourceFiles(SRC).map((f) => [path.relative(SRC, f), fs.readFileSync(f, 'utf8')]);
+const sources = sourceFiles(SRC).map((f): [string, string] => [
+  path.relative(SRC, f),
+  fs.readFileSync(f, 'utf8'),
+]);
 const allSource = sources.map(([, s]) => s).join('\n');
 // Präfixe dynamisch gebildeter Schlüssel, z.B. t(`guide.filters.${key}.title`)
 const stems = [...allSource.matchAll(/\$?\bt\(\s*`([a-zA-Z.]+)\$\{/g)].map((m) => m[1]);

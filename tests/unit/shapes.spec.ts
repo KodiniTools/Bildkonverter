@@ -1,6 +1,6 @@
 /**
  * Formen & Symbole: Katalog, Geometrie, Hit-Testing, Griffe, Layout-Anpassungen
- * (src/utils/shapes.js) sowie die Store-Aktionen und das Galerie-Panel.
+ * (src/utils/shapes.ts) sowie die Store-Aktionen und das Galerie-Panel.
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
@@ -54,8 +54,21 @@ import { useImageStore } from '@/stores/imageStore';
 import UiColorField from '@/components/ui/ColorField.vue';
 import ShapesPanel from '@/components/features/shapes/ShapesPanel.vue';
 import SliderField from '@/components/ui/SliderField.vue';
+import type { Ref } from 'vue';
+import type { Shape } from '@/utils/shapes';
+import type { ImageLayer } from '@/stores/image/types';
 
-const close = (a, b, eps = 1e-6) => expect(Math.abs(a - b)).toBeLessThan(eps);
+/**
+ * Testdaten enthalten oft nur die Felder, die eine Funktion liest; `asShapes`
+ * macht das für den Typprüfer sichtbar, ohne die Daten zu verändern.
+ */
+const asShapes = (shapes: Partial<Shape>[]) => shapes as Shape[];
+/** Canvas-Attrappen (nur die genutzten Methoden) als 2D-Kontext übergeben */
+const asCtx = (fake: object) => fake as unknown as CanvasRenderingContext2D;
+/** Übersetzungs-Attrappe: gibt den Schlüssel zurück */
+const keyOnly = (key: string) => key;
+
+const close = (a: number, b: number, eps = 1e-6) => expect(Math.abs(a - b)).toBeLessThan(eps);
 
 describe('Katalog', () => {
   it('jeder Galerie-Eintrag hat einen Pfad-Typ, eine Kategorie und eine eindeutige id', () => {
@@ -75,8 +88,8 @@ describe('Katalog', () => {
 
   it('jeder Eintrag ist in DE und EN übersetzt', () => {
     for (const item of SHAPE_GALLERY) {
-      expect(de.shapes.items[item.id], item.id).toBeTruthy();
-      expect(en.shapes.items[item.id], item.id).toBeTruthy();
+      expect((de.shapes.items as Record<string, string>)[item.id], item.id).toBeTruthy();
+      expect((en.shapes.items as Record<string, string>)[item.id], item.id).toBeTruthy();
     }
   });
 
@@ -89,7 +102,7 @@ describe('Katalog', () => {
       // Endpunkte (ohne Bogen-Radien) liegen im Rahmen ±1 px (Herz-Kurven leicht darüber)
       const numbers = d
         .replace(/A [^A-Z]*?(?= [A-Z]|$)/g, (arc) => arc.split(' ').slice(-2).join(' '))
-        .match(/-?\d+(\.\d+)?/g)
+        .match(/-?\d+(\.\d+)?/g)!
         .map(Number);
       for (let i = 0; i + 1 < numbers.length; i += 2) {
         expect(Math.abs(numbers[i])).toBeLessThanOrEqual(110);
@@ -100,7 +113,7 @@ describe('Katalog', () => {
 
 describe('createShape', () => {
   it('legt die Form mittig mit Startgröße relativ zum Canvas an', () => {
-    const s = createShape('rect', 1000, 600);
+    const s = createShape('rect', 1000, 600)!;
     expect(s).toMatchObject({ type: 'rect', x: 500, y: 300, rotation: 0, opacity: 100 });
     expect(s.width).toBeGreaterThan(s.height);
     expect(s.filled).toBe(true);
@@ -108,17 +121,17 @@ describe('createShape', () => {
   });
 
   it('Linienformen haben eine Linienstärke, Presets greifen', () => {
-    const arrow = createShape('arrow', 800, 800);
+    const arrow = createShape('arrow', 800, 800)!;
     expect(SHAPE_PATHS[arrow.type].kind).toBe(SHAPE_KIND.STROKE);
     expect(arrow.strokeWidth).toBeGreaterThan(0);
-    expect(createShape('dashedLine', 800, 800).dash).toBe('dashed');
-    const frame = createShape('frame', 800, 800);
+    expect(createShape('dashedLine', 800, 800)!.dash).toBe('dashed');
+    const frame = createShape('frame', 800, 800)!;
     expect(frame.filled).toBe(false);
     expect(frame.strokeWidth).toBeGreaterThan(0);
   });
 
   it('erzeugt eindeutige ids und lehnt Unbekanntes ab', () => {
-    expect(createShape('star', 100, 100).id).not.toBe(createShape('star', 100, 100).id);
+    expect(createShape('star', 100, 100)!.id).not.toBe(createShape('star', 100, 100)!.id);
     expect(createShape('unbekannt', 100, 100)).toBeNull();
   });
 
@@ -149,7 +162,7 @@ describe('Hit-Testing und Griffe', () => {
   it('findet die oberste Form', () => {
     const a = { ...shape, id: 'a', rotation: 0 };
     const b = { ...shape, id: 'b', rotation: 0 };
-    expect(findShapeAt([a, b], 100, 100).id).toBe('b');
+    expect(findShapeAt([a, b], 100, 100)!.id).toBe('b');
     expect(findShapeAt([a, b], 500, 500)).toBeNull();
   });
 
@@ -205,7 +218,9 @@ describe('resizeFromCorner / rotationFromPointer', () => {
 
 describe('Layout-Anpassungen', () => {
   it('skaliert Formen auf eine neue Canvas-Größe', () => {
-    const shapes = [{ x: 100, y: 50, width: 40, height: 20, strokeWidth: 4, shadowBlur: 0 }];
+    const shapes = asShapes([
+      { x: 100, y: 50, width: 40, height: 20, strokeWidth: 4, shadowBlur: 0 },
+    ]);
     expect(
       scaleShapesToCanvas(shapes, { width: 200, height: 100 }, { width: 400, height: 300 })
     ).toBe(true);
@@ -214,10 +229,10 @@ describe('Layout-Anpassungen', () => {
   });
 
   it('verschiebt Formen beim Zuschnitt und entfernt die außerhalb', () => {
-    const shapes = [
+    const shapes = asShapes([
       { id: 'in', x: 150, y: 150 },
       { id: 'out', x: 10, y: 10 },
-    ];
+    ]);
     expect(cropShapes(shapes, { x: 100, y: 100, width: 200, height: 200 })).toBe(1);
     expect(shapes).toEqual([{ id: 'in', x: 50, y: 50 }]);
   });
@@ -229,18 +244,18 @@ describe('imageStore – Formen', () => {
   it('addShape wählt die neue Form aus und hebt Text-/Ebenen-Auswahl auf', () => {
     const store = useImageStore();
     store.selectedTextId = 5;
-    const s = store.addShape('heart', 400, 300);
+    const s = store.addShape('heart', 400, 300)!;
     expect(store.shapes).toHaveLength(1);
     expect(store.selectedShapeId).toBe(s.id);
-    expect(store.selectedShape.id).toBe(s.id);
+    expect(store.selectedShape!.id).toBe(s.id);
     expect(store.selectedTextId).toBeNull();
     expect(store.addShape('gibtsnicht', 1, 1)).toBeNull();
   });
 
   it('duplizieren, Reihenfolge, löschen', () => {
     const store = useImageStore();
-    const a = store.addShape('rect', 400, 300);
-    const b = store.duplicateShape(a.id);
+    const a = store.addShape('rect', 400, 300)!;
+    const b = store.duplicateShape(a.id)!;
     expect(store.shapes.map((s) => s.id)).toEqual([a.id, b.id]);
     expect(b.x).toBeGreaterThan(a.x);
     expect(store.selectedShapeId).toBe(b.id);
@@ -257,15 +272,16 @@ describe('imageStore – Formen', () => {
   it('Auswahl einer Bild-Ebene hebt die Formen-Auswahl auf', () => {
     const store = useImageStore();
     store.addShape('rect', 400, 300);
-    store.imageLayers = [{ id: 'L1' }];
+    store.imageLayers = [{ id: 'L1' }] as ImageLayer[];
     store.selectImageLayer('L1');
     expect(store.selectedShapeId).toBeNull();
   });
 });
 
 describe('ShapesPanel', () => {
-  let store;
-  const $t = (key, params) => (params?.name ? `${key}:${params.name}` : key);
+  let store: ReturnType<typeof useImageStore>;
+  const $t = (key: string, params?: { name?: string }) =>
+    params?.name ? `${key}:${params.name}` : key;
 
   function mountPanel() {
     return mount(ShapesPanel, {
@@ -293,7 +309,7 @@ describe('ShapesPanel', () => {
   it('wechselt die Kategorie', async () => {
     const w = mountPanel();
     expect(w.find('[data-shape="arrow"]').exists()).toBe(false);
-    const arrowsTab = w.findAll('.segmented__option')[SHAPE_CATEGORIES.indexOf('arrows')];
+    const arrowsTab = w.findAll('.segmented__option')[SHAPE_CATEGORIES.indexOf('arrows')]!;
     await arrowsTab.trigger('click');
     expect(w.find('[data-shape="arrow"]').exists()).toBe(true);
   });
@@ -301,10 +317,11 @@ describe('ShapesPanel', () => {
   it('bearbeitet Deckkraft und Drehung der ausgewählten Form', async () => {
     store.addShape('star', 800, 600);
     const w = mountPanel();
-    const field = (id) => w.findAllComponents(SliderField).find((f) => f.props('inputId') === id);
-    field('shape-opacity').vm.$emit('update:modelValue', 40);
-    field('shape-rotation').vm.$emit('update:modelValue', -30);
-    field('shape-rotation').vm.$emit('commit');
+    const field = (id: string) =>
+      w.findAllComponents(SliderField).find((f) => f.props('inputId') === id);
+    field('shape-opacity')!.vm.$emit('update:modelValue', 40);
+    field('shape-rotation')!.vm.$emit('update:modelValue', -30);
+    field('shape-rotation')!.vm.$emit('commit');
     expect(store.shapes[0]).toMatchObject({ opacity: 40, rotation: -30 });
     expect(store.saveState).toHaveBeenCalledTimes(1);
   });
@@ -323,7 +340,7 @@ describe('ShapesPanel', () => {
     const w = mountPanel();
     await w.find('#shape-lock-ratio').trigger('click');
     w.findAllComponents(SliderField)
-      .find((f) => f.props('inputId') === 'shape-width')
+      .find((f) => f.props('inputId') === 'shape-width')!
       .vm.$emit('update:modelValue', width * 2);
     expect(store.shapes[0].height).toBe(Math.round(height * 2));
   });
@@ -339,7 +356,7 @@ describe('ShapesPanel', () => {
 
 describe('Marker und Verpixeln', () => {
   it('Marker: quadratisch, Nummer, Zahlenfarbe, weiße Kontur', () => {
-    const m = createShape('marker', 1000, 800);
+    const m = createShape('marker', 1000, 800)!;
     expect(m.width).toBe(m.height);
     expect(m).toMatchObject({
       type: 'marker',
@@ -348,24 +365,26 @@ describe('Marker und Verpixeln', () => {
       markerStyle: 'circle',
     });
     expect(m.strokeWidth).toBeGreaterThan(0);
-    expect(createShape('markerSquare', 100, 100).markerStyle).toBe('square');
+    expect(createShape('markerSquare', 100, 100)!.markerStyle).toBe('square');
   });
 
   it('nextMarkerNumber zählt nur Marker', () => {
     expect(nextMarkerNumber([])).toBe(1);
     expect(
-      nextMarkerNumber([
-        { type: 'marker', number: 2 },
-        { type: 'rect', number: 9 },
-        { type: 'marker', number: 5 },
-      ])
+      nextMarkerNumber(
+        asShapes([
+          { type: 'marker', number: 2 },
+          { type: 'rect', number: 9 },
+          { type: 'marker', number: 5 },
+        ])
+      )
     ).toBe(6);
   });
 
   it('Zensur-Form: Effekt, Umriss und Stärke', () => {
-    const p = createShape('pixelate', 1000, 800);
+    const p = createShape('pixelate', 1000, 800)!;
     expect(p).toMatchObject({ type: 'censor', effect: 'pixelate', region: 'rect', intensity: 50 });
-    const b = createShape('blurEllipse', 1000, 800);
+    const b = createShape('blurEllipse', 1000, 800)!;
     expect(b).toMatchObject({ effect: 'blur', region: 'ellipse' });
     expect(getShapePathData('censor', 100, 50, { region: 'ellipse' })).toMatch(/A /);
     expect(getShapePathData('censor', 100, 50, { region: 'rect' })).not.toMatch(/A /);
@@ -376,11 +395,11 @@ describe('Marker und Verpixeln', () => {
   });
 
   it('Galerie-Vorschau: Marker mit Nummer, Verpixeln mit Raster', () => {
-    const marker = SHAPE_GALLERY.find((g) => g.id === 'marker');
+    const marker = SHAPE_GALLERY.find((g) => g.id === 'marker')!;
     expect(getGalleryPreview(marker).label).toBe('1');
-    const pix = SHAPE_GALLERY.find((g) => g.id === 'pixelate');
+    const pix = SHAPE_GALLERY.find((g) => g.id === 'pixelate')!;
     expect(getGalleryPreview(pix).pattern).toMatch(/^M /);
-    const blur = SHAPE_GALLERY.find((g) => g.id === 'blur');
+    const blur = SHAPE_GALLERY.find((g) => g.id === 'blur')!;
     expect(getGalleryPreview(blur).effect).toBe('blur');
   });
 
@@ -389,34 +408,37 @@ describe('Marker und Verpixeln', () => {
     const store = useImageStore();
     store.addShape('marker', 400, 300);
     store.addShape('rect', 400, 300);
-    const second = store.addShape('markerSquare', 400, 300);
+    const second = store.addShape('markerSquare', 400, 300)!;
     expect(second.number).toBe(2);
-    expect(store.duplicateShape(second.id).number).toBe(3);
+    expect(store.duplicateShape(second.id)!.number).toBe(3);
   });
 
   it('Panel: Marker-Nummer und Effekt umschalten', async () => {
     setActivePinia(createPinia());
     const store = useImageStore();
     store.saveState = vi.fn();
-    const $t = (key) => key;
+    const $t = keyOnly;
     store.addShape('marker', 800, 600);
     const w = mount(ShapesPanel, {
       props: { canvasWidth: 800, canvasHeight: 600 },
       global: { mocks: { $t } },
     });
-    const field = (id) => w.findAllComponents(SliderField).find((f) => f.props('inputId') === id);
+    const field = (id: string) =>
+      w.findAllComponents(SliderField).find((f) => f.props('inputId') === id);
     expect(field('shape-marker-number')).toBeTruthy();
     expect(field('shape-height')).toBeUndefined();
-    field('shape-marker-number').vm.$emit('update:modelValue', 7);
+    field('shape-marker-number')!.vm.$emit('update:modelValue', 7);
     expect(store.shapes[0].number).toBe(7);
-    field('shape-size').vm.$emit('update:modelValue', 120);
+    field('shape-size')!.vm.$emit('update:modelValue', 120);
     expect(store.shapes[0]).toMatchObject({ width: 120, height: 120 });
 
     store.addShape('pixelate', 800, 600);
     await w.vm.$nextTick();
     expect(field('shape-intensity')).toBeTruthy();
     expect(field('shape-shadow')).toBeUndefined();
-    const blurBtn = w.findAll('.segmented__option').find((b) => b.text() === 'shapes.effects.blur');
+    const blurBtn = w
+      .findAll('.segmented__option')
+      .find((b) => b.text() === 'shapes.effects.blur')!;
     await blurBtn.trigger('click');
     expect(store.shapes[1].effect).toBe('blur');
   });
@@ -426,7 +448,7 @@ describe('Marker und Verpixeln', () => {
 function fakeCtx() {
   return {
     font: '10px x',
-    measureText(text) {
+    measureText(text: unknown) {
       const size = parseFloat(this.font) || 10;
       return { width: String(text).length * size * 0.5 };
     },
@@ -436,31 +458,31 @@ function fakeCtx() {
 describe('Text in Formen', () => {
   it('Textformen der Galerie haben Text, Schrift und relative Größe', () => {
     for (const id of ['textBox', 'speechBubbleText', 'label']) {
-      const shape = createShape(id, 1000, 800);
+      const shape = createShape(id, 1000, 800)!;
       expect(supportsShapeText(shape.type), id).toBe(true);
       expect(shape).toMatchObject({ text: 'Text', textAlign: 'center' });
       expect(shape.textScale).toBeGreaterThan(0);
       expect(getShapePathData(shape.type, shape.width, shape.height, shape)).not.toBe('');
     }
     // Rechteck/Kreis bekommen ein (leeres) Textfeld, Pfeile nicht
-    expect(createShape('rect', 800, 600).text).toBe('');
+    expect(createShape('rect', 800, 600)!.text).toBe('');
     expect(supportsShapeText('arrow')).toBe(false);
-    expect(createShape('arrow', 800, 600).text).toBeUndefined();
+    expect(createShape('arrow', 800, 600)!.text).toBeUndefined();
   });
 
   it('Textbereich liegt in der Form; bei der Sprechblase über dem Zipfel', () => {
     for (const type of ['rect', 'roundedRect', 'ellipse', 'diamond', 'speechBubble', 'label']) {
-      const box = getShapeTextBox({ type, width: 200, height: 100 });
+      const box = getShapeTextBox({ type, width: 200, height: 100 })!;
       expect(Math.abs(box.x) + box.width / 2, type).toBeLessThanOrEqual(100);
       expect(Math.abs(box.y) + box.height / 2, type).toBeLessThanOrEqual(50);
     }
-    const bubble = getShapeTextBox({ type: 'speechBubble', width: 200, height: 100 });
+    const bubble = getShapeTextBox({ type: 'speechBubble', width: 200, height: 100 })!;
     // Körper endet bei y = +25 (h/2 · 0,5)
     expect(bubble.y + bubble.height / 2).toBeLessThanOrEqual(25);
   });
 
   it('Schriftgröße wandert mit der Form', () => {
-    const shape = createShape('textBox', 1000, 800);
+    const shape = createShape('textBox', 1000, 800)!;
     const before = getShapeFontSize(shape);
     shape.width *= 2;
     shape.height *= 2;
@@ -468,18 +490,19 @@ describe('Text in Formen', () => {
   });
 
   it('bricht Text um und verkleinert ihn, bis er passt', () => {
-    const ctx = fakeCtx();
-    ctx.font = '10px x';
+    const fake = fakeCtx();
+    const ctx = asCtx(fake);
+    fake.font = '10px x';
     expect(wrapShapeText(ctx, 'eins zwei drei', 40)).toEqual(['eins', 'zwei', 'drei']);
     expect(wrapShapeText(ctx, 'a\n\nb', 100)).toEqual(['a', '', 'b']);
 
     const shape = { type: 'rect', width: 200, height: 100, text: 'Hallo', textScale: 0.3 };
-    const fits = layoutShapeText(ctx, shape);
+    const fits = layoutShapeText(ctx, shape)!;
     expect(fits.fontSize).toBeCloseTo(30, 5);
     expect(fits.lines).toEqual(['Hallo']);
 
     const long = { ...shape, text: 'Ein ziemlich langer Satz für eine kleine Form' };
-    const layout = layoutShapeText(ctx, long);
+    const layout = layoutShapeText(ctx, long)!;
     expect(layout.fontSize).toBeLessThan(30);
     expect(layout.lines.length * layout.fontSize * 1.2).toBeLessThanOrEqual(layout.box.height);
   });
@@ -491,19 +514,20 @@ describe('Text in Formen', () => {
     store.addShape('textBox', 800, 600);
     const w = mount(ShapesPanel, {
       props: { canvasWidth: 800, canvasHeight: 600 },
-      global: { mocks: { $t: (k) => k } },
+      global: { mocks: { $t: keyOnly } },
     });
     const input = w.find('#shape-text-input');
     expect(input.exists()).toBe(true);
     await input.setValue('Hallo Welt');
     expect(store.shapes[0].text).toBe('Hallo Welt');
 
-    const field = (id) => w.findAllComponents(SliderField).find((f) => f.props('inputId') === id);
+    const field = (id: string) =>
+      w.findAllComponents(SliderField).find((f) => f.props('inputId') === id);
     const minSide = Math.min(store.shapes[0].width, store.shapes[0].height);
-    field('shape-font-size').vm.$emit('update:modelValue', Math.round(minSide * 0.5));
+    field('shape-font-size')!.vm.$emit('update:modelValue', Math.round(minSide * 0.5));
     expect(store.shapes[0].textScale).toBeCloseTo(Math.round(minSide * 0.5) / minSide, 3);
 
-    const right = w.findAll('.segmented__option').find((b) => b.text() === 'shapes.align.right');
+    const right = w.findAll('.segmented__option').find((b) => b.text() === 'shapes.align.right')!;
     await right.trigger('click');
     expect(store.shapes[0].textAlign).toBe('right');
   });
@@ -515,7 +539,7 @@ describe('Freihand: Stift und Textmarker', () => {
       { x: 100, y: 200 },
       { x: 300, y: 300 },
       { x: 200, y: 400 },
-    ]);
+    ])!;
     expect(fit).toMatchObject({ x: 200, y: 300, width: 200, height: 200 });
     expect(fit.points).toEqual([
       [-0.5, -0.5],
@@ -527,7 +551,7 @@ describe('Freihand: Stift und Textmarker', () => {
       fitFreehandPoints([
         { x: 0, y: 5 },
         { x: 10, y: 5 },
-      ]).height
+      ])!.height
     ).toBe(1);
     expect(fitFreehandPoints([])).toBeNull();
   });
@@ -537,8 +561,8 @@ describe('Freihand: Stift und Textmarker', () => {
       { x: 0, y: 0 },
       { x: 50, y: 20 },
     ];
-    const hl = createFreehandShape(pts, { tool: 'highlighter', width: 20 });
-    const pen = createFreehandShape(pts, { tool: 'pen', color: '#123456', width: 3 });
+    const hl = createFreehandShape(pts, { tool: 'highlighter', width: 20 })!;
+    const pen = createFreehandShape(pts, { tool: 'pen', color: '#123456', width: 3 })!;
     expect(hl).toMatchObject({ type: 'freehand', tool: 'highlighter', strokeWidth: 20 });
     expect(hl.opacity).toBeLessThan(100);
     expect(pen).toMatchObject({ tool: 'pen', strokeColor: '#123456', opacity: 100 });
@@ -553,9 +577,10 @@ describe('Freihand: Stift und Textmarker', () => {
     const store = useImageStore();
     const saveHistory = vi.fn();
     const renderImage = vi.fn();
+    // Canvas-Attrappe: nur Größe, Stil und getBoundingClientRect werden gelesen
     const canvas = {
       value: { width: 800, height: 600, style: {}, getBoundingClientRect: () => ({ width: 800 }) },
-    };
+    } as unknown as Ref<HTMLCanvasElement | null>;
     const it2 = useShapeInteraction({ canvas, imageStore: store, renderImage, saveHistory });
 
     expect(it2.startDraw({ x: 10, y: 10 })).toBe(false);
@@ -583,7 +608,7 @@ describe('Freihand: Stift und Textmarker', () => {
     store.saveState = vi.fn();
     const w = mount(ShapesPanel, {
       props: { canvasWidth: 800, canvasHeight: 600 },
-      global: { mocks: { $t: (k) => k } },
+      global: { mocks: { $t: keyOnly } },
     });
     const tabs = () => w.findAll('[role="tab"]');
     await tabs()[SHAPE_CATEGORIES.indexOf('draw')].trigger('click');
@@ -613,10 +638,10 @@ describe('Sticker und Emojis', () => {
   it('Badges und Zeichen sind Textformen; Emojis haben ihr Zeichen und keine Kontur', () => {
     expect(createShape('exclamation', 800, 600)).toMatchObject({ text: '!', textColor: '#ffffff' });
     expect(createShape('badgeSale', 800, 600)).toMatchObject({ type: 'burst', text: 'SALE' });
-    const emoji = createShape('emojiFire', 800, 600);
+    const emoji = createShape('emojiFire', 800, 600)!;
     expect(emoji).toMatchObject({ type: 'emoji', emoji: EMOJI_SET.emojiFire, strokeWidth: 0 });
     expect(emoji.width).toBe(emoji.height);
-    expect(getGalleryPreview(SHAPE_GALLERY.find((g) => g.id === 'emojiFire')).emoji).toBe('🔥');
+    expect(getGalleryPreview(SHAPE_GALLERY.find((g) => g.id === 'emojiFire')!).emoji).toBe('🔥');
   });
 
   it('Panel: „Neu“-Badge erhält den übersetzten Text; Emoji lässt sich tauschen', async () => {
@@ -625,7 +650,7 @@ describe('Sticker und Emojis', () => {
     store.saveState = vi.fn();
     const w = mount(ShapesPanel, {
       props: { canvasWidth: 800, canvasHeight: 600 },
-      global: { mocks: { $t: (k) => (k === 'shapes.stickerText.new' ? 'NEU' : k) } },
+      global: { mocks: { $t: (k: string) => (k === 'shapes.stickerText.new' ? 'NEU' : k) } },
     });
     await w.findAll('[role="tab"]')[SHAPE_CATEGORIES.indexOf('stickers')].trigger('click');
     await w.find('[data-shape="badgeNew"]').trigger('click');
@@ -636,29 +661,34 @@ describe('Sticker und Emojis', () => {
     expect(w.find('#shape-stroke-width').exists()).toBe(false);
     const options = w.findAll('.emoji-option');
     expect(options).toHaveLength(Object.keys(EMOJI_SET).length);
-    await options.find((o) => o.text() === EMOJI_SET.emojiParty).trigger('click');
+    await options.find((o) => o.text() === EMOJI_SET.emojiParty)!.trigger('click');
     expect(store.shapes[1]).toMatchObject({ emoji: EMOJI_SET.emojiParty, galleryId: 'emojiParty' });
   });
 });
 
 describe('Farbverlauf', () => {
   function gradientCtx() {
-    const calls = [];
-    const gradient = { stops: [], addColorStop: (o, c) => gradient.stops.push([o, c]) };
+    const calls: (string | number)[][] = [];
+    const gradient = {
+      stops: [] as [number, string][],
+      addColorStop: (o: number, c: string) => gradient.stops.push([o, c]),
+    };
     return {
       calls,
       gradient,
-      createLinearGradient: (...a) => (calls.push(['linear', ...a]), gradient),
-      createRadialGradient: (...a) => (calls.push(['radial', ...a]), gradient),
+      createLinearGradient: (...a: number[]) => (calls.push(['linear', ...a]), gradient),
+      createRadialGradient: (...a: number[]) => (calls.push(['radial', ...a]), gradient),
     };
   }
 
   it('einfarbig liefert die Farbe, linear/radial einen Verlauf über den Rahmen', () => {
     const base = { fillColor: '#ff0000', fillColor2: '#0000ff', gradientAngle: 0 };
-    expect(getFillStyle(gradientCtx(), { ...base, fillType: 'solid' }, 100, 50)).toBe('#ff0000');
+    expect(getFillStyle(asCtx(gradientCtx()), { ...base, fillType: 'solid' }, 100, 50)).toBe(
+      '#ff0000'
+    );
 
     const lin = gradientCtx();
-    getFillStyle(lin, { ...base, fillType: 'linear' }, 100, 50);
+    getFillStyle(asCtx(lin), { ...base, fillType: 'linear' }, 100, 50);
     expect(lin.calls[0]).toEqual(['linear', -50, -0, 50, 0]);
     expect(lin.gradient.stops).toEqual([
       [0, '#ff0000'],
@@ -666,15 +696,15 @@ describe('Farbverlauf', () => {
     ]);
 
     const down = gradientCtx();
-    getFillStyle(down, { ...base, fillType: 'linear', gradientAngle: 90 }, 100, 50);
-    const [, x0, y0, x1, y1] = down.calls[0];
+    getFillStyle(asCtx(down), { ...base, fillType: 'linear', gradientAngle: 90 }, 100, 50);
+    const [, x0, y0, x1, y1] = down.calls[0] as [string, number, number, number, number];
     close(x0, 0, 1e-9);
     close(x1, 0, 1e-9);
     close(y0, -25);
     close(y1, 25);
 
     const rad = gradientCtx();
-    getFillStyle(rad, { ...base, fillType: 'radial' }, 100, 50);
+    getFillStyle(asCtx(rad), { ...base, fillType: 'radial' }, 100, 50);
     expect(rad.calls[0]).toEqual(['radial', 0, 0, 0, 0, 0, 50]);
   });
 
@@ -687,12 +717,13 @@ describe('Farbverlauf', () => {
     expect(store.shapes[0]).toMatchObject({ fillType: 'solid', gradientAngle: 90 });
     const w = mount(ShapesPanel, {
       props: { canvasWidth: 800, canvasHeight: 600 },
-      global: { mocks: { $t: (k) => k } },
+      global: { mocks: { $t: keyOnly } },
     });
     await w.find('[data-fill-type="linear"]').trigger('click');
     expect(store.shapes[0].fillType).toBe('linear');
-    const field = (id) => w.findAllComponents(SliderField).find((f) => f.props('inputId') === id);
-    field('shape-gradient-angle').vm.$emit('update:modelValue', 45);
+    const field = (id: string) =>
+      w.findAllComponents(SliderField).find((f) => f.props('inputId') === id);
+    field('shape-gradient-angle')!.vm.$emit('update:modelValue', 45);
     expect(store.shapes[0].gradientAngle).toBe(45);
     const { fillColor, fillColor2 } = store.shapes[0];
     await w.find('.swap-btn').trigger('click');
@@ -715,7 +746,7 @@ describe('Zuletzt verwendete Farben', () => {
     expect(recentColors.value).toEqual(['#ff0000', '#00ff00']);
     for (let i = 0; i < 12; i++) addRecentColor(`#0000${String(i).padStart(2, '0')}`);
     expect(recentColors.value).toHaveLength(RECENT_COLORS_MAX);
-    expect(JSON.parse(localStorage.getItem(RECENT_COLORS_KEY))).toEqual(recentColors.value);
+    expect(JSON.parse(localStorage.getItem(RECENT_COLORS_KEY)!)).toEqual(recentColors.value);
 
     localStorage.setItem(RECENT_COLORS_KEY, '["#123456","kaputt"]');
     reloadRecentColors();
@@ -733,14 +764,14 @@ describe('Zuletzt verwendete Farben', () => {
     picker.vm.$emit('update:modelValue', '#abcdef');
     picker.vm.$emit('change', '#abcdef');
     await w.vm.$nextTick();
-    expect(w.emitted('update:modelValue').at(-1)).toEqual(['#abcdef']);
-    expect(w.emitted('commit').at(-1)).toEqual(['#abcdef']);
+    expect(w.emitted('update:modelValue')!.at(-1)).toEqual(['#abcdef']);
+    expect(w.emitted('commit')!.at(-1)).toEqual(['#abcdef']);
     addRecentColor('#112233');
     await w.vm.$nextTick();
     const swatches = w.findAll('.recent-color');
     expect(swatches.map((b) => b.attributes('data-color'))).toEqual(['#112233', '#abcdef']);
     await swatches[0].trigger('click');
-    expect(w.emitted('update:modelValue').at(-1)).toEqual(['#112233']);
-    expect(w.emitted('commit').at(-1)).toEqual(['#112233']);
+    expect(w.emitted('update:modelValue')!.at(-1)).toEqual(['#112233']);
+    expect(w.emitted('commit')!.at(-1)).toEqual(['#112233']);
   });
 });

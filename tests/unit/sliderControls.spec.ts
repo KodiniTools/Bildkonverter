@@ -9,10 +9,10 @@ import SliderField from '@/components/ui/SliderField.vue';
 import NumberSpinner from '@/components/ui/NumberSpinner.vue';
 import HistoryActions from '@/components/ui/HistoryActions.vue';
 
-const $t = (key, fallback) => fallback || key;
+const $t = (key: string, fallback?: string) => fallback || key;
 const global = { mocks: { $t } };
 
-function mountField(props = {}) {
+function mountField(props: Record<string, unknown> = {}) {
   return mount(SliderField, {
     props: { modelValue: 100, min: 0, max: 200, unit: '%', label: 'Helligkeit', ...props },
     global,
@@ -45,7 +45,7 @@ describe('SliderField', () => {
   it('meldet Reglerwerte als Zahl und das Loslassen als commit', async () => {
     const w = mountField();
     const range = w.find('input[type="range"]');
-    range.element.value = '140';
+    (range.element as HTMLInputElement).value = '140';
     await range.trigger('input');
     await range.trigger('change');
     expect(w.emitted('update:modelValue')).toEqual([[140]]);
@@ -76,7 +76,8 @@ describe('SliderField', () => {
   });
 
   it('zeigt bei Bereichen um null die mittige Spur, sonst die gewählte Variante', () => {
-    const range = (props) => mountField(props).find('input[type="range"]').classes();
+    const range = (props: Record<string, unknown>) =>
+      mountField(props).find('input[type="range"]').classes();
     expect(range({ min: -180, max: 180, modelValue: 0 })).toContain('slider-field__range--center');
     expect(range({})).not.toContain('slider-field__range--center');
     expect(range({ variant: 'hue' })).toContain('slider-field__range--hue');
@@ -127,7 +128,7 @@ describe('NumberSpinner – Halten', () => {
     return w;
   }
 
-  const up = (w) => w.findAll('.spinner-btn')[0];
+  const up = (w: ReturnType<typeof mountSpinner>) => w.findAll('.spinner-btn')[0];
 
   it('macht beim Drücken sofort einen Schritt', async () => {
     vi.useFakeTimers();

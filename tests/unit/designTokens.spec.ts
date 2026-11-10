@@ -13,9 +13,9 @@ import tokens from '@/design-system/tokens-v2.json';
 import { themeColorsV2 } from '@/design-system/tokens-v2';
 
 const SRC_DIR = join(__dirname, '..', '..', 'src');
-const read = (path) => readFileSync(join(SRC_DIR, path), 'utf8');
+const read = (path: string): string => readFileSync(join(SRC_DIR, path), 'utf8');
 
-function collectFiles(dir, extensions, out = []) {
+function collectFiles(dir: string, extensions: string[], out: string[] = []): string[] {
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry);
     if (statSync(full).isDirectory()) {
@@ -28,15 +28,15 @@ function collectFiles(dir, extensions, out = []) {
 }
 
 /** Nur der Style-Anteil: <style>-Blöcke in .vue, ganze .scss-Dateien. */
-function styleSource(file) {
+function styleSource(file: string): string {
   const text = readFileSync(file, 'utf8');
   if (!file.endsWith('.vue')) return text;
   return (text.match(/<style[^>]*>[\s\S]*?<\/style>/g) ?? []).join('\n');
 }
 
 /** Datei:Zeile aller Treffer im Style-Anteil der Komponenten und Views. */
-function findInStyles(pattern) {
-  const hits = [];
+function findInStyles(pattern: RegExp): string[] {
+  const hits: string[] = [];
   const files = collectFiles(SRC_DIR, ['.vue', '.scss']).filter(
     (file) => !file.includes(`${join('src', 'styles')}`) || file.endsWith('global.scss')
   );
@@ -51,8 +51,8 @@ function findInStyles(pattern) {
   return hits;
 }
 
-function findInTemplates(pattern) {
-  const hits = [];
+function findInTemplates(pattern: RegExp): string[] {
+  const hits: string[] = [];
   for (const file of collectFiles(SRC_DIR, ['.vue'])) {
     readFileSync(file, 'utf8')
       .split('\n')
@@ -67,19 +67,22 @@ function findInTemplates(pattern) {
 describe('Tokens', () => {
   const css = read('design-system/tokens-v2.css');
 
-  function block(selector) {
+  function block(selector: string): string {
     const start = css.indexOf(`${selector} {`);
     expect(start, `Block ${selector} fehlt`).toBeGreaterThan(-1);
     return css.slice(start, css.indexOf('}', start));
   }
 
-  it.each(['dark', 'light'])('tokens-v2.css und tokens-v2.json stimmen für %s überein', (theme) => {
-    const source = theme === 'dark' ? block(':root') : block(":root[data-theme='light']");
-    for (const token of Object.values(tokens.color[theme])) {
-      const cssVar = token.$extensions.css;
-      expect(source, `${cssVar} (${theme})`).toContain(`${cssVar}: ${token.$value};`);
+  it.each(['dark', 'light'] as const)(
+    'tokens-v2.css und tokens-v2.json stimmen für %s überein',
+    (theme) => {
+      const source = theme === 'dark' ? block(':root') : block(":root[data-theme='light']");
+      for (const token of Object.values(tokens.color[theme])) {
+        const cssVar = token.$extensions.css;
+        expect(source, `${cssVar} (${theme})`).toContain(`${cssVar}: ${token.$value};`);
+      }
     }
-  });
+  );
 
   it('themeColorsV2 liefert die Werte aus tokens-v2.json', () => {
     expect(themeColorsV2('light').accent).toBe(tokens.color.light.accent.$value);
