@@ -114,9 +114,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import AppIcon from '@/components/ui/AppIcon.vue';
-import { formatConversions } from '@/router';
+import { formatConversions, type FormatConversion } from '@/router';
 
 // Hero-Bild liegt in public/ und wird daher über BASE_URL (/bildkonverter/) adressiert
 const heroImage = `${import.meta.env.BASE_URL}landingpage-bildkonverter-bild.webp`;
@@ -151,7 +151,7 @@ const popularPairs = [
 ];
 const popularConversions = popularPairs
   .map((pair) => formatConversions.find((f) => f.pair === pair))
-  .filter(Boolean);
+  .filter((conv): conv is FormatConversion => Boolean(conv));
 
 // Weitere KodiniTools (Texte unter home.moreTools.<key>)
 const moreTools = [

@@ -41,7 +41,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onMounted, onUnmounted, watch } from 'vue';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useTextModal } from '@/composables/useTextModal';
@@ -56,6 +56,7 @@ import TextEditModal from '@/components/modals/TextEditModal.vue';
 import { useI18n } from 'vue-i18n';
 import { ssiNavTranslations } from '@/i18n/nav';
 import { logger } from '@/utils/logger';
+import type { StoreText } from '@/stores/image/types';
 
 // Stores & Composables
 const settings = useSettingsStore();
@@ -63,8 +64,13 @@ const textModal = useTextModal();
 const { t } = useI18n({ useScope: 'global' });
 
 // Observer für externe Navigation
-let externalNavObserver = null;
-let domMutationObserver = null;
+let externalNavObserver: ResizeObserver | null = null;
+let domMutationObserver: MutationObserver | null = null;
+
+/** Fehlertext für Toasts (wie bisher error.message) */
+function messageOf(error: unknown): string {
+  return (error as Error).message;
+}
 
 /**
  * Dispatcht das 'language-changed' Event und aktualisiert SSI-Elemente
@@ -73,7 +79,7 @@ let domMutationObserver = null;
  * SSI-Muster: <span data-lang-de="Deutscher Text" data-lang-en="English text"></span>
  * → textContent wird auf den Wert des aktiven Sprach-Attributs gesetzt.
  */
-function dispatchLanguageChanged(lang) {
+function dispatchLanguageChanged(lang: string) {
   // MutationObserver temporär disconnecten, da SSI-Partials auf das Event
   // reagieren und DOM-Änderungen auslösen können → sonst Endlosschleife
   if (domMutationObserver) domMutationObserver.disconnect();
@@ -102,7 +108,7 @@ function dispatchLanguageChanged(lang) {
  * Da e.stopImmediatePropagation() den eigenen Handler der nav.html blockiert,
  * muss die Vue-App die Übersetzung der Nav-Elemente selbst übernehmen.
  */
-function translateExternalNav(lang) {
+function translateExternalNav(lang: string) {
   const t = ssiNavTranslations[lang] || ssiNavTranslations['de'];
   const nav = document.querySelector('.global-nav');
   if (!nav) return;
@@ -113,17 +119,17 @@ function translateExternalNav(lang) {
 
   nav.querySelectorAll('[data-i18n]').forEach((el) => {
     const key = el.getAttribute('data-i18n');
-    if (t[key]) el.textContent = t[key];
+    if (key && t[key]) el.textContent = t[key];
   });
 
   nav.querySelectorAll('[data-i18n-aria]').forEach((el) => {
     const key = el.getAttribute('data-i18n-aria');
-    if (t[key]) el.setAttribute('aria-label', t[key]);
+    if (key && t[key]) el.setAttribute('aria-label', t[key]);
   });
 
   nav.querySelectorAll('[data-i18n-title]').forEach((el) => {
     const key = el.getAttribute('data-i18n-title');
-    if (t[key]) el.setAttribute('title', t[key]);
+    if (key && t[key]) el.setAttribute('title', t[key]);
   });
 
   // MutationObserver wieder aktivieren
@@ -145,7 +151,8 @@ function updateExternalNavHeight() {
     document.querySelector('body > nav:first-child') ||
     document.querySelector('body > header:first-child');
 
-  if (externalNav && !document.getElementById('app').contains(externalNav)) {
+  // #app existiert immer (Mount-Ziel); ohne es wäre der Aufruf auch bisher gescheitert
+  if (externalNav && !document.getElementById('app')!.contains(externalNav)) {
     // Messe das erste Kind-Element (nav/header) falls vorhanden, sonst den Wrapper selbst
     const navElement = externalNav.querySelector('nav, header') || externalNav;
     const height = navElement.getBoundingClientRect().height;
@@ -198,14 +205,14 @@ watch(
 );
 
 // Event Handlers
-function handleTextSave(textData) {
+function handleTextSave(textData: Partial<StoreText>) {
   try {
     textModal.saveText(textData);
   } catch (error) {
     logger.error('❌ Fehler beim Speichern:', error);
     if (window.$toast)
       window.$toast.error(
-        t('toast.text.saveError', 'Fehler beim Speichern des Textes') + ': ' + error.message
+        t('toast.text.saveError', 'Fehler beim Speichern des Textes') + ': ' + messageOf(error)
       );
   }
 }
@@ -219,14 +226,14 @@ function handleTextDelete() {
     logger.error('❌ Fehler beim Löschen:', error);
     if (window.$toast)
       window.$toast.error(
-        t('toast.text.deleteError', 'Fehler beim Löschen des Textes') + ': ' + error.message
+        t('toast.text.deleteError', 'Fehler beim Löschen des Textes') + ': ' + messageOf(error)
       );
   }
 }
 
 // Listener für Theme-Wechsel über globale Navigation (SSI include)
-function handleGlobalThemeChange(e) {
-  const newTheme = e.detail?.theme;
+function handleGlobalThemeChange(e: Event) {
+  const newTheme = (e as CustomEvent<{ theme?: string } | null>).detail?.theme;
   if (newTheme && newTheme !== settings.theme) {
     settings.setTheme(newTheme);
   }
@@ -271,7 +278,7 @@ function interceptExternalLangSwitcher() {
   syncExternalLangButtons(settings.locale);
 }
 
-function syncExternalLangButtons(activeLang) {
+function syncExternalLangButtons(activeLang: string) {
   const langBtns = document.querySelectorAll('.global-nav-lang-btn');
   langBtns.forEach((btn) => {
     const btnLang = btn.getAttribute('data-lang');
@@ -313,7 +320,8 @@ onMounted(() => {
     // Observer pausieren um Endlos-Schleifen zu verhindern:
     // translateExternalNav und dispatchLanguageChanged modifizieren DOM-Nodes,
     // was ohne Pause den Observer erneut triggern würde.
-    domMutationObserver.disconnect();
+    // Der Callback läuft nur, solange der Observer existiert (disconnect beim Unmount)
+    domMutationObserver!.disconnect();
 
     updateExternalNavHeight();
     interceptExternalLangSwitcher();

@@ -63,7 +63,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import AppIcon from '@/components/ui/AppIcon.vue';
 
 // Texte unter about.<key>.title / .description

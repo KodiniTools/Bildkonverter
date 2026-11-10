@@ -37,7 +37,7 @@
           "
         />
         <div class="steps-container">
-          <div v-for="(step, index) in 3" :key="index" class="step-card">
+          <div v-for="(_step, index) in 3" :key="index" class="step-card">
             <div class="step-number-wrapper">
               <div class="step-number">{{ index + 1 }}</div>
               <div v-if="index < 2" class="step-line"></div>
@@ -492,7 +492,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import GuideSectionHeader from '@/components/guide/GuideSectionHeader.vue';
 import AppIcon from '@/components/ui/AppIcon.vue';
 
@@ -600,8 +600,8 @@ const settingsOptions = [
   { key: 'theme', icon: 'fas fa-moon' },
 ];
 
-function getPresetIcon(preset) {
-  const icons = {
+function getPresetIcon(preset: string) {
+  const icons: Partial<Record<string, string>> = {
     original: 'palette',
     vibrant: 'paint-brush',
     vintage: 'image',
