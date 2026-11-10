@@ -7,32 +7,101 @@
  * für Drag/Resize außerhalb des Canvas. Ausgelagert aus EditorView.vue –
  * Verhalten unverändert.
  *
- * @param {object} deps
- * @param {import('vue').Ref} deps.canvas
- * @param {import('vue').Ref} deps.isSpacePressed
- * @param {import('vue').Ref} deps.isPanning
- * @param {import('vue').Ref} deps.panStart
- * @param {import('vue').Ref} deps.isCollageMode
- * @param {import('vue').Ref} deps.selectedTextId
- * @param {import('vue').Ref} deps.isDraggingText
- * @param {import('vue').Ref} deps.dragOffset
- * @param {object}   deps.transform         useTransform()-Instanz
- * @param {object}   deps.crop              useCrop()-Instanz
- * @param {object}   deps.layerInteraction  useImageLayerInteraction()-Instanz
- * @param {object}   deps.imageStore        Pinia-Image-Store
- * @param {object}   deps.textModal         useTextModal()-Instanz
- * @param {Function} deps.renderImage
- * @param {Function} deps.handleFinishCrop
- * @param {Function} deps.saveHistory
- * @param {Function} [deps.getDistortHandlePoints] Eckpunkte des Bildes im Canvas-System (Renderer)
- * @param {Function} [deps.getDistortGeometry]     Matrix + Zeichen-Rechteck des Bildes (Renderer)
- * @param {object}   [deps.shapeInteraction]       useShapeInteraction()-Instanz (Formen)
- * @param {{ active: import('vue').Ref<boolean>, pick: (pos: {x:number,y:number}) => void }} [deps.colorPicker]
- *        Pipette (Weißabgleich): ist sie aktiv, geht der nächste Klick an pick()
+ * Abhängigkeiten: siehe CanvasInteractionDeps.
  */
 import { buildTextFontString } from '@/utils/textRender';
 import { findCornerAt, offsetForLocalPoint } from '@/utils/warpImage';
-import { DISTORT_HANDLE_SIZE } from '@/composables/useCanvasRenderer';
+import { DISTORT_HANDLE_SIZE, type DistortGeometry } from '@/composables/useCanvasRenderer';
+import type { Ref } from 'vue';
+import type { Corner, Point, QuadCorners } from '@/utils/warpImage';
+import type { StoreText } from '@/stores/image/types';
+import type { useImageStore } from '@/stores/imageStore';
+import type { CanvasTransform } from '@/types/transform';
+
+type Pos = Point;
+
+/** Maus-/Touch-Ereignis oder synthetisches Ereignis (Touch → Ebenen-Interaktion) */
+export interface PointerLike {
+  clientX: number;
+  clientY: number;
+  shiftKey: boolean;
+  button?: number;
+  preventDefault: () => void;
+}
+
+/** Was die Canvas-Interaktion von useTransform braucht */
+export interface InteractionTransform extends CanvasTransform {
+  canPan: Readonly<Ref<boolean>>;
+  pan: (deltaX: number, deltaY: number) => void;
+  setScale: (value: number) => void;
+  setCornerOffset: (corner: Corner, offset: Point) => void;
+}
+
+/** Was die Canvas-Interaktion von useCrop braucht */
+export interface InteractionCrop {
+  cropMode: Ref<boolean>;
+  isDragging: Ref<boolean>;
+  isResizing: Ref<boolean>;
+  isCreating: Ref<boolean>;
+  handleMouseDown: (pos: Pos, displayScale?: number) => boolean;
+  handleMouseMove: (pos: Pos) => boolean;
+  handleMouseUp: () => boolean;
+  getCursorForPosition: (x: number, y: number, displayScale?: number) => string;
+  cancelDragResize: () => void;
+}
+
+/** Was die Canvas-Interaktion von useImageLayerInteraction braucht */
+export interface InteractionLayers {
+  isDragging: Ref<boolean>;
+  isResizing: Ref<boolean>;
+  handleMouseDown: (event: PointerLike) => void;
+  handleMouseMove: (event: PointerLike) => void;
+  handleMouseUp: () => void;
+}
+
+/** Was die Canvas-Interaktion von useShapeInteraction braucht */
+export interface InteractionShapes {
+  startDraw: (pos: Pos) => boolean;
+  isDrawMode: () => boolean;
+  startHandleDrag: (pos: Pos, touch?: boolean) => boolean;
+  startBodyDrag: (pos: Pos, touch?: boolean) => boolean;
+  moveDrag: (pos: Pos, shiftKey?: boolean) => unknown;
+  endDrag: () => boolean;
+  isDragging: () => boolean;
+  cursorAt: (pos: Pos) => string | null;
+  deselect: () => void;
+  editTextAt?: (pos: Pos) => unknown;
+}
+
+export interface CanvasInteractionDeps {
+  canvas: Ref<HTMLCanvasElement | null>;
+  isSpacePressed: Ref<boolean>;
+  isPanning: Ref<boolean>;
+  panStart: Ref<Pos>;
+  isCollageMode: Ref<boolean>;
+  selectedTextId: Ref<StoreText['id'] | null>;
+  isDraggingText: Ref<boolean>;
+  dragOffset: Ref<Pos>;
+  transform: InteractionTransform;
+  crop: InteractionCrop;
+  layerInteraction: InteractionLayers;
+  imageStore: Pick<ReturnType<typeof useImageStore>, 'texts' | 'selectImageLayer'>;
+  textModal: { openEditTextModal: (textId: StoreText['id']) => void };
+  renderImage: () => void;
+  handleFinishCrop: () => void;
+  saveHistory: () => void;
+  /** Eckpunkte des Bildes im Canvas-System (Renderer) */
+  getDistortHandlePoints?: () => QuadCorners | null;
+  /** Matrix + Zeichen-Rechteck des Bildes (Renderer) */
+  getDistortGeometry?: () => DistortGeometry | null;
+  /** useShapeInteraction()-Instanz (Formen) */
+  shapeInteraction?: InteractionShapes | null;
+  /** Pipette (Weißabgleich): ist sie aktiv, geht der nächste Klick an pick() */
+  colorPicker?: { active: Ref<boolean>; pick: (pos: Pos) => void } | null;
+}
+
+/** Ereignis mit optionalen Touch-Listen (Maus, Touch oder synthetisch) */
+type AnyPointerEvent = MouseEvent | TouchEvent | PointerLike;
 
 // Zusätzlicher Trefferradius der Verzerr-Griffe in Bildschirm-Pixeln (Touch großzügiger)
 const DISTORT_HIT_SLOP = 6;
@@ -59,9 +128,9 @@ export function useCanvasInteraction({
   getDistortGeometry = () => null,
   shapeInteraction = null,
   colorPicker = null,
-}) {
+}: CanvasInteractionDeps) {
   // Formen sind optional (ältere Aufrufer ohne Formen funktionieren unverändert)
-  const shapes = shapeInteraction ?? {
+  const shapes: InteractionShapes = shapeInteraction ?? {
     startDraw: () => false,
     isDrawMode: () => false,
     startHandleDrag: () => false,
@@ -74,16 +143,23 @@ export function useCanvasInteraction({
   };
 
   // Freies Verzerren: gerade gezogene Ecke (null = keine Verzerr-Interaktion)
-  let distortCorner = null;
+  let distortCorner: Corner | null = null;
 
-  function getMousePos(e) {
-    const rect = canvas.value.getBoundingClientRect();
+  // Handler laufen nur mit gemountetem Canvas; fehlt er, bricht es wie bisher ab
+  function canvasEl(): HTMLCanvasElement {
+    return canvas.value!;
+  }
 
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  function getMousePos(e: AnyPointerEvent): Pos {
+    const cv = canvasEl();
+    const rect = cv.getBoundingClientRect();
 
-    const scaleX = canvas.value.width / rect.width;
-    const scaleY = canvas.value.height / rect.height;
+    const touches = (e as Partial<TouchEvent>).touches;
+    const clientX = touches ? touches[0].clientX : (e as MouseEvent).clientX;
+    const clientY = touches ? touches[0].clientY : (e as MouseEvent).clientY;
+
+    const scaleX = cv.width / rect.width;
+    const scaleY = cv.height / rect.height;
 
     return {
       x: (clientX - rect.left) * scaleX,
@@ -91,13 +167,13 @@ export function useCanvasInteraction({
     };
   }
 
-  function getTouchClientPos(e) {
+  function getTouchClientPos(e: TouchEvent): { clientX: number; clientY: number } {
     const touch = e.touches?.[0] ?? e.changedTouches?.[0];
     return { clientX: touch?.clientX ?? 0, clientY: touch?.clientY ?? 0 };
   }
 
   // Gibt den Display-Skalierungsfaktor zurück (wie viel kleiner ist die Anzeige als das Canvas)
-  function getDisplayScale() {
+  function getDisplayScale(): number {
     if (!canvas.value) return 1;
     const rect = canvas.value.getBoundingClientRect();
     return rect.width / canvas.value.width;
@@ -106,7 +182,7 @@ export function useCanvasInteraction({
   // ===== FREIES VERZERREN (Eckpunkte ziehen) =====
 
   /** Ecke unter der Position (nur im Verzerr-Modus, nicht beim Zuschneiden). */
-  function findDistortCorner(pos, touch = false) {
+  function findDistortCorner(pos: Pos, touch = false): Corner | null {
     if (!transform.transforms.value.distortEnabled || crop.cropMode?.value) return null;
     const points = getDistortHandlePoints();
     if (!points) return null;
@@ -116,7 +192,7 @@ export function useCanvasInteraction({
   }
 
   /** Startet das Ziehen einer Ecke; true, wenn eine Ecke getroffen wurde. */
-  function startDistortDrag(pos, touch = false) {
+  function startDistortDrag(pos: Pos, touch = false): boolean {
     const corner = findDistortCorner(pos, touch);
     if (!corner) return false;
     distortCorner = corner;
@@ -126,7 +202,7 @@ export function useCanvasInteraction({
   }
 
   /** Versetzt die gezogene Ecke auf die (auf den Canvas geklemmte) Position. */
-  function moveDistortCorner(pos) {
+  function moveDistortCorner(pos: Pos): void {
     const geometry = getDistortGeometry();
     if (!distortCorner || !geometry || !canvas.value) return;
     const x = Math.max(0, Math.min(canvas.value.width, pos.x));
@@ -143,7 +219,7 @@ export function useCanvasInteraction({
   }
 
   /** Beendet das Ziehen einer Ecke; true, wenn eines aktiv war. */
-  function endDistortDrag() {
+  function endDistortDrag(): boolean {
     if (!distortCorner) return false;
     distortCorner = null;
     if (canvas.value) canvas.value.style.cursor = 'default';
@@ -151,15 +227,15 @@ export function useCanvasInteraction({
     return true;
   }
 
-  function onSelectTextFromPanel(textId) {
+  function onSelectTextFromPanel(textId: StoreText['id'] | null): void {
     selectedTextId.value = textId;
     renderImage();
   }
 
-  function findTextAtPosition(x, y) {
+  function findTextAtPosition(x: number, y: number): StoreText | null {
     if (!imageStore.texts || imageStore.texts.length === 0) return null;
 
-    const ctx = canvas.value.getContext('2d');
+    const ctx = canvasEl().getContext('2d')!;
 
     // Von oben nach unten suchen (oberster Text hat Priorität)
     for (let i = imageStore.texts.length - 1; i >= 0; i--) {
@@ -168,16 +244,19 @@ export function useCanvasInteraction({
       const content = text.content || text.txt || '';
 
       ctx.font = buildTextFontString(text);
+      // Number(): dieselbe Umwandlung wie zuvor beim Rechnen mit x/y
+      const tx = Number(text.x);
+      const ty = Number(text.y);
       const metrics = ctx.measureText(content);
 
       // Hit-Box: text.y ist Top-Koordinate (wegen textBaseline = 'top' in renderImage)
       // Etwas größere Hit-Box für bessere Bedienbarkeit
       const padding = 8;
       if (
-        x >= text.x - padding &&
-        x <= text.x + metrics.width + padding &&
-        y >= text.y - padding &&
-        y <= text.y + fontSize + padding
+        x >= tx - padding &&
+        x <= tx + metrics.width + padding &&
+        y >= ty - padding &&
+        y <= ty + fontSize + padding
       ) {
         return text;
       }
@@ -185,7 +264,7 @@ export function useCanvasInteraction({
     return null;
   }
 
-  function onCanvasMouseDown(e) {
+  function onCanvasMouseDown(e: MouseEvent): void {
     const pos = getMousePos(e);
     const displayScale = getDisplayScale();
 
@@ -204,7 +283,7 @@ export function useCanvasInteraction({
       e.preventDefault();
       isPanning.value = true;
       panStart.value = { x: e.clientX, y: e.clientY };
-      canvas.value.style.cursor = 'grabbing';
+      canvasEl().style.cursor = 'grabbing';
       return;
     }
 
@@ -241,10 +320,10 @@ export function useCanvasInteraction({
         shapes.deselect();
         isDraggingText.value = true;
         dragOffset.value = {
-          x: pos.x - text.x,
-          y: pos.y - text.y,
+          x: pos.x - Number(text.x),
+          y: pos.y - Number(text.y),
         };
-        canvas.value.style.cursor = 'grabbing';
+        canvasEl().style.cursor = 'grabbing';
         // Layer-Auswahl aufheben
         imageStore.selectImageLayer(null);
         renderImage();
@@ -274,10 +353,10 @@ export function useCanvasInteraction({
       shapes.deselect();
       isDraggingText.value = true;
       dragOffset.value = {
-        x: pos.x - text.x,
-        y: pos.y - text.y,
+        x: pos.x - Number(text.x),
+        y: pos.y - Number(text.y),
       };
-      canvas.value.style.cursor = 'grabbing';
+      canvasEl().style.cursor = 'grabbing';
     } else {
       selectedTextId.value = null;
       if (!(e.button === 0 && shapes.startBodyDrag(pos))) shapes.deselect();
@@ -286,7 +365,7 @@ export function useCanvasInteraction({
     renderImage();
   }
 
-  function onCanvasMouseMove(e) {
+  function onCanvasMouseMove(e: MouseEvent): void {
     const pos = getMousePos(e);
 
     // Pan-Handling (hat höchste Priorität wenn aktiv)
@@ -339,9 +418,9 @@ export function useCanvasInteraction({
         const text = shapes.isDrawMode() ? null : findTextAtPosition(pos.x, pos.y);
         const shapeCursor = text ? null : shapes.cursorAt(pos);
         if (text) {
-          canvas.value.style.cursor = 'grab';
+          canvasEl().style.cursor = 'grab';
         } else if (shapeCursor) {
-          canvas.value.style.cursor = shapeCursor;
+          canvasEl().style.cursor = shapeCursor;
         }
       }
       return;
@@ -374,16 +453,15 @@ export function useCanvasInteraction({
       } else {
         cursorStyle = shapes.cursorAt(pos) ?? 'default';
       }
-      canvas.value.style.cursor = cursorStyle;
+      canvasEl().style.cursor = cursorStyle;
     }
   }
 
-  function onCanvasMouseUp() {
+  function onCanvasMouseUp(): void {
     // Pan-Handling beenden
     if (isPanning.value) {
       isPanning.value = false;
-      canvas.value.style.cursor =
-        isSpacePressed.value && transform.canPan.value ? 'grab' : 'default';
+      canvasEl().style.cursor = isSpacePressed.value && transform.canPan.value ? 'grab' : 'default';
       return;
     }
 
@@ -408,7 +486,7 @@ export function useCanvasInteraction({
       // Text-Dragging beenden
       if (isDraggingText.value) {
         isDraggingText.value = false;
-        canvas.value.style.cursor = 'default';
+        canvasEl().style.cursor = 'default';
         renderImage();
         return;
       }
@@ -422,12 +500,12 @@ export function useCanvasInteraction({
     // Sonst Text-Interaktion (nicht Collage-Modus)
     if (isDraggingText.value) {
       isDraggingText.value = false;
-      canvas.value.style.cursor = 'default';
+      canvasEl().style.cursor = 'default';
       saveHistory();
     }
   }
 
-  function onCanvasDoubleClick(e) {
+  function onCanvasDoubleClick(e: MouseEvent): void {
     const pos = getMousePos(e);
     const text = findTextAtPosition(pos.x, pos.y);
 
@@ -441,19 +519,19 @@ export function useCanvasInteraction({
 
   // ===== TOUCH HANDLER =====
 
-  let touchLongPressTimer = null;
+  let touchLongPressTimer: ReturnType<typeof setTimeout> | undefined;
   let lastTouchTime = 0;
-  let lastTouchEndPos = null;
+  let lastTouchEndPos: Pos | null = null;
   let pinchStartDist = 0;
 
-  function getPinchDistance(e) {
+  function getPinchDistance(e: TouchEvent): number {
     const t = e.touches;
     const dx = t[0].clientX - t[1].clientX;
     const dy = t[0].clientY - t[1].clientY;
     return Math.sqrt(dx * dx + dy * dy);
   }
 
-  function onCanvasTouchStart(e) {
+  function onCanvasTouchStart(e: TouchEvent): void {
     e.preventDefault();
 
     if (e.touches.length === 2) {
@@ -507,7 +585,7 @@ export function useCanvasInteraction({
         selectedTextId.value = text.id;
         shapes.deselect();
         isDraggingText.value = true;
-        dragOffset.value = { x: pos.x - text.x, y: pos.y - text.y };
+        dragOffset.value = { x: pos.x - Number(text.x), y: pos.y - Number(text.y) };
         if (canvas.value) canvas.value.style.cursor = 'grabbing';
         imageStore.selectImageLayer(null);
         renderImage();
@@ -519,7 +597,7 @@ export function useCanvasInteraction({
         selectedTextId.value = null;
         shapes.deselect();
         // Synthetisches Event für Layer-Interaktion
-        const syntheticEvent = {
+        const syntheticEvent: PointerLike = {
           clientX,
           clientY,
           preventDefault: () => {},
@@ -538,7 +616,7 @@ export function useCanvasInteraction({
       selectedTextId.value = text.id;
       shapes.deselect();
       isDraggingText.value = true;
-      dragOffset.value = { x: pos.x - text.x, y: pos.y - text.y };
+      dragOffset.value = { x: pos.x - Number(text.x), y: pos.y - Number(text.y) };
       if (canvas.value) canvas.value.style.cursor = 'grabbing';
     } else {
       selectedTextId.value = null;
@@ -570,7 +648,7 @@ export function useCanvasInteraction({
     }
   }
 
-  function onCanvasTouchMove(e) {
+  function onCanvasTouchMove(e: TouchEvent): void {
     e.preventDefault();
     clearTimeout(touchLongPressTimer);
 
@@ -620,7 +698,12 @@ export function useCanvasInteraction({
         }
         return;
       }
-      const syntheticEvent = { clientX, clientY, preventDefault: () => {}, shiftKey: false };
+      const syntheticEvent: PointerLike = {
+        clientX,
+        clientY,
+        preventDefault: () => {},
+        shiftKey: false,
+      };
       layerInteraction.handleMouseMove(syntheticEvent);
       if (layerInteraction.isDragging.value || layerInteraction.isResizing.value) renderImage();
       return;
@@ -637,7 +720,7 @@ export function useCanvasInteraction({
     }
   }
 
-  function onCanvasTouchEnd(e) {
+  function onCanvasTouchEnd(e: TouchEvent): void {
     e.preventDefault();
     clearTimeout(touchLongPressTimer);
 
@@ -685,7 +768,7 @@ export function useCanvasInteraction({
   }
 
   // Globaler MouseMove Handler für Crop Drag/Resize außerhalb des Canvas
-  function handleGlobalMouseMove(e) {
+  function handleGlobalMouseMove(e: MouseEvent): void {
     // Nur wenn wir gerade draggen, resizen, erstellen oder andere Aktionen ausführen
     const isCropActive = crop.isDragging.value || crop.isResizing.value || crop.isCreating.value;
     if (
@@ -753,7 +836,7 @@ export function useCanvasInteraction({
   }
 
   // Globaler MouseUp Handler für Crop Drag/Resize außerhalb des Canvas
-  function handleGlobalMouseUp() {
+  function handleGlobalMouseUp(): void {
     // Stoppe alle aktiven Crop-Operationen
     if (crop.isDragging.value || crop.isResizing.value || crop.isCreating.value) {
       crop.cancelDragResize();
