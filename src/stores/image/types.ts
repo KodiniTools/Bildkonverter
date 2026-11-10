@@ -1,4 +1,8 @@
 import type { Ref, ShallowRef } from 'vue';
+import type { DrawTool, Shape } from '@/utils/shapes';
+
+/** Form-Objekt und Zeichenwerkzeuge: Modell in utils/shapes */
+export type { DrawTool, Shape };
 
 /** Text-Ebene; content/txt und fontSize/size werden synchron gehalten (alte Felder) */
 export interface StoreText {
@@ -13,48 +17,6 @@ export interface StoreText {
   color?: string;
   [key: string]: unknown;
 }
-
-/** Felder einer Form, die das Panel liest oder schreibt (siehe utils/shapes createShape) */
-export interface Shape {
-  id: string;
-  type: string;
-  galleryId?: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotation?: number;
-  opacity?: number;
-  flipX?: boolean;
-  flipY?: boolean;
-  filled?: boolean;
-  fillType?: string;
-  fillColor?: string;
-  fillColor2?: string;
-  gradientAngle?: number;
-  strokeWidth?: number;
-  strokeColor?: string;
-  dash?: string;
-  shadowBlur?: number;
-  shadowColor?: string;
-  number?: number | string;
-  markerStyle?: string;
-  textColor?: string;
-  emoji?: string;
-  text?: string;
-  fontFamily?: string;
-  textAlign?: string;
-  textScale?: number;
-  effect?: string;
-  region?: string;
-  intensity?: number;
-  /** Freihand-Striche: Punkte relativ zur Box */
-  points?: { x: number; y: number }[];
-  [key: string]: unknown;
-}
-
-/** Zeichenwerkzeuge (utils/shapes DRAW_TOOLS) */
-export type DrawTool = 'pen' | 'highlighter';
 
 export interface DrawSetting {
   color: string;
