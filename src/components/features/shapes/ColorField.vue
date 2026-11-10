@@ -14,7 +14,7 @@
         maxlength="7"
         :value="modelValue"
         :aria-label="label"
-        @input="onText($event.target.value)"
+        @input="onText(($event.target as HTMLInputElement).value)"
         @change="commit(modelValue)"
       />
     </div>
@@ -35,7 +35,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Farbfeld (UiColorField aus der Vorlage + Hex-Eingabe) mit den zuletzt verwendeten Farben.
  * `update:modelValue` bei jeder Änderung (Live-Vorschau), `commit` einmal bei
@@ -58,16 +58,16 @@ const { recentColors, addRecentColor } = useRecentColors();
 const swatches = computed(() => recentColors.value);
 const current = computed(() => String(props.modelValue || '').toLowerCase());
 
-function onText(value) {
+function onText(value: string) {
   if (/^#[0-9a-f]{6}$/i.test(value)) emit('update:modelValue', value);
 }
 
-function commit(value) {
+function commit(value: string) {
   addRecentColor(value);
   emit('commit', value);
 }
 
-function pick(color) {
+function pick(color: string) {
   emit('update:modelValue', color);
   commit(color);
 }

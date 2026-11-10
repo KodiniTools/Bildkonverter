@@ -15,14 +15,14 @@
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Filter-Regler der Editor-Sidebar. Hülle um SliderField, die dessen Events in
  * die Sprache der Panels übersetzt: jede Wertänderung löst `render` aus, jeder
  * abgeschlossene Schritt `save-history`.
  */
 import { computed } from 'vue';
-import SliderField from '@/components/ui/SliderField.vue';
+import SliderField, { type SliderVariant } from '@/components/ui/SliderField.vue';
 
 const props = defineProps({
   modelValue: { type: Number, required: true },
@@ -40,14 +40,18 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'render', 'save-history']);
 
-const TRACK_VARIANTS = { 'hue-slider': 'hue', 'warm-slider': 'warm' };
+const TRACK_VARIANTS: Partial<Record<string, SliderVariant>> = {
+  'hue-slider': 'hue',
+  'warm-slider': 'warm',
+};
 
-const variant = computed(() => {
-  if (TRACK_VARIANTS[props.trackClass]) return TRACK_VARIANTS[props.trackClass];
+const variant = computed((): SliderVariant => {
+  const track = TRACK_VARIANTS[props.trackClass];
+  if (track) return track;
   return props.centerZero ? 'center' : 'default';
 });
 
-function onUpdate(value) {
+function onUpdate(value: number) {
   emit('update:modelValue', value);
   emit('render');
 }

@@ -9,7 +9,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { provide } from 'vue';
 import { useLayerPanel, LAYER_PANEL_KEY } from '@/composables/useLayerPanel';
 import PanelTopBar from './layer-control/PanelTopBar.vue';

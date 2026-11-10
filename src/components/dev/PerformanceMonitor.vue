@@ -50,9 +50,13 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import AppIcon from '@/components/ui/AppIcon.vue';
+import { context2d } from '@/utils/canvas2d';
+
+/** performance.memory gibt es nur in Chromium (nicht standardisiert) */
+type PerformanceWithMemory = Performance & { memory?: { usedJSHeapSize: number } };
 
 const isDevelopment = import.meta.env.DEV;
 const isVisible = ref(true);
@@ -61,18 +65,18 @@ const fps = ref(60);
 const memoryUsage = ref(0);
 const componentCount = ref(0);
 const renderTime = ref(0);
-const fpsCanvas = ref(null);
+const fpsCanvas = ref<HTMLCanvasElement | null>(null);
 
-let fpsHistory = [];
+let fpsHistory: number[] = [];
 let lastTime = performance.now();
 let frameCount = 0;
-let animationId = null;
+let animationId: number | null = null;
 
 function toggleMinimize() {
   isMinimized.value = !isMinimized.value;
 }
 
-function getFpsClass(fpsValue) {
+function getFpsClass(fpsValue: number) {
   if (fpsValue >= 55) return 'stat-good';
   if (fpsValue >= 30) return 'stat-warning';
   return 'stat-bad';
@@ -101,15 +105,16 @@ function updateFps() {
 }
 
 function updateMemory() {
-  if (performance.memory) {
-    memoryUsage.value = Math.round(performance.memory.usedJSHeapSize / 1048576);
+  const { memory } = performance as PerformanceWithMemory;
+  if (memory) {
+    memoryUsage.value = Math.round(memory.usedJSHeapSize / 1048576);
   }
 }
 
 function drawGraph() {
   if (!fpsCanvas.value) return;
 
-  const ctx = fpsCanvas.value.getContext('2d');
+  const ctx = context2d(fpsCanvas.value);
   const width = fpsCanvas.value.width;
   const height = fpsCanvas.value.height;
 

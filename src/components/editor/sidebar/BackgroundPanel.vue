@@ -48,7 +48,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import AppIcon from '@/components/ui/AppIcon.vue';
 import ColorField from '@/components/ui/ColorField.vue';
 import FilterSlider from './FilterSlider.vue';
@@ -67,12 +67,12 @@ defineProps({
 // Props werden nicht verändert: Wertänderungen gehen als Ereignisse an den Editor
 const emit = defineEmits(['update-background', 'render', 'save-history']);
 
-function onColorValue(value) {
+function onColorValue(value: string) {
   emit('update-background', 'color', value);
   emit('render');
 }
 
-function onColorInput(event) {
-  onColorValue(event.target.value);
+function onColorInput(event: Event) {
+  onColorValue((event.target as HTMLInputElement).value);
 }
 </script>

@@ -1,4 +1,5 @@
-import { ref, computed, reactive, watch } from 'vue';
+import { ref, computed, reactive, watch, type InjectionKey } from 'vue';
+import type { LayerPanelContext } from '@/composables/layers/useLayerPanelContext';
 import { useI18n } from 'vue-i18n';
 import { useImageStore } from '@/stores/imageStore';
 import { useConfirm } from '@/composables/useConfirm';
@@ -483,4 +484,4 @@ export function useLayerPanel(props: LayerPanelProps, emit: LayerPanelEmit) {
 }
 
 /** Injection key für den Layer-Panel-Kontext. */
-export const LAYER_PANEL_KEY = Symbol('layerPanel');
+export const LAYER_PANEL_KEY: InjectionKey<LayerPanelContext> = Symbol('layerPanel');

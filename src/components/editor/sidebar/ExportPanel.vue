@@ -52,7 +52,9 @@
               :min="TARGET_KB_MIN"
               :max="TARGET_KB_MAX"
               step="10"
-              @input="$emit('update:targetSizeKb', Number($event.target.value))"
+              @input="
+                $emit('update:targetSizeKb', Number(($event.target as HTMLInputElement).value))
+              "
               @change="onKbCommit"
             />
             <span class="target-size__unit">KB</span>
@@ -96,9 +98,10 @@
   </div>
 </template>
 
-<script setup>
-import { computed } from 'vue';
+<script setup lang="ts">
+import { computed, type PropType } from 'vue';
 import { useI18n } from 'vue-i18n';
+import type { SizeEstimate } from '@/composables/editor/useEditorExport';
 import AppIcon from '@/components/ui/AppIcon.vue';
 import UiSelect from '@/components/ui/UiSelect.vue';
 import UiSwitch from '@/components/ui/UiSwitch.vue';
@@ -110,7 +113,7 @@ const { t } = useI18n();
 
 const props = defineProps({
   outputFormat: { type: String, required: true },
-  formats: { type: Array, required: true },
+  formats: { type: Array as PropType<string[]>, required: true },
   formatInfo: { type: Object, required: true },
   currentFormatInfo: { type: Object, default: null },
   supportsQuality: { type: Boolean, default: false },
@@ -123,7 +126,7 @@ const props = defineProps({
   targetSizeKb: { type: Number, default: 500 },
   targetSizeDownscale: { type: Boolean, default: false },
   // Ergebnis der Größenschätzung (useEditorExport), null = keine
-  sizeEstimate: { type: Object, default: null },
+  sizeEstimate: { type: Object as PropType<SizeEstimate | null>, default: null },
   isEstimating: { type: Boolean, default: false },
   // EXIF der Originaldatei übernehmen (nur PNG/JPEG/WebP mit Originaldatei)
   exifAvailable: { type: Boolean, default: false },
@@ -145,9 +148,10 @@ const formatOptions = computed(() =>
 );
 
 /** Beim Verlassen des Felds auf den erlaubten Bereich begrenzen */
-function onKbCommit(event) {
-  const kb = clampTargetKb(event.target.value) ?? props.targetSizeKb;
-  event.target.value = String(kb);
+function onKbCommit(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const kb = clampTargetKb(input.value) ?? props.targetSizeKb;
+  input.value = String(kb);
   emit('update:targetSizeKb', kb);
 }
 

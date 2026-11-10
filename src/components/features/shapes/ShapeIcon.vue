@@ -82,21 +82,30 @@
   </svg>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Vorschau einer Form als Inline-SVG – dieselbe Pfadgeometrie wie auf dem
  * Canvas (src/utils/shapes.js). Farbe folgt `currentColor` (Theme-Text) bzw.
  * optional den Farben einer konkreten Form.
  */
-import { computed } from 'vue';
-import { getGalleryPreview, SHAPE_KIND, SHAPE_PATHS } from '@/utils/shapes';
+import { computed, type PropType } from 'vue';
+import {
+  getGalleryPreview,
+  SHAPE_KIND,
+  SHAPE_PATHS,
+  type Shape,
+  type ShapeGalleryItem,
+} from '@/utils/shapes';
+
+/** Teil eines Galerie-Eintrags, den die Vorschau liest */
+type IconItem = Pick<ShapeGalleryItem, 'type' | 'aspect' | 'preset' | 'tool'>;
 
 const props = defineProps({
   /** Galerie-Eintrag ({ type, aspect, preset }) */
-  item: { type: Object, required: true },
+  item: { type: Object as PropType<IconItem>, required: true },
   size: { type: Number, default: 32 },
   /** Konkrete Form: übernimmt Füll-/Linienfarbe statt currentColor */
-  shape: { type: Object, default: null },
+  shape: { type: Object as PropType<Shape | null>, default: null },
   /** Angezeigter Text (z. B. übersetzter Sticker-Text), sonst Text der Form/Vorlage */
   text: { type: String, default: null },
 });
@@ -109,8 +118,10 @@ const preview = computed(() => {
   const s = props.shape;
   if (!s) return getGalleryPreview(props.item, VIEW);
   // Varianten der konkreten Form (Marker-Stil, Effekt, Umriss) übernehmen
-  const preset = { ...(props.item.preset || {}) };
-  for (const key of ['markerStyle', 'region', 'effect', 'points']) if (s[key]) preset[key] = s[key];
+  const preset: Record<string, unknown> = { ...(props.item.preset || {}) };
+  for (const key of ['markerStyle', 'region', 'effect', 'points'] as const) {
+    if (s[key]) preset[key] = s[key];
+  }
   // Freihand: eigenes Seitenverhältnis des Strichs
   const aspect = s.type === 'freehand' ? s.width / Math.max(1, s.height) : props.item.aspect;
   const base = getGalleryPreview({ ...props.item, aspect, preset }, VIEW);
@@ -179,7 +190,8 @@ const stroke = computed(() => {
   if (isEffect.value) return 'currentColor';
   if (isStroke.value || !preview.value.filled) return props.shape?.strokeColor || 'currentColor';
   // Gefüllte Form mit Umrandung (z. B. weiße Sprechblase) bleibt so erkennbar
-  return props.shape?.strokeWidth > 0 ? props.shape.strokeColor : 'none';
+  // undefined zählt wie bisher als „keine Umrandung“
+  return (props.shape?.strokeWidth ?? 0) > 0 ? props.shape!.strokeColor : 'none';
 });
 const strokeWidth = computed(() =>
   isHighlighter.value ? 7 : isStroke.value ? 3 : isEffect.value ? 1.5 : 2.5

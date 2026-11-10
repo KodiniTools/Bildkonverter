@@ -29,13 +29,13 @@ export type LayerPanelContext = Omit<
   ReturnType<typeof useLayerPanel>,
   'selectedLayer' | 'reversedLayers'
 > & {
-  selectedLayer: ComputedRef<ImageLayer | null>;
+  selectedLayer: ComputedRef<ImageLayer | null | undefined>;
   reversedLayers: ComputedRef<ImageLayer[]>;
 };
 
 /** Zustand und Aktionen des LayerControlPanel (provide in LayerControlPanel.vue) */
 export function useLayerPanelContext(): LayerPanelContext {
-  const ctx = inject<LayerPanelContext>(LAYER_PANEL_KEY);
+  const ctx = inject(LAYER_PANEL_KEY);
   if (!ctx) throw new Error('useLayerPanelContext: LayerControlPanel fehlt');
   return ctx;
 }

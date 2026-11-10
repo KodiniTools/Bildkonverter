@@ -60,7 +60,7 @@
             type="text"
             :value="selectedText.content || selectedText.txt"
             class="text-input"
-            @input="updateTextProperty('content', $event.target.value)"
+            @input="updateTextProperty('content', ($event.target as HTMLInputElement).value)"
           />
         </div>
 
@@ -100,7 +100,7 @@
               :value="selectedText.color || '#000000'"
               class="color-text-input"
               maxlength="7"
-              @input="updateTextProperty('color', $event.target.value)"
+              @input="updateTextProperty('color', ($event.target as HTMLInputElement).value)"
             />
           </div>
         </div>
@@ -152,7 +152,7 @@
               :value="selectedText.strokeColor || '#ffffff'"
               class="color-text-input"
               maxlength="7"
-              @input="updateTextProperty('strokeColor', $event.target.value)"
+              @input="updateTextProperty('strokeColor', ($event.target as HTMLInputElement).value)"
             />
           </div>
         </div>
@@ -204,7 +204,9 @@
                 :value="selectedText.shadowColor || '#000000'"
                 class="color-text-input"
                 maxlength="7"
-                @input="updateTextProperty('shadowColor', $event.target.value)"
+                @input="
+                  updateTextProperty('shadowColor', ($event.target as HTMLInputElement).value)
+                "
               />
             </div>
           </div>
@@ -227,9 +229,10 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { inject } from 'vue';
 import { LAYER_PANEL_KEY } from '@/composables/useLayerPanel';
+import type { LayerPanelContext } from '@/composables/layers/useLayerPanelContext';
 import FilterSlider from '@/components/editor/sidebar/FilterSlider.vue';
 import AppIcon from '@/components/ui/AppIcon.vue';
 import ColorField from '@/components/ui/ColorField.vue';
@@ -247,7 +250,8 @@ const {
   selectText,
   deleteText,
   updateTextProperty,
-} = inject(LAYER_PANEL_KEY);
+  // Wie bisher ohne Prüfung: das Panel stellt den Kontext immer bereit
+} = inject(LAYER_PANEL_KEY) as LayerPanelContext;
 </script>
 
 <style lang="scss" scoped>

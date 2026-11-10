@@ -18,7 +18,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import UiSwitch from '@/components/ui/UiSwitch.vue';
 
 defineProps({

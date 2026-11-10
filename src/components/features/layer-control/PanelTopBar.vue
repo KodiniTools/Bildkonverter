@@ -56,14 +56,16 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { inject } from 'vue';
 import { LAYER_PANEL_KEY } from '@/composables/useLayerPanel';
+import type { LayerPanelContext } from '@/composables/layers/useLayerPanelContext';
 import HistoryActions from '@/components/ui/HistoryActions.vue';
 import AppIcon from '@/components/ui/AppIcon.vue';
 
 const { imageStore, activeTab, historyInfo, handleUndo, handleRedo, handlePreview } =
-  inject(LAYER_PANEL_KEY);
+  // Wie bisher ohne Prüfung: das Panel stellt den Kontext immer bereit
+  inject(LAYER_PANEL_KEY) as LayerPanelContext;
 </script>
 
 <style lang="scss" scoped>
