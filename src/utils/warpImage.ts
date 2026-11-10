@@ -10,23 +10,44 @@
  * Unterschied zum Collage-Maker: Die Eck-Versätze sind hier NORMIERT (Anteil der
  * Bildbreite/-höhe), weil sich das Zeichen-Rechteck des Einzelbildes durch
  * Schatten-, Neigungs- und Rotations-Padding sowie Größenänderungen verschiebt.
- *
- * @typedef {{ x: number, y: number }} Point
- * @typedef {'nw' | 'ne' | 'se' | 'sw'} Corner
- * @typedef {{ nw: Point, ne: Point, se: Point, sw: Point }} CornerOffsets
- * @typedef {{ nw: Point, ne: Point, se: Point, sw: Point }} QuadCorners
- * @typedef {{ x: number, y: number, width: number, height: number }} Rect
  */
+import { context2d } from './canvas2d';
+
+export interface Point {
+  x: number;
+  y: number;
+}
+export type Corner = 'nw' | 'ne' | 'se' | 'sw';
+export type QuadCorners = Record<Corner, Point>;
+/** Normierte Eck-Versätze; einzelne Ecken dürfen fehlen (gelten als 0) */
+export type CornerOffsets = Partial<Record<Corner, Partial<Point> | null | undefined>>;
+export interface Rect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+/** Affin-Matrix in Canvas-Reihenfolge [a, b, c, d, e, f] */
+export type AffineMatrix = [number, number, number, number, number, number];
+
+export interface BakeLayout {
+  minU: number;
+  minV: number;
+  spanU: number;
+  spanV: number;
+  corners: QuadCorners;
+  shapeQuad: QuadCorners;
+}
 
 /** Reihenfolge der Ecken (im Uhrzeigersinn ab oben links). */
-export const CORNERS = ['nw', 'ne', 'se', 'sw'];
+export const CORNERS: readonly Corner[] = ['nw', 'ne', 'se', 'sw'];
 
 /** Grenzen für normierte Versätze (verhindert degenerierte Extremwerte). */
 export const MIN_OFFSET = -1;
 export const MAX_OFFSET = 1;
 
 /** Unverzerrte Eck-Versätze (alle 0). */
-export function emptyOffsets() {
+export function emptyOffsets(): QuadCorners {
   return {
     nw: { x: 0, y: 0 },
     ne: { x: 0, y: 0 },
@@ -36,13 +57,13 @@ export function emptyOffsets() {
 }
 
 /** True, wenn mindestens eine Ecke einen Versatz ≠ 0 hat. */
-export function hasDistortion(offsets) {
+export function hasDistortion(offsets: CornerOffsets | null | undefined): boolean {
   if (!offsets) return false;
   return CORNERS.some((c) => (offsets[c]?.x ?? 0) !== 0 || (offsets[c]?.y ?? 0) !== 0);
 }
 
 /** Unverzerrte Eckposition des Rechtecks. */
-export function baseCorner(rect, corner) {
+export function baseCorner(rect: Rect, corner: Corner): Point {
   switch (corner) {
     case 'nw':
       return { x: rect.x, y: rect.y };
@@ -60,12 +81,12 @@ export function baseCorner(rect, corner) {
 /**
  * Zielecken des Vierecks aus Zeichen-Rechteck und normierten Versätzen.
  * Ohne Versätze ergibt sich das unverzerrte Rechteck.
- * @param {Rect} rect
- * @param {CornerOffsets | null | undefined} offsets
- * @returns {QuadCorners}
  */
-export function computeQuadCorners(rect, offsets) {
-  const out = {};
+export function computeQuadCorners(
+  rect: Rect,
+  offsets: CornerOffsets | null | undefined
+): QuadCorners {
+  const out = {} as QuadCorners;
   for (const c of CORNERS) {
     const b = baseCorner(rect, c);
     out[c] = {
@@ -80,14 +101,10 @@ export function computeQuadCorners(rect, offsets) {
  * Normierter Versatz einer Ecke, wenn sie auf den lokalen Punkt `local`
  * (Koordinatensystem des Zeichen-Rechtecks) gezogen wird. Geklemmt auf
  * [MIN_OFFSET, MAX_OFFSET].
- * @param {Rect} rect
- * @param {Corner} corner
- * @param {Point} local
- * @returns {Point}
  */
-export function offsetForLocalPoint(rect, corner, local) {
+export function offsetForLocalPoint(rect: Rect, corner: Corner, local: Point): Point {
   const b = baseCorner(rect, corner);
-  const clamp = (v) => Math.max(MIN_OFFSET, Math.min(MAX_OFFSET, v));
+  const clamp = (v: number) => Math.max(MIN_OFFSET, Math.min(MAX_OFFSET, v));
   return {
     x: rect.width > 0 ? clamp((local.x - b.x) / rect.width) : 0,
     y: rect.height > 0 ? clamp((local.y - b.y) / rect.height) : 0,
@@ -96,13 +113,9 @@ export function offsetForLocalPoint(rect, corner, local) {
 
 /**
  * Welche Ecke liegt innerhalb von `radius` um `pos`? (nächstgelegene gewinnt)
- * @param {Point} pos
- * @param {QuadCorners} points
- * @param {number} radius
- * @returns {Corner | null}
  */
-export function findCornerAt(pos, points, radius) {
-  let best = null;
+export function findCornerAt(pos: Point, points: QuadCorners, radius: number): Corner | null {
+  let best: Corner | null = null;
   let bestDist = Infinity;
   for (const c of CORNERS) {
     const p = points[c];
@@ -125,7 +138,14 @@ export function findCornerAt(pos, points, radius) {
  * gültiges Dreieck) → nie eine Division durch 0, egal wie stark die Zielecken
  * verzerrt sind.
  */
-export function computeTriangleAffine(s0, s1, s2, d0, d1, d2) {
+export function computeTriangleAffine(
+  s0: Point,
+  s1: Point,
+  s2: Point,
+  d0: Point,
+  d1: Point,
+  d2: Point
+): AffineMatrix {
   const m00 = s0.x,
     m01 = s0.y;
   const m10 = s1.x,
@@ -158,7 +178,7 @@ export function computeTriangleAffine(s0, s1, s2, d0, d1, d2) {
 }
 
 /** Bilineare Interpolation der 4 Zielecken bei (u,v) ∈ [0,1]². */
-export function bilerp(corners, u, v) {
+export function bilerp(corners: QuadCorners, u: number, v: number): Point {
   const topX = corners.nw.x + (corners.ne.x - corners.nw.x) * u;
   const topY = corners.nw.y + (corners.ne.y - corners.nw.y) * u;
   const botX = corners.sw.x + (corners.se.x - corners.sw.x) * u;
@@ -167,10 +187,10 @@ export function bilerp(corners, u, v) {
 }
 
 /** Dreieck geringfügig vom Schwerpunkt weg aufblähen (kaschiert Nähte). */
-function expandTriangle(d0, d1, d2, px) {
+function expandTriangle(d0: Point, d1: Point, d2: Point, px: number): [Point, Point, Point] {
   const cx = (d0.x + d1.x + d2.x) / 3;
   const cy = (d0.y + d1.y + d2.y) / 3;
-  const push = (p) => {
+  const push = (p: Point): Point => {
     const dx = p.x - cx;
     const dy = p.y - cy;
     const len = Math.hypot(dx, dy) || 1;
@@ -179,7 +199,19 @@ function expandTriangle(d0, d1, d2, px) {
   return [push(d0), push(d1), push(d2)];
 }
 
-function drawTexturedTriangle(ctx, source, sw, sh, s0, s1, s2, d0, d1, d2, expandPx) {
+function drawTexturedTriangle(
+  ctx: CanvasRenderingContext2D,
+  source: CanvasImageSource,
+  sw: number,
+  sh: number,
+  s0: Point,
+  s1: Point,
+  s2: Point,
+  d0: Point,
+  d1: Point,
+  d2: Point,
+  expandPx: number
+): void {
   const [e0, e1, e2] = expandTriangle(d0, d1, d2, expandPx);
   ctx.save();
   ctx.beginPath();
@@ -200,7 +232,7 @@ function drawTexturedTriangle(ctx, source, sw, sh, s0, s1, s2, d0, d1, d2, expan
 export const SEAM_EXPAND_DEVICE_PX = 1.5;
 
 /** Mittlere lineare Skalierung der aktuellen ctx-Matrix (≥ 1e-6). */
-function currentDeviceScale(ctx) {
+function currentDeviceScale(ctx: CanvasRenderingContext2D): number {
   const m = typeof ctx.getTransform === 'function' ? ctx.getTransform() : null;
   if (!m) return 1;
   const s = Math.sqrt(Math.abs(m.a * m.d - m.b * m.c));
@@ -212,23 +244,19 @@ function currentDeviceScale(ctx) {
  * ctx) definierte Viereck. Der ctx darf bereits transformiert sein
  * (translate/rotate/scale/skew) – die Ecken werden in genau diesem System
  * interpretiert.
- * @param {CanvasRenderingContext2D} ctx
- * @param {CanvasImageSource} source
- * @param {number} sw Breite der Quelle
- * @param {number} sh Höhe der Quelle
- * @param {QuadCorners} corners
- * @param {number} [subdivisions=10]
- * @param {number} [seamPx=SEAM_EXPAND_DEVICE_PX] Aufblähung der Dreiecke in Geräte-Pixeln
+ * @param sw Breite der Quelle
+ * @param sh Höhe der Quelle
+ * @param seamPx Aufblähung der Dreiecke in Geräte-Pixeln
  */
 export function drawWarpedImage(
-  ctx,
-  source,
-  sw,
-  sh,
-  corners,
+  ctx: CanvasRenderingContext2D,
+  source: CanvasImageSource,
+  sw: number,
+  sh: number,
+  corners: QuadCorners,
   subdivisions = 10,
   seamPx = SEAM_EXPAND_DEVICE_PX
-) {
+): void {
   const n = Math.max(1, Math.floor(subdivisions));
   // Nähte kaschieren: Dreiecke um ca. 1,5 GERÄTE-Pixel aufblähen. Ein fester
   // Wert in lokalen Einheiten wäre bei Zoom < 100 % zu klein (sichtbare,
@@ -269,16 +297,17 @@ export const UNIT_QUAD = Object.freeze({
 /**
  * Layout für das Anwenden ("Backen") einer Verzerrung.
  *
- * @param {CornerOffsets} offsets   normierte Eck-Versätze
- * @param {QuadCorners|null} [shapeQuad] bisherige Umrissform (normiert, 0..1) aus
- *   einer früher angewendeten Verzerrung; null = volles Rechteck
- * @returns {{ minU: number, minV: number, spanU: number, spanV: number,
- *   corners: QuadCorners, shapeQuad: QuadCorners }}
- *   min/span: Bounding-Box des verzerrten Bildes relativ zum alten Bild (1 = alte
+ * @param offsets   normierte Eck-Versätze
+ * @param shapeQuad bisherige Umrissform (normiert, 0..1) aus einer früher
+ *   angewendeten Verzerrung; null = volles Rechteck
+ * @returns min/span: Bounding-Box des verzerrten Bildes relativ zum alten Bild (1 = alte
  *   Breite/Höhe); corners: Zielecken im alten Einheitsquadrat; shapeQuad: neue
  *   Umrissform normiert auf die Bounding-Box.
  */
-export function computeBakeLayout(offsets, shapeQuad = null) {
+export function computeBakeLayout(
+  offsets: CornerOffsets | null | undefined,
+  shapeQuad: QuadCorners | null = null
+): BakeLayout {
   const corners = computeQuadCorners({ x: 0, y: 0, width: 1, height: 1 }, offsets);
   const xs = CORNERS.map((c) => corners[c].x);
   const ys = CORNERS.map((c) => corners[c].y);
@@ -288,8 +317,8 @@ export function computeBakeLayout(offsets, shapeQuad = null) {
   const spanV = Math.max(1e-6, Math.max(...ys) - minV);
 
   // Bisherige Form mitverzerren (mehrfaches Anwenden bleibt formtreu)
-  const base = shapeQuad ?? UNIT_QUAD;
-  const out = {};
+  const base: Readonly<QuadCorners> = shapeQuad ?? UNIT_QUAD;
+  const out = {} as QuadCorners;
   for (const c of CORNERS) {
     const p = bilerp(corners, base[c].x, base[c].y);
     out[c] = { x: (p.x - minU) / spanU, y: (p.y - minV) / spanV };
@@ -306,14 +335,14 @@ export const BAKE_MAX_AREA = 40_000_000;
  * Bounding-Box des verzerrten Bildes umfasst. Filter werden NICHT eingebacken
  * (sie bleiben live editierbar).
  *
- * @param {HTMLImageElement|HTMLCanvasElement} image
- * @param {CornerOffsets} offsets
- * @param {QuadCorners|null} [shapeQuad]
- * @returns {{ canvas: HTMLCanvasElement, spanU: number, spanV: number, shapeQuad: QuadCorners }}
  */
-export function bakeDistortion(image, offsets, shapeQuad = null) {
-  const w = image.naturalWidth || image.width;
-  const h = image.naturalHeight || image.height;
+export function bakeDistortion(
+  image: HTMLImageElement | HTMLCanvasElement,
+  offsets: CornerOffsets | null | undefined,
+  shapeQuad: QuadCorners | null = null
+): { canvas: HTMLCanvasElement; spanU: number; spanV: number; shapeQuad: QuadCorners } {
+  const w = ('naturalWidth' in image ? image.naturalWidth : 0) || image.width;
+  const h = ('naturalHeight' in image ? image.naturalHeight : 0) || image.height;
   if (!w || !h) throw new Error('Bild hat keine Abmessungen');
 
   const layout = computeBakeLayout(offsets, shapeQuad);
@@ -328,7 +357,7 @@ export function bakeDistortion(image, offsets, shapeQuad = null) {
   const out = document.createElement('canvas');
   out.width = Math.max(1, Math.round(rawW * k));
   out.height = Math.max(1, Math.round(rawH * k));
-  const ctx = out.getContext('2d');
+  const ctx = context2d(out);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
   ctx.scale(k, k);
@@ -344,15 +373,16 @@ export function bakeDistortion(image, offsets, shapeQuad = null) {
 /**
  * Pfad eines Polygons mit abgerundeten Ecken. Der Radius wird je Ecke auf die
  * halbe Länge der kürzeren angrenzenden Kante begrenzt.
- * @param {CanvasRenderingContext2D} ctx
- * @param {Point[]} pts
- * @param {number} radius
  */
-export function traceRoundedPolygon(ctx, pts, radius) {
+export function traceRoundedPolygon(
+  ctx: CanvasRenderingContext2D,
+  pts: readonly Point[],
+  radius: number
+): void {
   const n = pts.length;
   ctx.beginPath();
   if (n < 3) return;
-  const mid = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+  const mid = (a: Point, b: Point): Point => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
   const start = mid(pts[n - 1], pts[0]);
   ctx.moveTo(start.x, start.y);
   for (let i = 0; i < n; i++) {

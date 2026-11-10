@@ -9,6 +9,7 @@
  */
 import { canvasToBlob } from './conversionUtils';
 import { exifOverhead, withExif } from './exif';
+import { context2d } from './canvas2d';
 
 export const MIN_QUALITY = 0.05;
 export const TARGET_KB_MIN = 10;
@@ -19,29 +20,53 @@ const SEARCH_STEPS = 7;
 const MAX_DOWNSCALE_ROUNDS = 5;
 const MIN_EDGE_PX = 16;
 
-const MIME_BY_FORMAT = { jpeg: 'image/jpeg', jpg: 'image/jpeg', webp: 'image/webp' };
+const MIME_BY_FORMAT: Readonly<Record<string, string>> = {
+  jpeg: 'image/jpeg',
+  jpg: 'image/jpeg',
+  webp: 'image/webp',
+};
+
+/** Kodiert einen Canvas (Standard: canvasToBlob aus conversionUtils) */
+export type EncodeFn = (canvas: HTMLCanvasElement, type: string, quality: number) => Promise<Blob>;
+
+export interface TargetSizeOptions {
+  maxBytes: number;
+  allowDownscale: boolean;
+}
+
+export interface TargetSizeResult {
+  blob: Blob;
+  quality: number;
+  scale: number;
+  width: number;
+  height: number;
+  reached: boolean;
+}
+
+interface QualityFit {
+  blob: Blob;
+  quality: number;
+}
 
 /**
  * Nur verlustbehaftete Formate, die der Browser selbst kodiert, lassen sich
  * über die Qualität auf eine Dateigröße bringen.
- * @param {string} format z. B. 'jpeg', 'webp', 'png'
+ * @param format z. B. 'jpeg', 'webp', 'png'
  */
-export function supportsTargetSize(format) {
+export function supportsTargetSize(format: unknown): boolean {
   return Boolean(MIME_BY_FORMAT[String(format).toLowerCase()]);
 }
 
-/** @param {string} format */
-export function targetMimeType(format) {
+export function targetMimeType(format: unknown): string | null {
   return MIME_BY_FORMAT[String(format).toLowerCase()] || null;
 }
 
-/** @param {number} kb */
-export function kbToBytes(kb) {
+export function kbToBytes(kb: number): number {
   return Math.max(1, Math.round(kb * 1024));
 }
 
 /** Eingabe auf den erlaubten KB-Bereich begrenzen; ungültig → null */
-export function clampTargetKb(value) {
+export function clampTargetKb(value: unknown): number | null {
   const kb = Number(value);
   if (!Number.isFinite(kb) || kb <= 0) return null;
   return Math.min(TARGET_KB_MAX, Math.max(TARGET_KB_MIN, Math.round(kb)));
@@ -50,24 +75,23 @@ export function clampTargetKb(value) {
 /**
  * Kopie mit weißem Hintergrund, wie beim JPEG-Export (JPEG hat keinen
  * Alphakanal; der Browser würde Transparenz sonst schwarz füllen).
- * @param {HTMLCanvasElement} source
  */
-export function withWhiteBackground(source) {
+export function withWhiteBackground(source: HTMLCanvasElement): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = source.width;
   canvas.height = source.height;
-  const ctx = canvas.getContext('2d');
+  const ctx = context2d(canvas);
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(source, 0, 0);
   return canvas;
 }
 
-function scaledCanvas(source, scale) {
+function scaledCanvas(source: HTMLCanvasElement, scale: number): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = Math.max(1, Math.round(source.width * scale));
   canvas.height = Math.max(1, Math.round(source.height * scale));
-  const ctx = canvas.getContext('2d');
+  const ctx = context2d(canvas);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
@@ -75,7 +99,13 @@ function scaledCanvas(source, scale) {
 }
 
 /** Höchste Qualität in [MIN_QUALITY, maxQuality], deren Datei passt */
-async function searchQuality(canvas, mimeType, maxQuality, maxBytes, encode) {
+async function searchQuality(
+  canvas: HTMLCanvasElement,
+  mimeType: string,
+  maxQuality: number,
+  maxBytes: number,
+  encode: EncodeFn
+): Promise<{ fit: QualityFit | null; smallest: Blob }> {
   const top = await encode(canvas, mimeType, maxQuality);
   if (top.size <= maxBytes) return { fit: { blob: top, quality: maxQuality }, smallest: top };
 
@@ -99,40 +129,24 @@ async function searchQuality(canvas, mimeType, maxQuality, maxBytes, encode) {
 }
 
 /**
- * @typedef {{ maxBytes: number, allowDownscale: boolean }} TargetSizeOptions
- * @typedef {{
- *   blob: Blob,
- *   quality: number,
- *   scale: number,
- *   width: number,
- *   height: number,
- *   reached: boolean,
- * }} TargetSizeResult
- */
-
-/**
  * Kodiert `canvas` so, dass die Datei höchstens `options.maxBytes` groß ist.
  * Ist das nicht möglich, wird die kleinste erreichte Datei mit
  * `reached: false` geliefert.
  *
- * @param {HTMLCanvasElement} canvas
- * @param {string} mimeType image/jpeg oder image/webp
- * @param {number} maxQuality gewählte Qualität 0-1 (wird nie überschritten)
- * @param {TargetSizeOptions} options
- * @param {(c: HTMLCanvasElement, type: string, q: number) => Promise<Blob>} [encode]
- * @returns {Promise<TargetSizeResult>}
+ * @param mimeType image/jpeg oder image/webp
+ * @param maxQuality gewählte Qualität 0-1 (wird nie überschritten)
  */
 export async function encodeToTargetSize(
-  canvas,
-  mimeType,
-  maxQuality,
-  options,
-  encode = canvasToBlob
-) {
+  canvas: HTMLCanvasElement,
+  mimeType: string,
+  maxQuality: number,
+  options: TargetSizeOptions,
+  encode: EncodeFn = canvasToBlob
+): Promise<TargetSizeResult> {
   const quality = Math.min(1, Math.max(MIN_QUALITY, maxQuality));
   let source = canvas;
   let scale = 1;
-  const done = (fit, reached) => ({
+  const done = (fit: QualityFit, reached: boolean): TargetSizeResult => ({
     ...fit,
     scale,
     width: source.width,
@@ -169,26 +183,23 @@ export async function encodeToTargetSize(
  * Kodiert ein Export-Canvas mit oder ohne Zielgröße. Ohne Zielgröße (oder bei
  * nicht unterstützten Formaten) genau eine Kodierung mit der gewählten Qualität.
  *
- * @param {HTMLCanvasElement} canvas bereits vorbereitet (JPEG: weißer Hintergrund)
- * @param {string} format z. B. 'jpeg' oder 'webp'
- * @param {number} quality 0-1
- * @param {TargetSizeOptions|null} [target]
- * @param {Function} [encode]
- * @param {Uint8Array|null} [exif] normalisierter EXIF-Block (exif.js); wird
- *   eingefügt, die Zielgröße hält dafür Platz frei
- * @returns {Promise<TargetSizeResult>}
+ * @param canvas bereits vorbereitet (JPEG: weißer Hintergrund)
+ * @param format z. B. 'jpeg' oder 'webp'
+ * @param quality 0-1
+ * @param exif normalisierter EXIF-Block (exif.js); wird eingefügt, die
+ *   Zielgröße hält dafür Platz frei
  */
 export async function encodeForExport(
-  canvas,
-  format,
-  quality,
-  target,
-  encode = canvasToBlob,
-  exif = null
-) {
+  canvas: HTMLCanvasElement,
+  format: string,
+  quality: number,
+  target?: TargetSizeOptions | null,
+  encode: EncodeFn = canvasToBlob,
+  exif: Uint8Array | null = null
+): Promise<TargetSizeResult> {
   const mimeType = targetMimeType(format);
   if (!mimeType) throw new Error(`Zielgröße für Format ${format} nicht unterstützt`);
-  let result;
+  let result: TargetSizeResult;
   if (target) {
     const reserve = exif ? exifOverhead(exif) : 0;
     result = await encodeToTargetSize(

@@ -1,7 +1,7 @@
 /**
  * Bearbeitung von Gradationskurven für den Kurven-Editor: Punkte setzen,
  * verschieben, entfernen und als Zeichenkette speichern. Die Berechnung der
- * Pixel liegt in curveKernel.js (auch im Worker).
+ * Pixel liegt in curveKernel.ts (auch im Worker).
  */
 import { CURVE_KEYS, buildCurveLUT, isIdentityPoints, parseCurve } from './curveKernel';
 
