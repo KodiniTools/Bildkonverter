@@ -5,15 +5,24 @@
       {{ $t('transform.crop.title') }}
     </h3>
 
-    <!-- Im Crop-Modus: Bestätigen + Abbrechen nebeneinander -->
+    <!-- Im Crop-Modus: Bestätigen + Abbrechen nebeneinander, nur als Symbol
+         (Beschriftung passte nicht in die halbe Breite); Name für Screenreader und Tooltip -->
     <div v-if="cropMode" class="crop-actions">
-      <button class="transform-btn active crop-confirm-btn" @click="$emit('toggle-crop')">
+      <button
+        class="transform-btn active crop-confirm-btn"
+        :aria-label="$t('transform.crop.confirm')"
+        :title="$t('transform.crop.confirm')"
+        @click="$emit('toggle-crop')"
+      >
         <AppIcon name="check" />
-        <span>{{ $t('transform.crop.confirm') }}</span>
       </button>
-      <button class="transform-btn crop-cancel-btn" @click="$emit('cancel-crop')">
+      <button
+        class="transform-btn crop-cancel-btn"
+        :aria-label="$t('transform.crop.cancel')"
+        :title="$t('transform.crop.cancel')"
+        @click="$emit('cancel-crop')"
+      >
         <AppIcon name="times" />
-        <span>{{ $t('transform.crop.cancel', 'Abbrechen') }}</span>
       </button>
     </div>
     <button v-else class="transform-btn" @click="$emit('toggle-crop')">
