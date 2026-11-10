@@ -38,7 +38,7 @@
     "src/**/*.js",
     "tests/**/*.ts"
   ],
-  /* Worker: eigene Prüfung mit der WebWorker-Lib (tsconfig.worker.json) */
-  "exclude": ["src/workers/**"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  /* Worker: eigene Prüfung mit der WebWorker-Lib (tsconfig.worker.json).
+     Root-Configs und Node-Skripte liegen außerhalb von include (tsconfig.node.json). */
+  "exclude": ["src/workers/**"]
 }

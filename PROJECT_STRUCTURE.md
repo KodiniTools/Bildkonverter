@@ -5,7 +5,7 @@
 ### 🎯 Core Configuration
 
 - ✅ `package.json` - Dependencies und Scripts
-- ✅ `vite.config.js` - Vite Build-Konfiguration
+- ✅ `vite.config.ts` - Vite Build-Konfiguration
 - ✅ `index.html` - HTML-Einstiegspunkt
 
 ### 🚀 Vue Application

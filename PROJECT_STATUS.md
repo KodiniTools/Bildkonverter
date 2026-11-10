@@ -5,7 +5,7 @@
 ### 1. Projektstruktur & Konfiguration
 
 - ✅ package.json mit allen Dependencies
-- ✅ vite.config.js
+- ✅ vite.config.ts
 - ✅ tsconfig.json
 - ✅ tsconfig.node.json
 - ✅ .gitignore

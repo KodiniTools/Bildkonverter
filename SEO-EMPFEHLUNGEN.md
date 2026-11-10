@@ -46,7 +46,7 @@ npm install -D vite-plugin-prerender
 ```
 
 ```js
-// vite.config.js
+// vite.config.ts
 import prerender from 'vite-plugin-prerender';
 
 export default defineConfig({
@@ -126,7 +126,8 @@ server {
 ### 1.3 Vite-Konfiguration bereinigen
 
 **Erledigt:** Die widerspruechliche `vite.config.ts` (`base: '/bilderseriebearbeiten/'`) wurde
-entfernt. Massgeblich ist allein `vite.config.js` mit `base: '/bildkonverter/'`.
+entfernt. Massgeblich ist allein die eigene Vite-Konfiguration mit `base: '/bildkonverter/'`
+(seit der TypeScript-Umstellung wieder als `vite.config.ts`).
 
 ### 1.4 Performance-Optimierungen
 
@@ -143,7 +144,7 @@ npm install -D vite-imagetools
 ```
 
 ```js
-// vite.config.js
+// vite.config.ts
 import { imagetools } from 'vite-imagetools';
 
 export default defineConfig({
@@ -167,7 +168,7 @@ export default defineConfig({
 **c) Code-Splitting verbessern**
 
 ```js
-// vite.config.js - manualChunks optimieren
+// vite.config.ts - manualChunks optimieren
 manualChunks: {
   'vendor': ['vue', 'vue-router', 'pinia'],
   'i18n': ['vue-i18n'],

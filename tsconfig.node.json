@@ -1,11 +1,24 @@
 {
   "compilerOptions": {
-    "composite": true,
+    "noEmit": true,
     "skipLibCheck": true,
+    "target": "ES2022",
+    "lib": ["ES2023"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
-    "allowJs": true
+    "allowImportingTsExtensions": true,
+    "types": ["node"],
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.js"]
+  "include": [
+    "vite.config.ts",
+    "vitest.config.ts",
+    "eslint.config.ts",
+    "deploy-check.ts",
+    "generate-fonts.ts"
+  ]
 }

@@ -19,13 +19,7 @@ const ROOT = join(__dirname, '..', '..');
 const JS_EXTENSIONS = ['.js', '.mjs', '.cjs'];
 
 /** JavaScript-Dateien, die noch auf ihre Umstellung warten. */
-const ALLOWED_JS_FILES: readonly string[] = [
-  'deploy-check.js',
-  'eslint.config.js',
-  'generate-fonts.js',
-  'vite.config.js',
-  'vitest.config.js',
-];
+const ALLOWED_JS_FILES: readonly string[] = [];
 
 /** .vue-Dateien, deren <script> noch kein lang="ts" hat. */
 const ALLOWED_JS_VUE_FILES: readonly string[] = [];

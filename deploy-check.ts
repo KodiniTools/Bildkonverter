@@ -5,8 +5,9 @@
  * Prüft ob alles bereit für Deployment ist
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
+import { execSync } from 'node:child_process';
 
 const RED = '\x1b[31m';
 const GREEN = '\x1b[32m';
@@ -82,7 +83,7 @@ if (fs.existsSync('./package.json')) {
 
   // Check wichtige Dependencies
   const requiredDeps = ['vue', 'vite', '@vitejs/plugin-vue'];
-  let missingDeps = [];
+  const missingDeps: string[] = [];
 
   requiredDeps.forEach((dep) => {
     if (!pkg.dependencies?.[dep] && !pkg.devDependencies?.[dep]) {
@@ -126,7 +127,6 @@ console.log('');
 console.log(`${YELLOW}[6/7] Prüfe Git-Status...${RESET}`);
 if (fs.existsSync('./.git')) {
   try {
-    const { execSync } = require('child_process');
     const gitStatus = execSync('git status --porcelain', { encoding: 'utf-8' });
 
     if (gitStatus.trim()) {
@@ -146,7 +146,7 @@ console.log('');
 // Check 7: Build-Größe
 console.log(`${YELLOW}[7/7] Prüfe Build-Größe...${RESET}`);
 if (fs.existsSync('./dist')) {
-  const getDirectorySize = (dirPath) => {
+  const getDirectorySize = (dirPath: string): number => {
     let size = 0;
     const files = fs.readdirSync(dirPath);
 
@@ -169,7 +169,7 @@ if (fs.existsSync('./dist')) {
 
   console.log(`${GREEN}✓ Build-Größe: ${sizeMB} MB${RESET}`);
 
-  if (sizeMB > 10) {
+  if (sizeBytes / 1024 / 1024 > 10) {
     console.log(`${YELLOW}⚠ Build ist größer als 10 MB - Optimierung empfohlen${RESET}`);
     hasWarnings = true;
   }

@@ -81,11 +81,5 @@ export default defineConfigWithVueTs(
     rules: {
       'vue/require-default-prop': 'off',
     },
-  },
-  {
-    // CommonJS-Node-Skript (wird direkt mit node ausgeführt)
-    name: 'app/commonjs-scripts',
-    files: ['deploy-check.js'],
-    rules: { '@typescript-eslint/no-require-imports': 'off' },
   }
 );
