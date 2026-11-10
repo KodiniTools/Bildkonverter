@@ -60,8 +60,8 @@ function setAlternate(hreflang, url) {
  * Aktualisiert alle SEO-relevanten Meta-Tags für die aktuelle Route
  *
  * @param {object} meta - Route-Meta-Objekt mit SEO-Feldern
- * @param {string} meta.title - Seitentitel (wird mit Suffix kombiniert)
- * @param {string} meta.description - Meta-Description
+ * @param {string} [meta.title] - Seitentitel (wird mit Suffix kombiniert)
+ * @param {string} [meta.description] - Meta-Description
  * @param {string} meta.path - URL-Pfad der Route (z.B. '/editor')
  * @param {{ title?: string, description?: string }} [meta.en] - englische Texte
  * @param {'de' | 'en'} [locale] - aktive Sprache

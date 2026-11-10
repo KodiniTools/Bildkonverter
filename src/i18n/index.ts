@@ -1,7 +1,7 @@
 import { createI18n } from 'vue-i18n';
 import de from './de';
 import en from './en';
-import { resolveInitialLocale } from '@/utils/localeSeo';
+import { resolveInitialLocale, type Locale } from '@/utils/localeSeo';
 
 function readStored(key: string): string | null {
   try {
@@ -15,7 +15,7 @@ function readStored(key: string): string | null {
  * Startsprache: ?lang=de|en (hreflang-Ziel), dann 'locale' (globale Nav),
  * dann der alte App-Key, sonst Deutsch.
  */
-export function initialLocale(): string {
+export function initialLocale(): Locale {
   return resolveInitialLocale(
     globalThis.location?.search ?? '',
     readStored('locale') || readStored('bildkonverter-locale')

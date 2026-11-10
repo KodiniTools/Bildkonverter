@@ -5,7 +5,7 @@ import { ApiClient } from '@/api/api';
 import { needsBackendPreview, readFileAsDataURL, loadImage } from '@/utils/fileUtils';
 import { drawImageToCanvas, convertCanvasToFormat } from '@/utils/conversionUtils';
 
-/** Eintrag aus formatConversions (router/index.js) */
+/** Eintrag aus formatConversions (router/index.ts) */
 export interface ConversionPair {
   pair?: string;
   from: string;

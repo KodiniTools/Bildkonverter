@@ -130,9 +130,8 @@ const galleryStore = useGalleryStore();
 const imageStore = useImageStore();
 const { confirm: confirmDialog } = useConfirm();
 
-/** Store ist JS: Bildliste hier typisiert */
-const images = computed(() => galleryStore.images as GalleryImage[]);
-const selectedImage = () => galleryStore.selectedImage() as GalleryImage | null | undefined;
+const images = computed(() => galleryStore.images);
+const selectedImage = () => galleryStore.selectedImage();
 const allSelected = computed(
   () => galleryStore.selectedImageIds.length === galleryStore.images.length
 );

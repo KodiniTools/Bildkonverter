@@ -1,5 +1,5 @@
 import { watch } from 'vue';
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vue-router';
 import { updateSeoMeta } from '@/composables/useSeoMeta';
 import { i18n } from '@/i18n';
 import HomeView from '@/views/HomeView.vue';
@@ -8,7 +8,14 @@ import HomeView from '@/views/HomeView.vue';
  * Definiert die unterstützten Konvertierungs-Kombinationen für format-spezifische Landingpages.
  * Jeder Eintrag erzeugt eine eigene Route unter /konvertieren/:pair.
  */
-const formatConversions = [
+/** Konvertierungs-Paar einer Landingpage (z. B. heic-zu-jpg) */
+export interface FormatConversion {
+  pair: string;
+  from: string;
+  to: string;
+}
+
+const formatConversions: readonly FormatConversion[] = [
   { pair: 'heic-zu-jpg', from: 'HEIC', to: 'JPG' },
   { pair: 'png-zu-webp', from: 'PNG', to: 'WebP' },
   { pair: 'jpg-zu-webp', from: 'JPG', to: 'WebP' },
@@ -27,7 +34,7 @@ const formatConversions = [
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  scrollBehavior(to, from, savedPosition) {
+  scrollBehavior(_to, _from, savedPosition) {
     if (savedPosition) return savedPosition;
     return { top: 0 };
   },
@@ -204,7 +211,7 @@ const router = createRouter({
 });
 
 /** Titel, Beschreibung, Canonical und hreflang einer Route in der aktiven Sprache. */
-function applyRouteSeo(route) {
+function applyRouteSeo(route: RouteLocationNormalized): void {
   updateSeoMeta(
     {
       title: route.meta.title,
@@ -223,7 +230,7 @@ watch(
 );
 
 // Navigation Guard: SEO Meta-Tags bei jedem Routenwechsel aktualisieren
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   // Handoff-Redirect: Eingehende Handoffs immer zur Galerie umleiten
   // Prüfe sowohl URL-Parameter als auch localStorage (falls Sender keinen Param setzt)
   if (to.name !== 'gallery') {
