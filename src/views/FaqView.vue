@@ -41,14 +41,14 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import AppIcon from '@/components/ui/AppIcon.vue';
 
 const { t, locale } = useI18n({ useScope: 'global' });
 
-const activeFaq = ref(null);
+const activeFaq = ref<number | null>(null);
 
 const faqs = [
   { key: 'formats' },
@@ -59,7 +59,7 @@ const faqs = [
   { key: 'download' },
 ];
 
-const toggleFaq = (index) => {
+const toggleFaq = (index: number) => {
   activeFaq.value = activeFaq.value === index ? null : index;
 };
 
@@ -78,7 +78,7 @@ const faqJsonLd = computed(() => ({
 }));
 
 function updateFaqSchema() {
-  let script = document.getElementById('faq-jsonld');
+  let script = document.getElementById('faq-jsonld') as HTMLScriptElement | null;
   if (!script) {
     script = document.createElement('script');
     script.id = 'faq-jsonld';
