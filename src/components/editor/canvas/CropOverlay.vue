@@ -50,7 +50,7 @@ defineProps<{
 /* Crop Overlay: Auswahlrahmen wie im Collage Maker (2 px Akzent) */
 .crop-overlay {
   /* Rein optische Größe der Griffe. Die Trefferfläche steckt in
-     getHandleAtPoint() (useCrop.js) und ist davon unabhängig. */
+     getHandleAtPoint() (useCrop.ts) und ist davon unabhängig. */
   --handle-size: 8px;
 
   position: absolute;

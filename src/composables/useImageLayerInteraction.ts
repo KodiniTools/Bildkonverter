@@ -1,20 +1,41 @@
 /**
- * useImageLayerInteraction.js - Composable für Bild-Layer Interaktion
+ * useImageLayerInteraction.ts - Composable für Bild-Layer Interaktion
  * Ermöglicht Drag, Resize und Auswahl von Bild-Layern in der Collage
  */
 
-import { ref } from 'vue';
+import { ref, type Ref } from 'vue';
 import { useImageStore } from '@/stores/imageStore';
+import type { ImageLayer } from '@/stores/image/types';
+import type { PointerLike } from '@/composables/editor/useCanvasInteraction';
 
-export function useImageLayerInteraction(canvasRef) {
+/** Resize-Griff eines Bild-Layers: Ecken und Kantenmitten */
+export type LayerHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
+
+/** Position und Größe eines Layers */
+export interface LayerBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+interface CanvasPoint {
+  x: number;
+  y: number;
+}
+
+/** Maus-, Touch- oder synthetisches Ereignis aus useCanvasInteraction */
+export type LayerPointerEvent = PointerLike | MouseEvent | TouchEvent;
+
+export function useImageLayerInteraction(canvasRef: Ref<HTMLCanvasElement | null>) {
   const imageStore = useImageStore();
 
   // Interaktionszustand
   const isDragging = ref(false);
   const isResizing = ref(false);
-  const activeHandle = ref(null); // 'nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'
-  const dragStart = ref({ x: 0, y: 0 });
-  const layerStart = ref({ x: 0, y: 0, width: 0, height: 0 });
+  const activeHandle = ref<LayerHandle | null>(null); // 'nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'
+  const dragStart = ref<CanvasPoint>({ x: 0, y: 0 });
+  const layerStart = ref<LayerBox>({ x: 0, y: 0, width: 0, height: 0 });
 
   // Handle-Größe für Hit-Detection
   const HANDLE_SIZE = 12;
@@ -22,10 +43,10 @@ export function useImageLayerInteraction(canvasRef) {
   /**
    * Findet den Layer an einer bestimmten Position
    */
-  function findLayerAtPosition(x, y) {
+  function findLayerAtPosition(x: number, y: number): ImageLayer | null {
     // Von oben nach unten suchen (letzte Layer sind oben)
     for (let i = imageStore.imageLayers.length - 1; i >= 0; i--) {
-      const layer = imageStore.imageLayers[i];
+      const layer = imageStore.imageLayers[i]!;
       if (!layer.visible || layer.locked) continue;
 
       if (isPointInLayer(x, y, layer)) {
@@ -38,7 +59,7 @@ export function useImageLayerInteraction(canvasRef) {
   /**
    * Prüft ob ein Punkt innerhalb eines Layers liegt
    */
-  function isPointInLayer(x, y, layer) {
+  function isPointInLayer(x: number, y: number, layer: LayerBox) {
     // TODO: Rotation berücksichtigen
     return (
       x >= layer.x && x <= layer.x + layer.width && y >= layer.y && y <= layer.y + layer.height
@@ -48,12 +69,16 @@ export function useImageLayerInteraction(canvasRef) {
   /**
    * Findet den Resize-Handle an einer Position
    */
-  function findHandleAtPosition(x, y, layer) {
+  function findHandleAtPosition(
+    x: number,
+    y: number,
+    layer: LayerBox | null | undefined
+  ): LayerHandle | null {
     if (!layer) return null;
 
     const handles = getHandlePositions(layer);
 
-    for (const [name, pos] of Object.entries(handles)) {
+    for (const [name, pos] of Object.entries(handles) as [LayerHandle, CanvasPoint][]) {
       if (
         x >= pos.x - HANDLE_SIZE / 2 &&
         x <= pos.x + HANDLE_SIZE / 2 &&
@@ -70,7 +95,7 @@ export function useImageLayerInteraction(canvasRef) {
   /**
    * Gibt die Positionen aller Handles zurück
    */
-  function getHandlePositions(layer) {
+  function getHandlePositions(layer: LayerBox): Record<LayerHandle, CanvasPoint> {
     return {
       nw: { x: layer.x, y: layer.y },
       n: { x: layer.x + layer.width / 2, y: layer.y },
@@ -86,15 +111,16 @@ export function useImageLayerInteraction(canvasRef) {
   /**
    * Konvertiert Maus- oder Touch-Koordinaten zu Canvas-Koordinaten
    */
-  function getCanvasCoords(event) {
+  function getCanvasCoords(event: LayerPointerEvent): CanvasPoint {
     if (!canvasRef.value) return { x: 0, y: 0 };
 
     const rect = canvasRef.value.getBoundingClientRect();
     const scaleX = canvasRef.value.width / rect.width;
     const scaleY = canvasRef.value.height / rect.height;
 
-    const clientX = event.touches ? event.touches[0].clientX : event.clientX;
-    const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+    const touches = (event as Partial<TouchEvent>).touches;
+    const clientX = touches ? touches[0]!.clientX : (event as PointerLike).clientX;
+    const clientY = touches ? touches[0]!.clientY : (event as PointerLike).clientY;
 
     return {
       x: (clientX - rect.left) * scaleX,
@@ -105,7 +131,7 @@ export function useImageLayerInteraction(canvasRef) {
   /**
    * Mouse-Down Handler
    */
-  function handleMouseDown(event) {
+  function handleMouseDown(event: LayerPointerEvent) {
     if (!canvasRef.value) return;
 
     const coords = getCanvasCoords(event);
@@ -152,7 +178,7 @@ export function useImageLayerInteraction(canvasRef) {
   /**
    * Mouse-Move Handler
    */
-  function handleMouseMove(event) {
+  function handleMouseMove(event: LayerPointerEvent) {
     if (!canvasRef.value) return;
 
     const coords = getCanvasCoords(event);
@@ -204,7 +230,7 @@ export function useImageLayerInteraction(canvasRef) {
   function handleMouseUp() {
     if (isDragging.value || isResizing.value) {
       // History speichern
-      imageStore.saveState('Layer verschoben/skaliert', 'layer');
+      imageStore.saveState('Layer verschoben/skaliert');
     }
 
     isDragging.value = false;
@@ -219,7 +245,13 @@ export function useImageLayerInteraction(canvasRef) {
   /**
    * Berechnet die neuen Dimensionen beim Resize
    */
-  function calculateResize(handle, dx, dy, start, proportional = false) {
+  function calculateResize(
+    handle: LayerHandle,
+    dx: number,
+    dy: number,
+    start: LayerBox,
+    proportional = false
+  ): LayerBox {
     let { x, y, width, height } = start;
     const aspectRatio = start.width / start.height;
 
@@ -270,8 +302,8 @@ export function useImageLayerInteraction(canvasRef) {
   /**
    * Gibt den passenden Cursor für einen Handle zurück
    */
-  function getHandleCursor(handle) {
-    const cursors = {
+  function getHandleCursor(handle: LayerHandle) {
+    const cursors: Record<LayerHandle, string> = {
       nw: 'nw-resize',
       n: 'n-resize',
       ne: 'ne-resize',
@@ -284,17 +316,17 @@ export function useImageLayerInteraction(canvasRef) {
     return cursors[handle] || 'default';
   }
 
-  function handleTouchStart(event) {
+  function handleTouchStart(event: TouchEvent) {
     event.preventDefault();
     handleMouseDown(event);
   }
 
-  function handleTouchMove(event) {
+  function handleTouchMove(event: TouchEvent) {
     event.preventDefault();
     handleMouseMove(event);
   }
 
-  function handleTouchEnd(event) {
+  function handleTouchEnd(event: TouchEvent) {
     event.preventDefault();
     handleMouseUp();
   }

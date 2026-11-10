@@ -1,17 +1,77 @@
 /**
- * useCrop.js - Composable für Crop-Funktionalität
+ * useCrop.ts - Composable für Crop-Funktionalität
  * Extrahiert aus EditorView.vue - Alle Crop-Logik in einem Composable
  */
 
-import { ref, computed } from 'vue';
+import { ref, computed, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useConfirm } from '@/composables/useConfirm';
 import { getAdjustedImage } from '@/utils/imageAdjustments';
 import { logger } from '@/utils/logger';
-import { cropShapes } from '@/utils/shapes';
+import { context2d } from '@/utils/canvas2d';
+import { cropShapes, type Shape } from '@/utils/shapes';
+import type { AdjustableImage } from '@/utils/imageAdjustments';
+import type { FilterValues } from '@/types/filters';
+import type { StoreText } from '@/stores/image/types';
+import type { useImageStore } from '@/stores/imageStore';
+
+type ImageStore = ReturnType<typeof useImageStore>;
+
+/** Teil des imageStore, den Zuschnitt und Rückgängig lesen und ändern */
+export type CropImageStore = Pick<
+  ImageStore,
+  'texts' | 'shapes' | 'selectedShapeId' | 'updateText' | 'deleteText'
+>;
+
+export interface AspectRatioPreset {
+  id: string;
+  label: string;
+  /** null = freies Seitenverhältnis */
+  ratio: number | null;
+  icon: string;
+  isCircle?: boolean;
+}
+
+/** Griff der Crop-Box: Ecken und Kantenmitten */
+export type CropHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
+
+interface CropPoint {
+  x: number;
+  y: number;
+}
+
+/** Zustand vor dem ersten Zuschnitt (für undoCrop) */
+export interface BeforeCropImage {
+  dataUrl: string;
+  width: number;
+  height: number;
+  filters: FilterValues;
+  texts: StoreText[];
+  shapes: Shape[];
+  borderRadius: number;
+}
+
+export interface FinishCropContext {
+  canvas: Ref<HTMLCanvasElement | null>;
+  currentImage: Ref<AdjustableImage | null>;
+  filters: Ref<FilterValues>;
+  imageStore?: CropImageStore | null;
+  borderRadiusBeforeCrop?: number;
+  onCropComplete?: (
+    img: HTMLImageElement,
+    width: number,
+    height: number,
+    isCircleCrop: boolean
+  ) => void;
+}
+
+export interface UndoCropContext {
+  imageStore?: CropImageStore | null;
+  onUndoComplete?: (img: HTMLImageElement, beforeCropData: BeforeCropImage) => void;
+}
 
 // Seitenverhältnis-Presets
-export const ASPECT_RATIO_PRESETS = [
+export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
   { id: 'free', label: 'Frei', ratio: null, icon: 'fa-expand' },
   { id: 'circle', label: 'Kreis', ratio: 1, icon: 'fa-circle', isCircle: true },
   { id: '1:1', label: '1:1', ratio: 1, icon: 'fa-square' },
@@ -27,10 +87,10 @@ export function useCrop() {
   // State
   const cropMode = ref(false);
   const cropping = ref(false);
-  const cropStart = ref({ x: 0, y: 0 });
-  const cropEnd = ref({ x: 0, y: 0 });
+  const cropStart = ref<CropPoint>({ x: 0, y: 0 });
+  const cropEnd = ref<CropPoint>({ x: 0, y: 0 });
   const hasCropped = ref(false);
-  const beforeCropImage = ref(null);
+  const beforeCropImage = ref<BeforeCropImage | null>(null);
 
   // Seitenverhältnis State
   const selectedAspectRatio = ref('free');
@@ -40,7 +100,7 @@ export function useCrop() {
   const isDragging = ref(false);
   const isResizing = ref(false);
   const isCreating = ref(false); // Neue Auswahl wird erstellt
-  const activeHandle = ref(null);
+  const activeHandle = ref<CropHandle | null>(null);
   const dragOffset = ref({ x: 0, y: 0 });
 
   // Computed
@@ -112,7 +172,7 @@ export function useCrop() {
     cropEnd.value = { x: 0, y: 0 };
   }
 
-  function startCrop(x, y) {
+  function startCrop(x: number, y: number) {
     cropping.value = true;
     isCreating.value = true;
     cropStart.value = { x, y };
@@ -120,7 +180,7 @@ export function useCrop() {
   }
 
   // Erstelle eine zentrierte Crop-Box mit dem gewählten Seitenverhältnis
-  function createCenteredCropBox(ratio) {
+  function createCenteredCropBox(ratio: number | null) {
     if (canvasSize.value.width <= 0 || canvasSize.value.height <= 0) return;
 
     const canvasW = canvasSize.value.width;
@@ -130,7 +190,7 @@ export function useCrop() {
     const maxWidth = canvasW * 0.8;
     const maxHeight = canvasH * 0.8;
 
-    let boxWidth, boxHeight;
+    let boxWidth: number, boxHeight: number;
 
     if (ratio === null) {
       // Freie Auswahl - nutze 60% des Canvas
@@ -156,7 +216,7 @@ export function useCrop() {
     cropping.value = true;
   }
 
-  function updateCrop(x, y) {
+  function updateCrop(x: number, y: number) {
     const preset = ASPECT_RATIO_PRESETS.find((p) => p.id === selectedAspectRatio.value);
 
     // Wenn kein festes Seitenverhältnis, einfach die Position setzen
@@ -170,15 +230,15 @@ export function useCrop() {
     const startX = cropStart.value.x;
     const startY = cropStart.value.y;
 
-    let width = x - startX;
-    let height = y - startY;
+    const width = x - startX;
+    const height = y - startY;
 
     // Berechne die neue Höhe basierend auf der Breite und dem Seitenverhältnis
     const absWidth = Math.abs(width);
     const absHeight = Math.abs(height);
 
     // Entscheide, ob wir nach Breite oder Höhe skalieren
-    let newWidth, newHeight;
+    let newWidth: number, newHeight: number;
 
     if (absWidth / ratio > absHeight) {
       // Breite ist dominant, passe Höhe an
@@ -207,7 +267,7 @@ export function useCrop() {
   }
 
   // Verschiebe die Crop-Box
-  function moveCropBox(x, y) {
+  function moveCropBox(x: number, y: number) {
     const box = normalizedCropBox.value;
 
     // Berechne neue Position basierend auf Drag-Offset
@@ -226,8 +286,9 @@ export function useCrop() {
   }
 
   // Resize die Crop-Box von einem Handle aus
-  function resizeCropBox(x, y) {
-    if (!activeHandle.value) return;
+  function resizeCropBox(x: number, y: number) {
+    const handle = activeHandle.value;
+    if (!handle) return;
 
     const preset = ASPECT_RATIO_PRESETS.find((p) => p.id === selectedAspectRatio.value);
     const ratio = preset?.ratio || null;
@@ -246,7 +307,7 @@ export function useCrop() {
     const maxY = Math.max(cropStart.value.y, cropEnd.value.y);
 
     // Handle basierte Resize-Logik
-    switch (activeHandle.value) {
+    switch (handle) {
       case 'nw': // Oben-Links
         newStart = { x: x, y: y };
         newEnd = { x: maxX, y: maxY };
@@ -287,10 +348,10 @@ export function useCrop() {
       const newHeight = Math.abs(newEnd.y - newStart.y);
 
       // Entscheide basierend auf Handle, welche Dimension führend ist
-      const isHorizontalHandle = ['e', 'w'].includes(activeHandle.value);
-      const isVerticalHandle = ['n', 's'].includes(activeHandle.value);
+      const isHorizontalHandle = handle === 'e' || handle === 'w';
+      const isVerticalHandle = handle === 'n' || handle === 's';
 
-      let adjustedWidth, adjustedHeight;
+      let adjustedWidth: number, adjustedHeight: number;
 
       if (isHorizontalHandle) {
         adjustedWidth = newWidth;
@@ -310,13 +371,13 @@ export function useCrop() {
       }
 
       // Passe die Position basierend auf dem Handle an
-      if (activeHandle.value.includes('w')) {
+      if (handle.includes('w')) {
         newStart.x = newEnd.x - adjustedWidth;
       } else {
         newEnd.x = newStart.x + adjustedWidth;
       }
 
-      if (activeHandle.value.includes('n')) {
+      if (handle.includes('n')) {
         newStart.y = newEnd.y - adjustedHeight;
       } else {
         newEnd.y = newStart.y + adjustedHeight;
@@ -332,14 +393,14 @@ export function useCrop() {
   }
 
   // Prüfe ob ein Punkt innerhalb der Crop-Box liegt
-  function isPointInCropBox(x, y) {
+  function isPointInCropBox(x: number, y: number) {
     if (!cropping.value) return false;
     const box = normalizedCropBox.value;
     return x >= box.x && x <= box.x + box.width && y >= box.y && y <= box.y + box.height;
   }
 
   // Prüfe welches Handle getroffen wurde (returns null wenn keines)
-  function getHandleAtPoint(x, y, displayScale = 1) {
+  function getHandleAtPoint(x: number, y: number, displayScale = 1): CropHandle | null {
     if (!cropping.value) return null;
 
     const box = normalizedCropBox.value;
@@ -347,7 +408,7 @@ export function useCrop() {
     // Bei kleiner Darstellung größerer Klickbereich in Canvas-Koordinaten
     const handleSize = Math.max(15, 20 / displayScale);
 
-    const handles = {
+    const handles: Record<CropHandle, CropPoint> = {
       nw: { x: box.x, y: box.y },
       n: { x: box.x + box.width / 2, y: box.y },
       ne: { x: box.x + box.width, y: box.y },
@@ -358,7 +419,7 @@ export function useCrop() {
       w: { x: box.x, y: box.y + box.height / 2 },
     };
 
-    for (const [name, pos] of Object.entries(handles)) {
+    for (const [name, pos] of Object.entries(handles) as [CropHandle, CropPoint][]) {
       if (Math.abs(x - pos.x) <= handleSize && Math.abs(y - pos.y) <= handleSize) {
         return name;
       }
@@ -367,7 +428,7 @@ export function useCrop() {
     return null;
   }
 
-  function setAspectRatio(ratioId) {
+  function setAspectRatio(ratioId: string) {
     selectedAspectRatio.value = ratioId;
 
     const preset = ASPECT_RATIO_PRESETS.find((p) => p.id === ratioId);
@@ -382,7 +443,7 @@ export function useCrop() {
       const centerY = box.y + box.height / 2;
 
       // Berechne neue Größe mit gleichem Seitenverhältnis
-      let newWidth, newHeight;
+      let newWidth: number, newHeight: number;
       const ratio = preset.ratio;
 
       // Behalte die größere Dimension und passe die andere an
@@ -417,7 +478,7 @@ export function useCrop() {
     }
   }
 
-  function setCanvasSize(width, height) {
+  function setCanvasSize(width: number, height: number) {
     canvasSize.value = { width, height };
   }
 
@@ -425,7 +486,7 @@ export function useCrop() {
   // dabei innerhalb des Canvas. Die obere linke Ecke bleibt möglichst
   // verankert; passt die Box nicht mehr, wird sie nach links/oben verschoben
   // bzw. auf Canvas-Größe begrenzt.
-  function applyExactCropSize(width, height) {
+  function applyExactCropSize(width: number, height: number) {
     const cw = canvasSize.value.width;
     const ch = canvasSize.value.height;
     const box = normalizedCropBox.value;
@@ -473,7 +534,7 @@ export function useCrop() {
 
   // Exakte Breite setzen (px). Bei aktivem Seitenverhältnis wird die Höhe
   // mitgeführt; die Box bleibt innerhalb des Canvas.
-  function setCropWidth(width) {
+  function setCropWidth(width: number) {
     if (!cropping.value) return;
     const cw = canvasSize.value.width;
     const ch = canvasSize.value.height;
@@ -482,7 +543,7 @@ export function useCrop() {
     let w = Math.max(1, Math.round(width));
     if (cw > 0) w = Math.min(w, cw);
 
-    let h;
+    let h: number;
     if (ratio) {
       h = w / ratio;
       if (ch > 0 && h > ch) {
@@ -498,7 +559,7 @@ export function useCrop() {
 
   // Exakte Höhe setzen (px). Bei aktivem Seitenverhältnis wird die Breite
   // mitgeführt; die Box bleibt innerhalb des Canvas.
-  function setCropHeight(height) {
+  function setCropHeight(height: number) {
     if (!cropping.value) return;
     const cw = canvasSize.value.width;
     const ch = canvasSize.value.height;
@@ -507,7 +568,7 @@ export function useCrop() {
     let h = Math.max(1, Math.round(height));
     if (ch > 0) h = Math.min(h, ch);
 
-    let w;
+    let w: number;
     if (ratio) {
       w = h * ratio;
       if (cw > 0 && w > cw) {
@@ -521,10 +582,12 @@ export function useCrop() {
     applyExactCropSize(w, h);
   }
 
-  async function finishCrop(context) {
+  async function finishCrop(context: FinishCropContext) {
     const { canvas, currentImage, filters, imageStore } = context;
 
-    if (!cropping.value || !canvas.value || !currentImage.value) return;
+    const sourceCanvas = canvas.value;
+    const sourceImage = currentImage.value;
+    if (!cropping.value || !sourceCanvas || !sourceImage) return;
 
     cropping.value = false;
 
@@ -547,25 +610,22 @@ export function useCrop() {
       if (!hasCropped.value) {
         // Erstelle temporäres Canvas NUR mit Bild (ohne Texte) für sauberes Backup
         const backupCanvas = document.createElement('canvas');
-        const backupCtx = backupCanvas.getContext('2d');
-        backupCanvas.width = canvas.value.width;
-        backupCanvas.height = canvas.value.height;
+        const backupCtx = context2d(backupCanvas);
+        backupCanvas.width = sourceCanvas.width;
+        backupCanvas.height = sourceCanvas.height;
 
         // Kopiere nur das gerenderte Bild (ohne Texte) vom Canvas
         // Echte Tonwert-Anpassungen werden in die Quelle gebacken,
         // Effekt-Filter als CSS angewendet (identisch zur Vorschau).
-        const { el: adjustedSource, cssFilter } = getAdjustedImage(
-          currentImage.value,
-          filters.value
-        );
+        const { el: adjustedSource, cssFilter } = getAdjustedImage(sourceImage, filters.value);
         backupCtx.filter = cssFilter;
         backupCtx.drawImage(adjustedSource, 0, 0, backupCanvas.width, backupCanvas.height);
         backupCtx.filter = 'none';
 
         beforeCropImage.value = {
           dataUrl: backupCanvas.toDataURL('image/png'),
-          width: canvas.value.width,
-          height: canvas.value.height,
+          width: sourceCanvas.width,
+          height: sourceCanvas.height,
           filters: { ...filters.value },
           texts: imageStore ? [...imageStore.texts] : [],
           shapes: imageStore?.shapes ? JSON.parse(JSON.stringify(imageStore.shapes)) : [],
@@ -587,11 +647,11 @@ export function useCrop() {
       if (
         cropX < 0 ||
         cropY < 0 ||
-        cropX + cropWidth > canvas.value.width ||
-        cropY + cropHeight > canvas.value.height
+        cropX + cropWidth > sourceCanvas.width ||
+        cropY + cropHeight > sourceCanvas.height
       ) {
         logger.error(
-          `Crop außerhalb: Canvas=${canvas.value.width}x${canvas.value.height}, Crop=${cropX},${cropY},${cropWidth},${cropHeight}`
+          `Crop außerhalb: Canvas=${sourceCanvas.width}x${sourceCanvas.height}, Crop=${cropX},${cropY},${cropWidth},${cropHeight}`
         );
         if (window.$toast) {
           window.$toast.error(t('toast.crop.outOfBounds'));
@@ -601,19 +661,19 @@ export function useCrop() {
 
       // Erstelle temporäres Canvas NUR mit Bild (ohne Texte) für sauberen Crop
       const tempCanvas = document.createElement('canvas');
-      const tempCtx = tempCanvas.getContext('2d');
-      tempCanvas.width = canvas.value.width;
-      tempCanvas.height = canvas.value.height;
+      const tempCtx = context2d(tempCanvas);
+      tempCanvas.width = sourceCanvas.width;
+      tempCanvas.height = sourceCanvas.height;
 
       // Rendere das Bild mit Filtern (OHNE Texte) - gleiche Logik wie beim Backup
-      const { el: adjustedSource, cssFilter } = getAdjustedImage(currentImage.value, filters.value);
+      const { el: adjustedSource, cssFilter } = getAdjustedImage(sourceImage, filters.value);
       tempCtx.filter = cssFilter;
       tempCtx.drawImage(adjustedSource, 0, 0, tempCanvas.width, tempCanvas.height);
       tempCtx.filter = 'none';
 
       // Erstelle neues Canvas für zugeschnittenes Bild
       const cropCanvas = document.createElement('canvas');
-      const cropCtx = cropCanvas.getContext('2d');
+      const cropCtx = context2d(cropCanvas);
 
       cropCanvas.width = Math.max(1, Math.round(cropWidth));
       cropCanvas.height = Math.max(1, Math.round(cropHeight));
@@ -667,20 +727,18 @@ export function useCrop() {
 
       // Passe Text-Positionen an
       if (imageStore && imageStore.texts) {
-        const textsToRemove = [];
+        const textsToRemove: StoreText['id'][] = [];
 
         imageStore.texts.forEach((text) => {
-          if (
-            text.x < cropX ||
-            text.x > cropX + cropWidth ||
-            text.y < cropY ||
-            text.y > cropY + cropHeight
-          ) {
+          // Wie bisher: fehlende Koordinaten vergleichen als NaN (nie außerhalb)
+          const tx = Number(text.x);
+          const ty = Number(text.y);
+          if (tx < cropX || tx > cropX + cropWidth || ty < cropY || ty > cropY + cropHeight) {
             textsToRemove.push(text.id);
           } else {
             imageStore.updateText(text.id, {
-              x: text.x - cropX,
-              y: text.y - cropY,
+              x: tx - cropX,
+              y: ty - cropY,
             });
           }
         });
@@ -735,14 +793,15 @@ export function useCrop() {
     } catch (error) {
       logger.error('Crop-Fehler:', error);
       if (window.$toast) {
-        window.$toast.error(t('toast.crop.error'), error.message);
+        window.$toast.error(t('toast.crop.error'), (error as Error).message);
       }
       clearCropSelection();
     }
   }
 
-  async function undoCrop(context) {
-    if (!hasCropped.value || !beforeCropImage.value) {
+  async function undoCrop(context: UndoCropContext) {
+    const before = beforeCropImage.value;
+    if (!hasCropped.value || !before) {
       if (window.$toast) {
         window.$toast.warning(t('toast.crop.undoNotAvailable'));
       }
@@ -766,24 +825,24 @@ export function useCrop() {
     const img = new Image();
     img.onload = () => {
       // Stelle Texte wieder her
-      if (imageStore && beforeCropImage.value.texts) {
+      if (imageStore && before.texts) {
         // Leere das Array komplett
         imageStore.texts.splice(0, imageStore.texts.length);
 
         // Füge Original-Texte wieder ein (behält IDs)
-        imageStore.texts.splice(0, 0, ...beforeCropImage.value.texts);
+        imageStore.texts.splice(0, 0, ...before.texts);
 
         logger.log(`✅ ${imageStore.texts.length} Texte wiederhergestellt`);
       }
       // Formen wiederherstellen
-      if (imageStore && Array.isArray(beforeCropImage.value.shapes)) {
-        imageStore.shapes = JSON.parse(JSON.stringify(beforeCropImage.value.shapes));
+      if (imageStore && Array.isArray(before.shapes)) {
+        imageStore.shapes = JSON.parse(JSON.stringify(before.shapes));
         imageStore.selectedShapeId = null;
       }
 
       // Callback für externe Updates
       if (context.onUndoComplete) {
-        context.onUndoComplete(img, beforeCropImage.value);
+        context.onUndoComplete(img, before);
       }
 
       // Zurücksetzen
@@ -796,7 +855,7 @@ export function useCrop() {
       }
     };
 
-    img.src = beforeCropImage.value.dataUrl;
+    img.src = before.dataUrl;
   }
 
   // Bricht den laufenden Zuschneide-Vorgang ab: verlässt den Crop-Modus und
@@ -821,7 +880,7 @@ export function useCrop() {
   }
 
   // Event Handlers für einfache Integration
-  function handleMouseDown(pos, displayScale = 1) {
+  function handleMouseDown(pos: CropPoint, displayScale = 1) {
     if (!cropMode.value) return false;
 
     const { x, y } = pos;
@@ -847,7 +906,7 @@ export function useCrop() {
     return true;
   }
 
-  function handleMouseMove(pos) {
+  function handleMouseMove(pos: CropPoint) {
     const { x, y } = pos;
 
     // Resize-Modus
@@ -891,12 +950,12 @@ export function useCrop() {
   }
 
   // Cursor-Style basierend auf Position
-  function getCursorForPosition(x, y, displayScale = 1) {
+  function getCursorForPosition(x: number, y: number, displayScale = 1) {
     if (!cropMode.value || !cropping.value) return 'crosshair';
 
     const handle = getHandleAtPoint(x, y, displayScale);
     if (handle) {
-      const cursors = {
+      const cursors: Record<CropHandle, string> = {
         nw: 'nwse-resize',
         se: 'nwse-resize',
         ne: 'nesw-resize',

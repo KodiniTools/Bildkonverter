@@ -13,19 +13,26 @@ import {
   MIN_OFFSET,
   computeBakeLayout,
   UNIT_QUAD,
+  CORNERS,
+  type AffineMatrix,
+  type Corner,
+  type Point,
 } from '@/utils/warpImage';
 import { useTransform } from '@/composables/useTransform';
 
-const apply = ([a, b, c, d, e, f], p) => ({ x: a * p.x + c * p.y + e, y: b * p.x + d * p.y + f });
+const apply = ([a, b, c, d, e, f]: AffineMatrix, p: Point) => ({
+  x: a * p.x + c * p.y + e,
+  y: b * p.x + d * p.y + f,
+});
 
 describe('warpImage – Geometrie', () => {
   it('computeTriangleAffine bildet die Quell- exakt auf die Zieleckpunkte ab', () => {
-    const s = [
+    const s: [Point, Point, Point] = [
       { x: 0, y: 0 },
       { x: 100, y: 0 },
       { x: 100, y: 50 },
     ];
-    const d = [
+    const d: [Point, Point, Point] = [
       { x: 10, y: 5 },
       { x: 90, y: 20 },
       { x: 120, y: 80 },
@@ -33,8 +40,8 @@ describe('warpImage – Geometrie', () => {
     const m = computeTriangleAffine(...s, ...d);
     s.forEach((p, i) => {
       const q = apply(m, p);
-      expect(q.x).toBeCloseTo(d[i].x, 9);
-      expect(q.y).toBeCloseTo(d[i].y, 9);
+      expect(q.x).toBeCloseTo(d[i]!.x, 9);
+      expect(q.y).toBeCloseTo(d[i]!.y, 9);
     });
   });
 
@@ -97,16 +104,17 @@ describe('useTransform – Verzerren', () => {
     t.setCornerOffset('nw', { x: 0.1, y: 0.2 });
     const snapshot = { ...t.transforms.value };
     t.setCornerOffset('se', { x: -0.1, y: -0.1 });
-    expect(snapshot.cornerOffsets.se).toEqual({ x: 0, y: 0 });
-    expect(t.transforms.value.cornerOffsets.nw).toEqual({ x: 0.1, y: 0.2 });
-    expect(t.transforms.value.cornerOffsets.se).toEqual({ x: -0.1, y: -0.1 });
+    expect(snapshot.cornerOffsets?.se).toEqual({ x: 0, y: 0 });
+    expect(t.transforms.value.cornerOffsets?.nw).toEqual({ x: 0.1, y: 0.2 });
+    expect(t.transforms.value.cornerOffsets?.se).toEqual({ x: -0.1, y: -0.1 });
     expect(t.hasDistortion.value).toBe(true);
     expect(t.hasTransforms.value).toBe(true);
   });
 
   it('ignoriert ungültige Ecken und normalisiert "alles 0" zu null', () => {
     const t = useTransform();
-    t.setCornerOffset('xx', { x: 1, y: 1 });
+    // Ungültige Ecke, wie sie aus untypisiertem Code kommen kann
+    t.setCornerOffset('xx' as Corner, { x: 1, y: 1 });
     expect(t.transforms.value.cornerOffsets).toBeNull();
     t.setCornerOffset('ne', { x: 0.3, y: 0 });
     t.setCornerOffset('ne', { x: 0, y: 0 });
@@ -128,7 +136,7 @@ describe('useTransform – Verzerren', () => {
 });
 
 describe('computeBakeLayout – Verzerrung übernehmen', () => {
-  const close = (p, q) => {
+  const close = (p: Point, q: Point) => {
     expect(p.x).toBeCloseTo(q.x, 9);
     expect(p.y).toBeCloseTo(q.y, 9);
   };
@@ -136,7 +144,7 @@ describe('computeBakeLayout – Verzerrung übernehmen', () => {
   it('ohne Versätze bleibt alles beim Einheitsquadrat', () => {
     const l = computeBakeLayout(emptyOffsets());
     expect([l.minU, l.minV, l.spanU, l.spanV]).toEqual([0, 0, 1, 1]);
-    for (const c of ['nw', 'ne', 'se', 'sw']) close(l.shapeQuad[c], UNIT_QUAD[c]);
+    for (const c of CORNERS) close(l.shapeQuad[c], UNIT_QUAD[c]);
   });
 
   it('nach innen gezogene Ecke: Box bleibt, Umriss folgt der Ecke', () => {

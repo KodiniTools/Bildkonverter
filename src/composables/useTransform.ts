@@ -1,14 +1,30 @@
 /**
- * useTransform.js - Composable für Transformationen
+ * useTransform.ts - Composable für Transformationen
  * Deckkraft, Rotation, Drehen, Spiegeln, Zoom, Pan, etc.
  * Undo/Redo läuft über die gemeinsame Editor-Historie (useImageHistory).
  */
 
 import { ref, computed } from 'vue';
-import { CORNERS, emptyOffsets, hasDistortion as offsetsDistorted } from '@/utils/warpImage';
+import type { TransformState } from '@/types/transform';
+import { context2d } from '@/utils/canvas2d';
+import {
+  CORNERS,
+  emptyOffsets,
+  hasDistortion as offsetsDistorted,
+  type Corner,
+  type CornerOffsets,
+  type QuadCorners,
+} from '@/utils/warpImage';
+
+/** Ergebnis von applyPermanently */
+export interface TransformedImage {
+  img: HTMLImageElement;
+  width: number;
+  height: number;
+}
 
 // Standardwerte für Transformationen
-const DEFAULT_TRANSFORMS = {
+const DEFAULT_TRANSFORMS: TransformState = {
   opacity: 100, // 0-100%
   rotation: 0, // -180 bis +180 Grad
   scale: 100, // 10-200%
@@ -43,11 +59,11 @@ const DEFAULT_TRANSFORMS = {
 
 export function useTransform() {
   // State
-  const transforms = ref({ ...DEFAULT_TRANSFORMS });
+  const transforms = ref<TransformState>({ ...DEFAULT_TRANSFORMS });
 
   // Computed - CSS Transform String
   const transformStyle = computed(() => {
-    const parts = [];
+    const parts: string[] = [];
 
     // Rotation
     if (transforms.value.rotation !== 0) {
@@ -75,14 +91,14 @@ export function useTransform() {
   /**
    * Setze Deckkraft
    */
-  function setOpacity(value) {
+  function setOpacity(value: number) {
     transforms.value.opacity = Math.max(0, Math.min(100, value));
   }
 
   /**
    * Setze Rotation
    */
-  function setRotation(degrees) {
+  function setRotation(degrees: number) {
     transforms.value.rotation = degrees;
     // Normalisiere auf -180 bis +180
     while (transforms.value.rotation > 180) {
@@ -96,8 +112,8 @@ export function useTransform() {
   /**
    * Drehe um fixe Grad
    */
-  function rotate(degrees) {
-    setRotation(transforms.value.rotation + degrees, true);
+  function rotate(degrees: number) {
+    setRotation(transforms.value.rotation + degrees);
   }
 
   /**
@@ -138,7 +154,7 @@ export function useTransform() {
   /**
    * Setze Zoom/Skalierung
    */
-  function setScale(value) {
+  function setScale(value: number) {
     transforms.value.scale = Math.max(10, Math.min(200, value));
     // Bei Zoom <= 100% Pan zurücksetzen
     if (transforms.value.scale <= 100) {
@@ -150,7 +166,7 @@ export function useTransform() {
   /**
    * Setze Pan-Offset
    */
-  function setPan(x, y) {
+  function setPan(x: number, y: number) {
     // Pan nur erlauben wenn gezoomt
     if (transforms.value.scale <= 100) {
       transforms.value.panX = 0;
@@ -164,7 +180,7 @@ export function useTransform() {
   /**
    * Pan-Offset verschieben (relativ)
    */
-  function pan(deltaX, deltaY) {
+  function pan(deltaX: number, deltaY: number) {
     if (transforms.value.scale <= 100) return;
 
     // Begrenze Pan basierend auf Zoom-Level
@@ -188,77 +204,77 @@ export function useTransform() {
   /**
    * Setze Ecken-Rundung
    */
-  function setBorderRadius(value) {
+  function setBorderRadius(value: number) {
     transforms.value.borderRadius = Math.max(0, Math.min(50, value));
   }
 
   /**
    * Setze Rahmen-Dicke
    */
-  function setBorderWidth(value) {
+  function setBorderWidth(value: number) {
     transforms.value.borderWidth = Math.max(0, Math.min(20, value));
   }
 
   /**
    * Setze Rahmen-Farbe
    */
-  function setBorderColor(color) {
+  function setBorderColor(color: string) {
     transforms.value.borderColor = color;
   }
 
   /**
    * Setze Schlagschatten aktiviert/deaktiviert
    */
-  function setShadowEnabled(enabled) {
+  function setShadowEnabled(enabled: boolean) {
     transforms.value.shadowEnabled = enabled;
   }
 
   /**
    * Setze Schlagschatten X-Offset
    */
-  function setShadowOffsetX(value) {
+  function setShadowOffsetX(value: number) {
     transforms.value.shadowOffsetX = Math.max(-50, Math.min(50, value));
   }
 
   /**
    * Setze Schlagschatten Y-Offset
    */
-  function setShadowOffsetY(value) {
+  function setShadowOffsetY(value: number) {
     transforms.value.shadowOffsetY = Math.max(-50, Math.min(50, value));
   }
 
   /**
    * Setze Schlagschatten Blur
    */
-  function setShadowBlur(value) {
+  function setShadowBlur(value: number) {
     transforms.value.shadowBlur = Math.max(0, Math.min(100, value));
   }
 
   /**
    * Setze Schlagschatten Farbe
    */
-  function setShadowColor(color) {
+  function setShadowColor(color: string) {
     transforms.value.shadowColor = color;
   }
 
   /**
    * Setze Schlagschatten Deckkraft
    */
-  function setShadowOpacity(value) {
+  function setShadowOpacity(value: number) {
     transforms.value.shadowOpacity = Math.max(0, Math.min(100, value));
   }
 
   /**
    * Setze Skew X (horizontale Neigung)
    */
-  function setSkewX(value) {
+  function setSkewX(value: number) {
     transforms.value.skewX = Math.max(-45, Math.min(45, value));
   }
 
   /**
    * Setze Skew Y (vertikale Neigung)
    */
-  function setSkewY(value) {
+  function setSkewY(value: number) {
     transforms.value.skewY = Math.max(-45, Math.min(45, value));
   }
 
@@ -266,7 +282,7 @@ export function useTransform() {
    * Freies Verzerren an-/ausschalten. Die Eck-Versätze bleiben erhalten,
    * wirken aber nur, solange der Modus aktiv ist.
    */
-  function setDistortEnabled(enabled) {
+  function setDistortEnabled(enabled: unknown) {
     transforms.value.distortEnabled = !!enabled;
   }
 
@@ -276,15 +292,13 @@ export function useTransform() {
 
   /**
    * Setze den normierten Versatz einer einzelnen Ecke (immutabel).
-   * @param {'nw'|'ne'|'se'|'sw'} corner
-   * @param {{x:number,y:number}} offset
    */
-  function setCornerOffset(corner, offset) {
+  function setCornerOffset(corner: Corner, offset: { x?: number; y?: number } | null | undefined) {
     if (!CORNERS.includes(corner)) return;
-    const x = Number.isFinite(offset?.x) ? offset.x : 0;
-    const y = Number.isFinite(offset?.y) ? offset.y : 0;
+    const x = offset && Number.isFinite(offset.x) ? Number(offset.x) : 0;
+    const y = offset && Number.isFinite(offset.y) ? Number(offset.y) : 0;
     const base = transforms.value.cornerOffsets ?? emptyOffsets();
-    const next = {
+    const next: CornerOffsets = {
       nw: { ...base.nw },
       ne: { ...base.ne },
       se: { ...base.se },
@@ -303,9 +317,8 @@ export function useTransform() {
 
   /**
    * Nach dem Backen der Verzerrung: Umrissform merken, Modus beenden.
-   * @param {{nw:{x:number,y:number},ne:{x:number,y:number},se:{x:number,y:number},sw:{x:number,y:number}}|null} shapeQuad
    */
-  function commitDistortion(shapeQuad) {
+  function commitDistortion(shapeQuad: QuadCorners | null | undefined) {
     transforms.value.shapeQuad = shapeQuad ?? null;
     transforms.value.cornerOffsets = null;
     transforms.value.distortEnabled = false;
@@ -319,7 +332,10 @@ export function useTransform() {
   /**
    * Wende Transformationen auf Canvas an
    */
-  function applyToCanvas(canvas, context) {
+  function applyToCanvas(
+    canvas: HTMLCanvasElement | null | undefined,
+    context: CanvasRenderingContext2D | null | undefined
+  ): (() => void) | undefined {
     if (!canvas || !context) return;
 
     // Deckkraft
@@ -377,10 +393,13 @@ export function useTransform() {
   /**
    * Wende Transformationen permanent auf Bild an (erstellt neues Bild)
    */
-  async function applyPermanently(currentImage, canvas) {
+  async function applyPermanently(
+    currentImage: CanvasImageSource | null | undefined,
+    canvas: HTMLCanvasElement | null | undefined
+  ): Promise<TransformedImage | null> {
     if (!currentImage || !canvas) return null;
 
-    return new Promise((resolve, reject) => {
+    return new Promise<TransformedImage>((resolve, reject) => {
       try {
         // Berechne neue Dimensionen basierend auf Rotation, Scale und Skew
         const radians = (transforms.value.rotation * Math.PI) / 180;
@@ -405,7 +424,7 @@ export function useTransform() {
         const tempCanvas = document.createElement('canvas');
         tempCanvas.width = newWidth;
         tempCanvas.height = newHeight;
-        const tempCtx = tempCanvas.getContext('2d');
+        const tempCtx = context2d(tempCanvas);
 
         // High quality
         tempCtx.imageSmoothingEnabled = true;

@@ -5,21 +5,33 @@
  * (Deckkraft, Rotation, Skalierung, Rahmen, Schatten, Neigung, Verzerren,
  * Flip, Commit). Ausgelagert aus EditorView.vue, um die View schlank
  * zu halten. Verhalten unverändert.
- *
- * @param {object}   deps
- * @param {object}   deps.transform    useTransform()-Composable-Instanz
- * @param {Function} deps.renderImage  Rendert das Canvas neu
- * @param {Function} deps.t            i18n-Übersetzungsfunktion
- * @param {Function} [deps.saveHistory] Speichert den Gesamt-Editor-State (gemeinsame Undo/Redo-Historie)
  */
-export function useTransformHandlers({ transform, renderImage, t, saveHistory }) {
-  function makeHandler(setter) {
-    return (value) => {
+import type { useTransform } from '@/composables/useTransform';
+
+export interface TransformHandlersDeps {
+  /** useTransform()-Composable-Instanz */
+  transform: ReturnType<typeof useTransform>;
+  /** Rendert das Canvas neu */
+  renderImage: () => void;
+  /** i18n-Übersetzungsfunktion */
+  t: (key: string) => string;
+  /** Speichert den Gesamt-Editor-State (gemeinsame Undo/Redo-Historie) */
+  saveHistory?: () => void;
+}
+
+export function useTransformHandlers({
+  transform,
+  renderImage,
+  t,
+  saveHistory,
+}: TransformHandlersDeps) {
+  function makeHandler<V>(setter: (value: V) => void) {
+    return (value: V) => {
       setter(value);
       renderImage();
     };
   }
-  function makeActionHandler(action, toastKey) {
+  function makeActionHandler(action: () => void, toastKey?: string) {
     return () => {
       action();
       renderImage();
@@ -27,20 +39,20 @@ export function useTransformHandlers({ transform, renderImage, t, saveHistory })
     };
   }
 
-  const handleOpacityUpdate = makeHandler((v) => transform.setOpacity(v));
-  const handleRotationUpdate = makeHandler((v) => transform.setRotation(v));
-  const handleScaleUpdate = makeHandler((v) => transform.setScale(v));
-  const handleBorderRadiusUpdate = makeHandler((v) => transform.setBorderRadius(v));
-  const handleBorderWidthUpdate = makeHandler((v) => transform.setBorderWidth(v));
-  const handleBorderColorUpdate = makeHandler((v) => transform.setBorderColor(v));
-  const handleShadowEnabledUpdate = makeHandler((v) => transform.setShadowEnabled(v));
-  const handleShadowOffsetXUpdate = makeHandler((v) => transform.setShadowOffsetX(v));
-  const handleShadowOffsetYUpdate = makeHandler((v) => transform.setShadowOffsetY(v));
-  const handleShadowBlurUpdate = makeHandler((v) => transform.setShadowBlur(v));
-  const handleShadowColorUpdate = makeHandler((v) => transform.setShadowColor(v));
-  const handleShadowOpacityUpdate = makeHandler((v) => transform.setShadowOpacity(v));
-  const handleSkewXUpdate = makeHandler((v) => transform.setSkewX(v));
-  const handleSkewYUpdate = makeHandler((v) => transform.setSkewY(v));
+  const handleOpacityUpdate = makeHandler((v: number) => transform.setOpacity(v));
+  const handleRotationUpdate = makeHandler((v: number) => transform.setRotation(v));
+  const handleScaleUpdate = makeHandler((v: number) => transform.setScale(v));
+  const handleBorderRadiusUpdate = makeHandler((v: number) => transform.setBorderRadius(v));
+  const handleBorderWidthUpdate = makeHandler((v: number) => transform.setBorderWidth(v));
+  const handleBorderColorUpdate = makeHandler((v: string) => transform.setBorderColor(v));
+  const handleShadowEnabledUpdate = makeHandler((v: boolean) => transform.setShadowEnabled(v));
+  const handleShadowOffsetXUpdate = makeHandler((v: number) => transform.setShadowOffsetX(v));
+  const handleShadowOffsetYUpdate = makeHandler((v: number) => transform.setShadowOffsetY(v));
+  const handleShadowBlurUpdate = makeHandler((v: number) => transform.setShadowBlur(v));
+  const handleShadowColorUpdate = makeHandler((v: string) => transform.setShadowColor(v));
+  const handleShadowOpacityUpdate = makeHandler((v: number) => transform.setShadowOpacity(v));
+  const handleSkewXUpdate = makeHandler((v: number) => transform.setSkewX(v));
+  const handleSkewYUpdate = makeHandler((v: number) => transform.setSkewY(v));
   const handleRotate90 = makeActionHandler(() => transform.rotate90(), 'toast.transform.rotated90');
   const handleRotate90Counter = makeActionHandler(
     () => transform.rotate90Counter(),
