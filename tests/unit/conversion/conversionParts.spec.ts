@@ -13,8 +13,7 @@ const i18n = createI18n({ legacy: false, locale: 'de', messages: { de } });
 const global = { plugins: [i18n], stubs: { RouterLink: RouterLinkStub } };
 const conversion = { pair: 'png-zu-webp', from: 'PNG', to: 'WebP' };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let wrapper: VueWrapper<any> | null = null;
+let wrapper: VueWrapper | null = null;
 afterEach(() => {
   wrapper?.unmount();
   wrapper = null;

@@ -1,12 +1,9 @@
 /**
- * Sperrklinke für die Umstellung auf TypeScript (Plan: Typisierung Bildkonverter).
+ * Wächter für die abgeschlossene Umstellung auf TypeScript (Plan: Typisierung Bildkonverter).
  *
- * - Neue JavaScript-Dateien in src/, tests/, e2e/ oder im Projektwurzelordner sind
- *   nicht erlaubt.
- * - Neue .vue-Dateien mit <script> brauchen lang="ts".
- * - Wer eine Datei umstellt, streicht sie aus der passenden Liste. Steht eine Datei
- *   noch in der Liste, existiert aber nicht mehr als JS, schlägt der Test ebenfalls
- *   fehl. So schrumpfen die Listen bis zum Ende auf null.
+ * - In src/, tests/, e2e/ und im Projektwurzelordner gibt es kein JavaScript mehr.
+ * - Jede .vue-Datei mit <script> nutzt lang="ts".
+ * - Typprüfungen werden nicht per @ts-ignore / @ts-nocheck abgeschaltet.
  *
  * Bewusst ausgenommen: backend-deploy/ (eigener Node-Dienst), public/, src-tauri/,
  * Build-Ausgaben und node_modules.
@@ -17,12 +14,7 @@ import { join, relative, sep } from 'node:path';
 
 const ROOT = join(__dirname, '..', '..');
 const JS_EXTENSIONS = ['.js', '.mjs', '.cjs'];
-
-/** JavaScript-Dateien, die noch auf ihre Umstellung warten. */
-const ALLOWED_JS_FILES: readonly string[] = [];
-
-/** .vue-Dateien, deren <script> noch kein lang="ts" hat. */
-const ALLOWED_JS_VUE_FILES: readonly string[] = [];
+const CHECKED_DIRS = ['src', 'tests', 'e2e'];
 
 const toPosix = (path: string): string => path.split(sep).join('/');
 
@@ -46,7 +38,7 @@ function collectFiles(
 const isJs = (name: string): boolean => JS_EXTENSIONS.some((ext) => name.endsWith(ext));
 
 function currentJsFiles(): string[] {
-  const nested = ['src', 'tests', 'e2e'].flatMap((dir) => collectFiles(join(ROOT, dir), isJs));
+  const nested = CHECKED_DIRS.flatMap((dir) => collectFiles(join(ROOT, dir), isJs));
   const rootFiles = readdirSync(ROOT).filter(
     (name) => isJs(name) && statSync(join(ROOT, name)).isFile()
   );
@@ -63,31 +55,25 @@ function currentJsVueFiles(): string[] {
     .sort();
 }
 
-describe('TypeScript-Umstellung (Sperrklinke)', () => {
-  it('keine neuen JavaScript-Dateien', () => {
-    const unexpected = currentJsFiles().filter((path) => !ALLOWED_JS_FILES.includes(path));
-    expect(unexpected, 'Neue Dateien bitte direkt in TypeScript anlegen').toEqual([]);
+function filesWithTypeCheckBypass(): string[] {
+  // Nur echte Direktiven: Kommentar, der mit @ts-ignore bzw. @ts-nocheck beginnt
+  const bypass = /^\s*(\/\/|\/\*+)\s*@ts-(ignore|nocheck)\b/m;
+  const isSource = (name: string): boolean => /\.(ts|vue)$/.test(name);
+  return CHECKED_DIRS.flatMap((dir) => collectFiles(join(ROOT, dir), isSource))
+    .filter((path) => bypass.test(readFileSync(join(ROOT, path), 'utf8')))
+    .sort();
+}
+
+describe('TypeScript-Umstellung (Wächter)', () => {
+  it('keine JavaScript-Dateien', () => {
+    expect(currentJsFiles(), 'Dateien bitte in TypeScript anlegen').toEqual([]);
   });
 
-  it('umgestellte JavaScript-Dateien sind aus der Liste gestrichen', () => {
-    const current = new Set(currentJsFiles());
-    const stale = ALLOWED_JS_FILES.filter((path) => !current.has(path));
-    expect(stale, 'Diese Einträge aus ALLOWED_JS_FILES entfernen').toEqual([]);
+  it('alle .vue-Dateien nutzen <script lang="ts">', () => {
+    expect(currentJsVueFiles(), 'Bitte <script setup lang="ts"> verwenden').toEqual([]);
   });
 
-  it('neue .vue-Dateien nutzen <script lang="ts">', () => {
-    const unexpected = currentJsVueFiles().filter((path) => !ALLOWED_JS_VUE_FILES.includes(path));
-    expect(unexpected, 'Bitte <script setup lang="ts"> verwenden').toEqual([]);
-  });
-
-  it('umgestellte .vue-Dateien sind aus der Liste gestrichen', () => {
-    const current = new Set(currentJsVueFiles());
-    const stale = ALLOWED_JS_VUE_FILES.filter((path) => !current.has(path));
-    expect(stale, 'Diese Einträge aus ALLOWED_JS_VUE_FILES entfernen').toEqual([]);
-  });
-
-  it('die Listen enthalten keine Duplikate', () => {
-    expect(new Set(ALLOWED_JS_FILES).size).toBe(ALLOWED_JS_FILES.length);
-    expect(new Set(ALLOWED_JS_VUE_FILES).size).toBe(ALLOWED_JS_VUE_FILES.length);
+  it('kein @ts-ignore oder @ts-nocheck', () => {
+    expect(filesWithTypeCheckBypass(), 'Typfehler beheben statt unterdrücken').toEqual([]);
   });
 });

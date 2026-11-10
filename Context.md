@@ -27,9 +27,9 @@
 | Utilities             | @vueuse/core            | ^10.9   |
 | Konfetti              | canvas-confetti         | ^1.9    |
 
-**Dev-Dependencies:** TypeScript + vue-tsc (schrittweise Migration, `allowJs`), ESLint 10 (Flat-Config `eslint.config.ts` mit `@vue/eslint-config-typescript`, geladen über `jiti`), Prettier, Vitest, Playwright (E2E), `@vitejs/plugin-vue`
+**Dev-Dependencies:** TypeScript + vue-tsc (strict, kein JavaScript mehr), ESLint 10 (Flat-Config `eslint.config.ts` mit `@vue/eslint-config-typescript`, geladen über `jiti`), Prettier, Vitest, Playwright (E2E), `@vitejs/plugin-vue`
 
-**TypeScript:** `tsconfig.json` ist strict und schließt `src/**/*.js` mit `allowJs` ein, prüft JS aber nicht (`checkJs: false`). Dateien, die ein Umbau anfasst, werden nach `.ts` bzw. `<script setup lang="ts">` portiert.
+**TypeScript:** Das Projekt ist vollständig typisiert. `tsconfig.json` ist strict, ohne `allowJs`. `npm run type-check` prüft App und Tests (vue-tsc), Root-Configs und Node-Skripte (`tsconfig.node.json`), den Worker (`tsconfig.worker.json`) und die E2E-Tests (`e2e/tsconfig.json`). Alle `.vue`-Dateien nutzen `<script setup lang="ts">`, ESLint verbietet `any`. `tests/unit/typescriptMigration.spec.ts` schlägt fehl, sobald eine JavaScript-Datei, ein `<script>` ohne `lang="ts"` oder ein `@ts-ignore`/`@ts-nocheck` auftaucht (ausgenommen `backend-deploy/`, `public/`, `src-tauri/`).
 
 ---
 
@@ -38,10 +38,10 @@
 ```
 src/
 ├── api/
-│   └── api.js                    # HTTP-Client für Backend-Konvertierungen
+│   └── api.ts                    # HTTP-Client für Backend-Konvertierungen
 ├── assets/
 │   ├── fonts/
-│   │   ├── fontList.js           # Verfügbare Schriftarten (generiert)
+│   │   ├── fontList.ts           # Verfügbare Schriftarten (generiert)
 │   │   └── fonts.css             # @font-face-Deklarationen (generiert)
 │   └── foto/                     # Statische Bilder (SEO-Seiten etc.)
 ├── components/
@@ -72,53 +72,53 @@ src/
 │       └── ToastContainer.vue    # Toast-Benachrichtigungen
 ├── composables/                  # Vue 3 Composition Functions
 │   ├── editor/                   # Editor-spezifische Composables (aus EditorView.vue ausgelagert)
-│   │   ├── useCanvasInteraction.js  # Maus/Touch auf dem Canvas: Text, Ebenen, Crop, Pan, Pinch
-│   │   ├── useEditorDetach.js       # Bild vom Hintergrund lösen / wieder verbinden
-│   │   ├── useEditorExport.js       # Export-Dialog, Drucken, Handoff an andere Tools
-│   │   ├── useEditorHistory.js      # Die einzige Undo/Redo-Historie (Bild, Filter, Transform, Texte, Crop, Ebenen)
-│   │   ├── useEditorKeyboard.js     # Tastatur-Shortcuts
-│   │   ├── useEditorPreview.js      # Vorher/Nachher-Modal
-│   │   ├── useEditorResize.js       # Größe ändern: Live-Vorschau, Presets, Anwenden
-│   │   ├── useEditorText.js         # Text-Ebenen anlegen, ändern, löschen
-│   │   ├── useImageInfo.js          # Breite/Höhe/Dateigröße-Anzeige
-│   │   └── useTransformHandlers.js  # Event-Handler für Transformationen
-│   ├── useBatchConversion.js     # Batch-Konverter: Dateien, Verarbeitung, Download
-│   ├── useCanvasRenderer.js      # Canvas-Rendering (roundedRect, Selektionsrahmen)
-│   ├── useCrop.js                # Crop-Logik mit Vorschau
-│   ├── useFilterManagement.js    # Filter-State & Validierung
-│   ├── useImageHistory.js        # Undo/Redo (gemeinsame Editor-Historie: Bild, Filter, Transform, Text)
-│   ├── useImageLayerInteraction.js # Layer-Drag, Resize, Rotate
-│   ├── useImageLoader.js         # Datei-Validierung, Format-Erkennung, Galerie → Editor
-│   ├── useResizeManager.js       # Canvas-Resize & Social-Presets
-│   ├── useSeoMeta.js             # Dynamische Meta-Tags
-│   ├── useTextModal.js           # Modal-Steuerung für Text-Editor
-│   └── useTransform.js           # Rotation, Flip, Schatten, Rahmen
+│   │   ├── useCanvasInteraction.ts  # Maus/Touch auf dem Canvas: Text, Ebenen, Crop, Pan, Pinch
+│   │   ├── useEditorDetach.ts       # Bild vom Hintergrund lösen / wieder verbinden
+│   │   ├── useEditorExport.ts       # Export-Dialog, Drucken, Handoff an andere Tools
+│   │   ├── useEditorHistory.ts      # Die einzige Undo/Redo-Historie (Bild, Filter, Transform, Texte, Crop, Ebenen)
+│   │   ├── useEditorKeyboard.ts     # Tastatur-Shortcuts
+│   │   ├── useEditorPreview.ts      # Vorher/Nachher-Modal
+│   │   ├── useEditorResize.ts       # Größe ändern: Live-Vorschau, Presets, Anwenden
+│   │   ├── useEditorText.ts         # Text-Ebenen anlegen, ändern, löschen
+│   │   ├── useImageInfo.ts          # Breite/Höhe/Dateigröße-Anzeige
+│   │   └── useTransformHandlers.ts  # Event-Handler für Transformationen
+│   ├── useBatchConversion.ts     # Batch-Konverter: Dateien, Verarbeitung, Download
+│   ├── useCanvasRenderer.ts      # Canvas-Rendering (roundedRect, Selektionsrahmen)
+│   ├── useCrop.ts                # Crop-Logik mit Vorschau
+│   ├── useFilterManagement.ts    # Filter-State & Validierung
+│   ├── useImageHistory.ts        # Undo/Redo (gemeinsame Editor-Historie: Bild, Filter, Transform, Text)
+│   ├── useImageLayerInteraction.ts # Layer-Drag, Resize, Rotate
+│   ├── useImageLoader.ts         # Datei-Validierung, Format-Erkennung, Galerie → Editor
+│   ├── useResizeManager.ts       # Canvas-Resize & Social-Presets
+│   ├── useSeoMeta.ts             # Dynamische Meta-Tags
+│   ├── useTextModal.ts           # Modal-Steuerung für Text-Editor
+│   └── useTransform.ts           # Rotation, Flip, Schatten, Rahmen
 ├── i18n/
-│   ├── de.js                     # Deutsche Übersetzungen
-│   ├── en.js                     # Englische Übersetzungen (gleicher Schlüsselsatz)
-│   └── index.js                  # createI18n-Konfiguration
+│   ├── de.ts                     # Deutsche Übersetzungen
+│   ├── en.ts                     # Englische Übersetzungen (gleicher Schlüsselsatz)
+│   └── index.ts                  # createI18n-Konfiguration
 ├── lib/
 │   └── core/
-│       └── handoff.js            # KodiniTools Cross-Tool-Handoff-Protokoll
+│       └── handoff.ts            # KodiniTools Cross-Tool-Handoff-Protokoll
 ├── router/
-│   └── index.js                  # Vue Router (11 Routen + Navigation Guards)
+│   └── index.ts                  # Vue Router (11 Routen + Navigation Guards)
 ├── stores/
-│   ├── galleryStore.js           # Galerie-Bilder & Multi-Select
-│   ├── imageStore.js             # Gemeinsamer Editor-State (Basisbild, Texte, Ebenen) + Delegation an die Editor-Historie
-│   └── settingsStore.js          # App-Einstellungen (Theme, Sprache, Export)
+│   ├── galleryStore.ts           # Galerie-Bilder & Multi-Select
+│   ├── imageStore.ts             # Gemeinsamer Editor-State (Basisbild, Texte, Ebenen) + Delegation an die Editor-Historie
+│   └── settingsStore.ts          # App-Einstellungen (Theme, Sprache, Export)
 ├── styles/
 │   ├── variables.scss            # SCSS-Tokens und Mixins (erzeugt kein CSS)
 │   ├── theme.scss                # CSS Custom Properties für Light/Dark (einmal über main.scss)
 │   ├── global.scss               # Reset, Typografie, Utility-Klassen
 │   └── main.scss                 # SCSS-Einstiegspunkt
 ├── utils/
-│   ├── conversionUtils.js        # Canvas → PNG/JPG/WebP/BMP/PDF/SVG, A4-Layout, Backend-Formate
-│   ├── exportUtils.js            # ExportManager (Download-Export im Editor)
-│   ├── fileUtils.js              # Endungslisten (inkl. RAW), isImageFile, Vorschau-Helfer, formatSize
-│   ├── formatInfo.js             # FORMAT_INFO-Mapping aller Export-Formate
-│   ├── logger.js                 # Konsolenausgabe: log/info/debug nur im Dev-Modus, warn/error immer
-│   ├── textUtils.js              # Text-Messung, Bounding-Box, Kollisionserkennung
-│   └── validationUtils.js        # Validierung hochgeladener Bilddateien
+│   ├── conversionUtils.ts        # Canvas → PNG/JPG/WebP/BMP/PDF/SVG, A4-Layout, Backend-Formate
+│   ├── exportUtils.ts            # ExportManager (Download-Export im Editor)
+│   ├── fileUtils.ts              # Endungslisten (inkl. RAW), isImageFile, Vorschau-Helfer, formatSize
+│   ├── formatInfo.ts             # FORMAT_INFO-Mapping aller Export-Formate
+│   ├── logger.ts                 # Konsolenausgabe: log/info/debug nur im Dev-Modus, warn/error immer
+│   ├── textUtils.ts              # Text-Messung, Bounding-Box, Kollisionserkennung
+│   └── validationUtils.ts        # Validierung hochgeladener Bilddateien
 ├── views/
 │   ├── HomeView.vue              # Startseite (Hero, Features, FAQ, Konvertierungen)
 │   ├── EditorView.vue            # Haupt-Editor (Canvas, Toolbar, Sidebar)
@@ -137,7 +137,7 @@ src/
 
 ## Routing
 
-**Datei:** `src/router/index.js`
+**Datei:** `src/router/index.ts`
 
 | Pfad                  | Komponente           | Name              |
 | --------------------- | -------------------- | ----------------- |
@@ -164,7 +164,7 @@ src/
 
 ## Pinia Stores
 
-### `imageStore.js` – Gemeinsamer Editor-State
+### `imageStore.ts` – Gemeinsamer Editor-State
 
 Filter, Transformationen und die Historie liegen nicht im Store, sondern in den
 Editor-Composables (`useFilterManagement`, `useTransform`, `useEditorHistory`); das
@@ -198,14 +198,14 @@ registrierten Historie gespiegelt: `canUndo`, `canRedo`, `historyIndex`, `histor
   Store-Aktionen schreiben selbst keine Historie, der Aufrufer sichert nach der Aktion
 - Snapshots: `serializeImageLayers()` (Ebenen ohne Image-Objekte), `restoreImageLayers(layers, selectedId)`
 
-### `settingsStore.js` – App-Einstellungen
+### `settingsStore.ts` – App-Einstellungen
 
 **State:** `theme` (light/dark/auto), `locale` (de/en), `performanceMode`, `defaultExportQuality` (95), `defaultExportFormat` (png), Grid, Snap, Toast-Einstellungen
 
 **Persistenz:** `localStorage`  
 **Sync:** Theme und Locale werden mit dem globalen SSI-Navigation-Element synchronisiert.
 
-### `galleryStore.js` – Bildgalerie
+### `galleryStore.ts` – Bildgalerie
 
 **State:** `images[]`, `selectedImageId`, `selectedImageIds[]`  
 **Persistenz:** Nur Sitzung (kein localStorage)  
@@ -279,7 +279,7 @@ Import/Export und die `localStorage`-Persistenz liegen vollständig in der Kompo
 
 ---
 
-## API-Client (`src/api/api.js`)
+## API-Client (`src/api/api.ts`)
 
 **Endpunkte:**
 
@@ -300,7 +300,7 @@ Import/Export und die `localStorage`-Persistenz liegen vollständig in der Kompo
 
 ## Internationalisierung (`src/i18n/`)
 
-**Sprachen:** Deutsch (`de.js`), Englisch (`en.js`), gleicher Schlüsselsatz; `index.js` erzeugt die
+**Sprachen:** Deutsch (`de.ts`), Englisch (`en.ts`), gleicher Schlüsselsatz; `index.ts` erzeugt die
 vue-i18n-Instanz. Jeder Schlüssel wird in der App referenziert, entweder als Literal, über
 Datenarrays (z.B. Guide-Features) oder über Template-Präfixe wie `guide.filters.${key}`.
 
@@ -328,7 +328,7 @@ Datenarrays (z.B. Guide-Features) oder über Template-Präfixe wie `guide.filter
 
 ---
 
-## Handoff-Protokoll (`src/lib/core/handoff.js`)
+## Handoff-Protokoll (`src/lib/core/handoff.ts`)
 
 Cross-Tool-Bildübergabe im KodiniTools-Ökosystem (z. B. Bildkonverter → Collage Maker):
 
@@ -367,7 +367,7 @@ SSI-Header-Elemente mit `data-lang-de` / `data-lang-en` werden automatisch über
 
 ---
 
-## Validierung (`src/utils/validationUtils.js`)
+## Validierung (`src/utils/validationUtils.ts`)
 
 ```js
 ValidationUtils.validateImageFile(file);
@@ -378,7 +378,7 @@ ValidationUtils.validateImageFile(file);
 
 ---
 
-## Export-Formate (`src/utils/exportUtils.js`)
+## Export-Formate (`src/utils/exportUtils.ts`)
 
 `FORMAT_INFO`-Map mit Metadaten pro Format:
 
@@ -423,7 +423,7 @@ npm run test:e2e      # Playwright-E2E (e2e/), lokal gegen den Dev-Server
 # Erwartung vor jedem Merge: lint:check, format:check, type-check, test, build und test:e2e grün.
 # Die CI (.github/workflows/ci.yml) prüft genau das; E2E dort gegen vite preview.
 # App-Code schreibt nicht direkt auf die Konsole (ESLint no-console = error),
-# sondern über src/utils/logger.js; Node-Skripte und Tests sind davon ausgenommen.
+# sondern über src/utils/logger.ts; Node-Skripte und Tests sind davon ausgenommen.
 npm run test:unit     # nur Unit-Tests (happy-dom)
 npm run test:browser  # nur Browser-Tests (Chromium via Playwright)
 ```

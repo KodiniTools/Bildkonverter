@@ -1,7 +1,7 @@
 /** Aus LayersTab ausgelagerte Abschnitte, mit einem Ersatz-Kontext für LAYER_PANEL_KEY */
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive, ref, type Component } from 'vue';
 import { createI18n } from 'vue-i18n';
 import de from '@/i18n/de';
 import { LAYER_PANEL_KEY } from '@/composables/useLayerPanel';
@@ -82,15 +82,13 @@ function context(selectedId: string | null = 'b') {
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let wrapper: VueWrapper<any> | null = null;
+let wrapper: VueWrapper | null = null;
 afterEach(() => {
   wrapper?.unmount();
   wrapper = null;
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mountWith(component: any, ctx = context()) {
+function mountWith(component: Component, ctx = context()) {
   wrapper = mount(component, {
     global: { plugins: [i18n], provide: { [LAYER_PANEL_KEY as symbol]: ctx } },
   });

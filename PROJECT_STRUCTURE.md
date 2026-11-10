@@ -6,22 +6,23 @@
 
 - ✅ `package.json` - Dependencies und Scripts
 - ✅ `vite.config.ts` - Vite Build-Konfiguration
+- ✅ `tsconfig.json`, `tsconfig.node.json`, `tsconfig.worker.json` - TypeScript strict (App und Tests, Root-Configs, Worker); im Projekt gibt es kein JavaScript mehr
 - ✅ `index.html` - HTML-Einstiegspunkt
 
 ### 🚀 Vue Application
 
-- ✅ `src/main.js` - Vue-App-Initialisierung
+- ✅ `src/main.ts` - Vue-App-Initialisierung
 - ✅ `src/App.vue` - Root-Komponente
-- ✅ `src/router/index.js` - Vue Router Konfiguration
+- ✅ `src/router/index.ts` - Vue Router Konfiguration
 
 ### 🌍 i18n (Internationalisierung)
 
-- ✅ `src/i18n/index.js` - Vollständige DE/EN Übersetzungen
+- ✅ `src/i18n/index.ts` - Vollständige DE/EN Übersetzungen
 
 ### 📦 Pinia Stores (State Management)
 
-- ✅ `src/stores/imageStore.js` - Bildbearbeitungs-State
-- ✅ `src/stores/settingsStore.js` - App-Einstellungen
+- ✅ `src/stores/imageStore.ts` - Bildbearbeitungs-State
+- ✅ `src/stores/settingsStore.ts` - App-Einstellungen
 
 ### 🎨 Styles
 
@@ -31,7 +32,7 @@
 
 ### 🔧 Utils
 
-- ✅ `src/utils/validationUtils.js` - Validierungsfunktionen (migriert)
+- ✅ `src/utils/validationUtils.ts` - Validierungsfunktionen (migriert)
 
 ### 🖼️ Views (Seiten)
 
@@ -39,7 +40,7 @@
 
 ### 🧩 Components
 
-- ✅ `src/composables/useImageLoader.js` - Bild-Upload (Datei, Drag & Drop, Paste, Galerie)
+- ✅ `src/composables/useImageLoader.ts` - Bild-Upload (Datei, Drag & Drop, Paste, Galerie)
 
 ### 📚 Dokumentation
 
@@ -162,14 +163,14 @@
 
 ### Bereits migriert:
 
-- ✅ `validationUtils.js` → `src/utils/validationUtils.js`
+- ✅ `validationUtils.ts` → `src/utils/validationUtils.ts`
 - ✅ `config.js` → Integriert in Stores
 - ✅ `FilterPresetsModule.js` → `src/components/editor/FilterPresets.vue`
 
 ### Zu migrieren:
 
-- ⏳ `imageConverter.js` → `src/stores/imageStore.js` + Composables
-- ✅ `textManager.js` → `src/composables/editor/useEditorText.js` + `src/utils/textRender.js`
+- ⏳ `imageConverter.js` → `src/stores/imageStore.ts` + Composables
+- ✅ `textManager.js` → `src/composables/editor/useEditorText.ts` + `src/utils/textRender.ts`
 - ⏳ `elements.js` → Vue-Komponenten
 - ⏳ `export.js` → `src/composables/useExport.js`
 - ⏳ `style.css` → SCSS-Module

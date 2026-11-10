@@ -16,8 +16,7 @@ import {
 const i18n = createI18n({ legacy: false, locale: 'de', messages: { de } });
 const global = { plugins: [i18n] };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let wrapper: VueWrapper<any> | null = null;
+let wrapper: VueWrapper | null = null;
 const toast = { info: vi.fn(), success: vi.fn(), error: vi.fn(), warning: vi.fn() };
 
 beforeEach(() => {
@@ -164,14 +163,15 @@ describe('PresetTile', () => {
 
 describe('FilterPresets', () => {
   it('rendert alle Presets und gibt das gewählte nach außen', async () => {
-    wrapper = mount(FilterPresets, { props: { filters: { brightness: 100 } }, global });
-    const tiles = wrapper.findAll('.preset-btn');
+    const presets = mount(FilterPresets, { props: { filters: { brightness: 100 } }, global });
+    wrapper = presets;
+    const tiles = presets.findAll('.preset-btn');
     expect(tiles).toHaveLength(16);
     await tiles[2]!.trigger('click');
-    expect(wrapper.emitted('apply-preset')![0]).toEqual([DEFAULT_PRESETS[2]]);
+    expect(presets.emitted('apply-preset')![0]).toEqual([DEFAULT_PRESETS[2]]);
     expect(tiles[2]!.classes()).toContain('active');
-    wrapper.vm.resetActivePreset();
-    await wrapper.vm.$nextTick();
+    presets.vm.resetActivePreset();
+    await presets.vm.$nextTick();
     expect(tiles[2]!.classes()).not.toContain('active');
   });
 });
