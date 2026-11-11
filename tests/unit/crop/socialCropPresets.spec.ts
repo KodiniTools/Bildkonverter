@@ -121,6 +121,17 @@ describe('CropPanel – Social-Media-Sektion', () => {
     expect(wrapper.find('.social-section').exists()).toBe(false);
   });
 
+  it('ohne Crop-Modus nur der Button, keine doppelte Überschrift', () => {
+    wrapper = mountPanel({ cropMode: false });
+    expect(wrapper.find('h3').exists()).toBe(false);
+    expect(wrapper.find('button').text()).toBe('Zuschneiden');
+  });
+
+  it('im Crop-Modus mit Überschrift', () => {
+    wrapper = mountPanel();
+    expect(wrapper.find('h3').text()).toBe('Zuschneiden');
+  });
+
   it('zeigt die Instagram-Presets und meldet die Auswahl', async () => {
     wrapper = mountPanel();
     const buttons = wrapper.findAll('.social-btn');

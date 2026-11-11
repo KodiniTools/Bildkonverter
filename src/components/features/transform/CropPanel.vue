@@ -1,6 +1,7 @@
 <template>
   <div class="panel-section">
-    <h3>
+    <!-- Überschrift nur im Crop-Modus; sonst sagt der Button "Zuschneiden" schon alles -->
+    <h3 v-if="cropMode">
       <AppIcon name="crop" />
       {{ $t('transform.crop.title') }}
     </h3>
