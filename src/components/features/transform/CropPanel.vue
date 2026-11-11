@@ -99,6 +99,44 @@
       </div>
     </div>
 
+    <!-- Social-Media-Presets: feste Zielgröße je Plattform -->
+    <div v-if="cropMode" class="social-section">
+      <label class="aspect-label">
+        <AppIcon name="share" :size="14" />
+        {{ $t('transform.crop.social.title') }}
+      </label>
+      <UiSelect
+        v-model="platform"
+        size="sm"
+        :label="$t('transform.crop.social.platform')"
+        label-hidden
+        :options="platformOptions"
+      />
+      <div class="social-list" role="group" :aria-label="platformLabel">
+        <button
+          v-for="preset in platformPresets"
+          :key="preset.id"
+          type="button"
+          class="social-btn"
+          :class="{ active: selectedAspectRatio === preset.id }"
+          :aria-pressed="selectedAspectRatio === preset.id"
+          :title="`${platformLabel} · ${formatLabel(preset)} (${preset.width} × ${preset.height} px)`"
+          @click="$emit('set-aspect-ratio', preset.id)"
+        >
+          <span class="social-thumb" aria-hidden="true">
+            <span class="social-thumb__shape" :style="thumbStyle(preset)" />
+          </span>
+          <span class="social-text">
+            <span class="social-name">{{ formatLabel(preset) }}</span>
+            <span class="social-size">
+              {{ preset.width }} × {{ preset.height }} · {{ formatRatio(preset) }}
+            </span>
+          </span>
+        </button>
+      </div>
+      <p class="social-hint">{{ $t('transform.crop.social.hint') }}</p>
+    </div>
+
     <button
       v-if="hasCropped"
       type="button"
@@ -115,12 +153,23 @@
 </template>
 
 <script setup lang="ts">
-import { computed, type PropType } from 'vue';
+import { computed, ref, watch, type PropType } from 'vue';
 import type { AspectRatioPreset } from '@/composables/useCrop';
 import AppIcon from '@/components/ui/AppIcon.vue';
+import UiSelect from '@/components/ui/UiSelect.vue';
 import { useI18n } from 'vue-i18n';
+import {
+  SOCIAL_PLATFORMS,
+  SOCIAL_PLATFORM_LABELS,
+  findSocialCropPreset,
+  formatAspectRatio,
+  getSocialPresetsFor,
+  isSocialPlatform,
+  type SocialCropPreset,
+  type SocialPlatform,
+} from '@/utils/socialCropPresets';
 
-const { t } = useI18n({ useScope: 'global' });
+const { t, locale } = useI18n({ useScope: 'global' });
 
 const props = defineProps({
   cropMode: { type: Boolean, required: true },
@@ -161,6 +210,46 @@ function onHeightChange(event: Event) {
   if (Number.isFinite(value) && value > 0) {
     emit('set-crop-height', value);
   }
+}
+
+// ----- Social-Media-Presets -----
+const platform = ref<SocialPlatform>('instagram');
+
+// Ist (z. B. nach Undo/Redo) bereits ein Social-Preset aktiv, dessen Plattform zeigen
+watch(
+  () => props.selectedAspectRatio,
+  (id) => {
+    const preset = findSocialCropPreset(id);
+    if (preset) platform.value = preset.platform;
+  },
+  { immediate: true }
+);
+
+const platformOptions = SOCIAL_PLATFORMS.map((value) => ({
+  value,
+  label: SOCIAL_PLATFORM_LABELS[value],
+}));
+
+const platformLabel = computed(() =>
+  isSocialPlatform(platform.value) ? SOCIAL_PLATFORM_LABELS[platform.value] : ''
+);
+
+const platformPresets = computed(() => getSocialPresetsFor(platform.value));
+
+function formatLabel(preset: SocialCropPreset) {
+  return t(`transform.crop.social.formats.${preset.format}`);
+}
+
+function formatRatio(preset: SocialCropPreset) {
+  return formatAspectRatio(preset.width, preset.height, locale.value);
+}
+
+// Kleine Vorschau des Seitenverhältnisses (längste Kante = 100 %)
+function thumbStyle(preset: SocialCropPreset) {
+  const landscape = preset.ratio >= 1;
+  return landscape
+    ? { width: '100%', height: `${(100 / preset.ratio).toFixed(1)}%` }
+    : { width: `${(100 * preset.ratio).toFixed(1)}%`, height: '100%' };
 }
 
 function getPresetLabel(preset: Pick<AspectRatioPreset, 'id' | 'label'>) {
@@ -386,8 +475,120 @@ function getPresetLabel(preset: Pick<AspectRatioPreset, 'id' | 'label'>) {
   }
 }
 
+// Social-Media-Presets
+.social-section {
+  margin: var(--ds-space-3) 0;
+  padding-top: var(--ds-space-3);
+  border-top: var(--ds-border-width) solid var(--ds-border);
+}
+
+.social-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: var(--ds-space-2);
+  padding: 2px;
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-0);
+}
+
+.social-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  width: 100%;
+  min-width: 0;
+  padding: var(--ds-space-1) var(--ds-space-2);
+  background: transparent;
+  border: var(--ds-border-width) solid transparent;
+  border-radius: var(--ds-radius-sm);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  color: var(--ds-text-2);
+  transition:
+    background-color var(--ds-duration) var(--ds-ease),
+    border-color var(--ds-duration) var(--ds-ease),
+    color var(--ds-duration) var(--ds-ease);
+
+  &:hover {
+    color: var(--ds-text);
+    background: var(--ds-surface-2);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ds-focus-ring);
+  }
+
+  &.active {
+    background: var(--ds-surface-1);
+    border-color: var(--ds-border-strong);
+    color: var(--ds-text);
+
+    .social-thumb__shape {
+      border-color: var(--ds-accent);
+      background: color-mix(in srgb, var(--ds-accent) 25%, transparent);
+    }
+  }
+}
+
+.social-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.social-thumb__shape {
+  display: block;
+  min-width: 3px;
+  min-height: 3px;
+  border: 1.5px solid currentColor;
+  // Kleiner Radius, damit 1:1 nicht wie der Kreis-Zuschnitt aussieht
+  border-radius: calc(var(--ds-radius-sm) / 3);
+}
+
+.social-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.social-name {
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-weight-medium);
+  line-height: var(--ds-leading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.social-size {
+  font-size: var(--ds-text-xs);
+  line-height: 1.2;
+  color: var(--ds-text-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.social-hint {
+  margin: var(--ds-space-2) 0 0;
+  font-size: var(--ds-text-xs);
+  line-height: var(--ds-leading);
+  color: var(--ds-text-2);
+}
+
 // Mobile
 @media (max-width: 768px) {
+  .social-btn {
+    min-height: var(--ds-row-height);
+  }
+
   .aspect-btn {
     min-height: var(--ds-row-height);
   }

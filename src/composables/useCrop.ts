@@ -10,6 +10,7 @@ import { getAdjustedImage } from '@/utils/imageAdjustments';
 import { logger } from '@/utils/logger';
 import { context2d } from '@/utils/canvas2d';
 import { cropShapes, type Shape } from '@/utils/shapes';
+import { findSocialCropPreset } from '@/utils/socialCropPresets';
 import type { AdjustableImage } from '@/utils/imageAdjustments';
 import type { FilterValues } from '@/types/filters';
 import type { StoreText } from '@/stores/image/types';
@@ -30,6 +31,8 @@ export interface AspectRatioPreset {
   ratio: number | null;
   icon: string;
   isCircle?: boolean;
+  /** Zielgröße (Social-Media-Presets); das Ergebnis wird darauf verkleinert */
+  target?: { width: number; height: number };
 }
 
 /** Griff der Crop-Box: Ecken und Kantenmitten */
@@ -61,8 +64,11 @@ export interface FinishCropContext {
     img: HTMLImageElement,
     width: number,
     height: number,
-    isCircleCrop: boolean
-  ) => void;
+    isCircleCrop: boolean,
+    /** Zielgröße eines Social-Media-Presets (sonst undefined) */
+    target?: { width: number; height: number }
+    /** Optional: endgültige Bildgröße, falls der Aufrufer danach noch skaliert (für den Toast) */
+  ) => { width: number; height: number } | void;
 }
 
 export interface UndoCropContext {
@@ -79,6 +85,24 @@ export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
   { id: '16:9', label: '16:9', ratio: 16 / 9, icon: 'fa-tv' },
   { id: '9:16', label: '9:16', ratio: 9 / 16, icon: 'fa-mobile-alt' },
 ];
+
+/**
+ * Sucht ein Preset für die Crop-Box: zuerst die Seitenverhältnisse, dann die
+ * Social-Media-Presets (feste Zielgröße → Seitenverhältnis = Breite / Höhe).
+ */
+export function findCropPreset(id: string): AspectRatioPreset | undefined {
+  const base = ASPECT_RATIO_PRESETS.find((p) => p.id === id);
+  if (base) return base;
+  const social = findSocialCropPreset(id);
+  if (!social) return undefined;
+  return {
+    id: social.id,
+    label: `${social.width}×${social.height}`,
+    ratio: social.ratio,
+    icon: 'fa-image',
+    target: { width: social.width, height: social.height },
+  };
+}
 
 export function useCrop() {
   const { t } = useI18n();
@@ -180,15 +204,17 @@ export function useCrop() {
   }
 
   // Erstelle eine zentrierte Crop-Box mit dem gewählten Seitenverhältnis
-  function createCenteredCropBox(ratio: number | null) {
+  // fill = Anteil des Canvas, den die Box maximal einnimmt (Standard 80 %;
+  // Social-Presets nutzen 100 %, damit möglichst viel Bild in die Zielgröße passt)
+  function createCenteredCropBox(ratio: number | null, fill = 0.8) {
     if (canvasSize.value.width <= 0 || canvasSize.value.height <= 0) return;
 
     const canvasW = canvasSize.value.width;
     const canvasH = canvasSize.value.height;
 
-    // Berechne maximale Größe die ins Canvas passt (80% des Canvas)
-    const maxWidth = canvasW * 0.8;
-    const maxHeight = canvasH * 0.8;
+    // Berechne maximale Größe die ins Canvas passt
+    const maxWidth = canvasW * fill;
+    const maxHeight = canvasH * fill;
 
     let boxWidth: number, boxHeight: number;
 
@@ -207,9 +233,14 @@ export function useCrop() {
       }
     }
 
+    // Auf ganze Pixel abrunden: bei fill = 1 darf die Box durch
+    // Gleitkomma-Rundung nicht über den Canvas-Rand hinausragen
+    boxWidth = Math.max(1, Math.floor(boxWidth));
+    boxHeight = Math.max(1, Math.floor(boxHeight));
+
     // Zentriere die Box
-    const startX = (canvasW - boxWidth) / 2;
-    const startY = (canvasH - boxHeight) / 2;
+    const startX = Math.floor((canvasW - boxWidth) / 2);
+    const startY = Math.floor((canvasH - boxHeight) / 2);
 
     cropStart.value = { x: startX, y: startY };
     cropEnd.value = { x: startX + boxWidth, y: startY + boxHeight };
@@ -217,7 +248,7 @@ export function useCrop() {
   }
 
   function updateCrop(x: number, y: number) {
-    const preset = ASPECT_RATIO_PRESETS.find((p) => p.id === selectedAspectRatio.value);
+    const preset = findCropPreset(selectedAspectRatio.value);
 
     // Wenn kein festes Seitenverhältnis, einfach die Position setzen
     if (!preset || preset.ratio === null) {
@@ -290,7 +321,7 @@ export function useCrop() {
     const handle = activeHandle.value;
     if (!handle) return;
 
-    const preset = ASPECT_RATIO_PRESETS.find((p) => p.id === selectedAspectRatio.value);
+    const preset = findCropPreset(selectedAspectRatio.value);
     const ratio = preset?.ratio || null;
 
     // Begrenze auf Canvas
@@ -431,10 +462,13 @@ export function useCrop() {
   function setAspectRatio(ratioId: string) {
     selectedAspectRatio.value = ratioId;
 
-    const preset = ASPECT_RATIO_PRESETS.find((p) => p.id === ratioId);
+    const preset = findCropPreset(ratioId);
 
     // Wenn noch keine Crop-Box existiert, erstelle eine zentrierte
-    if (!cropping.value && preset) {
+    if (preset?.target) {
+      // Social-Preset: immer die größtmögliche Box im Zielformat, mittig
+      createCenteredCropBox(preset.ratio, 1);
+    } else if (!cropping.value && preset) {
       createCenteredCropBox(preset.ratio);
     } else if (cropping.value && preset && preset.ratio !== null) {
       // Wenn bereits eine Box existiert, passe sie an das neue Seitenverhältnis an
@@ -528,7 +562,7 @@ export function useCrop() {
   }
 
   function currentCropRatio() {
-    const preset = ASPECT_RATIO_PRESETS.find((p) => p.id === selectedAspectRatio.value);
+    const preset = findCropPreset(selectedAspectRatio.value);
     return preset?.ratio ?? null;
   }
 
@@ -683,7 +717,7 @@ export function useCrop() {
       cropCtx.imageSmoothingQuality = 'high';
 
       // Prüfe ob Kreis-Preset aktiv ist
-      const currentPreset = ASPECT_RATIO_PRESETS.find((p) => p.id === selectedAspectRatio.value);
+      const currentPreset = findCropPreset(selectedAspectRatio.value);
       const isCircleCrop = currentPreset?.isCircle === true;
 
       if (isCircleCrop) {
@@ -767,19 +801,27 @@ export function useCrop() {
 
       img.onload = () => {
         // Callback für externe Updates (mit isCircle Flag für automatischen Kreis-Rahmen)
+        let finalSize = { width: cropCanvas.width, height: cropCanvas.height };
         if (context.onCropComplete) {
-          context.onCropComplete(img, cropCanvas.width, cropCanvas.height, isCircleCrop);
+          finalSize =
+            context.onCropComplete(
+              img,
+              cropCanvas.width,
+              cropCanvas.height,
+              isCircleCrop,
+              currentPreset?.target
+            ) ?? finalSize;
         }
 
         // Markiere dass zugeschnitten wurde
         hasCropped.value = true;
 
-        logger.log(`Bild zugeschnitten: ${cropCanvas.width}×${cropCanvas.height}px`);
+        logger.log(`Bild zugeschnitten: ${finalSize.width}×${finalSize.height}px`);
         if (window.$toast) {
           window.$toast.success(
             t('toast.crop.success', {
-              width: cropCanvas.width,
-              height: cropCanvas.height,
+              width: finalSize.width,
+              height: finalSize.height,
             })
           );
         }

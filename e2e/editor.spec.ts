@@ -171,3 +171,25 @@ test.describe('Formatseite (Smoke)', () => {
     expect(errors).toEqual([]);
   });
 });
+
+test.describe('Editor: Social-Media-Presets im Zuschneiden', () => {
+  test('Preset schneidet zu und verkleinert auf die Zielgröße', async ({ page }) => {
+    const errors = collectPageErrors(page);
+    await prepare(page, 'de');
+    await page.goto('./editor');
+    await uploadImages(page, [imageFile('gross.png', 1600, 1600)]);
+    await expect(page.getByText('1600 × 1600px')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Zuschneiden', exact: true }).click();
+    await page.getByRole('combobox', { name: 'Plattform' }).selectOption('instagram');
+    await page.getByRole('button', { name: /Beitrag Hochformat/ }).click();
+    await page.getByRole('button', { name: 'Bestätigen', exact: true }).click();
+
+    await expect(page.getByText('1080 × 1350px')).toBeVisible();
+
+    // Zuschnitt + Verkleinern sind ein einziger Rückgängig-Schritt
+    await page.getByRole('button', { name: 'Rückgängig' }).first().click();
+    await expect(page.getByText('1600 × 1600px')).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+});
