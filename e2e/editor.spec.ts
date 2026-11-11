@@ -183,6 +183,9 @@ test.describe('Editor: Social-Media-Presets im Zuschneiden', () => {
     await page.getByRole('button', { name: 'Zuschneiden', exact: true }).click();
     await page.getByRole('combobox', { name: 'Plattform' }).selectOption('instagram');
     await page.getByRole('button', { name: /Beitrag Hochformat/ }).click();
+    // Rahmen und Panel nennen vor dem Bestätigen schon die Endgröße
+    await expect(page.locator('.crop-dimensions')).toHaveText('1280 × 1600 → 1080 × 1350 px');
+    await expect(page.getByText('Ergebnis nach dem Bestätigen: 1080 × 1350 px')).toBeVisible();
     await page.getByRole('button', { name: 'Bestätigen', exact: true }).click();
 
     await expect(page.getByText('1080 × 1350px')).toBeVisible();

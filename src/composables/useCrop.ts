@@ -10,7 +10,7 @@ import { getAdjustedImage } from '@/utils/imageAdjustments';
 import { logger } from '@/utils/logger';
 import { context2d } from '@/utils/canvas2d';
 import { cropShapes, type Shape } from '@/utils/shapes';
-import { findSocialCropPreset } from '@/utils/socialCropPresets';
+import { findSocialCropPreset, getSocialDownscaleTarget } from '@/utils/socialCropPresets';
 import type { AdjustableImage } from '@/utils/imageAdjustments';
 import type { FilterValues } from '@/types/filters';
 import type { StoreText } from '@/stores/image/types';
@@ -162,6 +162,15 @@ export function useCrop() {
       width: Math.max(0, Math.round(box.width)),
       height: Math.max(0, Math.round(box.height)),
     };
+  });
+
+  // Endgröße nach dem Bestätigen, wenn ein Social-Preset den Ausschnitt noch
+  // auf seine Zielgröße verkleinert (sonst null = Ausschnitt bleibt wie er ist)
+  const cropOutputSize = computed(() => {
+    const target = findCropPreset(selectedAspectRatio.value)?.target;
+    if (!target) return null;
+    const { width, height } = cropDimensions.value;
+    return getSocialDownscaleTarget(target, width, height);
   });
 
   // Methods
@@ -1037,6 +1046,7 @@ export function useCrop() {
     isCreating,
     normalizedCropBox,
     cropDimensions,
+    cropOutputSize,
 
     // Methods
     toggleCropMode,

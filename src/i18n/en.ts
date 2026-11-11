@@ -629,6 +629,7 @@ const en: LocaleMessages = {
       social: {
         title: 'Social media',
         platform: 'Platform',
+        output: 'Result after confirming: {width} × {height} px',
         hint: 'Larger selections are scaled down to the target size after confirming; smaller ones stay as they are.',
         formats: {
           postSquare: 'Square post',

@@ -71,6 +71,17 @@
         </div>
       </div>
 
+      <!-- Social-Preset: Ausschnitt wird nach dem Bestätigen verkleinert -->
+      <p v-if="cropOutputSize" class="crop-output">
+        <AppIcon name="arrow-right" :size="14" />
+        {{
+          $t('transform.crop.social.output', {
+            width: cropOutputSize.width,
+            height: cropOutputSize.height,
+          })
+        }}
+      </p>
+
       <!-- Auswahl mit einem Klick mittig im Canvas positionieren -->
       <button class="crop-center-btn" @click="$emit('center-crop')">
         <AppIcon name="crosshairs" />
@@ -179,6 +190,11 @@ const props = defineProps({
   cropDimensions: {
     type: Object as PropType<{ width: number; height: number }>,
     default: () => ({ width: 0, height: 0 }),
+  },
+  /** Endgröße nach dem Bestätigen (Social-Preset verkleinert), sonst null */
+  cropOutputSize: {
+    type: Object as PropType<{ width: number; height: number } | null>,
+    default: null,
   },
 });
 
@@ -473,6 +489,19 @@ function getPresetLabel(preset: Pick<AspectRatioPreset, 'id' | 'label'>) {
     border-color: var(--ds-border-strong);
     color: var(--ds-text);
   }
+}
+
+// Endgröße nach dem Verkleinern (Social-Preset)
+.crop-output {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-1);
+  margin: var(--ds-space-2) 0 0;
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-weight-medium);
+  line-height: var(--ds-leading);
+  color: var(--ds-text);
+  font-variant-numeric: tabular-nums;
 }
 
 // Social-Media-Presets
