@@ -72,7 +72,34 @@
         </div>
       </div>
 
-      <!-- Social-Preset: Ausschnitt wird nach dem Bestätigen verkleinert -->
+      <!-- Social-Preset: Ausschnitt kleiner als die Zielgröße → Hinweis statt Popup -->
+      <div v-if="cropUndersize" class="crop-undersize" role="status">
+        <p class="crop-undersize__text">
+          <AppIcon name="exclamation-triangle" :size="14" />
+          <span>
+            {{
+              $t('transform.crop.social.undersize', {
+                width: cropDimensions.width,
+                height: cropDimensions.height,
+                targetWidth: cropUndersize.width,
+                targetHeight: cropUndersize.height,
+              })
+            }}
+          </span>
+        </p>
+        <UiSwitch
+          :model-value="upscaleToTarget"
+          :label="
+            $t('transform.crop.social.upscale', {
+              width: cropUndersize.width,
+              height: cropUndersize.height,
+            })
+          "
+          @update:model-value="$emit('set-upscale', $event)"
+        />
+      </div>
+
+      <!-- Social-Preset: Ausschnitt wird nach dem Bestätigen skaliert -->
       <p v-if="cropOutputSize" class="crop-output">
         <AppIcon name="arrow-right" :size="14" />
         {{
@@ -132,14 +159,23 @@
           class="social-btn"
           :class="{ active: selectedAspectRatio === preset.id }"
           :aria-pressed="selectedAspectRatio === preset.id"
-          :title="`${platformLabel} · ${formatLabel(preset)} (${preset.width} × ${preset.height} px)`"
+          :title="presetTitle(preset)"
           @click="$emit('set-aspect-ratio', preset.id)"
         >
           <span class="social-thumb" aria-hidden="true">
             <span class="social-thumb__shape" :style="thumbStyle(preset)" />
           </span>
           <span class="social-text">
-            <span class="social-name">{{ formatLabel(preset) }}</span>
+            <span class="social-name">
+              {{ formatLabel(preset) }}
+              <AppIcon
+                v-if="isTooLarge(preset)"
+                name="exclamation-triangle"
+                :size="12"
+                class="social-warn"
+                :aria-label="$t('transform.crop.social.tooLarge')"
+              />
+            </span>
             <span class="social-size">
               {{ preset.width }} × {{ preset.height }} · {{ formatRatio(preset) }}
             </span>
@@ -169,6 +205,7 @@ import { computed, ref, watch, type PropType } from 'vue';
 import type { AspectRatioPreset } from '@/composables/useCrop';
 import AppIcon from '@/components/ui/AppIcon.vue';
 import UiSelect from '@/components/ui/UiSelect.vue';
+import UiSwitch from '@/components/ui/UiSwitch.vue';
 import { useI18n } from 'vue-i18n';
 import {
   SOCIAL_PLATFORMS,
@@ -177,6 +214,7 @@ import {
   formatAspectRatio,
   getSocialPresetsFor,
   isSocialPlatform,
+  isSocialUndersize,
   type SocialCropPreset,
   type SocialPlatform,
 } from '@/utils/socialCropPresets';
@@ -197,6 +235,16 @@ const props = defineProps({
     type: Object as PropType<{ width: number; height: number } | null>,
     default: null,
   },
+  /** Zielgröße des Social-Presets, wenn der Ausschnitt kleiner ist, sonst null */
+  cropUndersize: {
+    type: Object as PropType<{ width: number; height: number } | null>,
+    default: null,
+  },
+  /** Zu kleinen Ausschnitt trotzdem auf die Zielgröße vergrößern */
+  upscaleToTarget: { type: Boolean, default: false },
+  /** Aktuelle Bildgröße, um zu große Presets zu markieren (0 = unbekannt) */
+  imageWidth: { type: Number, default: 0 },
+  imageHeight: { type: Number, default: 0 },
 });
 
 const emit = defineEmits([
@@ -207,6 +255,7 @@ const emit = defineEmits([
   'set-crop-width',
   'set-crop-height',
   'center-crop',
+  'set-upscale',
 ]);
 
 // Nur anzeigen, wenn tatsächlich eine Auswahl aufgezogen wurde
@@ -255,6 +304,17 @@ const platformPresets = computed(() => getSocialPresetsFor(platform.value));
 
 function formatLabel(preset: SocialCropPreset) {
   return t(`transform.crop.social.formats.${preset.format}`);
+}
+
+// Bild ist (in mindestens einer Richtung) kleiner als die Zielgröße
+function isTooLarge(preset: SocialCropPreset) {
+  if (!props.imageWidth || !props.imageHeight) return false;
+  return isSocialUndersize(preset, props.imageWidth, props.imageHeight);
+}
+
+function presetTitle(preset: SocialCropPreset) {
+  const base = `${platformLabel.value} · ${formatLabel(preset)} (${preset.width} × ${preset.height} px)`;
+  return isTooLarge(preset) ? `${base} · ${t('transform.crop.social.tooLarge')}` : base;
 }
 
 function formatRatio(preset: SocialCropPreset) {
@@ -490,6 +550,40 @@ function getPresetLabel(preset: Pick<AspectRatioPreset, 'id' | 'label'>) {
     border-color: var(--ds-border-strong);
     color: var(--ds-text);
   }
+}
+
+// Hinweis: Ausschnitt kleiner als die Zielgröße (Callout warning)
+.crop-undersize {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  margin-top: var(--ds-space-2);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  border: var(--ds-border-width) solid var(--ds-warning);
+  border-radius: var(--ds-radius-md);
+  background: color-mix(in srgb, var(--ds-warning) 10%, var(--ds-surface-1));
+  font-size: var(--ds-text-xs);
+  line-height: var(--ds-leading);
+  color: var(--ds-text);
+}
+
+.crop-undersize__text {
+  display: flex;
+  gap: var(--ds-space-1);
+  margin: 0;
+
+  .app-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--ds-warning);
+  }
+}
+
+.social-warn {
+  display: inline-block;
+  vertical-align: -1px;
+  margin-left: 2px;
+  color: var(--ds-warning);
 }
 
 // Endgröße nach dem Verkleinern (Social-Preset)

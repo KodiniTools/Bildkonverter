@@ -628,8 +628,12 @@ const de = {
       social: {
         title: 'Social Media',
         platform: 'Plattform',
+        undersize:
+          'Der Ausschnitt ({width} × {height} px) ist kleiner als die Zielgröße {targetWidth} × {targetHeight} px. Für beste Qualität ein größeres Bild verwenden.',
+        upscale: 'Trotzdem auf {width} × {height} px vergrößern (kann unscharf werden)',
+        tooLarge: 'Bild kleiner als dieses Format',
         output: 'Ergebnis nach dem Bestätigen: {width} × {height} px',
-        hint: 'Größere Ausschnitte werden nach dem Bestätigen auf die Zielgröße verkleinert, kleinere bleiben unverändert.',
+        hint: 'Größere Ausschnitte werden nach dem Bestätigen auf die Zielgröße verkleinert, kleinere bleiben unverändert, sofern Vergrößern nicht eingeschaltet ist.',
         formats: {
           postSquare: 'Beitrag quadratisch',
           postPortrait: 'Beitrag Hochformat',

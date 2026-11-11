@@ -10,7 +10,11 @@ import { getAdjustedImage } from '@/utils/imageAdjustments';
 import { logger } from '@/utils/logger';
 import { context2d } from '@/utils/canvas2d';
 import { cropShapes, type Shape } from '@/utils/shapes';
-import { findSocialCropPreset, getSocialDownscaleTarget } from '@/utils/socialCropPresets';
+import {
+  findSocialCropPreset,
+  isSocialUndersize,
+  resolveSocialOutput,
+} from '@/utils/socialCropPresets';
 import type { AdjustableImage } from '@/utils/imageAdjustments';
 import type { FilterValues } from '@/types/filters';
 import type { StoreText } from '@/stores/image/types';
@@ -65,8 +69,8 @@ export interface FinishCropContext {
     width: number,
     height: number,
     isCircleCrop: boolean,
-    /** Zielgröße eines Social-Media-Presets (sonst undefined) */
-    target?: { width: number; height: number }
+    /** Endgröße eines Social-Media-Presets, falls noch skaliert wird (sonst undefined) */
+    output?: { width: number; height: number }
     /** Optional: endgültige Bildgröße, falls der Aufrufer danach noch skaliert (für den Toast) */
   ) => { width: number; height: number } | void;
 }
@@ -164,14 +168,31 @@ export function useCrop() {
     };
   });
 
+  // Social-Preset bei zu kleinem Ausschnitt trotzdem auf Zielgröße vergrößern
+  // (nur auf ausdrücklichen Wunsch; wird bei jedem Preset-Wechsel zurückgesetzt)
+  const upscaleToTarget = ref(false);
+
   // Endgröße nach dem Bestätigen, wenn ein Social-Preset den Ausschnitt noch
-  // auf seine Zielgröße verkleinert (sonst null = Ausschnitt bleibt wie er ist)
+  // auf seine Zielgröße skaliert (sonst null = Ausschnitt bleibt wie er ist)
   const cropOutputSize = computed(() => {
     const target = findCropPreset(selectedAspectRatio.value)?.target;
     if (!target) return null;
     const { width, height } = cropDimensions.value;
-    return getSocialDownscaleTarget(target, width, height);
+    return resolveSocialOutput(target, width, height, upscaleToTarget.value);
   });
+
+  // Ausschnitt kleiner als die Zielgröße des Social-Presets → Hinweis im Panel
+  const cropUndersize = computed(() => {
+    if (!cropping.value) return null;
+    const target = findCropPreset(selectedAspectRatio.value)?.target;
+    if (!target) return null;
+    const { width, height } = cropDimensions.value;
+    return isSocialUndersize(target, width, height) ? { ...target } : null;
+  });
+
+  function setUpscaleToTarget(value: boolean) {
+    upscaleToTarget.value = value;
+  }
 
   // Methods
   function toggleCropMode() {
@@ -185,6 +206,7 @@ export function useCrop() {
     if (!cropMode.value) {
       clearCropSelection();
       selectedAspectRatio.value = 'free';
+      upscaleToTarget.value = false;
     } else {
       logger.log('Crop-Modus aktiviert: Ziehen Sie einen Bereich auf');
       if (window.$toast) {
@@ -470,6 +492,7 @@ export function useCrop() {
 
   function setAspectRatio(ratioId: string) {
     selectedAspectRatio.value = ratioId;
+    upscaleToTarget.value = false;
 
     const preset = findCropPreset(ratioId);
 
@@ -631,6 +654,10 @@ export function useCrop() {
     const sourceCanvas = canvas.value;
     const sourceImage = currentImage.value;
     if (!cropping.value || !sourceCanvas || !sourceImage) return;
+
+    // Endgröße vor dem Zurücksetzen der Auswahl festhalten
+    const output = cropOutputSize.value ?? undefined;
+    upscaleToTarget.value = false;
 
     cropping.value = false;
 
@@ -818,7 +845,7 @@ export function useCrop() {
               cropCanvas.width,
               cropCanvas.height,
               isCircleCrop,
-              currentPreset?.target
+              output
             ) ?? finalSize;
         }
 
@@ -916,6 +943,7 @@ export function useCrop() {
     cropMode.value = false;
     clearCropSelection();
     selectedAspectRatio.value = 'free';
+    upscaleToTarget.value = false;
     if (window.$toast) {
       window.$toast.info(t('toast.crop.cancelled', 'Zuschneiden abgebrochen'));
     }
@@ -1047,6 +1075,8 @@ export function useCrop() {
     normalizedCropBox,
     cropDimensions,
     cropOutputSize,
+    cropUndersize,
+    upscaleToTarget,
 
     // Methods
     toggleCropMode,
@@ -1056,6 +1086,7 @@ export function useCrop() {
     resetCropState,
     clearCropSelection,
     setAspectRatio,
+    setUpscaleToTarget,
     setCanvasSize,
     setCropWidth,
     setCropHeight,

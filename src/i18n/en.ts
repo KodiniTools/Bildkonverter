@@ -629,8 +629,12 @@ const en: LocaleMessages = {
       social: {
         title: 'Social media',
         platform: 'Platform',
+        undersize:
+          'The selection ({width} × {height} px) is smaller than the target size {targetWidth} × {targetHeight} px. Use a larger image for best quality.',
+        upscale: 'Scale up to {width} × {height} px anyway (may look blurry)',
+        tooLarge: 'Image is smaller than this format',
         output: 'Result after confirming: {width} × {height} px',
-        hint: 'Larger selections are scaled down to the target size after confirming; smaller ones stay as they are.',
+        hint: 'Larger selections are scaled down to the target size after confirming; smaller ones stay as they are unless you switch on scaling up.',
         formats: {
           postSquare: 'Square post',
           postPortrait: 'Portrait post',

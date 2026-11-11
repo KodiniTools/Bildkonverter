@@ -49,6 +49,10 @@
       :aspect-ratio-presets="aspectRatioPresets"
       :crop-dimensions="cropDimensions"
       :crop-output-size="cropOutputSize"
+      :crop-undersize="cropUndersize"
+      :upscale-to-target="upscaleToTarget"
+      :image-width="canvasWidth"
+      :image-height="canvasHeight"
       @toggle-crop="$emit('toggle-crop')"
       @cancel-crop="$emit('cancel-crop')"
       @undo-crop="$emit('undo-crop')"
@@ -56,6 +60,7 @@
       @set-crop-width="$emit('set-crop-width', $event)"
       @set-crop-height="$emit('set-crop-height', $event)"
       @center-crop="$emit('center-crop')"
+      @set-upscale="$emit('set-upscale', $event)"
     />
 
     <ImageTransformPanel
@@ -120,6 +125,11 @@ defineProps({
     type: Object as PropType<{ width: number; height: number } | null>,
     default: null,
   },
+  cropUndersize: {
+    type: Object as PropType<{ width: number; height: number } | null>,
+    default: null,
+  },
+  upscaleToTarget: { type: Boolean, default: false },
   transforms: { type: Object as PropType<ImageTransforms>, required: true },
   canPan: { type: Boolean, default: false },
   hasPan: { type: Boolean, default: false },
@@ -145,6 +155,7 @@ defineEmits([
   'set-crop-width',
   'set-crop-height',
   'center-crop',
+  'set-upscale',
   'update:opacity',
   'update:rotation',
   'update:scale',
