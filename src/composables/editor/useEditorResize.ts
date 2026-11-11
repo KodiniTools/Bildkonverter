@@ -137,8 +137,9 @@ export function useEditorResize({
    * Basiswerte aktualisieren und einen History-Eintrag schreiben (Undo/Redo).
    * @param width - Neue Breite in Pixeln
    * @param height - Neue Höhe in Pixeln
+   * @param options.silent - Kein eigener Erfolgs-Toast (Aufrufer meldet selbst)
    */
-  function commitResize(width: number, height: number) {
+  function commitResize(width: number, height: number, options: { silent?: boolean } = {}) {
     if (!canvas.value || !currentImage.value) return;
 
     // Ausstehende Live-Vorschau verwerfen – die Größe wird jetzt direkt gesetzt
@@ -162,7 +163,7 @@ export function useEditorResize({
 
     saveHistory();
 
-    if (window.$toast) {
+    if (!options.silent && window.$toast) {
       window.$toast.success(t('toast.editor.resizeSuccess', { width, height }));
     }
   }

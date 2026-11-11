@@ -447,6 +447,7 @@ import ResumeProjectCard from '@/components/editor/canvas/ResumeProjectCard.vue'
 import { logger } from '@/utils/logger';
 import { onAdjustmentReady } from '@/utils/imageAdjustments';
 import { scaleTextsToCanvas } from '@/utils/textLayout';
+import { getSocialDownscaleTarget } from '@/utils/socialCropPresets';
 import { scaleShapesToCanvas } from '@/utils/shapes';
 import type { LocationQueryValue } from 'vue-router';
 import type { EditorImage } from '@/composables/editor/types';
@@ -671,7 +672,7 @@ function handleVisibilityChange() {
 }
 
 // Größe ändern: Live-Vorschau, Presets, Anwenden
-const { selectedPreset, resizeSpec, onResizeChange, applySocialPreset, applyResize } =
+const { selectedPreset, resizeSpec, onResizeChange, applySocialPreset, applyResize, commitResize } =
   useEditorResize({
     canvas,
     currentImage,
@@ -1112,7 +1113,7 @@ function handleFinishCrop() {
     filters,
     imageStore,
     borderRadiusBeforeCrop: transform.transforms.value.borderRadius,
-    onCropComplete: (img, width, height, isCircleCrop) => {
+    onCropComplete: (img, width, height, isCircleCrop, target) => {
       currentImage.value = img;
       // finishCrop läuft nur mit vorhandenem Canvas
       canvas.value!.width = width;
@@ -1128,6 +1129,16 @@ function handleFinishCrop() {
       }
 
       renderImage();
+
+      // Social-Media-Preset: auf die Zielgröße verkleinern (gleicher Weg wie
+      // "Größe ändern"; Zuschnitt + Verkleinern = ein Undo-Schritt). Kleinere
+      // Ausschnitte bleiben unverändert, damit nichts hochskaliert wird.
+      const downscale = target ? getSocialDownscaleTarget(target, width, height) : null;
+      if (downscale) {
+        commitResize(downscale.width, downscale.height, { silent: true });
+        return downscale;
+      }
+
       updateImageSize(); // Dateigröße neu berechnen nach Crop
       saveHistory();
     },
