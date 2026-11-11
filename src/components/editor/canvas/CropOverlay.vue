@@ -20,7 +20,10 @@
       :title="$t('transform.crop.dimensionsTooltip')"
     >
       <AppIcon name="vector-square" />
-      <span>{{ width }} × {{ height }} px</span>
+      <span v-if="output">
+        {{ width }} × {{ height }} → {{ output.width }} × {{ output.height }} px
+      </span>
+      <span v-else>{{ width }} × {{ height }} px</span>
     </div>
   </div>
 </template>
@@ -43,6 +46,8 @@ defineProps<{
   labelInside: boolean;
   width: number;
   height: number;
+  /** Endgröße nach dem Bestätigen (Social-Preset verkleinert), sonst null */
+  output?: { width: number; height: number } | null;
 }>();
 </script>
 

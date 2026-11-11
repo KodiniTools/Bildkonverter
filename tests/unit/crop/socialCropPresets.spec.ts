@@ -139,6 +139,20 @@ describe('CropPanel – Social-Media-Sektion', () => {
     expect(texts).toContain('Kanalbanner');
   });
 
+  it('zeigt die Endgröße, wenn der Ausschnitt verkleinert wird', () => {
+    wrapper = mountPanel({
+      selectedAspectRatio: 'social:linkedin-post',
+      cropDimensions: { width: 2048, height: 1070 },
+      cropOutputSize: { width: 1200, height: 627 },
+    });
+    expect(wrapper.find('.crop-output').text()).toBe('Ergebnis nach dem Bestätigen: 1200 × 627 px');
+  });
+
+  it('ohne Verkleinerung kein Ergebnis-Hinweis', () => {
+    wrapper = mountPanel({ cropDimensions: { width: 800, height: 600 } });
+    expect(wrapper.find('.crop-output').exists()).toBe(false);
+  });
+
   it('markiert das aktive Preset und zeigt seine Plattform', () => {
     wrapper = mountPanel({ selectedAspectRatio: 'social:tiktok-video' });
     expect((wrapper.find('select').element as HTMLSelectElement).value).toBe('tiktok');

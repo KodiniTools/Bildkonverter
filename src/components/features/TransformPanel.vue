@@ -48,6 +48,7 @@
       :selected-aspect-ratio="selectedAspectRatio"
       :aspect-ratio-presets="aspectRatioPresets"
       :crop-dimensions="cropDimensions"
+      :crop-output-size="cropOutputSize"
       @toggle-crop="$emit('toggle-crop')"
       @cancel-crop="$emit('cancel-crop')"
       @undo-crop="$emit('undo-crop')"
@@ -114,6 +115,10 @@ defineProps({
   cropDimensions: {
     type: Object as PropType<{ width: number; height: number }>,
     default: () => ({ width: 0, height: 0 }),
+  },
+  cropOutputSize: {
+    type: Object as PropType<{ width: number; height: number } | null>,
+    default: null,
   },
   transforms: { type: Object as PropType<ImageTransforms>, required: true },
   canPan: { type: Boolean, default: false },

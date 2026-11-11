@@ -238,6 +238,7 @@
               :label-inside="cropLabelInside"
               :width="crop.cropDimensions.value.width"
               :height="crop.cropDimensions.value.height"
+              :output="crop.cropOutputSize.value"
             />
             <div class="canvas-info">
               <span
@@ -280,6 +281,7 @@
           :selected-aspect-ratio="crop.selectedAspectRatio.value"
           :aspect-ratio-presets="ASPECT_RATIO_PRESETS"
           :crop-dimensions="panelCropDimensions"
+          :crop-output-size="crop.cropOutputSize.value"
           :transforms="transform.transforms.value"
           :canvas-width="imageWidth"
           :canvas-height="imageHeight"

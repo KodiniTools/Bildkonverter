@@ -628,6 +628,7 @@ const de = {
       social: {
         title: 'Social Media',
         platform: 'Plattform',
+        output: 'Ergebnis nach dem Bestätigen: {width} × {height} px',
         hint: 'Größere Ausschnitte werden nach dem Bestätigen auf die Zielgröße verkleinert, kleinere bleiben unverändert.',
         formats: {
           postSquare: 'Beitrag quadratisch',
