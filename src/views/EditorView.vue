@@ -282,6 +282,8 @@
           :aspect-ratio-presets="ASPECT_RATIO_PRESETS"
           :crop-dimensions="panelCropDimensions"
           :crop-output-size="crop.cropOutputSize.value"
+          :crop-undersize="crop.cropUndersize.value"
+          :upscale-to-target="crop.upscaleToTarget.value"
           :transforms="transform.transforms.value"
           :canvas-width="imageWidth"
           :canvas-height="imageHeight"
@@ -304,6 +306,7 @@
           @set-crop-width="handleSetCropWidth"
           @set-crop-height="handleSetCropHeight"
           @center-crop="handleCenterCrop"
+          @set-upscale="crop.setUpscaleToTarget($event)"
           @update:opacity="handleOpacityUpdate"
           @update:rotation="handleRotationUpdate"
           @update:scale="handleScaleUpdate"
@@ -449,7 +452,6 @@ import ResumeProjectCard from '@/components/editor/canvas/ResumeProjectCard.vue'
 import { logger } from '@/utils/logger';
 import { onAdjustmentReady } from '@/utils/imageAdjustments';
 import { scaleTextsToCanvas } from '@/utils/textLayout';
-import { getSocialDownscaleTarget } from '@/utils/socialCropPresets';
 import { scaleShapesToCanvas } from '@/utils/shapes';
 import type { LocationQueryValue } from 'vue-router';
 import type { EditorImage } from '@/composables/editor/types';
@@ -1115,7 +1117,7 @@ function handleFinishCrop() {
     filters,
     imageStore,
     borderRadiusBeforeCrop: transform.transforms.value.borderRadius,
-    onCropComplete: (img, width, height, isCircleCrop, target) => {
+    onCropComplete: (img, width, height, isCircleCrop, output) => {
       currentImage.value = img;
       // finishCrop läuft nur mit vorhandenem Canvas
       canvas.value!.width = width;
@@ -1132,13 +1134,12 @@ function handleFinishCrop() {
 
       renderImage();
 
-      // Social-Media-Preset: auf die Zielgröße verkleinern (gleicher Weg wie
-      // "Größe ändern"; Zuschnitt + Verkleinern = ein Undo-Schritt). Kleinere
-      // Ausschnitte bleiben unverändert, damit nichts hochskaliert wird.
-      const downscale = target ? getSocialDownscaleTarget(target, width, height) : null;
-      if (downscale) {
-        commitResize(downscale.width, downscale.height, { silent: true });
-        return downscale;
+      // Social-Media-Preset: auf die Zielgröße skalieren (gleicher Weg wie
+      // "Größe ändern"; Zuschnitt + Skalieren = ein Undo-Schritt). Vergrößert
+      // wird nur, wenn der Nutzer es im Panel ausdrücklich eingeschaltet hat.
+      if (output && (output.width !== width || output.height !== height)) {
+        commitResize(output.width, output.height, { silent: true });
+        return output;
       }
 
       updateImageSize(); // Dateigröße neu berechnen nach Crop

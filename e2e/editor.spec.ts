@@ -196,3 +196,32 @@ test.describe('Editor: Social-Media-Presets im Zuschneiden', () => {
     expect(errors).toEqual([]);
   });
 });
+
+test.describe('Editor: Social-Preset größer als das Bild', () => {
+  test('Hinweis statt Popup; Vergrößern nur auf Wunsch', async ({ page }) => {
+    const errors = collectPageErrors(page);
+    await prepare(page, 'de');
+    await page.goto('./editor');
+    await uploadImages(page, [imageFile('klein.png', 1600, 900)]);
+    await expect(page.getByText('1600 × 900px')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Zuschneiden', exact: true }).click();
+    await page.getByRole('combobox', { name: 'Plattform' }).selectOption('youtube');
+    await page.getByRole('button', { name: /Kanalbanner/ }).click();
+    await expect(page.locator('.crop-undersize')).toContainText('kleiner als die Zielgröße');
+    await expect(page.locator('.crop-dimensions')).toHaveText('1600 × 900 px');
+
+    // Ohne Schalter bleibt die Größe erhalten
+    await page.getByRole('button', { name: 'Bestätigen', exact: true }).click();
+    await expect(page.getByText('1600 × 900px')).toBeVisible();
+
+    // Mit Schalter wird auf die Zielgröße vergrößert
+    await page.getByRole('button', { name: 'Zuschneiden', exact: true }).click();
+    await page.getByRole('button', { name: /Kanalbanner/ }).click();
+    await page.getByRole('switch', { name: /Trotzdem auf 2560/ }).click();
+    await expect(page.locator('.crop-dimensions')).toHaveText('1600 × 900 → 2560 × 1440 px');
+    await page.getByRole('button', { name: 'Bestätigen', exact: true }).click();
+    await expect(page.getByText('2560 × 1440px')).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+});

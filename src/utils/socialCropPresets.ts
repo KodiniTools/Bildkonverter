@@ -179,6 +179,32 @@ export function getSocialDownscaleTarget(
   return { width: preset.width, height: preset.height };
 }
 
+/** Ausschnitt kleiner als die Zielgröße (1 px Toleranz wie beim Verkleinern) */
+export function isSocialUndersize(
+  preset: Pick<SocialCropPreset, 'width' | 'height'>,
+  cropWidth: number,
+  cropHeight: number
+): boolean {
+  if (!(cropWidth > 0) || !(cropHeight > 0)) return false;
+  return cropWidth < preset.width - 1 || cropHeight < preset.height - 1;
+}
+
+/**
+ * Endgröße nach dem Bestätigen: größere Ausschnitte → Zielgröße; kleinere nur
+ * mit allowUpscale (ausdrücklicher Wunsch), sonst null = bleibt unverändert.
+ */
+export function resolveSocialOutput(
+  preset: Pick<SocialCropPreset, 'width' | 'height'>,
+  cropWidth: number,
+  cropHeight: number,
+  allowUpscale = false
+): { width: number; height: number } | null {
+  if (allowUpscale && isSocialUndersize(preset, cropWidth, cropHeight)) {
+    return { width: preset.width, height: preset.height };
+  }
+  return getSocialDownscaleTarget(preset, cropWidth, cropHeight);
+}
+
 function gcd(a: number, b: number): number {
   return b === 0 ? a : gcd(b, a % b);
 }

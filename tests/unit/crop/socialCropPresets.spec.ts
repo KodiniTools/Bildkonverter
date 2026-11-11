@@ -13,6 +13,8 @@ import {
   formatAspectRatio,
   getSocialDownscaleTarget,
   getSocialPresetsFor,
+  isSocialUndersize,
+  resolveSocialOutput,
 } from '@/utils/socialCropPresets';
 
 describe('SOCIAL_CROP_PRESETS', () => {
@@ -96,6 +98,23 @@ describe('getSocialDownscaleTarget', () => {
   });
 });
 
+describe('isSocialUndersize / resolveSocialOutput', () => {
+  const banner = { width: 2560, height: 1440 };
+
+  it('erkennt zu kleine Ausschnitte (1 px Toleranz)', () => {
+    expect(isSocialUndersize(banner, 1920, 1080)).toBe(true);
+    expect(isSocialUndersize(banner, 2559, 1439)).toBe(false);
+    expect(isSocialUndersize(banner, 0, 0)).toBe(false);
+  });
+
+  it('vergrößert nur auf ausdrücklichen Wunsch', () => {
+    expect(resolveSocialOutput(banner, 1920, 1080)).toBeNull();
+    expect(resolveSocialOutput(banner, 1920, 1080, true)).toEqual(banner);
+    expect(resolveSocialOutput(banner, 3840, 2160, true)).toEqual(banner);
+    expect(resolveSocialOutput(banner, 2560, 1440, true)).toBeNull();
+  });
+});
+
 describe('CropPanel – Social-Media-Sektion', () => {
   let wrapper: VueWrapper | null = null;
   afterEach(() => {
@@ -157,6 +176,29 @@ describe('CropPanel – Social-Media-Sektion', () => {
       cropOutputSize: { width: 1200, height: 627 },
     });
     expect(wrapper.find('.crop-output').text()).toBe('Ergebnis nach dem Bestätigen: 1200 × 627 px');
+  });
+
+  it('zu kleiner Ausschnitt: Hinweis mit Schalter zum Vergrößern', async () => {
+    wrapper = mountPanel({
+      selectedAspectRatio: 'social:youtube-banner',
+      cropDimensions: { width: 1920, height: 1080 },
+      cropUndersize: { width: 2560, height: 1440 },
+    });
+    const hint = wrapper.find('.crop-undersize');
+    expect(hint.text()).toContain('1920 × 1080 px');
+    expect(hint.text()).toContain('2560 × 1440 px');
+    await hint.find('[role="switch"]').trigger('click');
+    expect(wrapper.emitted('set-upscale')?.[0]).toEqual([true]);
+  });
+
+  it('markiert Formate, die größer als das Bild sind', async () => {
+    wrapper = mountPanel({ imageWidth: 1920, imageHeight: 1080 });
+    await wrapper.find('select').setValue('youtube');
+    const warned = wrapper
+      .findAll('.social-btn')
+      .filter((b) => b.find('.social-warn').exists())
+      .map((b) => b.find('.social-name').text());
+    expect(warned).toEqual(['Shorts', 'Kanalbanner']);
   });
 
   it('ohne Verkleinerung kein Ergebnis-Hinweis', () => {
