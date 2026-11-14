@@ -71,7 +71,7 @@ const de = {
   },
   locale: 'de-DE',
   home: {
-    title: 'Willkommen beim Bildkonverter Pro',
+    title: 'Bilder konvertieren online – Bildkonverter Pro',
     subtitle:
       'Schnelle und sichere Bildbearbeitung meist lokal im Browser, Spezialformate sicher auf dem deutschen Server',
     startEditing: 'Bearbeitung starten',

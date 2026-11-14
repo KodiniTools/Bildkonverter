@@ -44,16 +44,16 @@ const router = createRouter({
       name: 'home',
       component: HomeView,
       meta: {
-        title: 'Kostenlose Bildbearbeitung im Browser',
+        title: 'Bilder konvertieren online',
         description:
-          'Kostenloser Online-Bildkonverter: Bilder konvertieren, bearbeiten, komprimieren und zuschneiden direkt im Browser. Unterstützt JPG, PNG, WebP, TIFF, GIF, HEIF und PDF. DSGVO-konform.',
+          'Bilder konvertieren online und kostenlos: JPG zu WebP, WebP in JPG, HEIC in JPG, PNG in JPG. Bildformat ändern, komprimieren und zuschneiden direkt im Browser.',
         keywords:
-          'Bildkonverter, Bild umwandeln, PNG zu WebP, HEIC zu JPG, Online Bildbearbeitung, Batch Bildkonverter, Bilder komprimieren',
+          'Bilder konvertieren online, Bildkonverter, JPG zu WebP, WebP in JPG, HEIC in JPG, PNG in JPG, Bildformat ändern, Batch Bildkonverter, Bilder komprimieren',
         path: '/',
         en: {
-          title: 'Free Image Editing in Your Browser',
+          title: 'Convert Images Online',
           description:
-            'Free online image converter: convert, edit, compress and crop images right in your browser. Supports JPG, PNG, WebP, TIFF, GIF, HEIF and PDF. GDPR-compliant.',
+            'Free image converter online: JPG to WebP, WebP to JPG, HEIC to JPG, PNG to JPG. Change image format, compress and crop images right in your browser.',
         },
       },
     },
