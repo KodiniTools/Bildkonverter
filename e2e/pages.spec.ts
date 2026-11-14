@@ -5,7 +5,10 @@ import { collectPageErrors, prepare, type Locale, type Theme } from './helpers';
 const PAGES: ReadonlyArray<{ path: string; heading: Record<Locale, string> | null }> = [
   {
     path: './',
-    heading: { de: 'Willkommen beim Bildkonverter Pro', en: 'Welcome to Image Converter Pro' },
+    heading: {
+      de: 'Bilder konvertieren online – Bildkonverter Pro',
+      en: 'Convert images online – Image Converter Pro',
+    },
   },
   { path: './editor', heading: null },
   { path: './batch', heading: { de: 'Batch-Konvertierung', en: 'Batch Conversion' } },

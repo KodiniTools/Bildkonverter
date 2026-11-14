@@ -72,7 +72,7 @@ const en: LocaleMessages = {
   },
   locale: 'en-US',
   home: {
-    title: 'Welcome to Image Converter Pro',
+    title: 'Convert images online – Image Converter Pro',
     subtitle:
       'Fast and secure image editing mostly local in your browser, specialized formats securely on German server',
     startEditing: 'Start Editing',
