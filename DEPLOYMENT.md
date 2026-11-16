@@ -93,6 +93,95 @@ Danach prüfen und übernehmen:
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
+### Sprachfassungen ohne JavaScript ausliefern (SEO)
+
+Der Build schreibt für jede indexierbare Seite zwei fertige HTML-Dateien nach
+`dist/_seo/<sprache>/<seite>.html`, z. B. `_seo/en/editor.html` oder
+`_seo/de/konvertieren/png-zu-webp.html` (Quelle: `src/seo/pages.ts`, erzeugt von
+`src/seo/prerender.ts`). Sie unterscheiden sich von `index.html` nur im `<head>`:
+`<html lang>`, `<title>`, Description, Canonical, hreflang (de/en/x-default),
+Open Graph und Twitter. So sehen Google und KI-Crawler unter `?lang=en` den
+englischen Kopf, auch ohne JavaScript auszuführen.
+
+Damit nginx diese Dateien ausliefert, zwei Ergänzungen:
+
+**1. Im `http`-Block** (z. B. als `/etc/nginx/conf.d/bildkonverter-seo.conf`; `map`
+ist im `server`-Block nicht erlaubt):
+
+```nginx
+# Sprache: ?lang=en -> en, alles andere -> de
+map $arg_lang $bildkonverter_lang {
+    default de;
+    en      en;
+}
+
+# Seite: /bildkonverter/ -> index, /bildkonverter/editor -> editor,
+#        /bildkonverter/konvertieren/png-zu-webp -> konvertieren/png-zu-webp
+map $uri $bildkonverter_page {
+    default                                           "";
+    ~^/bildkonverter/?$                               index;
+    ~^/bildkonverter/([a-z0-9-]+(?:/[a-z0-9-]+)?)/?$  $1;
+}
+
+# HTML nie cachen (verweist auf gehashte Assets), alles andere wie bisher
+map $sent_http_content_type $bildkonverter_expires {
+    default      off;
+    ~text/html   epoch;
+}
+```
+
+**2. Im `server`-Block** den bisherigen `location /bildkonverter/` ersetzen und
+einen Block für `_seo` ergänzen:
+
+```nginx
+    location /bildkonverter/ {
+        # 1. echte Datei, 2. vorgerenderte Seite in der Sprache, 3. SPA-Fallback
+        try_files $uri /bildkonverter/_seo/$bildkonverter_lang/$bildkonverter_page.html /bildkonverter/index.html;
+        expires $bildkonverter_expires;
+    }
+
+    # Die vorgerenderten Dateien nur über die echten URLs ausliefern, nicht direkt
+    location /bildkonverter/_seo/ {
+        internal;
+    }
+```
+
+Hinweise:
+
+- `$uri/` fällt aus dem `try_files` weg, sonst würde `/bildkonverter/` weiter die
+  allgemeine `index.html` liefern statt `_seo/<sprache>/index.html`.
+- Unbekannte Pfade (`/bildkonverter/xyz`, ungültige `/konvertieren/...`) finden keine
+  Datei in `_seo` und landen wie bisher bei `index.html`.
+- Die Navigation, Footer und Cookie-Banner kommen per SSI (`<!--#include ... -->`).
+  `ssi on;` muss deshalb auch für `location /bildkonverter/` gelten. Steht es auf
+  `server`-Ebene, ist nichts zu tun.
+- Den Block `location /bildkonverter/assets/` und das `no-cache` für
+  `location = /bildkonverter/index.html` unverändert lassen.
+- `deploy.sh` braucht keine Änderung: `rsync` kopiert `_seo/` mit.
+
+Prüfen und übernehmen, danach kontrollieren:
+
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+
+curl -s 'https://kodinitools.com/bildkonverter/editor?lang=en' | grep -E '<html|<title>|canonical'
+# <html lang="en">
+# <title>Image Editor - Image Converter Pro | KodiniTools</title>
+# <link rel="canonical" href="https://kodinitools.com/bildkonverter/editor?lang=en" />
+
+curl -s 'https://kodinitools.com/bildkonverter/editor' | grep -E '<html|<title>'
+# <html lang="de">  /  <title>Bild-Editor - Bildkonverter Pro | KodiniTools</title>
+
+curl -sI 'https://kodinitools.com/bildkonverter/editor?lang=en' | grep -i cache-control
+# Cache-Control: no-cache
+
+curl -sI https://kodinitools.com/bildkonverter/_seo/en/editor.html | head -1
+# HTTP/2 404
+```
+
+Ohne diese nginx-Ergänzung läuft die App unverändert weiter (die `_seo`-Dateien
+liegen dann nur ungenutzt im Webroot).
+
 ### Icons
 
 Die App bringt ihre Icons selbst mit (Lucide über `src/components/ui/AppIcon.vue`,

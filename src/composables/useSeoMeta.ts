@@ -3,13 +3,15 @@
  *
  * Aktualisiert dynamisch <title>, <meta> und <link rel="canonical">
  * bei jedem Routenwechsel. Da die App eine CSR-SPA ist, werden die
- * Tags per DOM-Manipulation gesetzt – für Crawler ohne JS-Ausführung
- * bleiben die statischen Werte aus index.html bestehen.
+ * Tags per DOM-Manipulation gesetzt. Für Crawler ohne JS-Ausführung schreibt
+ * der Build dieselben Werte pro Seite und Sprache in eigene HTML-Dateien
+ * (src/seo/prerender.ts, nginx-Konfiguration in DEPLOYMENT.md).
  *
  * Sprachfassungen: Deutsch ohne Parameter, Englisch mit ?lang=en.
  */
 
 import { localeUrls } from '@/utils/localeSeo';
+import { SEO_BASE_URL, seoFullTitle } from '@/seo/pages';
 import type { RouteSeoTexts } from '@/types/router';
 
 /** SEO-Felder einer Route (Ausschnitt aus route.meta) */
@@ -19,10 +21,6 @@ export interface SeoMeta extends RouteSeoTexts {
   /** Englische Texte */
   en?: RouteSeoTexts;
 }
-
-const BASE_URL = 'https://kodinitools.com/bildkonverter';
-const SITE_NAME = 'KodiniTools';
-const DEFAULT_TITLE_SUFFIX = 'Bildkonverter Pro';
 
 /**
  * Setzt oder aktualisiert ein <meta>-Tag im <head>
@@ -78,12 +76,11 @@ export function updateSeoMeta(meta: SeoMeta, locale: string = 'de'): void {
   const { path = '' } = meta;
 
   // Title (Produktname je Sprache)
-  const suffix = lang === 'en' ? 'Image Converter Pro' : DEFAULT_TITLE_SUFFIX;
-  const fullTitle = title ? `${title} - ${suffix} | ${SITE_NAME}` : `${suffix} | ${SITE_NAME}`;
+  const fullTitle = seoFullTitle(title, lang);
   document.title = fullTitle;
 
   // Canonical URL (EN = ?lang=en) und hreflang de/en/x-default
-  const { canonical: canonicalUrl, alternates } = localeUrls(`${BASE_URL}${path}`, lang);
+  const { canonical: canonicalUrl, alternates } = localeUrls(`${SEO_BASE_URL}${path}`, lang);
   setCanonical(canonicalUrl);
   for (const { hreflang, href } of alternates) setAlternate(hreflang, href);
   updateHreflang(lang);
