@@ -15,10 +15,10 @@
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#f6f5f1" />
 
-    <!-- Canonical & hreflang: bewusst NICHT statisch gesetzt. Die SPA liefert fuer
-         jede Route dieselbe index.html aus; ein statisches Canonical wuerde /editor,
-         /batch, /konvertieren/... als Duplikat der Startseite markieren.
-         src/composables/useSeoMeta.js setzt beides pro Route (Google rendert JavaScript). -->
+    <!-- Canonical & hreflang: bewusst NICHT in dieser Vorlage. Der Build schreibt pro Seite
+         und Sprache ein eigenes HTML mit passendem Head nach _seo/ (src/seo/prerender.ts),
+         nginx liefert es aus (DEPLOYMENT.md). Zur Laufzeit setzt src/composables/useSeoMeta.ts
+         dieselben Werte; diese Vorlage dient nur noch als Fallback. -->
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
