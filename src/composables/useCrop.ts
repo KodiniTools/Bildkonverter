@@ -190,6 +190,11 @@ export function useCrop() {
     return isSocialUndersize(target, width, height) ? { ...target } : null;
   });
 
+  // Kreis-Preset aktiv → Auswahl auf der Leinwand rund darstellen (rein optisch)
+  const isCircleSelection = computed(
+    () => findCropPreset(selectedAspectRatio.value)?.isCircle === true
+  );
+
   function setUpscaleToTarget(value: boolean) {
     upscaleToTarget.value = value;
   }
@@ -1068,6 +1073,7 @@ export function useCrop() {
     cropping,
     hasCropped,
     cropOverlayStyle,
+    isCircleSelection,
     selectedAspectRatio,
     isDragging,
     isResizing,

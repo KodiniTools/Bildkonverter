@@ -197,6 +197,34 @@ test.describe('Editor: Social-Media-Presets im Zuschneiden', () => {
   });
 });
 
+test.describe('Editor: Kreis-Zuschnitt', () => {
+  test('Kreis-Preset zeigt eine runde Auswahl, andere Presets bleiben rechteckig', async ({
+    page,
+  }) => {
+    const errors = collectPageErrors(page);
+    await prepare(page, 'de');
+    await page.goto('./editor');
+    await uploadImages(page, [imageFile('kreis.png', 400, 300)]);
+    await expect(page.getByText('400 × 300px')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Zuschneiden', exact: true }).click();
+    await page.getByRole('button', { name: 'Kreis', exact: true }).click();
+    const circle = page.locator('.crop-overlay .crop-circle');
+    await expect(circle).toBeVisible();
+    await expect(circle).toHaveCSS('border-top-left-radius', '50%');
+    await expect(page.locator('.crop-overlay .resize-handle')).toHaveCount(8);
+    await expect(page.locator('.crop-dimensions')).toHaveText('240 × 240 px');
+
+    await page.getByRole('button', { name: '1:1', exact: true }).click();
+    await expect(circle).toHaveCount(0);
+
+    await page.getByRole('button', { name: 'Kreis', exact: true }).click();
+    await page.getByRole('button', { name: 'Bestätigen', exact: true }).click();
+    await expect(page.getByText('240 × 240px')).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+});
+
 test.describe('Editor: Social-Preset größer als das Bild', () => {
   test('Hinweis statt Popup; Vergrößern nur auf Wunsch', async ({ page }) => {
     const errors = collectPageErrors(page);
