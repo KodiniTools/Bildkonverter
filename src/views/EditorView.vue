@@ -239,6 +239,7 @@
               :width="crop.cropDimensions.value.width"
               :height="crop.cropDimensions.value.height"
               :output="crop.cropOutputSize.value"
+              :circle="crop.isCircleSelection.value"
             />
             <div class="canvas-info">
               <span

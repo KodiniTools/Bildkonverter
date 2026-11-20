@@ -1,5 +1,15 @@
 <template>
-  <div class="crop-overlay" :class="{ dragging, resizing }" :style="overlayStyle">
+  <div
+    class="crop-overlay"
+    :class="{ dragging, resizing, 'crop-overlay--circle': circle }"
+    :style="overlayStyle"
+  >
+    <!-- Kreis-Zuschnitt: runde Auswahl mit Abdunklung außerhalb, dazu ein
+         gestrichelter Begrenzungsrahmen, an dem die Griffe sitzen -->
+    <template v-if="circle">
+      <div class="crop-circle"></div>
+      <div class="crop-bounds"></div>
+    </template>
     <!-- Resize Handles -->
     <div class="resize-handle handle-nw"></div>
     <div class="resize-handle handle-n"></div>
@@ -48,6 +58,8 @@ defineProps<{
   height: number;
   /** Endgröße nach dem Bestätigen (Social-Preset verkleinert), sonst null */
   output?: { width: number; height: number } | null;
+  /** Kreis-Preset aktiv: Auswahl rund darstellen (Ergebnis unverändert) */
+  circle?: boolean;
 }>();
 </script>
 
@@ -57,9 +69,10 @@ defineProps<{
   /* Rein optische Größe der Griffe. Die Trefferfläche steckt in
      getHandleAtPoint() (useCrop.ts) und ist davon unabhängig. */
   --handle-size: 8px;
+  --crop-border: 2px;
 
   position: absolute;
-  border: 2px solid var(--ds-accent);
+  border: var(--crop-border) solid var(--ds-accent);
   background: transparent;
   pointer-events: none;
   z-index: 100;
@@ -74,6 +87,32 @@ defineProps<{
   &.resizing {
     border-style: solid;
   }
+
+  /* Kreis: Rahmen und Abdunklung übernimmt .crop-circle. Der Rand bleibt
+     (transparent) erhalten, damit Griffe und Geometrie identisch sitzen. */
+  &.crop-overlay--circle {
+    border-color: transparent;
+    box-shadow: none;
+  }
+}
+
+/* Runde Auswahl: deckt exakt die Außenkante des Rechteckrahmens ab */
+.crop-circle,
+.crop-bounds {
+  position: absolute;
+  inset: calc(-1 * var(--crop-border));
+  pointer-events: none;
+}
+
+.crop-circle {
+  border: var(--crop-border) solid var(--ds-accent);
+  border-radius: 50%;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+}
+
+/* Dezenter Begrenzungsrahmen, damit die Eckgriffe nicht frei schweben */
+.crop-bounds {
+  border: 1px dashed color-mix(in srgb, var(--ds-accent) 70%, transparent);
 }
 
 /* Resize Handles - rein visuell, Canvas handled alle Events.

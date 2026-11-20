@@ -115,6 +115,29 @@ describe('CropOverlay', () => {
     const label = wrapper.get('.crop-dimensions');
     expect(label.classes()).toContain('crop-dimensions--inside');
     expect(label.text()).toBe('300 × 400 px');
+    // Ohne Kreis-Preset bleibt der Rahmen rechteckig
+    expect(root.classes()).not.toContain('crop-overlay--circle');
+    expect(wrapper.find('.crop-circle').exists()).toBe(false);
+  });
+
+  it('zeigt bei Kreis-Preset eine runde Auswahl, Griffe bleiben', () => {
+    wrapper = mount(CropOverlay, {
+      props: {
+        overlayStyle: { left: '0px', top: '0px', width: '50px', height: '50px' },
+        dragging: false,
+        resizing: false,
+        labelInside: false,
+        width: 500,
+        height: 500,
+        circle: true,
+      },
+      global,
+    });
+    expect(wrapper.get('.crop-overlay').classes()).toContain('crop-overlay--circle');
+    expect(wrapper.find('.crop-circle').exists()).toBe(true);
+    expect(wrapper.find('.crop-bounds').exists()).toBe(true);
+    expect(wrapper.findAll('.resize-handle')).toHaveLength(8);
+    expect(wrapper.get('.crop-dimensions').text()).toBe('500 × 500 px');
   });
 });
 
