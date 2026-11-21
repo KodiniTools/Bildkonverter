@@ -90,14 +90,14 @@ export const routeSeo = {
     },
   },
   batch: {
-    title: 'Batch Bildkonverter – Mehrere Bilder gleichzeitig umwandeln',
+    title: 'Mehrere Bilder umwandeln',
     description:
       'Hunderte Bilder gleichzeitig konvertieren: Wählen Sie Zielformat, Qualität und Größe. Batch-Verarbeitung für PNG, JPG, WebP und mehr – schnell und kostenlos.',
     keywords:
       'Batch Bildkonverter, mehrere Bilder konvertieren, Massenkonvertierung, Bilder gleichzeitig umwandeln',
     path: '/batch',
     en: {
-      title: 'Batch Image Converter – Convert Many Images at Once',
+      title: 'Batch Convert Images',
       description:
         'Convert hundreds of images at once: choose target format, quality and size. Batch processing for PNG, JPG, WebP and more – fast and free.',
     },
@@ -140,26 +140,26 @@ export const routeSeo = {
     },
   },
   faq: {
-    title: 'Häufig gestellte Fragen (FAQ)',
+    title: 'Häufige Fragen (FAQ)',
     description:
       'Antworten auf häufig gestellte Fragen zum Bildkonverter Pro: Unterstützte Formate, Datenschutz, Filter, Zuschneiden, Drehen und Download.',
     keywords: 'FAQ Bildkonverter, häufig gestellte Fragen, Bildkonverter Hilfe, Bildformate FAQ',
     path: '/faq',
     en: {
-      title: 'Frequently Asked Questions (FAQ)',
+      title: 'FAQ',
       description:
         'Answers to frequently asked questions about Image Converter Pro: supported formats, privacy, filters, cropping, rotating and download.',
     },
   },
   download: {
-    title: 'Bildkonverter für Windows herunterladen',
+    title: 'Für Windows herunterladen',
     description:
       'Bildkonverter Pro als kostenlose Windows-App: Installer (.exe) oder MSI-Paket für Windows 10 und 11. Bilder bearbeiten, konvertieren und Hintergründe entfernen – lokal auf dem PC.',
     keywords:
       'Bildkonverter Windows, Bildkonverter Download, Bildkonverter App, Bildbearbeitung offline, MSI, EXE',
     path: '/download',
     en: {
-      title: 'Download Image Converter for Windows',
+      title: 'Download for Windows',
       description:
         'Image Converter Pro as a free Windows app: installer (.exe) or MSI package for Windows 10 and 11. Edit and convert images and remove backgrounds – locally on your PC.',
     },
@@ -175,12 +175,12 @@ export const routeSeo = {
 /** SEO-Daten einer Format-Landingpage (/konvertieren/:pair). */
 export function formatConversionSeo({ pair, from, to }: FormatConversion): PageSeo {
   return {
-    title: `${from} in ${to} umwandeln – Schnell & Kostenlos`,
+    title: `${from} in ${to} umwandeln`,
     description: `${from} Dateien kostenlos in ${to} konvertieren. Schnelle Umwandlung direkt im Browser, ohne Upload. Perfekt für Web-Optimierung und Kompatibilität.`,
     keywords: `${from} zu ${to}, ${from} in ${to} umwandeln, ${from} konvertieren, ${pair} Konverter, Bildformat ändern`,
     path: `/konvertieren/${pair}`,
     en: {
-      title: `Convert ${from} to ${to} – Fast & Free`,
+      title: `Convert ${from} to ${to}`,
       description: `Convert ${from} files to ${to} for free. Fast conversion right in your browser, no upload. Perfect for web optimization and compatibility.`,
     },
   };
