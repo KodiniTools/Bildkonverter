@@ -80,14 +80,14 @@ describe('SEO-Seitenliste (src/seo/pages.ts)', () => {
   it('Format-Landingpage: Texte wie bisher im Router-Guard', () => {
     const seo = formatConversionSeo({ pair: 'png-zu-webp', from: 'PNG', to: 'WebP' });
     expect(seo).toEqual({
-      title: 'PNG in WebP umwandeln – Schnell & Kostenlos',
+      title: 'PNG in WebP umwandeln',
       description:
         'PNG Dateien kostenlos in WebP konvertieren. Schnelle Umwandlung direkt im Browser, ohne Upload. Perfekt für Web-Optimierung und Kompatibilität.',
       keywords:
         'PNG zu WebP, PNG in WebP umwandeln, PNG konvertieren, png-zu-webp Konverter, Bildformat ändern',
       path: '/konvertieren/png-zu-webp',
       en: {
-        title: 'Convert PNG to WebP – Fast & Free',
+        title: 'Convert PNG to WebP',
         description:
           'Convert PNG files to WebP for free. Fast conversion right in your browser, no upload. Perfect for web optimization and compatibility.',
       },
