@@ -210,6 +210,20 @@ body
   color: var(--ds-accent) !important;
 }
 
+/* Aktive Sprache im Sprachumschalter der SSI-Navigation: dunkelgold mit weisser
+   Schrift wie der Hauptbutton. Gleicher Präfix wie die Regeln oben plus die
+   Button-Klassen, damit die Spezifität die transparenten Flächen und
+   --ds-text überstimmt. */
+body
+  > :not(#app):not(#overlay-root):not(script):not(.cookie-banner):not(.cookie-consent):not(
+    [class*='cookie']
+  )
+  .global-nav-lang-switcher
+  .global-nav-lang-btn.active {
+  background-color: var(--bild-layout-gold) !important;
+  color: #fff !important;
+}
+
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
