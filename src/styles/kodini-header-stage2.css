@@ -1,0 +1,57 @@
+/* Seitennavigation unter der globalen SSI-Navigation. */
+#app > .app-header {
+  background: color-mix(in srgb, var(--ds-surface-1) 94%, var(--bild-layout-cyan));
+  border-bottom-color: color-mix(in srgb, var(--ds-border) 82%, var(--bild-layout-cyan));
+}
+
+#app .app-header .header-container {
+  max-width: 1160px;
+}
+
+#app .app-header :is(.nav-link, .mobile-nav-link) {
+  border-radius: var(--ds-radius-md);
+}
+
+#app .app-header :is(.nav-link, .mobile-nav-link):hover {
+  background: color-mix(in srgb, var(--ds-surface-2) 92%, var(--bild-layout-cyan));
+  border-color: var(--ds-border-strong);
+  color: var(--ds-text);
+}
+
+#app .app-header :is(.nav-link, .mobile-nav-link).active {
+  background: color-mix(in srgb, var(--ds-surface-2) 90%, var(--ds-accent));
+  border-color: var(--ds-accent);
+  box-shadow: inset 0 -2px 0 var(--ds-accent);
+  color: var(--ds-text);
+}
+
+#app .app-header :is(.nav-link, .mobile-nav-link, .mobile-menu-toggle):focus-visible {
+  box-shadow: var(--ds-focus-ring);
+}
+
+@media (max-width: 960px) {
+  #app .app-header .header-nav {
+    display: none;
+  }
+
+  #app .app-header .mobile-menu-toggle,
+  #app .app-header .mobile-nav {
+    display: flex;
+  }
+
+  #app .app-header .mobile-nav {
+    max-block-size: max(
+      0px,
+      calc(100dvh - var(--external-nav-height, 50px) - var(--ds-topbar-height))
+    );
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-top-color: var(--ds-border-strong);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #app .app-header :is(.slide-down-enter-active, .slide-down-leave-active) {
+    transition: none;
+  }
+}

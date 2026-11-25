@@ -49,8 +49,8 @@
 
 #app .home-view .hero-img {
   max-width: none;
-  aspect-ratio: 1.23;
-  object-fit: cover;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
   border-radius: var(--ds-radius-lg);
   border-color: var(--ds-border-strong);
 }

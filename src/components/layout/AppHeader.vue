@@ -2,7 +2,7 @@
   <header class="app-header">
     <div class="header-container">
       <!-- Navigation -->
-      <nav class="header-nav">
+      <nav class="header-nav" :aria-label="$t('home.title')">
         <template v-for="navItem in routes" :key="navItem.path">
           <a
             v-if="navItem.external"
@@ -28,9 +28,12 @@
       <div class="header-actions">
         <!-- Mobile Menu Toggle -->
         <button
+          type="button"
           class="btn-icon mobile-menu-toggle"
           :class="{ active: isMobileMenuOpen }"
           :aria-label="$t('nav.menu', 'Menü')"
+          :aria-expanded="isMobileMenuOpen"
+          :aria-controls="isMobileMenuOpen ? 'bildkonverter-mobile-nav' : undefined"
           @click="toggleMobileMenu"
         >
           <AppIcon :name="isMobileMenuOpen ? 'times' : 'bars'" :size="20" />
@@ -40,7 +43,12 @@
 
     <!-- Mobile Navigation -->
     <transition name="slide-down">
-      <nav v-if="isMobileMenuOpen" class="mobile-nav">
+      <nav
+        v-if="isMobileMenuOpen"
+        id="bildkonverter-mobile-nav"
+        class="mobile-nav"
+        :aria-label="$t('home.title')"
+      >
         <template v-for="navItem in routes" :key="navItem.path">
           <a
             v-if="navItem.external"
