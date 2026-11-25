@@ -1,0 +1,19 @@
+/* Themespezifische Layout-Tokens für den Bildkonverter. */
+:root {
+  --bild-layout-glow:
+    radial-gradient(ellipse at 84% 0%, rgb(38 167 187 / 15%), transparent 67%),
+    radial-gradient(ellipse at 12% 0%, rgb(55 114 202 / 18%), transparent 62%);
+  --bild-layout-cyan: #69d7e9;
+  --bild-layout-card: linear-gradient(148deg, var(--ds-surface-1), var(--ds-surface-0));
+  --bild-layout-gold: #80571e;
+  --bild-layout-gold-hover: #704a17;
+}
+
+:root[data-theme='light'],
+.light-theme {
+  --bild-layout-glow:
+    radial-gradient(ellipse at 84% 0%, rgb(38 167 187 / 9%), transparent 67%),
+    radial-gradient(ellipse at 12% 0%, rgb(55 114 202 / 8%), transparent 62%);
+  --bild-layout-cyan: #156579;
+  --bild-layout-card: linear-gradient(148deg, var(--ds-surface-1), var(--ds-surface-0));
+}
