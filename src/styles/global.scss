@@ -221,7 +221,17 @@ body
   .global-nav-lang-switcher
   .global-nav-lang-btn.active {
   background-color: var(--bild-layout-gold) !important;
+  background-image: var(--bild-layout-gold-gradient) !important;
   color: #fff !important;
+}
+
+body
+  > :not(#app):not(#overlay-root):not(script):not(.cookie-banner):not(.cookie-consent):not(
+    [class*='cookie']
+  )
+  .global-nav-lang-switcher
+  .global-nav-lang-btn.active:hover {
+  background-image: var(--bild-layout-gold-gradient-hover) !important;
 }
 
 html {

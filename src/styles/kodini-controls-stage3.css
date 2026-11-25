@@ -40,15 +40,46 @@
   border-color: color-mix(in srgb, var(--ds-border-strong) 80%, var(--bild-layout-cyan));
 }
 
-:is(#app .main-content, #overlay-root)
-  :is(.ui-button--primary, .btn.btn-primary, .export-dialog__btn--confirm) {
+:is(#app, #overlay-root)
+  :is(
+    .ui-button--primary,
+    .ui-icon-button--primary,
+    .btn.btn-primary,
+    .btn.btn-success,
+    .btn-primary,
+    .export-dialog__btn--confirm,
+    .tb-btn--success,
+    .tb-btn--primary,
+    .tb-btn--accent,
+    .transform-btn.crop-confirm-btn,
+    .distort-btn.primary,
+    .website-link,
+    .btn-hero-primary,
+    .cta-button
+  ) {
+  border-color: transparent;
   background: var(--bild-layout-gold);
   background-image: var(--bild-layout-gold-gradient);
   color: #fff;
 }
 
-:is(#app .main-content, #overlay-root)
-  :is(.ui-button--primary, .btn.btn-primary, .export-dialog__btn--confirm):hover:not(:disabled) {
+:is(#app, #overlay-root)
+  :is(
+    .ui-button--primary,
+    .ui-icon-button--primary,
+    .btn.btn-primary,
+    .btn.btn-success,
+    .btn-primary,
+    .export-dialog__btn--confirm,
+    .tb-btn--success,
+    .tb-btn--primary,
+    .tb-btn--accent,
+    .transform-btn.crop-confirm-btn,
+    .distort-btn.primary,
+    .website-link,
+    .btn-hero-primary,
+    .cta-button
+  ):hover:not(:disabled) {
   background: var(--bild-layout-gold-hover);
   background-image: var(--bild-layout-gold-gradient-hover);
   color: #fff;
