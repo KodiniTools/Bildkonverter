@@ -7,6 +7,9 @@
   --bild-layout-card: linear-gradient(148deg, var(--ds-surface-1), var(--ds-surface-0));
   --bild-layout-gold: #80571e;
   --bild-layout-gold-hover: #704a17;
+  /* Hauptbuttons: dunkelgoldener Verlauf, weisse Schrift bleibt ueberall >= 5:1 */
+  --bild-layout-gold-gradient: linear-gradient(135deg, #946524 0%, #6e4916 100%);
+  --bild-layout-gold-gradient-hover: linear-gradient(135deg, #80571e 0%, #5e3f12 100%);
 }
 
 :root[data-theme='light'],
