@@ -1,0 +1,91 @@
+/* Grundlayout des Bildkonverters. Das vorhandene Theme liefert die Flächentokens. */
+#app > .main-content {
+  background-image: var(--bild-layout-glow);
+  background-repeat: no-repeat;
+  background-size: 100% 42rem;
+}
+
+#app .home-view {
+  background: transparent;
+}
+
+#app .home-view .hero-section,
+#app .home-view .features-section,
+#app .home-view .conversions-section,
+#app .home-view .more-tools-section {
+  max-width: 1160px;
+  margin-inline: auto;
+  padding-inline: clamp(0px, 2vw, 24px);
+}
+
+#app .home-view .hero-section {
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(24px, 5vw, 64px);
+  padding-block: clamp(24px, 5vw, 76px) clamp(28px, 5vw, 64px);
+}
+
+#app .home-view .hero-content h1 {
+  font-size: clamp(2.5rem, 6.75vw, 5.125rem);
+  font-weight: var(--ds-weight-regular);
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+  overflow-wrap: anywhere;
+}
+
+#app .home-view .hero-content .hero-subtitle {
+  color: var(--bild-layout-cyan);
+  margin-bottom: var(--ds-space-6);
+}
+
+#app .home-view .action-buttons .btn-primary {
+  background: var(--bild-layout-gold);
+  color: #fff;
+}
+
+#app .home-view .action-buttons .btn-primary:hover:not(:disabled) {
+  background: var(--bild-layout-gold-hover);
+  color: #fff;
+}
+
+#app .home-view .hero-img {
+  max-width: none;
+  aspect-ratio: 1.23;
+  object-fit: cover;
+  border-radius: var(--ds-radius-lg);
+  border-color: var(--ds-border-strong);
+}
+
+#app .home-view .features-grid,
+#app .home-view .conversions-grid,
+#app .home-view .tools-grid {
+  max-width: none;
+  gap: clamp(12px, 2vw, 20px);
+}
+
+#app .home-view .feature-card,
+#app .home-view .conversion-card,
+#app .home-view .tool-card {
+  background-image: var(--bild-layout-card);
+}
+
+@media (max-width: 768px) {
+  #app .home-view .hero-section {
+    grid-template-columns: minmax(0, 1fr);
+    text-align: start;
+  }
+
+  #app .home-view .hero-image {
+    display: flex;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #app .home-view .animate-title,
+  #app .home-view .animate-subtitle,
+  #app .home-view .animate-button,
+  #app .home-view .animate-image,
+  #app .home-view .animate-section-title,
+  #app .home-view .feature-card {
+    animation: none;
+  }
+}

@@ -7,7 +7,9 @@ import i18n from './i18n';
 
 // Globale Styles
 import './design-system/tokens-v2.css';
+import './design-system/bildkonverter-layout.css';
 import './styles/main.scss';
+import './styles/kodini-layout-stage1.css';
 import { logger } from '@/utils/logger';
 
 /**
