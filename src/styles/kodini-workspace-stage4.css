@@ -43,13 +43,15 @@
   border-radius: var(--ds-radius-md);
 }
 
-#app .editor-view .toolbar .tb-btn--primary {
+#app .editor-view .toolbar :is(.tb-btn--primary, .tb-btn--success) {
   background: var(--bild-layout-gold);
+  background-image: var(--bild-layout-gold-gradient);
   color: #fff;
 }
 
-#app .editor-view .toolbar .tb-btn--primary:hover:not(:disabled) {
+#app .editor-view .toolbar :is(.tb-btn--primary, .tb-btn--success):hover:not(:disabled) {
   background: var(--bild-layout-gold-hover);
+  background-image: var(--bild-layout-gold-gradient-hover);
   color: #fff;
 }
 

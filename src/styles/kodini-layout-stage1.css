@@ -39,11 +39,13 @@
 
 #app .home-view .action-buttons .btn-primary {
   background: var(--bild-layout-gold);
+  background-image: var(--bild-layout-gold-gradient);
   color: #fff;
 }
 
 #app .home-view .action-buttons .btn-primary:hover:not(:disabled) {
   background: var(--bild-layout-gold-hover);
+  background-image: var(--bild-layout-gold-gradient-hover);
   color: #fff;
 }
 

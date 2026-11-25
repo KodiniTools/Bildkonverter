@@ -42,13 +42,15 @@
 
 :is(#app .main-content, #overlay-root)
   :is(.ui-button--primary, .btn.btn-primary, .export-dialog__btn--confirm) {
-  background-color: var(--bild-layout-gold);
+  background: var(--bild-layout-gold);
+  background-image: var(--bild-layout-gold-gradient);
   color: #fff;
 }
 
 :is(#app .main-content, #overlay-root)
   :is(.ui-button--primary, .btn.btn-primary, .export-dialog__btn--confirm):hover:not(:disabled) {
-  background-color: var(--bild-layout-gold-hover);
+  background: var(--bild-layout-gold-hover);
+  background-image: var(--bild-layout-gold-gradient-hover);
   color: #fff;
 }
 
