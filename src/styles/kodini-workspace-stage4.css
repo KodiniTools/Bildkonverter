@@ -1,0 +1,106 @@
+/* Arbeitsflächen des Editors, der Stapelverarbeitung und der Galerie. */
+#app .editor-view {
+  background: transparent;
+}
+
+#app .editor-view .editor-main {
+  border: var(--ds-border-width) solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-lg);
+}
+
+#app .editor-view .sidebar {
+  background: color-mix(in srgb, var(--ds-surface-1) 97%, var(--bild-layout-cyan));
+  border-color: var(--ds-border-strong);
+}
+
+#app .editor-view .canvas-area {
+  min-width: 0;
+  background: color-mix(in srgb, var(--ds-surface-0) 96%, var(--bild-layout-cyan));
+}
+
+#app .editor-view .canvas-area.drag-over {
+  background: color-mix(in srgb, var(--ds-surface-0) 88%, var(--ds-accent));
+}
+
+#app .editor-view .canvas-container {
+  min-width: 0;
+  max-width: 100%;
+}
+
+#app .editor-view .main-canvas {
+  border-color: var(--ds-border-strong);
+}
+
+#app .editor-view .canvas-info {
+  max-width: 100%;
+  height: auto;
+  min-height: var(--ds-control-sm);
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--ds-space-2) var(--ds-space-3);
+  padding-block: var(--ds-space-2);
+  line-height: var(--ds-leading);
+  border-radius: var(--ds-radius-md);
+}
+
+#app .editor-view .toolbar .tb-btn--primary {
+  background: var(--bild-layout-gold);
+  color: #fff;
+}
+
+#app .editor-view .toolbar .tb-btn--primary:hover:not(:disabled) {
+  background: var(--bild-layout-gold-hover);
+  color: #fff;
+}
+
+#app .batch-view .file-card:not(.processing, .completed, .error),
+#app .gallery-view .gallery-card:not(.selected, .multi-selected) {
+  border-color: color-mix(in srgb, var(--ds-border) 82%, var(--bild-layout-cyan));
+}
+
+#app .gallery-view .gallery-card:not(.selected, .multi-selected):hover {
+  border-color: var(--ds-border-strong);
+}
+
+#app .batch-view .file-preview,
+#app .gallery-view .gallery-card__thumb {
+  background-color: color-mix(in srgb, var(--ds-surface-2) 95%, var(--bild-layout-cyan));
+}
+
+#app .batch-view .file-preview img,
+#app .gallery-view .gallery-card__thumb img {
+  object-fit: contain;
+}
+
+#app .batch-view .file-info h3,
+#app .gallery-view .gallery-card__name {
+  overflow-wrap: anywhere;
+}
+
+#app .format-conversion-view .preview-comparison {
+  align-items: stretch;
+}
+
+#app .format-conversion-view .preview-item {
+  min-width: 0;
+  padding: var(--ds-space-3);
+  background: var(--ds-surface-1);
+  border: var(--ds-border-width) solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-lg);
+}
+
+#app .format-conversion-view .preview-arrow {
+  align-self: center;
+}
+
+@media (max-width: 500px) {
+  #app .format-conversion-view .preview-item {
+    width: 100%;
+    max-width: none;
+  }
+
+  #app .editor-view .canvas-info__autosave {
+    border: none;
+    padding-inline-start: 0;
+  }
+}

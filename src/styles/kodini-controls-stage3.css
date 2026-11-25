@@ -1,0 +1,95 @@
+/* Bedienfelder in den Werkzeugansichten und im Dialog-Portal. */
+:is(#app .batch-view, #app .format-conversion-view) .upload-zone,
+#app .editor-view .upload-card {
+  background: color-mix(in srgb, var(--ds-surface-1) 92%, var(--bild-layout-cyan));
+  border-color: color-mix(in srgb, var(--ds-border-strong) 70%, var(--bild-layout-cyan));
+  border-radius: var(--ds-radius-lg);
+}
+
+:is(#app .batch-view, #app .format-conversion-view) .upload-zone:hover,
+#app .editor-view .upload-card--file:hover {
+  background: color-mix(in srgb, var(--ds-surface-2) 90%, var(--bild-layout-cyan));
+  border-color: var(--bild-layout-cyan);
+}
+
+:is(#app .batch-view, #app .format-conversion-view) .upload-zone.drag-over,
+#app .editor-view .canvas-area.drag-over .upload-card--drag {
+  background: color-mix(in srgb, var(--ds-surface-1) 88%, var(--ds-accent));
+  border-color: var(--ds-accent);
+}
+
+#app .batch-view .settings-panel,
+#app .format-conversion-view .widget-container {
+  background: color-mix(in srgb, var(--ds-surface-1) 96%, var(--bild-layout-cyan));
+  border-color: color-mix(in srgb, var(--ds-border) 82%, var(--bild-layout-cyan));
+}
+
+#app .batch-view .settings-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+}
+
+:is(#app .main-content, #overlay-root)
+  :is(
+    .ui-select__native,
+    .number-spinner,
+    .ui-button--secondary,
+    .btn.btn-secondary,
+    .save-as__row
+  ),
+#app .batch-view .setting-group input:is([type='text'], [type='number']) {
+  border-color: color-mix(in srgb, var(--ds-border-strong) 80%, var(--bild-layout-cyan));
+}
+
+:is(#app .main-content, #overlay-root)
+  :is(.ui-button--primary, .btn.btn-primary, .export-dialog__btn--confirm) {
+  background-color: var(--bild-layout-gold);
+  color: #fff;
+}
+
+:is(#app .main-content, #overlay-root)
+  :is(.ui-button--primary, .btn.btn-primary, .export-dialog__btn--confirm):hover:not(:disabled) {
+  background-color: var(--bild-layout-gold-hover);
+  color: #fff;
+}
+
+/* Farbton und Wärme behalten ihre Bedeutung auf der Regler-Spur. */
+#app .main-content .slider-field__range:not(.slider-field__range--hue, .slider-field__range--warm) {
+  background-color: color-mix(in srgb, var(--ds-border-strong) 77%, var(--bild-layout-cyan));
+}
+
+#app
+  .main-content
+  .slider-field__range:not(
+    .slider-field__range--hue,
+    .slider-field__range--warm
+  )::-moz-range-track {
+  background-color: color-mix(in srgb, var(--ds-border-strong) 77%, var(--bild-layout-cyan));
+}
+
+@media (pointer: fine) {
+  #app .main-content .slider-field__range::-webkit-slider-thumb {
+    width: var(--ds-space-4);
+    height: var(--ds-space-4);
+  }
+
+  #app .main-content .slider-field__range::-moz-range-thumb {
+    width: var(--ds-space-4);
+    height: var(--ds-space-4);
+  }
+}
+
+#app .main-content .slider-field__range:focus-visible {
+  box-shadow: var(--ds-focus-ring);
+}
+
+:is(#app, #overlay-root)
+  :is(
+    .ui-dialog,
+    .export-dialog,
+    .preview-modal-content,
+    .preview-modal > .modal-content,
+    .modal-overlay > .modal-content
+  ) {
+  background-color: color-mix(in srgb, var(--ds-surface-1) 97%, var(--bild-layout-cyan));
+  border-color: color-mix(in srgb, var(--ds-border-strong) 78%, var(--bild-layout-cyan));
+}
