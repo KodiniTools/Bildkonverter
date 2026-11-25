@@ -5,11 +5,12 @@
     radial-gradient(ellipse at 12% 0%, rgb(55 114 202 / 18%), transparent 62%);
   --bild-layout-cyan: #69d7e9;
   --bild-layout-card: linear-gradient(148deg, var(--ds-surface-1), var(--ds-surface-0));
-  --bild-layout-gold: #80571e;
-  --bild-layout-gold-hover: #704a17;
-  /* Hauptbuttons: dunkelgoldener Verlauf, weisse Schrift bleibt ueberall >= 5:1 */
-  --bild-layout-gold-gradient: linear-gradient(135deg, #946524 0%, #6e4916 100%);
-  --bild-layout-gold-gradient-hover: linear-gradient(135deg, #80571e 0%, #5e3f12 100%);
+  --bild-layout-gold: #8f6320;
+  --bild-layout-gold-hover: #7d561c;
+  /* Alle gefüllten Buttons: dreistufiger dunkelgoldener Verlauf wie in allen
+     KodiniTools (Equalizer-19-Muster); weisse Schrift bleibt in jedem Stopp >= 4,5:1 */
+  --bild-layout-gold-gradient: linear-gradient(180deg, #9c6c26 0%, #7a5218 45%, #4a2f0a 100%);
+  --bild-layout-gold-gradient-hover: linear-gradient(180deg, #8c5f1f 0%, #6a4614 45%, #402908 100%);
 }
 
 :root[data-theme='light'],
