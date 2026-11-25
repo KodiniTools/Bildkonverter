@@ -11,6 +11,8 @@ import './design-system/bildkonverter-layout.css';
 import './styles/main.scss';
 import './styles/kodini-layout-stage1.css';
 import './styles/kodini-header-stage2.css';
+import './styles/kodini-controls-stage3.css';
+import './styles/kodini-workspace-stage4.css';
 import { logger } from '@/utils/logger';
 
 /**
