@@ -18,8 +18,8 @@
           :src="heroImage"
           :alt="$t('home.heroAlt')"
           class="hero-img floating"
-          width="800"
-          height="800"
+          width="1120"
+          height="630"
           fetchpriority="high"
         />
       </div>
