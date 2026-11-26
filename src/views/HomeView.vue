@@ -2,7 +2,12 @@
   <div class="home-view">
     <section class="hero-section">
       <div class="hero-content">
-        <h1 class="animate-title">{{ $t('home.title') }}</h1>
+        <h1 class="animate-title">
+          <span class="hero-title-lead">{{ heroTitle.lead }}</span>
+          <template v-if="heroTitle.brand">
+            {{ ' ' }}<span class="hero-title-brand">{{ heroTitle.brand }}</span>
+          </template>
+        </h1>
         <p class="hero-subtitle animate-subtitle">{{ $t('home.subtitle') }}</p>
 
         <div class="action-buttons animate-button">
@@ -115,8 +120,17 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AppIcon from '@/components/ui/AppIcon.vue';
+import { splitHeroTitle } from '@/utils/heroTitle';
 import { formatConversions, type FormatConversion } from '@/router';
+
+const { t } = useI18n();
+
+// Hauptüberschrift zweifarbig: Text bis einschliesslich Gedankenstrich (Gold),
+// danach der Produktname (Blau). Ohne Gedankenstrich bleibt alles im ersten Teil.
+const heroTitle = computed(() => splitHeroTitle(t('home.title')));
 
 // Hero-Bild liegt in public/ und wird daher über BASE_URL (/bildkonverter/) adressiert
 const heroImage = `${import.meta.env.BASE_URL}landingpage-bildkonverter-bild.webp`;

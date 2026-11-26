@@ -11,6 +11,11 @@
      KodiniTools (Equalizer-19-Muster); weisse Schrift bleibt in jedem Stopp >= 4,5:1 */
   --bild-layout-gold-gradient: linear-gradient(180deg, #9c6c26 0%, #7a5218 45%, #4a2f0a 100%);
   --bild-layout-gold-gradient-hover: linear-gradient(180deg, #8c5f1f 0%, #6a4614 45%, #402908 100%);
+  /* Startseiten-Überschrift: Gold für den Einstieg, Logo-Blau für den Produktnamen.
+     Im dunklen Theme hellere Töne, sonst kaum lesbar auf Navy (#0a1324). */
+  --bild-hero-title-gold: #c9984d;
+  --bild-hero-title-blue: #48a0d8;
+  --bild-hero-subtitle: #69d7e9;
 }
 
 :root[data-theme='light'],
@@ -19,5 +24,8 @@
     radial-gradient(ellipse at 84% 0%, rgb(38 167 187 / 9%), transparent 67%),
     radial-gradient(ellipse at 12% 0%, rgb(55 114 202 / 8%), transparent 62%);
   --bild-layout-cyan: #156579;
+  --bild-hero-title-gold: #8f6320;
+  --bild-hero-title-blue: #0058a0;
+  --bild-hero-subtitle: #086a80;
   --bild-layout-card: linear-gradient(148deg, var(--ds-surface-1), var(--ds-surface-0));
 }

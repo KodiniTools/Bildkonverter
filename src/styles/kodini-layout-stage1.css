@@ -25,15 +25,24 @@
 }
 
 #app .home-view .hero-content h1 {
-  font-size: clamp(2.5rem, 6.75vw, 5.125rem);
+  font-size: clamp(2.25rem, 5.25vw, 4.5rem);
   font-weight: var(--ds-weight-regular);
-  line-height: 1.04;
+  line-height: 1.05;
   letter-spacing: -0.045em;
   overflow-wrap: anywhere;
 }
 
+#app .home-view .hero-content .hero-title-lead {
+  color: var(--bild-hero-title-gold);
+}
+
+#app .home-view .hero-content .hero-title-brand {
+  color: var(--bild-hero-title-blue);
+}
+
 #app .home-view .hero-content .hero-subtitle {
-  color: var(--bild-layout-cyan);
+  font-size: var(--ds-text-lg); /* 16px */
+  color: var(--bild-hero-subtitle);
   margin-bottom: var(--ds-space-6);
 }
 
