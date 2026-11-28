@@ -413,6 +413,11 @@ import { useResizeManager } from '@/composables/useResizeManager';
 import { useImageLayerInteraction } from '@/composables/useImageLayerInteraction';
 import { useCanvasRenderer } from '@/composables/useCanvasRenderer';
 import { useImageLoader } from '@/composables/useImageLoader';
+import {
+  ADVISOR_HANDOFF_QUERY,
+  takeAdvisorHandoff,
+  type AdvisorHandoff,
+} from '@/lib/format-advisor/editorHandoff';
 import { FORMAT_INFO, SUPPORTED_FORMATS, getFormatInfo } from '@/utils/exportUtils';
 
 import TransformPanel from '@/components/features/TransformPanel.vue';
@@ -767,6 +772,7 @@ const {
 
 // Image Loader Composable
 const {
+  loadFileIntoEditor,
   handleFileSelect,
   handleDragLeave,
   handleFileDrop,
@@ -1426,6 +1432,15 @@ onMounted(async () => {
     return;
   }
 
+  // Bild und Empfehlung aus dem Formatberater übernehmen
+  if (route.query.from === ADVISOR_HANDOFF_QUERY) {
+    const handoff = takeAdvisorHandoff();
+    if (handoff) {
+      await applyAdvisorHandoff(handoff);
+      return;
+    }
+  }
+
   // Prüfe ob Bild aus Galerie geladen werden soll
   const loaded = await loadGalleryImage(galleryIdOf(route.query.galleryImageId), t);
 
@@ -1443,6 +1458,33 @@ onMounted(async () => {
     await projectAutosave.checkForSavedProject();
   }
 });
+
+/**
+ * Lädt das Bild aus dem Formatberater und setzt Format, Qualität, EXIF,
+ * Transparenz und (nur beim Verkleinern) die Breite. Alles bleibt per
+ * Rückgängig bzw. in der Export-Leiste änderbar.
+ */
+async function applyAdvisorHandoff({ file, preset }: AdvisorHandoff): Promise<void> {
+  try {
+    await loadFileIntoEditor(file);
+  } catch (err) {
+    logger.error('Formatberater-Übergabe fehlgeschlagen:', err);
+    if (window.$toast) window.$toast.error(t('toast.editor.advisorError'));
+    return;
+  }
+  outputFormat.value = preset.format;
+  if (preset.quality !== undefined) exportQuality.value = preset.quality;
+  keepExif.value = preset.keepExif;
+  exportTransparent.value = preset.transparent;
+  if (preset.width && canvas.value && preset.width < canvas.value.width) {
+    const height = Math.max(
+      1,
+      Math.round((canvas.value.height * preset.width) / canvas.value.width)
+    );
+    commitResize(preset.width, height, { silent: true });
+  }
+  if (window.$toast) window.$toast.success(t('toast.editor.advisorApplied'));
+}
 
 /**
  * Galerie-ID aus der Route. Galerie-Links setzen genau einen Wert; der Wert

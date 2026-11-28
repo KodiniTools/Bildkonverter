@@ -22,7 +22,7 @@ export function recommendFormatDe(use: Use, img: ImageInfo): FormatAdvice {
         format: 'WebP',
         summary: `WebP liefert für ${kind} auf einer Website die kleinste Datei und läuft in allen modernen Browsern.`,
         settings: [
-          { name: 'Qualität', value: img.isPhoto ? '80 %' : 'Verlustfrei' },
+          { name: 'Qualität', value: img.isPhoto ? '80 %' : '100 %' },
           { name: 'Größe', value: maxW(img.width, 1920) },
           { name: 'Transparenz', value: t ? 'Beibehalten (WebP unterstützt sie)' : 'Nicht nötig' },
           { name: 'Metadaten', value: 'Entfernen' },
@@ -48,7 +48,7 @@ export function recommendFormatDe(use: Use, img: ImageInfo): FormatAdvice {
             value:
               maxW(img.width, 2000) + ', quadratisch zuschneiden, falls Ihr Shop dies verwendet',
           },
-          { name: 'Farbprofil', value: 'sRGB' },
+          { name: 'Farbprofil', value: 'sRGB (der Editor exportiert in sRGB)' },
           { name: 'Metadaten', value: 'Entfernen' },
         ],
         reasons: [
@@ -80,8 +80,12 @@ export function recommendFormatDe(use: Use, img: ImageInfo): FormatAdvice {
           'Soziale Netzwerke komprimieren jeden Upload neu; ein hochwertiges JPG übersteht das am besten.',
         settings: [
           { name: 'Qualität', value: '90 %' },
-          { name: 'Größe', value: '1080 × 1080 px (quadratisch) oder 1080 × 1350 px (hochkant)' },
-          { name: 'Farbprofil', value: 'sRGB' },
+          {
+            name: 'Größe',
+            value:
+              '1080 × 1080 px (quadratisch) oder 1080 × 1350 px (hochkant), im Editor zuschneiden',
+          },
+          { name: 'Farbprofil', value: 'sRGB (der Editor exportiert in sRGB)' },
           { name: 'Transparenz', value: t ? 'Mit einer Hintergrundfarbe füllen' : 'Nicht nötig' },
         ],
         reasons: [
@@ -111,16 +115,19 @@ export function recommendFormatDe(use: Use, img: ImageInfo): FormatAdvice {
         format: 'TIFF',
         summary: 'TIFF behält die volle Qualität für Druckereien – ohne Kompressionsverluste.',
         settings: [
-          { name: 'Auflösung', value: '300 DPI' },
+          { name: 'Größe', value: 'Originalgröße (nicht verkleinern)' },
           { name: 'Max. Druckgröße', value: `${cm(img.width)} × ${cm(img.height)} cm bei 300 DPI` },
-          { name: 'Kompression', value: 'Keine oder LZW (verlustfrei)' },
-          { name: 'Farbe', value: 'Bei der Druckerei nach CMYK fragen' },
+          { name: 'Kompression', value: 'LZW (verlustfrei)' },
         ],
         reasons: [
           'Verlustfreies Format, das Druckereien annehmen',
-          '300 DPI sind der Standard für scharfe Drucke',
+          'Für einen scharfen Druck zählt jedes Pixel',
         ],
         alternative: 'JPG mit 100 %, falls die Druckerei JPG verlangt.',
+        printShop: [
+          'Auflösung: Üblich sind 300 DPI. Die Druckerei legt sie beim Drucken fest, entscheidend ist die Pixelzahl oben.',
+          'Farbe: Fragen Sie, ob CMYK nötig ist. Der Editor speichert in RGB, viele Druckereien wandeln selbst um.',
+        ],
       };
     }
     case 'archive':
@@ -131,11 +138,18 @@ export function recommendFormatDe(use: Use, img: ImageInfo): FormatAdvice {
         settings: [
           { name: 'Kompression', value: 'Verlustfrei' },
           { name: 'Größe', value: 'Originalgröße' },
-          { name: 'Metadaten', value: 'Behalten' },
+          {
+            name: 'Metadaten',
+            value: img.isPhoto
+              ? 'Gehen bei TIFF verloren, daher die Originaldatei zusätzlich aufbewahren'
+              : 'Behalten',
+          },
         ],
         reasons: [
           'Verlustbehaftete Formate verlieren bei jedem Speichern Qualität',
-          'Metadaten bewahren Datum und Kamerainfos',
+          img.isPhoto
+            ? 'Die Originaldatei bewahrt Datum und Kamerainfos'
+            : 'Metadaten bewahren Datum und Kamerainfos',
         ],
         alternative: img.isPhoto
           ? 'PNG, wenn Sie kleinere verlustfreie Dateien benötigen.'

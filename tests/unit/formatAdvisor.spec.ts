@@ -3,6 +3,8 @@ import { recommendFormat, USES, type ImageInfo } from '@/lib/format-advisor/form
 import { recommendFormatDe } from '@/lib/format-advisor/formatRulesDe';
 import { classifyPixels } from '@/lib/format-advisor/formatAnalysis';
 import { findConversionPair } from '@/lib/format-advisor/conversionTarget';
+import { editorPresetFor } from '@/lib/format-advisor/editorPreset';
+import { setAdvisorHandoff, takeAdvisorHandoff } from '@/lib/format-advisor/editorHandoff';
 
 const photo: ImageInfo = { width: 3000, height: 2400, hasTransparency: false, isPhoto: true };
 const transparent: ImageInfo = { ...photo, isPhoto: false, hasTransparency: true };
@@ -76,5 +78,50 @@ describe('Empfohlene Größen', () => {
       (s) => s.name === 'Max. Druckgröße'
     );
     expect(print?.value).toBe('25,4 × 20,3 cm bei 300 DPI');
+  });
+});
+
+describe('Übergabe an den Editor', () => {
+  const small: ImageInfo = { width: 800, height: 600, hasTransparency: false, isPhoto: true };
+
+  it('setzt im Editor dasselbe Format wie die Empfehlung', () => {
+    for (const { id } of USES)
+      for (const image of [photo, transparent, small]) {
+        expect(editorPresetFor(id, image).format).toBe(
+          recommendFormat(id, image).format.toLowerCase()
+        );
+      }
+  });
+  it('verkleinert große Bilder auf die empfohlene Breite', () =>
+    expect(editorPresetFor('website', photo)).toMatchObject({
+      format: 'webp',
+      quality: 80,
+      width: 1920,
+    }));
+  it('vergrößert kleine Bilder nie', () => {
+    for (const { id } of USES) expect(editorPresetFor(id, small).width).toBeUndefined();
+  });
+  it('hält Transparenz bei PNG', () =>
+    expect(editorPresetFor('logo', transparent)).toMatchObject({
+      format: 'png',
+      transparent: true,
+    }));
+  it('behält Metadaten beim Archivieren als PNG', () =>
+    expect(editorPresetFor('archive', transparent).keepExif).toBe(true));
+  it('liefert die Übergabe genau einmal', () => {
+    const file = new File(['x'], 'a.png', { type: 'image/png' });
+    setAdvisorHandoff({ file, preset: editorPresetFor('logo', transparent) });
+    expect(takeAdvisorHandoff()?.file).toBe(file);
+    expect(takeAdvisorHandoff()).toBeNull();
+  });
+});
+
+describe('Nur zusagen, was der Editor kann', () => {
+  it('nennt DPI und CMYK beim Druck als Frage an die Druckerei, nicht als Einstellung', () => {
+    for (const advice of [recommendFormatDe('print', photo), recommendFormat('print', photo)]) {
+      expect(advice.settings.map((s) => s.value).join(' ')).not.toMatch(/DPI$|CMYK/);
+      expect(advice.printShop?.join(' ')).toMatch(/300 DPI/);
+      expect(advice.printShop?.join(' ')).toMatch(/CMYK/);
+    }
   });
 });

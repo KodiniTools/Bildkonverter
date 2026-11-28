@@ -16,7 +16,7 @@
         <input
           ref="fileInput"
           type="file"
-          accept="image/*"
+          accept="image/*,.tiff,.tif,.heic,.heif,.cr2,.cr3,.nef,.arw,.dng,.raf,.orf,.rw2,.pef,.x3f"
           class="sr-only"
           :aria-label="$t('advisor.choose')"
           @change="onInputChange"
@@ -50,6 +50,7 @@
           <span>{{ image.width }} × {{ image.height }} px · {{ formatSize(image.file.size) }}</span>
           <span class="chip">{{ $t(image.isPhoto ? 'advisor.photo' : 'advisor.graphic') }}</span>
           <span v-if="image.hasTransparency" class="chip">{{ $t('advisor.transparent') }}</span>
+          <span v-if="image.convertedOnServer" class="chip">{{ $t('advisor.server') }}</span>
         </div>
         <p v-if="readError" role="alert" class="read-error">{{ $t('advisor.readError') }}</p>
 
@@ -93,6 +94,13 @@
             </div>
           </dl>
 
+          <template v-if="advice.printShop">
+            <h3>{{ $t('advisor.printShop') }}</h3>
+            <ul class="reasons">
+              <li v-for="note in advice.printShop" :key="note">{{ note }}</li>
+            </ul>
+          </template>
+
           <h3>{{ $t('advisor.why') }}</h3>
           <ul class="reasons">
             <li v-for="reason in advice.reasons" :key="reason">{{ reason }}</li>
@@ -101,10 +109,18 @@
             <span class="muted">{{ $t('advisor.alternative') }}:</span> {{ advice.alternative }}
           </p>
 
-          <UiButton variant="primary" :to="target.to" class="go">
-            {{ $t(target.label) }}
+          <UiButton variant="primary" class="go" @click="openInEditor">
+            {{ $t('advisor.editor') }}
             <AppIcon name="arrow-right" :size="16" />
           </UiButton>
+          <p class="go-hint muted">{{ $t('advisor.editorHint') }}</p>
+          <router-link
+            v-if="conversionPair"
+            :to="{ name: 'format-conversion', params: { pair: conversionPair } }"
+            class="quick-link"
+          >
+            {{ $t('advisor.converter') }}
+          </router-link>
         </template>
       </section>
     </div>
@@ -114,7 +130,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { RouteLocationRaw } from 'vue-router';
+import { useRouter } from 'vue-router';
 import AppIcon from '@/components/ui/AppIcon.vue';
 import UiButton from '@/components/ui/UiButton.vue';
 import {
@@ -126,9 +142,12 @@ import {
 import { recommendFormatDe, USES_DE } from '@/lib/format-advisor/formatRulesDe';
 import { prepareAdvisorImage, type AdvisorImage } from '@/lib/format-advisor/formatAnalysis';
 import { findConversionPair } from '@/lib/format-advisor/conversionTarget';
+import { editorPresetFor } from '@/lib/format-advisor/editorPreset';
+import { ADVISOR_HANDOFF_QUERY, setAdvisorHandoff } from '@/lib/format-advisor/editorHandoff';
 import { formatSize } from '@/utils/fileUtils';
 
 const { locale } = useI18n();
+const router = useRouter();
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const image = shallowRef<AdvisorImage | null>(null);
@@ -148,16 +167,22 @@ const advice = computed<FormatAdvice | null>(() => {
   return recommend(purpose.value, image.value);
 });
 
-/** Passende Format-Landingpage (z. B. png-zu-webp), sonst der Editor. */
-const target = computed<{ to: RouteLocationRaw; label: string }>(() => {
-  const pair =
-    image.value && advice.value
-      ? findConversionPair(image.value.file.name, advice.value.format)
-      : null;
-  return pair
-    ? { to: { name: 'format-conversion', params: { pair } }, label: 'advisor.converter' }
-    : { to: { name: 'editor' }, label: 'advisor.editor' };
-});
+/** Passende Format-Landingpage (z. B. png-zu-webp) für schnelles Umwandeln ohne Einstellungen. */
+const conversionPair = computed<string | null>(() =>
+  image.value && advice.value
+    ? findConversionPair(image.value.file.name, advice.value.format)
+    : null
+);
+
+/** Öffnet den Editor mit Bild und den empfohlenen Einstellungen. */
+function openInEditor(): void {
+  if (!image.value || !purpose.value) return;
+  setAdvisorHandoff({
+    file: image.value.file,
+    preset: editorPresetFor(purpose.value, image.value),
+  });
+  void router.push({ name: 'editor', query: { from: ADVISOR_HANDOFF_QUERY } });
+}
 
 // Objekt-URL der alten Vorschau freigeben, sobald ein neues Bild kommt oder es entfernt wird
 watch(image, (_next, previous) => {
@@ -494,5 +519,19 @@ h3 {
 
 .go {
   margin-top: var(--ds-space-6);
+}
+
+.go-hint {
+  margin: var(--ds-space-2) 0 0;
+  font-size: var(--ds-text-sm);
+}
+
+.quick-link {
+  display: inline-block;
+  margin-top: var(--ds-space-3);
+  font-size: var(--ds-text-md);
+  color: var(--ds-link);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 </style>

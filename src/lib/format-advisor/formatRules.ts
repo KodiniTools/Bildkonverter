@@ -11,6 +11,8 @@ export type FormatAdvice = {
   settings: { name: string; value: string }[];
   reasons: string[];
   alternative: string;
+  /** Punkte, die der Editor nicht einstellt und die mit der Druckerei zu klären sind */
+  printShop?: string[];
 };
 
 export const USES: { id: Use; label: string }[] = [
@@ -34,7 +36,7 @@ export function recommendFormat(use: Use, img: ImageInfo): FormatAdvice {
         format: 'WebP',
         summary: `WebP gives the smallest file for a ${kind} on a website and is supported by all modern browsers.`,
         settings: [
-          { name: 'Quality', value: img.isPhoto ? '80 %' : 'Lossless' },
+          { name: 'Quality', value: img.isPhoto ? '80 %' : '100 %' },
           { name: 'Size', value: maxW(img.width, 1920) },
           { name: 'Transparency', value: t ? 'Keep (WebP supports it)' : 'Not needed' },
           { name: 'Metadata', value: 'Remove' },
@@ -56,7 +58,7 @@ export function recommendFormat(use: Use, img: ImageInfo): FormatAdvice {
         settings: [
           { name: 'Quality', value: t ? 'Lossless' : '85 %' },
           { name: 'Size', value: maxW(img.width, 2000) + ', square crop if your shop uses one' },
-          { name: 'Colour profile', value: 'sRGB' },
+          { name: 'Colour profile', value: 'sRGB (the editor exports in sRGB)' },
           { name: 'Metadata', value: 'Remove' },
         ],
         reasons: [
@@ -83,8 +85,11 @@ export function recommendFormat(use: Use, img: ImageInfo): FormatAdvice {
         summary: 'Social networks recompress every upload; a high-quality JPG survives this best.',
         settings: [
           { name: 'Quality', value: '90 %' },
-          { name: 'Size', value: '1080 × 1080 px (square) or 1080 × 1350 px (portrait)' },
-          { name: 'Colour profile', value: 'sRGB' },
+          {
+            name: 'Size',
+            value: '1080 × 1080 px (square) or 1080 × 1350 px (portrait), crop in the editor',
+          },
+          { name: 'Colour profile', value: 'sRGB (the editor exports in sRGB)' },
           { name: 'Transparency', value: t ? 'Fill with a background colour' : 'Not needed' },
         ],
         reasons: [
@@ -111,16 +116,19 @@ export function recommendFormat(use: Use, img: ImageInfo): FormatAdvice {
         format: 'TIFF',
         summary: 'TIFF keeps full quality for print shops without compression loss.',
         settings: [
-          { name: 'Resolution', value: '300 DPI' },
+          { name: 'Size', value: 'Original size (do not shrink)' },
           { name: 'Max. print size', value: `${cm(img.width)} × ${cm(img.height)} cm at 300 DPI` },
-          { name: 'Compression', value: 'None or LZW (lossless)' },
-          { name: 'Colour', value: 'Ask your print shop for CMYK' },
+          { name: 'Compression', value: 'LZW (lossless)' },
         ],
         reasons: [
           'Lossless format accepted by print shops',
-          '300 DPI is the standard for sharp prints',
+          'Every pixel counts for a sharp print',
         ],
         alternative: 'JPG at 100 % if the print shop asks for JPG.',
+        printShop: [
+          'Resolution: 300 DPI is common. The print shop sets it when printing, the pixel count above is what matters.',
+          'Colour: ask whether CMYK is required. The editor saves in RGB, many print shops convert it themselves.',
+        ],
       };
     }
     case 'archive':
@@ -130,11 +138,16 @@ export function recommendFormat(use: Use, img: ImageInfo): FormatAdvice {
         settings: [
           { name: 'Compression', value: 'Lossless' },
           { name: 'Size', value: 'Original size' },
-          { name: 'Metadata', value: 'Keep' },
+          {
+            name: 'Metadata',
+            value: img.isPhoto ? 'TIFF does not keep them, so also keep the original file' : 'Keep',
+          },
         ],
         reasons: [
           'Lossy formats lose quality with every save',
-          'Metadata keeps date and camera info',
+          img.isPhoto
+            ? 'The original file keeps date and camera info'
+            : 'Metadata keeps date and camera info',
         ],
         alternative: img.isPhoto
           ? 'PNG if you need smaller lossless files.'

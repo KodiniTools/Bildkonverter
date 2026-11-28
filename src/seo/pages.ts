@@ -154,14 +154,14 @@ export const routeSeo = {
   formatAdvisor: {
     title: 'Formatberater für Bilder',
     description:
-      'Welches Bildformat passt? Bild hochladen, Verwendungszweck wählen und eine Empfehlung mit Einstellungen für Website, Shop, Druck und mehr erhalten – direkt im Browser.',
+      'Welches Bildformat passt? Bild hochladen, Verwendungszweck wählen und eine Empfehlung mit Einstellungen für Website, Shop, Druck und mehr erhalten, die der Editor gleich übernimmt.',
     keywords:
       'Formatberater, welches Bildformat, JPG oder PNG, WebP oder JPG, Bildformat Website, Bildformat Druck',
     path: '/formatberater',
     en: {
       title: 'Image format advisor',
       description:
-        'Which image format fits? Upload an image, choose its use and get a recommendation with settings for websites, shops, print and more – right in your browser.',
+        'Which image format fits? Upload an image, choose its use and get a recommendation with settings for websites, shops, print and more that the editor applies for you.',
     },
   },
   download: {

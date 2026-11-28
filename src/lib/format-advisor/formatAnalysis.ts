@@ -1,3 +1,5 @@
+import { ApiClient } from '@/api/api';
+import { needsBackendPreview } from '@/utils/fileUtils';
 import type { ImageInfo } from './formatRules';
 
 /**
@@ -24,14 +26,21 @@ export function classifyPixels(
 export interface AdvisorImage extends ImageInfo {
   preview: string;
   file: File;
+  /** HEIC, TIFF oder RAW wurde für die Vorschau über den Server gelesen */
+  convertedOnServer: boolean;
 }
 
 /**
- * Liest ein Bild lokal ein und klassifiziert es auf einer höchstens 1024 px
- * großen Kopie. Es wird nichts hochgeladen.
+ * Liest ein Bild ein und klassifiziert es auf einer höchstens 1024 px großen
+ * Kopie. Gängige Formate bleiben im Browser; HEIC, TIFF und RAW wandelt der
+ * Server wie im Editor in ein PNG um.
  */
 export async function prepareAdvisorImage(file: File): Promise<AdvisorImage> {
-  const preview = URL.createObjectURL(file);
+  const convertedOnServer = needsBackendPreview(file);
+  const source = convertedOnServer
+    ? await ApiClient.convertImage(file, 'png', file.name, {})
+    : file;
+  const preview = URL.createObjectURL(source);
   try {
     const image = new Image();
     image.src = preview;
@@ -46,6 +55,7 @@ export async function prepareAdvisorImage(file: File): Promise<AdvisorImage> {
     return {
       preview,
       file,
+      convertedOnServer,
       width: image.naturalWidth,
       height: image.naturalHeight,
       ...classifyPixels(context.getImageData(0, 0, canvas.width, canvas.height).data),
