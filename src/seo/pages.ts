@@ -151,6 +151,19 @@ export const routeSeo = {
         'Answers to frequently asked questions about Image Converter Pro: supported formats, privacy, filters, cropping, rotating and download.',
     },
   },
+  formatAdvisor: {
+    title: 'Formatberater für Bilder',
+    description:
+      'Welches Bildformat passt? Bild hochladen, Verwendungszweck wählen und eine Empfehlung mit Einstellungen für Website, Shop, Druck und mehr erhalten – direkt im Browser.',
+    keywords:
+      'Formatberater, welches Bildformat, JPG oder PNG, WebP oder JPG, Bildformat Website, Bildformat Druck',
+    path: '/formatberater',
+    en: {
+      title: 'Image format advisor',
+      description:
+        'Which image format fits? Upload an image, choose its use and get a recommendation with settings for websites, shops, print and more – right in your browser.',
+    },
+  },
   download: {
     title: 'Für Windows herunterladen',
     description:

@@ -73,6 +73,11 @@
           {{ $t('home.batchLink') }}
           <AppIcon name="arrow-right" />
         </router-link>
+        <router-link :to="{ name: 'format-advisor' }" class="batch-link">
+          <AppIcon name="lightbulb" />
+          {{ $t('advisor.homeLink') }}
+          <AppIcon name="arrow-right" />
+        </router-link>
       </div>
     </section>
 

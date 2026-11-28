@@ -62,6 +62,12 @@ const router = createRouter({
       meta: { ...routeSeo.faq },
     },
     {
+      path: '/formatberater',
+      name: 'format-advisor',
+      component: () => import('@/views/FormatAdvisorView.vue'),
+      meta: { ...routeSeo.formatAdvisor },
+    },
+    {
       path: '/download',
       name: 'download',
       component: () => import('@/views/DownloadView.vue'),
