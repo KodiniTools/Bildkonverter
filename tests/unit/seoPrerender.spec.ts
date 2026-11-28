@@ -48,7 +48,8 @@ function headOf(doc: Document) {
 describe('SEO-Seitenliste (src/seo/pages.ts)', () => {
   it('enthält alle statischen Routen und Format-Landingpages, aber keine 404', () => {
     const paths = indexablePages().map((p) => p.path);
-    expect(paths).toHaveLength(8 + formatConversions.length);
+    expect(paths).toHaveLength(9 + formatConversions.length);
+    expect(paths).toContain('/formatberater');
     expect(new Set(paths).size).toBe(paths.length);
     expect(paths).toContain('/');
     expect(paths).toContain('/konvertieren/png-zu-webp');

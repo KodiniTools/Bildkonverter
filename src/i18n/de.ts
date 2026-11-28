@@ -18,6 +18,38 @@ const de = {
     faq: 'FAQ',
     blog: 'Blog',
     download: 'Download',
+    formatAdvisor: 'Formatberater',
+  },
+  advisor: {
+    free: 'Kostenlos',
+    title: 'Formatberater für Bilder',
+    description:
+      'Welches Bildformat passt zu Ihrem Vorhaben? Erhalten Sie eine Empfehlung für Ihr Bild und öffnen Sie es direkt mit den passenden Einstellungen im Editor.',
+    privacy:
+      'Die Beratung läuft in Ihrem Browser. HEIC, TIFF und RAW wandelt unser Server in Deutschland für die Vorschau um und löscht sie danach.',
+    step1: '1. Ihr Bild',
+    choose: 'Bild auswählen',
+    selected: 'Ausgewähltes Bild',
+    drop: 'Bild auswählen oder hierher ziehen',
+    analyzing: 'Bild wird analysiert …',
+    photo: 'Foto',
+    graphic: 'Grafik',
+    transparent: 'Transparent',
+    server: 'Über den Server gelesen',
+    step2: '2. Wofür möchten Sie es verwenden?',
+    recommended: 'Empfohlenes Format',
+    empty: 'Wählen Sie ein Bild und einen Verwendungszweck aus.',
+    settings: 'Empfohlene Einstellungen',
+    why: 'Warum dieses Format?',
+    alternative: 'Alternative',
+    printShop: 'Mit der Druckerei klären',
+    editor: 'Mit diesen Einstellungen im Editor öffnen',
+    editorHint: 'Format, Qualität, Größe und Metadaten werden im Editor schon eingestellt.',
+    converter: 'Nur schnell umwandeln',
+    reset: 'Zurücksetzen',
+    readError:
+      'Diese Datei konnte nicht gelesen werden. Bitte wählen Sie ein JPG, PNG, WebP, HEIC oder TIFF.',
+    homeLink: 'Kostenloser Formatberater',
   },
   download: {
     eyebrow: 'Windows-App',
@@ -556,6 +588,12 @@ const de = {
       exif: {
         keep: 'EXIF-Metadaten erhalten (Kamera, Aufnahmedatum, GPS)',
       },
+      dpi: {
+        label: 'Auflösung (DPI)',
+        none: 'Nicht festlegen',
+        hint: 'Wird in die Datei geschrieben. Die Pixel bleiben gleich, nur die Druckgröße ändert sich.',
+      },
+      tiffLzw: 'TIFF wird verlustfrei mit LZW komprimiert.',
     },
     formats: {
       png: {
@@ -1413,6 +1451,8 @@ const de = {
       galleryLoaded: 'Bild aus Galerie geladen',
       galleryError: 'Fehler beim Laden aus Galerie',
       resizeSuccess: 'Bildgröße erfolgreich geändert: {width}×{height}px',
+      advisorApplied: 'Empfohlene Einstellungen übernommen. Sie können alles noch ändern.',
+      advisorError: 'Das Bild aus dem Formatberater konnte nicht geladen werden.',
       resizeInvalid: 'Ungültige Bildgröße – bitte Werte zwischen 1 und {max} px eingeben',
       targetSizeMissed:
         'Ziel von {max} KB nicht erreicht – kleinste mögliche Datei: {size}. Tipp: „Notfalls verkleinern“ aktivieren.',

@@ -93,6 +93,7 @@ const routes = [
   { path: '/editor', label: 'nav.editor' },
   { path: '/gallery', label: 'nav.gallery' },
   { path: '/guide', label: 'nav.guide' },
+  { path: '/formatberater', label: 'nav.formatAdvisor' },
   { path: '/faq', label: 'nav.faq' },
   { path: '/about', label: 'nav.about' },
   {

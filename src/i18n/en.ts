@@ -19,7 +19,39 @@ const en: LocaleMessages = {
     faq: 'FAQ',
     blog: 'Blog',
     download: 'Download',
+    formatAdvisor: 'Format advisor',
   },
+  advisor: {
+    free: 'Free',
+    title: 'Image format advisor',
+    description:
+      'Which image format suits your purpose? Get a recommendation for your image and open it in the editor with the right settings already in place.',
+    privacy:
+      'The advice runs in your browser. HEIC, TIFF and RAW are converted for the preview on our server in Germany and deleted afterwards.',
+    step1: '1. Your image',
+    choose: 'Choose image',
+    selected: 'Selected image',
+    drop: 'Choose an image or drop it here',
+    analyzing: 'Analysing image …',
+    photo: 'Photo',
+    graphic: 'Graphic',
+    transparent: 'Transparent',
+    server: 'Read via the server',
+    step2: '2. What will you use it for?',
+    recommended: 'Recommended format',
+    empty: 'Choose an image and a purpose.',
+    settings: 'Recommended settings',
+    why: 'Why this format?',
+    alternative: 'Alternative',
+    printShop: 'Check with your print shop',
+    editor: 'Open in the editor with these settings',
+    editorHint: 'Format, quality, size and metadata are already set in the editor.',
+    converter: 'Just convert quickly',
+    reset: 'Reset',
+    readError: 'This file could not be read. Please choose a JPG, PNG, WebP, HEIC or TIFF.',
+    homeLink: 'Free format advisor',
+  },
+
   download: {
     eyebrow: 'Windows app',
     title: 'Image Converter Pro for Windows',
@@ -557,6 +589,12 @@ const en: LocaleMessages = {
       exif: {
         keep: 'Keep EXIF metadata (camera, date taken, GPS)',
       },
+      dpi: {
+        label: 'Resolution (DPI)',
+        none: 'Do not set',
+        hint: 'Written into the file. The pixels stay the same, only the print size changes.',
+      },
+      tiffLzw: 'TIFF is compressed losslessly with LZW.',
     },
     formats: {
       png: {
@@ -1407,6 +1445,8 @@ const en: LocaleMessages = {
       galleryLoaded: 'Image loaded from gallery',
       galleryError: 'Error loading from gallery',
       resizeSuccess: 'Image size successfully changed: {width}×{height}px',
+      advisorApplied: 'Recommended settings applied. You can still change everything.',
+      advisorError: 'The image from the format advisor could not be loaded.',
       resizeInvalid: 'Invalid image size – please enter values between 1 and {max} px',
       targetSizeMissed:
         'Target of {max} KB not reached – smallest possible file: {size}. Tip: enable "Downscale if needed".',
