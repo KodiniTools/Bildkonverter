@@ -88,6 +88,19 @@
       />
     </div>
 
+    <div v-if="dpiAvailable" class="dpi-option">
+      <UiSelect
+        :model-value="exportDpi === null ? '' : String(exportDpi)"
+        :label="$t('editor.export.dpi.label')"
+        :options="dpiOptions"
+        data-testid="export-dpi"
+        @update:model-value="$emit('update:exportDpi', $event ? Number($event) : null)"
+      />
+      <p class="dpi-option__hint">{{ $t('editor.export.dpi.hint') }}</p>
+    </div>
+
+    <p v-if="outputFormat === 'tiff'" class="tiff-note">{{ $t('editor.export.tiffLzw') }}</p>
+
     <div v-if="outputFormat === 'png'" class="filter-control checkbox-control">
       <UiSwitch
         :model-value="exportTransparent"
@@ -109,6 +122,7 @@ import UiSwitch from '@/components/ui/UiSwitch.vue';
 import FilterSlider from './FilterSlider.vue';
 import { formatSize } from '@/utils/fileUtils';
 import { TARGET_KB_MAX, TARGET_KB_MIN, clampTargetKb } from '@/utils/targetSize';
+import { DPI_OPTIONS } from '@/utils/dpi';
 
 const { t } = useI18n();
 
@@ -132,6 +146,9 @@ const props = defineProps({
   // EXIF der Originaldatei übernehmen (nur PNG/JPEG/WebP mit Originaldatei)
   exifAvailable: { type: Boolean, default: false },
   keepExif: { type: Boolean, default: false },
+  // Auflösung (DPI) in die Datei schreiben (nur PNG/JPEG/TIFF), null = keine Angabe
+  dpiAvailable: { type: Boolean, default: false },
+  exportDpi: { type: Number as PropType<number | null>, default: null },
 });
 
 const emit = defineEmits([
@@ -142,6 +159,12 @@ const emit = defineEmits([
   'update:targetSizeKb',
   'update:targetSizeDownscale',
   'update:keepExif',
+  'update:exportDpi',
+]);
+
+const dpiOptions = computed(() => [
+  { value: '', label: t('editor.export.dpi.none') },
+  ...DPI_OPTIONS.map((dpi) => ({ value: String(dpi), label: `${dpi} DPI` })),
 ]);
 
 const formatOptions = computed(() =>
@@ -175,6 +198,20 @@ const estimateText = computed(() => {
 </script>
 
 <style scoped lang="scss">
+.dpi-option {
+  margin-top: var(--ds-space-3);
+}
+
+.dpi-option__hint,
+.tiff-note {
+  margin: var(--ds-space-1) 0 0;
+  font-size: var(--ds-text-sm);
+  color: var(--ds-text-2);
+}
+
+.tiff-note {
+  margin-top: var(--ds-space-3);
+}
 .target-size {
   display: flex;
   flex-direction: column;

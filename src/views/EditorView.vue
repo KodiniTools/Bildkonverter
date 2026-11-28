@@ -78,7 +78,10 @@
             :is-estimating="Boolean(currentImage) && isEstimating"
             :exif-available="exifAvailable"
             :keep-exif="keepExif"
+            :dpi-available="dpiAvailable"
+            :export-dpi="exportDpi"
             @update:keep-exif="keepExif = $event"
+            @update:export-dpi="exportDpi = $event"
             @update:target-size-enabled="targetSizeEnabled = $event"
             @update:target-size-kb="targetSizeKb = $event"
             @update:target-size-downscale="targetSizeDownscale = $event"
@@ -731,6 +734,8 @@ const {
   scheduleEstimate,
   keepExif,
   exifAvailable,
+  exportDpi,
+  dpiAvailable,
   showForwardOffer,
   downloadImage,
   shareImage,
@@ -1475,6 +1480,7 @@ async function applyAdvisorHandoff({ file, preset }: AdvisorHandoff): Promise<vo
   outputFormat.value = preset.format;
   if (preset.quality !== undefined) exportQuality.value = preset.quality;
   keepExif.value = preset.keepExif;
+  exportDpi.value = preset.dpi ?? null;
   exportTransparent.value = preset.transparent;
   if (preset.width && canvas.value && preset.width < canvas.value.width) {
     const height = Math.max(

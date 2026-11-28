@@ -10,6 +10,7 @@ import { exportImage, getFormatInfo, type ExportResult } from '@/utils/exportUti
 import { saveFile } from '@/utils/saveFile';
 import { IS_DESKTOP } from '@/lib/core/desktop';
 import { canvasToBlob } from '@/utils/conversionUtils';
+import { supportsDpi } from '@/utils/dpi';
 import {
   TARGET_KB_DEFAULT,
   clampTargetKb,
@@ -96,6 +97,11 @@ export function useEditorExport({
   // Canvas-Exporte enthalten nie EXIF. Auf Wunsch werden die Metadaten der
   // Originaldatei in PNG/JPEG/WebP übernommen (Orientation = 1, ohne Vorschaubild).
   const keepExif = ref(false);
+
+  // ===== AUFLÖSUNG (DPI) =====
+  // null = keine Angabe setzen (Standard des Encoders). Gilt für PNG, JPEG und TIFF.
+  const exportDpi = ref<number | null>(null);
+  const dpiAvailable = computed(() => supportsDpi(outputFormat.value));
   const exifAvailable = computed(() => supportsExif(outputFormat.value) && !!sourceFile.value);
 
   /** Normalisierter EXIF-Block für den Export; null = entfernen/keiner vorhanden */
@@ -247,6 +253,7 @@ export function useEditorExport({
       texts: imageStore.texts || [],
       targetSize: targetSizeOptions.value,
       exif,
+      dpi: dpiAvailable.value ? exportDpi.value : null,
       download,
     });
   }
@@ -502,6 +509,8 @@ export function useEditorExport({
     scheduleEstimate,
     keepExif,
     exifAvailable,
+    exportDpi,
+    dpiAvailable,
     showForwardOffer,
     downloadImage,
     shareImage,

@@ -31,6 +31,7 @@ import { context2d } from './canvas2d';
 import { logger } from '@/utils/logger';
 import { encodeForExport, type TargetSizeOptions } from './targetSize';
 import { withExif } from './exif';
+import { setTiffDpi, supportsDpi, withDpi } from './dpi';
 import { downloadBlob as downloadBlobViaLink } from './saveFile';
 
 export { FORMAT_INFO, SUPPORTED_FORMATS, CLIENT_FORMATS, BACKEND_FORMATS };
@@ -43,6 +44,8 @@ export interface ExportOptions {
   targetSize?: TargetSizeOptions | null;
   /** Normalisierter TIFF-Block aus exif.ts; ohne bleibt die Datei EXIF-frei */
   exif?: Uint8Array | null;
+  /** Auflösung in DPI für PNG, JPEG und TIFF (dpi.ts); ohne bleibt die Angabe des Encoders */
+  dpi?: number | null;
   /** false: nur `result.blob` liefern, nicht herunterladen */
   download?: boolean;
   [key: string]: unknown;
@@ -137,6 +140,11 @@ export class ExportManager {
       texts: options.texts || [],
       ...options,
     };
+    if (!supportsDpi(format)) exportOptions.dpi = null;
+    // Übernommene EXIF-Daten dürfen keine abweichende Auflösung nennen
+    if (exportOptions.dpi && exportOptions.exif) {
+      exportOptions.exif = setTiffDpi(exportOptions.exif, exportOptions.dpi) ?? exportOptions.exif;
+    }
 
     try {
       // Format-spezifischer Export
@@ -204,7 +212,10 @@ export class ExportManager {
     options: ExportOptions = {}
   ): Promise<ExportResult> {
     // Kodierung im Web Worker (Fallback: canvas.toBlob im Hauptthread)
-    const blob = await withExif(await this.canvasToBlob(canvas, 'image/png'), options.exif);
+    const blob = await withDpi(
+      await withExif(await this.canvasToBlob(canvas, 'image/png'), options.exif),
+      options.dpi
+    );
     this.deliver(blob, `${filename}.png`, options);
 
     return {
@@ -229,9 +240,9 @@ export class ExportManager {
     if (options.targetSize) {
       return this.exportWithTargetSize(processedCanvas, 'jpeg', 'jpg', filename, quality, options);
     }
-    const blob = await withExif(
-      await this.canvasToBlob(processedCanvas, 'image/jpeg', quality),
-      options.exif
+    const blob = await withDpi(
+      await withExif(await this.canvasToBlob(processedCanvas, 'image/jpeg', quality), options.exif),
+      options.dpi
     );
     this.deliver(blob, `${filename}.jpg`, options);
 
@@ -298,16 +309,17 @@ export class ExportManager {
       undefined,
       options.exif
     );
-    this.deliver(result.blob, `${filename}.${ext}`, options);
+    const blob = await withDpi(result.blob, options.dpi);
+    this.deliver(blob, `${filename}.${ext}`, options);
 
     return {
       success: true,
       format,
       filename: `${filename}.${ext}`,
       quality: Math.round(result.quality * 100),
-      size: this.formatBytes(result.blob.size),
-      blob: result.blob,
-      bytes: result.blob.size,
+      size: this.formatBytes(blob.size),
+      blob,
+      bytes: blob.size,
       width: result.width,
       height: result.height,
       targetReached: result.reached,
@@ -323,7 +335,10 @@ export class ExportManager {
     options: ExportOptions
   ): Promise<ExportResult> {
     const blob = await this.canvasToBlob(canvas, 'image/png');
-    const tiffBlob = await ApiClient.convertImage(blob, 'tiff', filename, options);
+    const tiffBlob = await withDpi(
+      await ApiClient.convertImage(blob, 'tiff', filename, options),
+      options.dpi
+    );
     this.deliver(tiffBlob, `${filename}.tiff`, options);
 
     return {

@@ -589,6 +589,12 @@ const en: LocaleMessages = {
       exif: {
         keep: 'Keep EXIF metadata (camera, date taken, GPS)',
       },
+      dpi: {
+        label: 'Resolution (DPI)',
+        none: 'Do not set',
+        hint: 'Written into the file. The pixels stay the same, only the print size changes.',
+      },
+      tiffLzw: 'TIFF is compressed losslessly with LZW.',
     },
     formats: {
       png: {

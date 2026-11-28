@@ -117,6 +117,7 @@ export function recommendFormat(use: Use, img: ImageInfo): FormatAdvice {
         summary: 'TIFF keeps full quality for print shops without compression loss.',
         settings: [
           { name: 'Size', value: 'Original size (do not shrink)' },
+          { name: 'Resolution', value: '300 DPI (written into the file)' },
           { name: 'Max. print size', value: `${cm(img.width)} × ${cm(img.height)} cm at 300 DPI` },
           { name: 'Compression', value: 'LZW (lossless)' },
         ],
@@ -126,7 +127,6 @@ export function recommendFormat(use: Use, img: ImageInfo): FormatAdvice {
         ],
         alternative: 'JPG at 100 % if the print shop asks for JPG.',
         printShop: [
-          'Resolution: 300 DPI is common. The print shop sets it when printing, the pixel count above is what matters.',
           'Colour: ask whether CMYK is required. The editor saves in RGB, many print shops convert it themselves.',
         ],
       };

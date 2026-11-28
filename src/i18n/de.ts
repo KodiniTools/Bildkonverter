@@ -588,6 +588,12 @@ const de = {
       exif: {
         keep: 'EXIF-Metadaten erhalten (Kamera, Aufnahmedatum, GPS)',
       },
+      dpi: {
+        label: 'Auflösung (DPI)',
+        none: 'Nicht festlegen',
+        hint: 'Wird in die Datei geschrieben. Die Pixel bleiben gleich, nur die Druckgröße ändert sich.',
+      },
+      tiffLzw: 'TIFF wird verlustfrei mit LZW komprimiert.',
     },
     formats: {
       png: {

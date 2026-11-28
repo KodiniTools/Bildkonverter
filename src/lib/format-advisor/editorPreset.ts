@@ -12,6 +12,8 @@ export interface EditorPreset {
   keepExif: boolean;
   /** Transparenz beim PNG-Export erhalten */
   transparent: boolean;
+  /** Auflösung, die in die Datei geschrieben wird (PNG, JPEG, TIFF) */
+  dpi?: number;
 }
 
 /** Breite nur setzen, wenn verkleinert wird. */
@@ -60,7 +62,7 @@ export function editorPresetFor(use: Use, img: ImageInfo): EditorPreset {
             transparent: false,
           };
     case 'print':
-      return { format: 'tiff', keepExif: false, transparent: false };
+      return { format: 'tiff', keepExif: false, transparent: false, dpi: 300 };
     case 'archive':
       return img.isPhoto
         ? { format: 'tiff', keepExif: false, transparent: false }

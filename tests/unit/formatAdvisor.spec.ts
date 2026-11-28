@@ -117,11 +117,16 @@ describe('Übergabe an den Editor', () => {
 });
 
 describe('Nur zusagen, was der Editor kann', () => {
-  it('nennt DPI und CMYK beim Druck als Frage an die Druckerei, nicht als Einstellung', () => {
+  it('nennt CMYK beim Druck als Frage an die Druckerei, nicht als Einstellung', () => {
     for (const advice of [recommendFormatDe('print', photo), recommendFormat('print', photo)]) {
-      expect(advice.settings.map((s) => s.value).join(' ')).not.toMatch(/DPI$|CMYK/);
-      expect(advice.printShop?.join(' ')).toMatch(/300 DPI/);
+      expect(advice.settings.map((s) => s.value).join(' ')).not.toMatch(/CMYK/);
       expect(advice.printShop?.join(' ')).toMatch(/CMYK/);
     }
+  });
+  it('setzt 300 DPI beim Druck auch wirklich im Editor', () => {
+    expect(editorPresetFor('print', photo).dpi).toBe(300);
+    expect(recommendFormatDe('print', photo).settings.map((s) => s.value)).toContain(
+      '300 DPI (wird in die Datei geschrieben)'
+    );
   });
 });

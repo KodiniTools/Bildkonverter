@@ -116,6 +116,7 @@ export function recommendFormatDe(use: Use, img: ImageInfo): FormatAdvice {
         summary: 'TIFF behält die volle Qualität für Druckereien – ohne Kompressionsverluste.',
         settings: [
           { name: 'Größe', value: 'Originalgröße (nicht verkleinern)' },
+          { name: 'Auflösung', value: '300 DPI (wird in die Datei geschrieben)' },
           { name: 'Max. Druckgröße', value: `${cm(img.width)} × ${cm(img.height)} cm bei 300 DPI` },
           { name: 'Kompression', value: 'LZW (verlustfrei)' },
         ],
@@ -125,7 +126,6 @@ export function recommendFormatDe(use: Use, img: ImageInfo): FormatAdvice {
         ],
         alternative: 'JPG mit 100 %, falls die Druckerei JPG verlangt.',
         printShop: [
-          'Auflösung: Üblich sind 300 DPI. Die Druckerei legt sie beim Drucken fest, entscheidend ist die Pixelzahl oben.',
           'Farbe: Fragen Sie, ob CMYK nötig ist. Der Editor speichert in RGB, viele Druckereien wandeln selbst um.',
         ],
       };
